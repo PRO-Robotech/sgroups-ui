@@ -1,22 +1,22 @@
 .template_repo: &repo
   project: &ci_tmpl 'devops/ci/templates'
-  ref: &ci_tmpl_vers 'v3.7.0'
+  ref: &ci_tmpl_vers 'v3.10.0'
 
 variables:
   # Mandatory vars. Do not change this
   CI_TMPL_PROJECT: *ci_tmpl
   CI_TMPL_PROJECT_VERSION: *ci_tmpl_vers
 
-  CI_TMPL_HELM_CHARTS: 'common-deploy@v4.6.1,common-job'
-  CI_TMPL_HELM_CHART_COMMON_JOB_VERSION: 1.0.1
-  CI_TMPL_HELM_RELEASE_NAMESPACE: frontops
+  CI_TMPL_HELM_CHARTS: ${HELM_CHARTS}
+  CI_TMPL_HELM_CHART_COMMON_JOB_VERSION: ${CHART_COMMON_JOB_VERSION}
+  CI_TMPL_HELM_RELEASE_NAMESPACE: ${HELM_RELEASE_NAMESPACE}
   # List of clusters for deploy
   CI_TMPL_KUBE_CLUSTERS_DEV: ${KUBE_CLUSTERS_DEV}
   CI_TMPL_KUBE_CLUSTERS_STAGE: ''
   CI_TMPL_KUBE_CLUSTERS_PROD: ${KUBE_CLUSTERS_PROD}
 
   # Harbor project name
-  REGISTRY_PROJECT: 'swarm'
+  REGISTRY_PROJECT: ${REGISTRY_PROJECT}
 
   # Change deploy jobs appearance in pipeline
   CI_TMPL_DEPLOY_GROUPING: per-service
@@ -32,7 +32,7 @@ include:
   - <<: *repo
     file: /docker/build.yml
   - <<: *repo
-    file: /helm/deploy.yml
+    file: /helm/deploy-generate.yml
 
 stages:
   - checks
