@@ -1,0 +1,1 @@
+export { LeftMenuTemplate } from './LeftMenuTemplate'

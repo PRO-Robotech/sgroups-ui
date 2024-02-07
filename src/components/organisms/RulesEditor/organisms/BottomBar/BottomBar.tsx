@@ -1,0 +1,103 @@
+import React, { FC, useState, useEffect, useCallback } from 'react'
+import { Button, Breadcrumb } from 'antd'
+import { HomeOutlined } from '@ant-design/icons'
+import { Spacer } from 'components'
+import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule } from 'localTypes/rules'
+import { ChangesBlock } from '../../molecules'
+import { Styled } from './styled'
+
+type TBottomBarProps = {
+  onSubmit: () => void
+  rulesSgFrom: TFormSgRule[]
+  rulesSgTo: TFormSgRule[]
+  rulesFqdnTo: TFormFqdnRule[]
+  rulesCidrSgFrom: TFormCidrSgRule[]
+  rulesCidrSgTo: TFormCidrSgRule[]
+  centerSg?: string
+}
+
+export const BottomBar: FC<TBottomBarProps> = ({
+  centerSg,
+  onSubmit,
+  rulesSgFrom,
+  rulesSgTo,
+  rulesFqdnTo,
+  rulesCidrSgFrom,
+  rulesCidrSgTo,
+}) => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  const [isResizable, setIsResizable] = useState(false)
+  const [containerHeight, setContainerHeight] = useState<number>()
+
+  const handleResize = () => {
+    setIsResizable(true)
+  }
+
+  const handleMouseUp = () => {
+    setIsResizable(false)
+  }
+
+  const handleMouseMove = useCallback(
+    (event: MouseEventInit) => {
+      if (isResizable) {
+        if (event.clientY) {
+          setContainerHeight(document.documentElement.clientHeight - event.clientY)
+        }
+      }
+    },
+    [isResizable],
+  )
+
+  useEffect(() => {
+    document.addEventListener('mousemove', handleMouseMove)
+    document.addEventListener('mouseup', handleMouseUp)
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+    }
+  }, [isResizable, handleMouseMove])
+
+  return (
+    <Styled.Container $isOpen={isOpen} $containerHeight={containerHeight}>
+      {isOpen ? <Spacer $space={15} $samespace /> : <Styled.Resizer onMouseDown={() => handleResize()} />}
+      <Styled.FlexContainer>
+        <Styled.FlexContainerItem>
+          <Breadcrumb
+            items={[
+              {
+                href: '/',
+                title: <HomeOutlined />,
+              },
+              {
+                title: 'Editor',
+              },
+            ]}
+          />
+        </Styled.FlexContainerItem>
+        <Styled.FlexContainerItem>
+          {!isOpen && (
+            <Button type="primary" htmlType="submit" disabled={!centerSg} onClick={() => setIsOpen(true)}>
+              Submit
+            </Button>
+          )}
+        </Styled.FlexContainerItem>
+      </Styled.FlexContainer>
+      {centerSg && isOpen && (
+        <ChangesBlock
+          centerSg={centerSg}
+          rulesSgFrom={rulesSgFrom}
+          rulesSgTo={rulesSgTo}
+          rulesFqdnTo={rulesFqdnTo}
+          rulesCidrSgTo={rulesCidrSgTo}
+          rulesCidrSgFrom={rulesCidrSgFrom}
+          onClose={() => {
+            onSubmit()
+            setIsOpen(false)
+          }}
+        />
+      )}
+    </Styled.Container>
+  )
+}
