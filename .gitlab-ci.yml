@@ -1,0 +1,54 @@
+.template_repo: &repo
+  project: &ci_tmpl 'devops/ci/templates'
+  ref: &ci_tmpl_vers 'v3.7.0'
+
+variables:
+  # Mandatory vars. Do not change this
+  CI_TMPL_PROJECT: *ci_tmpl
+  CI_TMPL_PROJECT_VERSION: *ci_tmpl_vers
+
+  CI_TMPL_HELM_CHARTS: 'common-deploy@v4.6.1,common-job'
+  CI_TMPL_HELM_CHART_COMMON_JOB_VERSION: 1.0.1
+  CI_TMPL_HELM_RELEASE_NAMESPACE: frontops
+  # List of clusters for deploy
+  CI_TMPL_KUBE_CLUSTERS_DEV: ${KUBE_CLUSTERS_DEV}
+  CI_TMPL_KUBE_CLUSTERS_STAGE: ''
+  CI_TMPL_KUBE_CLUSTERS_PROD: ${KUBE_CLUSTERS_PROD}
+
+  # Harbor project name
+  REGISTRY_PROJECT: 'swarm'
+
+  # Change deploy jobs appearance in pipeline
+  CI_TMPL_DEPLOY_GROUPING: per-service
+  GIT_STRATEGY: clone
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_FORCE_HTTPS: "true"
+
+include:
+  - <<: *repo
+    file: /global.yml
+  - <<: *repo
+    file: /checks.yml
+  - <<: *repo
+    file: /docker/build.yml
+  - <<: *repo
+    file: /helm/deploy.yml
+
+stages:
+  - checks
+  - generate dynamic pipeline
+  - build
+  - deploy
+
+generate build:
+  variables:
+    CI_TMPL_HELM_RELEASE_NAMES: 'front-clientops'
+
+generate deploy:
+  rules:
+    - if: $CI_COMMIT_BRANCH =~ /^(dev|feature-[a-z]+-[1-9]+)$/
+      variables:
+        CI_TMPL_HELM_RELEASE_NAMES: 'front-clientops'
+    - if: "$CI_COMMIT_TAG =~ /^v([0-9]+)\\.([0-9]+)\\.([0-9]+)-?([a-zA-Z0-9\\.]*)\\+?([a-zA-Z0-9\\.]*)$/"
+      variables:
+        CI_TMPL_HELM_RELEASE_NAMES: 'front-clientops'
