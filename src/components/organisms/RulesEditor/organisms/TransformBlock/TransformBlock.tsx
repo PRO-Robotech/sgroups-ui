@@ -20,6 +20,7 @@ type TTransformBlockProps = {
   rulesCidrSgTo: TFormCidrSgRule[]
   setRulesCidrSgTo: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   setCenterSg: Dispatch<SetStateAction<string | undefined>>
+  centerSg?: string
 }
 
 export const TransformBlock: FC<TTransformBlockProps> = ({
@@ -35,6 +36,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
   setRulesCidrSgFrom,
   rulesCidrSgTo,
   setRulesCidrSgTo,
+  centerSg,
 }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
 
@@ -72,6 +74,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 rules={rulesCidrSgFrom}
                 setRules={setRulesCidrSgFrom}
                 defaultTraffic="Egress"
+                isDisabled={!centerSg}
               />
             </div>
           </Styled.CardsCol>
@@ -88,6 +91,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 popoverPosition="right"
                 rules={rulesSgTo}
                 setRules={setRulesSgTo}
+                isDisabled={!centerSg}
               />
             </div>
             <Spacer $space={100} $samespace />
@@ -98,11 +102,18 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 rules={rulesCidrSgTo}
                 setRules={setRulesCidrSgTo}
                 defaultTraffic="Ingress"
+                isDisabled={!centerSg}
               />
             </div>
             <Spacer $space={100} $samespace />
             <div id={FQDN_TO_ID}>
-              <FQDNRules title="FQDN To" popoverPosition="right" rules={rulesFqdnTo} setRules={setRulesFqdnTo} />
+              <FQDNRules
+                title="FQDN To"
+                popoverPosition="right"
+                rules={rulesFqdnTo}
+                setRules={setRulesFqdnTo}
+                isDisabled={!centerSg}
+              />
             </div>
           </Styled.CardsCol>
           <Arrows key={arrowsKey} />

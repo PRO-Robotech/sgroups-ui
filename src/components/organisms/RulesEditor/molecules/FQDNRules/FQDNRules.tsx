@@ -17,9 +17,10 @@ type TFQDNRulesProps = {
   popoverPosition: TooltipPlacement
   rules: TFormFqdnRule[]
   setRules: Dispatch<SetStateAction<TFormFqdnRule[]>>
+  isDisabled?: boolean
 }
 
-export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, setRules }) => {
+export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, setRules, isDisabled }) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -228,6 +229,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(index, values)}
+              isDisabled={isDisabled}
             />
           }
           title="FQDN"
@@ -272,7 +274,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
         placement={popoverPosition}
       >
         <Styled.FormItem>
-          <Button type="dashed" block icon={<PlusOutlined />}>
+          <Button type="dashed" block icon={<PlusOutlined />} disabled={isDisabled}>
             Add
           </Button>
         </Styled.FormItem>

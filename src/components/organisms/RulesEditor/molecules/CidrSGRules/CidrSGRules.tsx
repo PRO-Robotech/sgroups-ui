@@ -18,9 +18,17 @@ type TCidrSGRulesProps = {
   defaultTraffic: TTraffic
   rules: TFormCidrSgRule[]
   setRules: Dispatch<SetStateAction<TFormCidrSgRule[]>>
+  isDisabled?: boolean
 }
 
-export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, defaultTraffic, rules, setRules }) => {
+export const CidrSGRules: FC<TCidrSGRulesProps> = ({
+  title,
+  popoverPosition,
+  defaultTraffic,
+  rules,
+  setRules,
+  isDisabled,
+}) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -252,6 +260,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, def
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(index, values)}
               defaultTraffic={defaultTraffic}
+              isDisabled={isDisabled}
             />
           }
           title="CIDR-SG"
@@ -296,7 +305,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, def
         placement={popoverPosition}
       >
         <Styled.FormItem>
-          <Button type="dashed" block icon={<PlusOutlined />}>
+          <Button type="dashed" block icon={<PlusOutlined />} disabled={isDisabled}>
             Add
           </Button>
         </Styled.FormItem>

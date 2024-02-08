@@ -148,6 +148,7 @@ export const RulesEditor: FC = () => {
     <Styled.Container>
       <TransformBlock
         sgNames={sgNames}
+        centerSg={centerSg}
         setCenterSg={setCenterSg}
         rulesSgFrom={rulesSgFrom}
         setRulesSgFrom={setRulesSgFrom}
