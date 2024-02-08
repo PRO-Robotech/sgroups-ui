@@ -10,6 +10,12 @@ const GroupRulesNode = styled.div`
   box-shadow: 0 0 24px rgba(23, 49, 65, 0.13);
 `
 
+const Directions = styled.div`
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+`
+
 const FormItem = styled(Form.Item)`
   margin-bottom: 5px;
 
@@ -20,5 +26,6 @@ const FormItem = styled(Form.Item)`
 
 export const Styled = {
   GroupRulesNode,
+  Directions,
   FormItem,
 }
