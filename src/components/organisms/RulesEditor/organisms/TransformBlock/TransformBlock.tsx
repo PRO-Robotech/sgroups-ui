@@ -80,7 +80,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
           </Styled.CardsCol>
           <Styled.CardsCol>
             <Styled.CenterColWithMarginAuto id={CENTRAL_ID}>
-              <SelectMainSG sgNames={sgNames} onSelectMainSg={setCenterSg} />
+              <SelectMainSG sgNames={sgNames} centerSg={centerSg} onSelectMainSg={setCenterSg} />
             </Styled.CenterColWithMarginAuto>
           </Styled.CardsCol>
           <Styled.CardsCol>

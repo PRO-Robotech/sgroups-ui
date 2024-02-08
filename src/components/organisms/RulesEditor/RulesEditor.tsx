@@ -55,15 +55,18 @@ export const RulesEditor: FC = () => {
         getCidrSgRulesBySG(centerSg),
       ])
         .then(([rulesSgFrom, rulesSgTo, rulesFqdnTo, rulesCidrSg]) => {
-          const rulesSgFromMapped = rulesSgFrom.data.rules.flatMap(({ sgFrom, transport, ports, logs }) =>
-            ports.map(({ s, d }) => ({
-              sgs: [sgFrom],
-              transport,
-              portsSource: s,
-              portsDestination: d,
-              logs,
-            })),
-          )
+          /* TODO: if do not filter from blocks with centersg, saving results will double */
+          const rulesSgFromMapped = rulesSgFrom.data.rules
+            .filter(({ sgFrom }) => sgFrom !== centerSg)
+            .flatMap(({ sgFrom, transport, ports, logs }) =>
+              ports.map(({ s, d }) => ({
+                sgs: [sgFrom],
+                transport,
+                portsSource: s,
+                portsDestination: d,
+                logs,
+              })),
+            )
           const rulesSgToMapped = rulesSgTo.data.rules.flatMap(({ sgTo, transport, ports, logs }) =>
             ports.map(({ s, d }) => ({
               sgs: [sgTo],
@@ -83,6 +86,7 @@ export const RulesEditor: FC = () => {
             })),
           )
           const rulesCidrSgFromMapped = rulesCidrSg.data.rules
+            .filter(({ SG }) => SG !== centerSg)
             .filter(({ traffic }) => traffic === 'Egress')
             .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) =>
               ports.map(({ s, d }) => ({
