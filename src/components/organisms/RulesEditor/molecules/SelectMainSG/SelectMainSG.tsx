@@ -61,12 +61,7 @@ export const SelectMainSG: FC<TSelectMainSGProps> = ({ sgNames, onSelectMainSg, 
           setCurValues(allFields)
         }}
       >
-        <Styled.FormItem
-          name="name"
-          hasFeedback
-          validateTrigger="onBlur"
-          rules={[{ required: true, message: 'Please input SG name' }]}
-        >
+        <Styled.FormItem name="name">
           <Select
             showSearch
             allowClear

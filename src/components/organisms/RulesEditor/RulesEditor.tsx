@@ -131,6 +131,10 @@ export const RulesEditor: FC = () => {
     } else {
       setRulesSgFrom([])
       setRulesSgTo([])
+      setRulesFqdnTo([])
+      setRulesCidrSgFrom([])
+      setRulesCidrSgTo([])
+      setError(undefined)
     }
   }, [centerSg])
 
