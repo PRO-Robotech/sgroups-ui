@@ -59,7 +59,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={SG_FROM_ID}>
               <SGRules
                 sgNames={sgNames}
-                title="SG From"
+                title={`SG From - ${centerSg || ''}`}
                 popoverPosition="left"
                 rules={rulesSgFrom}
                 setRules={setRulesSgFrom}
@@ -69,7 +69,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <Spacer $space={100} $samespace />
             <div id={CIDR_FROM_ID}>
               <CidrSGRules
-                title="CIDR From"
+                title={`CIDR From - ${centerSg || ''}`}
                 popoverPosition="left"
                 rules={rulesCidrSgFrom}
                 setRules={setRulesCidrSgFrom}
@@ -87,7 +87,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={SG_TO_ID}>
               <SGRules
                 sgNames={sgNames}
-                title="SG To"
+                title={`${centerSg || ''} - SG To`}
                 popoverPosition="right"
                 rules={rulesSgTo}
                 setRules={setRulesSgTo}
@@ -97,7 +97,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <Spacer $space={100} $samespace />
             <div id={CIDR_TO_ID}>
               <CidrSGRules
-                title="CIDR To"
+                title={`${centerSg || ''} - CIDR To`}
                 popoverPosition="right"
                 rules={rulesCidrSgTo}
                 setRules={setRulesCidrSgTo}
@@ -108,7 +108,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <Spacer $space={100} $samespace />
             <div id={FQDN_TO_ID}>
               <FQDNRules
-                title="FQDN To"
+                title={`${centerSg || ''} - FQDN To`}
                 popoverPosition="right"
                 rules={rulesFqdnTo}
                 setRules={setRulesFqdnTo}
