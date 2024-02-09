@@ -128,8 +128,9 @@ export const upsertRules = async (
   sgRules: TSgRule[],
   fqdnRules: TFqdnRule[],
   cidrSgRules: TCidrRule[],
-): Promise<AxiosResponse | void> => {
+): Promise<AxiosResponse[] | void> => {
   if (sgRules.length > 0 || fqdnRules.length > 0 || cidrSgRules.length > 0) {
+    /* limitations of current API
     const body: {
       sgRules?: { rules: TSgRule[] }
       fqdnRules?: { rules: TFqdnRule[] }
@@ -155,7 +156,63 @@ export const upsertRules = async (
           'Content-Type': 'application/json',
         },
       },
-    )
+    ) */
+    const PromiseArr = []
+    if (sgRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            sgRules: {
+              rules: sgRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (fqdnRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            fqdnRules: {
+              rules: fqdnRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (cidrSgRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            cidrSgRules: {
+              rules: cidrSgRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    return Promise.all([...PromiseArr])
   }
   return Promise.resolve()
 }
