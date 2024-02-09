@@ -60,7 +60,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
       newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
       const modifiedFields = []
-      if (JSON.stringify(newFqdnRules[index].fqdns) !== JSON.stringify(values.fqdns)) {
+      if (JSON.stringify(newFqdnRules[index].fqdns.sort()) !== JSON.stringify(values.fqdns.sort())) {
         modifiedFields.push('fqdns')
       }
       if (newFqdnRules[index].portsSource !== values.portsSource) {

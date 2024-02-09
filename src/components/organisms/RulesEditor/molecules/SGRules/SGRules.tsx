@@ -61,7 +61,7 @@ export const SGRules: FC<TSGRulesProps> = ({ sgNames, title, popoverPosition, ru
       newSgRules[index] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
       const modifiedFields = []
-      if (JSON.stringify(newSgRules[index].sgs) !== JSON.stringify(values.sgs)) {
+      if (JSON.stringify(newSgRules[index].sgs.sort()) !== JSON.stringify(values.sgs.sort())) {
         modifiedFields.push('sgs')
       }
       if (newSgRules[index].portsSource !== values.portsSource) {
