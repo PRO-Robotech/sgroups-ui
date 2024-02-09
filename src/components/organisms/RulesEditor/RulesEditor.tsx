@@ -2,9 +2,16 @@ import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Spin } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule } from 'localTypes/rules'
+import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
 import { getSecurityGroups } from 'api/securityGroups'
-import { getRulesBySGFrom, getRulesBySGTo, getFqdnRulesBySGFrom, getCidrSgRulesBySG } from 'api/rules'
+import {
+  getRulesBySGFrom,
+  getRulesBySGTo,
+  getFqdnRulesBySGFrom,
+  getCidrSgRulesBySG,
+  getSgSgIcmpRulesBySgFrom,
+  getSgSgIcmpRulesBySgTo,
+} from 'api/rules'
 import { TransformBlock, BottomBar } from './organisms'
 import { Styled } from './styled'
 
@@ -16,6 +23,8 @@ export const RulesEditor: FC = () => {
   const [rulesFqdnTo, setRulesFqdnTo] = useState<TFormFqdnRule[]>([])
   const [rulesCidrSgFrom, setRulesCidrSgFrom] = useState<TFormCidrSgRule[]>([])
   const [rulesCidrSgTo, setRulesCidrSgTo] = useState<TFormCidrSgRule[]>([])
+  const [rulesSgSgIcmpFrom, setRulesSgSgIcmpFrom] = useState<TFormSgSgIcmpRule[]>([])
+  const [rulesSgSgIcmpTo, setRulesSgSgIcmpTo] = useState<TFormSgSgIcmpRule[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -47,14 +56,18 @@ export const RulesEditor: FC = () => {
       setRulesFqdnTo([])
       setRulesCidrSgFrom([])
       setRulesCidrSgTo([])
+      setRulesSgSgIcmpFrom([])
+      setRulesSgSgIcmpTo([])
       setError(undefined)
       Promise.all([
         getRulesBySGTo(centerSg),
         getRulesBySGFrom(centerSg),
         getFqdnRulesBySGFrom(centerSg),
         getCidrSgRulesBySG(centerSg),
+        getSgSgIcmpRulesBySgTo(centerSg),
+        getSgSgIcmpRulesBySgFrom(centerSg),
       ])
-        .then(([rulesSgFrom, rulesSgTo, rulesFqdnTo, rulesCidrSg]) => {
+        .then(([rulesSgFrom, rulesSgTo, rulesFqdnTo, rulesCidrSg, rulesSgSgIcmpFrom, rulesSgSgIcmpTo]) => {
           const rulesSgFromMapped = rulesSgFrom.data.rules.flatMap(({ sgFrom, transport, ports, logs }) =>
             ports.map(({ s, d }) => ({
               sgs: [sgFrom],
@@ -108,11 +121,21 @@ export const RulesEditor: FC = () => {
                 traffic,
               })),
             )
+          const rulesSgSgIcmpFromMapped = rulesSgSgIcmpFrom.data.rules.map(el => ({
+            ...el,
+            sg: el.SgFrom,
+          }))
+          const rulesSgSgIcmpToMapped = rulesSgSgIcmpTo.data.rules.map(el => ({
+            ...el,
+            sg: el.SgTo,
+          }))
           setRulesSgFrom(rulesSgFromMapped)
           setRulesSgTo(rulesSgToMapped)
           setRulesFqdnTo(rulesFqdnToMapped)
           setRulesCidrSgFrom(rulesCidrSgFromMapped)
           setRulesCidrSgTo(rulesCidrSgToMapped)
+          setRulesSgSgIcmpFrom(rulesSgSgIcmpFromMapped)
+          setRulesSgSgIcmpTo(rulesSgSgIcmpToMapped)
         })
         .catch((error: AxiosError<TRequestErrorData>) => {
           setIsLoading(false)
@@ -130,6 +153,8 @@ export const RulesEditor: FC = () => {
       setRulesFqdnTo([])
       setRulesCidrSgFrom([])
       setRulesCidrSgTo([])
+      setRulesSgSgIcmpFrom([])
+      setRulesSgSgIcmpTo([])
       setError(undefined)
     }
   }, [centerSg])
@@ -164,6 +189,10 @@ export const RulesEditor: FC = () => {
         setRulesCidrSgFrom={setRulesCidrSgFrom}
         rulesCidrSgTo={rulesCidrSgTo}
         setRulesCidrSgTo={setRulesCidrSgTo}
+        rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
+        setRulesSgSgIcmpFrom={setRulesSgSgIcmpFrom}
+        rulesSgSgIcmpTo={rulesSgSgIcmpTo}
+        setRulesSgSgIcmpTo={setRulesSgSgIcmpTo}
       />
       <BottomBar
         centerSg={centerSg}
@@ -173,6 +202,8 @@ export const RulesEditor: FC = () => {
         rulesFqdnTo={rulesFqdnTo}
         rulesCidrSgTo={rulesCidrSgTo}
         rulesCidrSgFrom={rulesCidrSgFrom}
+        rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
+        rulesSgSgIcmpTo={rulesSgSgIcmpTo}
       />
     </Styled.Container>
   )

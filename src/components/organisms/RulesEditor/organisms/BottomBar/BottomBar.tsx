@@ -2,7 +2,7 @@ import React, { FC, useState, useEffect, useCallback } from 'react'
 import { Button, Breadcrumb } from 'antd'
 import { HomeOutlined } from '@ant-design/icons'
 import { Spacer } from 'components'
-import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule } from 'localTypes/rules'
+import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
 import { ChangesBlock } from '../../molecules'
 import { Styled } from './styled'
 
@@ -13,6 +13,8 @@ type TBottomBarProps = {
   rulesFqdnTo: TFormFqdnRule[]
   rulesCidrSgFrom: TFormCidrSgRule[]
   rulesCidrSgTo: TFormCidrSgRule[]
+  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
+  rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
   centerSg?: string
 }
 
@@ -24,6 +26,8 @@ export const BottomBar: FC<TBottomBarProps> = ({
   rulesFqdnTo,
   rulesCidrSgFrom,
   rulesCidrSgTo,
+  rulesSgSgIcmpFrom,
+  rulesSgSgIcmpTo,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -92,6 +96,8 @@ export const BottomBar: FC<TBottomBarProps> = ({
           rulesFqdnTo={rulesFqdnTo}
           rulesCidrSgTo={rulesCidrSgTo}
           rulesCidrSgFrom={rulesCidrSgFrom}
+          rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
+          rulesSgSgIcmpTo={rulesSgSgIcmpTo}
           onClose={() => {
             setIsOpen(false)
           }}

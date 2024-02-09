@@ -1,10 +1,20 @@
 import React, { FC, Dispatch, SetStateAction, useState, useEffect } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { Spacer } from 'components'
-import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule } from 'localTypes/rules'
-import { SGRules, FQDNRules, SelectMainSG, CidrSGRules } from '../../molecules'
+import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
+import { SGRules, FQDNRules, SelectMainSG, CidrSGRules, SgSgIcmpRules } from '../../molecules'
 import { Arrows } from './molecules'
-import { CARDS_CONTAINER, SG_FROM_ID, CIDR_FROM_ID, CENTRAL_ID, SG_TO_ID, CIDR_TO_ID, FQDN_TO_ID } from './constants'
+import {
+  CARDS_CONTAINER,
+  SG_FROM_ID,
+  SG_SG_ICMP_FROM_ID,
+  CIDR_FROM_ID,
+  CENTRAL_ID,
+  SG_TO_ID,
+  SG_SG_ICMP_TO_ID,
+  CIDR_TO_ID,
+  FQDN_TO_ID,
+} from './constants'
 import { Styled } from './styled'
 
 type TTransformBlockProps = {
@@ -19,6 +29,10 @@ type TTransformBlockProps = {
   setRulesCidrSgFrom: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   rulesCidrSgTo: TFormCidrSgRule[]
   setRulesCidrSgTo: Dispatch<SetStateAction<TFormCidrSgRule[]>>
+  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
+  setRulesSgSgIcmpFrom: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+  rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
+  setRulesSgSgIcmpTo: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
   setCenterSg: Dispatch<SetStateAction<string | undefined>>
   centerSg?: string
 }
@@ -36,6 +50,10 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
   setRulesCidrSgFrom,
   rulesCidrSgTo,
   setRulesCidrSgTo,
+  rulesSgSgIcmpFrom,
+  setRulesSgSgIcmpFrom,
+  rulesSgSgIcmpTo,
+  setRulesSgSgIcmpTo,
   centerSg,
 }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
@@ -70,6 +88,20 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
               />
             </div>
             <Spacer $space={100} $samespace />
+            <div id={SG_SG_ICMP_FROM_ID}>
+              <SgSgIcmpRules
+                sgNames={sgNames}
+                title={`SG ICMP From - ${centerSg || ''}`}
+                popoverPosition="left"
+                rules={rulesSgSgIcmpFrom}
+                setRules={setRulesSgSgIcmpFrom}
+                rulesOtherside={rulesSgSgIcmpTo}
+                setRulesOtherside={setRulesSgSgIcmpTo}
+                centerSg={centerSg}
+                isDisabled
+              />
+            </div>
+            <Spacer $space={100} $samespace />
             <div id={CIDR_FROM_ID}>
               <CidrSGRules
                 title={`CIDR From - ${centerSg || ''}`}
@@ -96,6 +128,20 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 setRules={setRulesSgTo}
                 rulesOtherside={rulesSgFrom}
                 setRulesOtherside={setRulesSgFrom}
+                centerSg={centerSg}
+                isDisabled={!centerSg}
+              />
+            </div>
+            <Spacer $space={100} $samespace />
+            <div id={SG_SG_ICMP_TO_ID}>
+              <SgSgIcmpRules
+                sgNames={sgNames}
+                title={`${centerSg || ''} - SG ICMP To`}
+                popoverPosition="right"
+                rules={rulesSgSgIcmpTo}
+                setRules={setRulesSgSgIcmpTo}
+                rulesOtherside={rulesSgSgIcmpFrom}
+                setRulesOtherside={setRulesSgSgIcmpFrom}
                 centerSg={centerSg}
                 isDisabled={!centerSg}
               />

@@ -12,8 +12,8 @@ const GroupRulesNode = styled.div`
 
 const Directions = styled.div`
   display: flex;
-  width: 100%;
   justify-content: space-between;
+  width: 100%;
 `
 
 const FormItem = styled(Form.Item)`

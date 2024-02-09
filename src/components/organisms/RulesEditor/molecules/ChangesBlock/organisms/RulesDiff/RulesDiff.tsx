@@ -1,8 +1,13 @@
 import React, { FC, Fragment } from 'react'
 import { Typography } from 'antd'
 import { TitleWithNoTopMargin } from 'components'
-import { SGTable, FQDNTable, CidrSgTable } from '../../molecules'
-import { TFormSgRuleChangesResult, TFormFqdnRuleChangesResult, TFormCidrSgRuleChangesResult } from '../../types'
+import { SGTable, FQDNTable, CidrSgTable, SgSgIcmpTable } from '../../molecules'
+import {
+  TFormSgRuleChangesResult,
+  TFormFqdnRuleChangesResult,
+  TFormCidrSgRuleChangesResult,
+  TFormSgSgIcmpRuleChangesResult,
+} from '../../types'
 
 type TRulesDiffProps = {
   title: string
@@ -18,6 +23,10 @@ type TRulesDiffProps = {
     | {
         type: 'cidr'
         data: TFormCidrSgRuleChangesResult
+      }
+    | {
+        type: 'sgSgIcmp'
+        data: TFormSgSgIcmpRuleChangesResult
       }
 }
 
@@ -74,25 +83,51 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
     )
   }
 
+  if (compareResult.type === 'cidr') {
+    return (
+      <>
+        <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
+        {compareResult.data.newRules.length > 0 && (
+          <>
+            <Typography.Paragraph>New Rules:</Typography.Paragraph>
+            <CidrSgTable rules={compareResult.data.newRules} />
+          </>
+        )}
+        {compareResult.data.diffRules.length > 0 && (
+          <>
+            <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
+            <CidrSgTable rules={compareResult.data.diffRules} />
+          </>
+        )}
+        {compareResult.data.deletedRules.length > 0 && (
+          <>
+            <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
+            <CidrSgTable rules={compareResult.data.deletedRules} />
+          </>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
       <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
       {compareResult.data.newRules.length > 0 && (
         <>
           <Typography.Paragraph>New Rules:</Typography.Paragraph>
-          <CidrSgTable rules={compareResult.data.newRules} />
+          <SgSgIcmpTable rules={compareResult.data.newRules} />
         </>
       )}
       {compareResult.data.diffRules.length > 0 && (
         <>
           <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-          <CidrSgTable rules={compareResult.data.diffRules} />
+          <SgSgIcmpTable rules={compareResult.data.diffRules} />
         </>
       )}
       {compareResult.data.deletedRules.length > 0 && (
         <>
           <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-          <CidrSgTable rules={compareResult.data.deletedRules} />
+          <SgSgIcmpTable rules={compareResult.data.deletedRules} />
         </>
       )}
     </>

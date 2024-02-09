@@ -45,6 +45,25 @@ export type TCidrRulesResponse = {
   rules: TCidrRule[]
 }
 
+export type TIpVersion = 'IPv4' | 'IPv6'
+
+export type TICMPDescription = {
+  IPv: TIpVersion
+  Types: number[]
+}
+
+export type TSgSgIcmpRule = {
+  SgFrom: string
+  SgTo: string
+  logs: boolean
+  trace: boolean
+  ICMP: TICMPDescription
+}
+
+export type TSgSgIcmpRulesResponse = {
+  rules: TSgSgIcmpRule[]
+}
+
 export type TFormChangesStatuses = 'modified' | 'deleted' | 'new'
 
 type TFormChanges = {
@@ -81,6 +100,14 @@ export type TFormCidrSgRule = {
   formChanges?: TFormChanges
 }
 
+export type TFormSgSgIcmpRule = {
+  sg: string
+  logs: boolean
+  trace: boolean
+  ICMP: TICMPDescription
+  formChanges?: TFormChanges
+}
+
 export type TComposedForSubmitSgRules = {
   rules: TSgRule[]
   rulesToDelete: TSgRule[]
@@ -94,4 +121,9 @@ export type TComposedForSubmitFqdnRules = {
 export type TComposedForSubmitCidrRules = {
   rules: TCidrRule[]
   rulesToDelete: TCidrRule[]
+}
+
+export type TComposedForSubmitSgSgIcmpRules = {
+  rules: TSgSgIcmpRule[]
+  rulesToDelete: TSgSgIcmpRule[]
 }
