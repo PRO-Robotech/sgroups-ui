@@ -107,36 +107,38 @@ export const composeAllTypesOfSgRules = (
     }),
   )
 
-  rulesSgTo.forEach(({ sgs, portsSource, portsDestination, transport, logs, formChanges }) =>
-    sgs.forEach(sgTo => {
-      const rule = {
-        logs: !!logs,
-        ports: [{ s: portsSource, d: portsDestination }],
-        sgFrom: centerSg,
-        sgTo,
-        transport,
-      }
-      if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findSgRuleInResultArr(rule, result.rules)
-        if (ruleInRulesArr) {
-          if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
-            ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+  rulesSgTo
+    .filter(({ sgs }) => sgs.length !== 1 && sgs[0] !== centerSg)
+    .forEach(({ sgs, portsSource, portsDestination, transport, logs, formChanges }) =>
+      sgs.forEach(sgTo => {
+        const rule = {
+          logs: !!logs,
+          ports: [{ s: portsSource, d: portsDestination }],
+          sgFrom: centerSg,
+          sgTo,
+          transport,
+        }
+        if (formChanges?.status !== STATUSES.deleted) {
+          const ruleInRulesArr = findSgRuleInResultArr(rule, result.rules)
+          if (ruleInRulesArr) {
+            if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
+              ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+            }
+          } else {
+            result.rules.push(rule)
           }
         } else {
-          result.rules.push(rule)
-        }
-      } else {
-        const ruleInRulesArr = findSgRuleInResultArr(rule, result.rulesToDelete)
-        if (ruleInRulesArr) {
-          if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
-            ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+          const ruleInRulesArr = findSgRuleInResultArr(rule, result.rulesToDelete)
+          if (ruleInRulesArr) {
+            if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
+              ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+            }
+          } else {
+            result.rulesToDelete.push(rule)
           }
-        } else {
-          result.rulesToDelete.push(rule)
         }
-      }
-    }),
-  )
+      }),
+    )
 
   return result
 }
