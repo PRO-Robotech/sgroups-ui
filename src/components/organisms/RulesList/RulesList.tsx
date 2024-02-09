@@ -4,35 +4,40 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { DeleteOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
-import { getRules, removeRule, getFqdnRules, removeFqdnRule } from 'api/rules'
+import { getRules, removeRule, getFqdnRules, removeFqdnRule, getCidrSgRules, removeCidrSgRule } from 'api/rules'
 import { ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TSgRule, TFqdnRule } from 'localTypes/rules'
+import { TSgRule, TFqdnRule, TCidrRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
 export const RulesList: FC = () => {
   const [rules, setRules] = useState<TSgRule[]>([])
   const [fqdnRules, setFqdnRules] = useState<TFqdnRule[]>([])
+  const [cidrRules, setCidrRules] = useState<TCidrRule[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [deleteErrorFqdn, setDeleteErrorFqdn] = useState<TRequestError | undefined>()
+  const [deleteErrorCidr, setDeleteErrorCidr] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [isModalOpenFqdn, setIsModalOpenFqdn] = useState<boolean>(false)
+  const [isModalOpenCidr, setIsModalOpenCidr] = useState<boolean>(false)
   const [pendingToDeleteRule, setPendingToDeleteRule] = useState<{ sgFrom: string; sgTo: string }>()
   const [pendingToDeleteFqdnRule, setPendingToDeleteFqdnRule] = useState<{ sgFrom: string; fqdn: string }>()
+  const [pendingToDeleteCidrRule, setPendingToDeleteCidrRule] = useState<{ sg: string; cidr: string }>()
   const history = useHistory()
 
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
-    Promise.all([getRules(), getFqdnRules()])
-      .then(([value1, value2]) => {
+    Promise.all([getRules(), getFqdnRules(), getCidrSgRules()])
+      .then(([value1, value2, value3]) => {
         setIsLoading(false)
         setRules(value1.data.rules)
         setFqdnRules(value2.data.rules)
+        setCidrRules(value3.data.rules)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -49,7 +54,7 @@ export const RulesList: FC = () => {
   const removeRuleFromList = (sgFrom: string, sgTo: string) => {
     removeRule(sgFrom, sgTo)
       .then(() => {
-        setRules([...rules].filter(el => el.sgFrom !== sgFrom && el.sgTo !== sgTo))
+        setRules([...rules].filter(el => !(el.sgFrom === sgFrom && el.sgTo === sgTo)))
         setIsModalOpen(false)
         setPendingToDeleteRule(undefined)
         setDeleteError(undefined)
@@ -69,7 +74,7 @@ export const RulesList: FC = () => {
   const removeFqdnRuleFromList = (sg: string, fqdn: string) => {
     removeFqdnRule(sg, fqdn)
       .then(() => {
-        setFqdnRules([...fqdnRules].filter(el => el.sgFrom !== sg && el.FQDN !== fqdn))
+        setFqdnRules([...fqdnRules].filter(el => !(el.sgFrom === sg && el.FQDN === fqdn)))
         setIsModalOpenFqdn(false)
         setPendingToDeleteFqdnRule(undefined)
         setDeleteErrorFqdn(undefined)
@@ -86,6 +91,26 @@ export const RulesList: FC = () => {
       })
   }
 
+  const removeCidrRuleFromList = (sg: string, cidr: string) => {
+    removeCidrSgRule(sg, cidr)
+      .then(() => {
+        setCidrRules([...cidrRules].filter(el => !(el.SG === sg && el.CIDR === cidr)))
+        setIsModalOpenCidr(false)
+        setPendingToDeleteCidrRule(undefined)
+        setDeleteErrorCidr(undefined)
+      })
+      .catch((error: AxiosError<TRequestErrorData>) => {
+        setIsLoading(false)
+        if (error.response) {
+          setDeleteErrorCidr({ status: error.response.status, data: error.response.data })
+        } else if (error.status) {
+          setDeleteErrorCidr({ status: error.status })
+        } else {
+          setDeleteErrorCidr({ status: 'Error while fetching' })
+        }
+      })
+  }
+
   const openRemoveRuleModal = (sgFrom: string, sgTo: string) => {
     setPendingToDeleteRule({ sgFrom, sgTo })
     setIsModalOpen(true)
@@ -94,6 +119,11 @@ export const RulesList: FC = () => {
   const openRemoveFqdnRuleModal = (sgFrom: string, fqdn: string) => {
     setPendingToDeleteFqdnRule({ sgFrom, fqdn })
     setIsModalOpenFqdn(true)
+  }
+
+  const openRemoveCidrRuleModal = (sg: string, cidr: string) => {
+    setPendingToDeleteCidrRule({ sg, cidr })
+    setIsModalOpenCidr(true)
   }
 
   if (error) {
@@ -125,7 +155,13 @@ export const RulesList: FC = () => {
       dataIndex: 'ports',
       key: 'ports',
       width: 70,
-      render: (_, { ports }) => <Styled.PortsContainer>{ports.map(({ s, d }) => `${s} : ${d}`)}</Styled.PortsContainer>,
+      render: (_, { ports }) => (
+        <Styled.PortsContainer>
+          {ports.map(({ s, d }) => (
+            <p key={s + d}>{`${s || 'any'} : ${d || 'any'}`}</p>
+          ))}
+        </Styled.PortsContainer>
+      ),
     },
     {
       title: 'Logs',
@@ -145,10 +181,7 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TSgRule) => (
-        <>
-          <EditOutlined onClick={() => history.push(`/rules/edit/${record.sgFrom}/${record.sgTo}`)} />{' '}
-          <DeleteOutlined onClick={() => openRemoveRuleModal(record.sgFrom, record.sgTo)} />
-        </>
+        <DeleteOutlined onClick={() => openRemoveRuleModal(record.sgFrom, record.sgTo)} />
       ),
     },
   ]
@@ -195,10 +228,67 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TFqdnRule) => (
-        <>
-          <EditOutlined onClick={() => history.push(`/rules/edit/${record.sgFrom}/${record.FQDN}`)} />{' '}
-          <DeleteOutlined onClick={() => openRemoveFqdnRuleModal(record.sgFrom, record.FQDN)} />
-        </>
+        <DeleteOutlined onClick={() => openRemoveFqdnRuleModal(record.sgFrom, record.FQDN)} />
+      ),
+    },
+  ]
+
+  type TCidrRuleColumn = TCidrRule & {
+    key: string
+  }
+
+  const columnsCidr: ColumnsType<TCidrRuleColumn> = [
+    {
+      title: 'SG',
+      dataIndex: 'sg',
+      key: 'SG',
+      width: 150,
+    },
+    {
+      title: 'CIDR',
+      dataIndex: 'CIDR',
+      key: 'CIDR',
+      width: 150,
+    },
+    {
+      title: 'Ports',
+      dataIndex: 'ports',
+      key: 'ports',
+      width: 70,
+      render: (_, { ports }) => <div>{ports.map(({ s, d }) => `${s} - ${d}`)}</div>,
+    },
+    {
+      title: 'Logs',
+      dataIndex: 'logs',
+      key: 'logs',
+      width: 150,
+      render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
+    },
+    {
+      title: 'Trace',
+      dataIndex: 'trace',
+      key: 'trace',
+      width: 150,
+      render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
+    },
+    {
+      title: 'Traffic',
+      dataIndex: 'traffic',
+      key: 'traffic',
+      width: 150,
+    },
+    {
+      title: 'Transport',
+      dataIndex: 'transport',
+      key: 'transport',
+      width: 150,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      width: 150,
+      render: (_, record: TCidrRule) => (
+        <DeleteOutlined onClick={() => openRemoveCidrRuleModal(record.SG, record.CIDR)} />
       ),
     },
   ]
@@ -212,33 +302,53 @@ export const RulesList: FC = () => {
           Editor
         </Button>
         <Spacer $space={25} $samespace />
-        <TitleWithNoTopMargin level={3}>SG-to-SG Rules</TitleWithNoTopMargin>
+        <TitleWithNoTopMargin level={3}>SG Rules</TitleWithNoTopMargin>
         {!rules.length && !error && !isLoading && <Empty />}
-        <Table
-          pagination={{
-            position: ['bottomCenter'],
-            showQuickJumper: true,
-            showSizeChanger: false,
-            defaultPageSize: ITEMS_PER_PAGE,
-          }}
-          dataSource={rules.map(row => ({ ...row, key: `${row.sgFrom}${row.sgTo}` }))}
-          columns={columns}
-          scroll={{ x: 'max-content' }}
-        />
+        {rules.length > 0 && (
+          <Table
+            pagination={{
+              position: ['bottomCenter'],
+              showQuickJumper: true,
+              showSizeChanger: false,
+              defaultPageSize: ITEMS_PER_PAGE,
+            }}
+            dataSource={rules.map(row => ({ ...row, key: `${row.sgFrom}${row.sgTo}` }))}
+            columns={columns}
+            scroll={{ x: 'max-content' }}
+          />
+        )}
         <Spacer $space={15} $samespace />
         <TitleWithNoTopMargin level={3}>SG-to-FQDN Rules</TitleWithNoTopMargin>
         {!fqdnRules.length && !error && !isLoading && <Empty />}
-        <Table
-          pagination={{
-            position: ['bottomCenter'],
-            showQuickJumper: true,
-            showSizeChanger: false,
-            defaultPageSize: ITEMS_PER_PAGE,
-          }}
-          dataSource={fqdnRules.map(row => ({ ...row, key: `${row.sgFrom}${row.FQDN}` }))}
-          columns={columnsFqdn}
-          scroll={{ x: 'max-content' }}
-        />
+        {fqdnRules.length > 0 && (
+          <Table
+            pagination={{
+              position: ['bottomCenter'],
+              showQuickJumper: true,
+              showSizeChanger: false,
+              defaultPageSize: ITEMS_PER_PAGE,
+            }}
+            dataSource={fqdnRules.map(row => ({ ...row, key: `${row.sgFrom}${row.FQDN}` }))}
+            columns={columnsFqdn}
+            scroll={{ x: 'max-content' }}
+          />
+        )}{' '}
+        <Spacer $space={15} $samespace />
+        <TitleWithNoTopMargin level={3}>SG-to-CIDR Rules</TitleWithNoTopMargin>
+        {!cidrRules.length && !error && !isLoading && <Empty />}
+        {cidrRules.length > 0 && (
+          <Table
+            pagination={{
+              position: ['bottomCenter'],
+              showQuickJumper: true,
+              showSizeChanger: false,
+              defaultPageSize: ITEMS_PER_PAGE,
+            }}
+            dataSource={cidrRules.map(row => ({ ...row, key: `${row.SG}${row.CIDR}` }))}
+            columns={columnsCidr}
+            scroll={{ x: 'max-content' }}
+          />
+        )}
       </Card>
       <Modal
         title="Delete rule"
@@ -273,6 +383,25 @@ export const RulesList: FC = () => {
         </p>
         {deleteErrorFqdn && (
           <Result status="error" title={deleteErrorFqdn.status} subTitle={deleteErrorFqdn.data?.message} />
+        )}
+      </Modal>
+      <Modal
+        title="Delete cidr rule"
+        open={isModalOpenCidr}
+        onOk={() =>
+          pendingToDeleteCidrRule && removeCidrRuleFromList(pendingToDeleteCidrRule.sg, pendingToDeleteCidrRule.cidr)
+        }
+        confirmLoading={isLoading}
+        onCancel={() => {
+          setIsModalOpenCidr(false)
+          setDeleteErrorCidr(undefined)
+        }}
+      >
+        <p>
+          Are you sure you want to delete cidr rule: {pendingToDeleteCidrRule?.sg} - {pendingToDeleteCidrRule?.cidr}
+        </p>
+        {deleteErrorCidr && (
+          <Result status="error" title={deleteErrorCidr.status} subTitle={deleteErrorCidr.data?.message} />
         )}
       </Modal>
     </>
