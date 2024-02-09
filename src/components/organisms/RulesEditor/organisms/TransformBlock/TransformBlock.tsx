@@ -63,6 +63,9 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 popoverPosition="left"
                 rules={rulesSgFrom}
                 setRules={setRulesSgFrom}
+                rulesOtherside={rulesSgTo}
+                setRulesOtherside={setRulesSgTo}
+                centerSg={centerSg}
                 isDisabled
               />
             </div>
@@ -91,6 +94,9 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 popoverPosition="right"
                 rules={rulesSgTo}
                 setRules={setRulesSgTo}
+                rulesOtherside={rulesSgFrom}
+                setRulesOtherside={setRulesSgFrom}
+                centerSg={centerSg}
                 isDisabled={!centerSg}
               />
             </div>
