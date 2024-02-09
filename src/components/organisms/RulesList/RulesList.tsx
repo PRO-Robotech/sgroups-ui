@@ -54,7 +54,7 @@ export const RulesList: FC = () => {
   const removeRuleFromList = (sgFrom: string, sgTo: string) => {
     removeRule(sgFrom, sgTo)
       .then(() => {
-        setRules([...rules].filter(el => !(el.sgFrom === sgFrom && el.sgTo === sgTo)))
+        setRules([...rules].filter(el => el.sgFrom !== sgFrom || el.sgTo !== sgTo))
         setIsModalOpen(false)
         setPendingToDeleteRule(undefined)
         setDeleteError(undefined)
@@ -74,7 +74,7 @@ export const RulesList: FC = () => {
   const removeFqdnRuleFromList = (sg: string, fqdn: string) => {
     removeFqdnRule(sg, fqdn)
       .then(() => {
-        setFqdnRules([...fqdnRules].filter(el => !(el.sgFrom === sg && el.FQDN === fqdn)))
+        setFqdnRules([...fqdnRules].filter(el => el.sgFrom !== sg || el.FQDN !== fqdn))
         setIsModalOpenFqdn(false)
         setPendingToDeleteFqdnRule(undefined)
         setDeleteErrorFqdn(undefined)
@@ -94,7 +94,7 @@ export const RulesList: FC = () => {
   const removeCidrRuleFromList = (sg: string, cidr: string) => {
     removeCidrSgRule(sg, cidr)
       .then(() => {
-        setCidrRules([...cidrRules].filter(el => !(el.SG === sg && el.CIDR === cidr)))
+        setCidrRules([...cidrRules].filter(el => el.SG !== sg || el.CIDR !== cidr))
         setIsModalOpenCidr(false)
         setPendingToDeleteCidrRule(undefined)
         setDeleteErrorCidr(undefined)
