@@ -9,7 +9,7 @@ export const getNetworkByName = (name: string): Promise<AxiosResponse<TNWRespons
   axios.post<TNWResponse>(
     `${getBaseEndpoint()}/v1/list/networks`,
     {
-      networkNames: [name],
+      neteworkNames: [name],
     },
     {
       headers: {
