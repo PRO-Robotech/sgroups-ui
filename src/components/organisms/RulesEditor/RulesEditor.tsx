@@ -127,6 +127,10 @@ export const RulesEditor: FC = () => {
     } else {
       setRulesSgFrom([])
       setRulesSgTo([])
+      setRulesFqdnTo([])
+      setRulesCidrSgFrom([])
+      setRulesCidrSgTo([])
+      setError(undefined)
     }
   }, [centerSg])
 
@@ -148,6 +152,7 @@ export const RulesEditor: FC = () => {
     <Styled.Container>
       <TransformBlock
         sgNames={sgNames}
+        centerSg={centerSg}
         setCenterSg={setCenterSg}
         rulesSgFrom={rulesSgFrom}
         setRulesSgFrom={setRulesSgFrom}

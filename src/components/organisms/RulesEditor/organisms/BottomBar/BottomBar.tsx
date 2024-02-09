@@ -93,6 +93,9 @@ export const BottomBar: FC<TBottomBarProps> = ({
           rulesCidrSgTo={rulesCidrSgTo}
           rulesCidrSgFrom={rulesCidrSgFrom}
           onClose={() => {
+            setIsOpen(false)
+          }}
+          onSubmit={() => {
             onSubmit()
             setIsOpen(false)
           }}

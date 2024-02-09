@@ -25,23 +25,21 @@ export const addSecurityGroup = async (
   logs: boolean,
   trace: boolean,
 ): Promise<AxiosResponse> => {
-  const currentSecurityGroups = (await getSecurityGroups()).data.groups
-  const newSecurityGroups = [
-    ...currentSecurityGroups,
-    {
-      defaultAction,
-      logs,
-      name,
-      networks,
-      trace,
-    },
-  ]
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       groups: {
-        groups: newSecurityGroups,
+        groups: [
+          {
+            defaultAction,
+            logs,
+            name,
+            networks,
+            trace,
+          },
+        ],
       },
+      syncOp: 'Upsert',
     },
     {
       headers: {
@@ -53,13 +51,14 @@ export const addSecurityGroup = async (
 
 export const removeSecurityGroup = async (name: string): Promise<AxiosResponse> => {
   const currentSecurityGroups = (await getSecurityGroups()).data.groups
-  const newSecurityGroups = [...currentSecurityGroups].filter(el => el.name !== name)
+  const deletedSecurityGroups = [...currentSecurityGroups].filter(el => el.name === name)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       groups: {
-        groups: newSecurityGroups,
+        groups: deletedSecurityGroups,
       },
+      syncOp: 'Delete',
     },
     {
       headers: {
@@ -76,22 +75,22 @@ export const editSecurityGroup = async (
   logs: boolean,
   trace: boolean,
 ): Promise<AxiosResponse> => {
-  const securityGroups = (await getSecurityGroups()).data.groups
-  const newSecurityGroups = [...securityGroups]
-  const editedSecurityGroupIndex = newSecurityGroups.findIndex(el => el.name === name)
-  newSecurityGroups[editedSecurityGroupIndex] = {
-    name,
-    defaultAction,
-    networks,
-    logs,
-    trace,
-  }
+  const modifiedSecurityGroups = [
+    {
+      name,
+      defaultAction,
+      networks,
+      logs,
+      trace,
+    },
+  ]
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       groups: {
-        groups: newSecurityGroups,
+        groups: modifiedSecurityGroups,
       },
+      syncOp: 'Upsert',
     },
     {
       headers: {

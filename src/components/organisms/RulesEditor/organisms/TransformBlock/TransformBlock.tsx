@@ -20,6 +20,7 @@ type TTransformBlockProps = {
   rulesCidrSgTo: TFormCidrSgRule[]
   setRulesCidrSgTo: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   setCenterSg: Dispatch<SetStateAction<string | undefined>>
+  centerSg?: string
 }
 
 export const TransformBlock: FC<TTransformBlockProps> = ({
@@ -35,6 +36,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
   setRulesCidrSgFrom,
   rulesCidrSgTo,
   setRulesCidrSgTo,
+  centerSg,
 }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
 
@@ -57,52 +59,67 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={SG_FROM_ID}>
               <SGRules
                 sgNames={sgNames}
-                title="SG From"
+                title={`SG From - ${centerSg || ''}`}
                 popoverPosition="left"
                 rules={rulesSgFrom}
                 setRules={setRulesSgFrom}
+                rulesOtherside={rulesSgTo}
+                setRulesOtherside={setRulesSgTo}
+                centerSg={centerSg}
                 isDisabled
               />
             </div>
             <Spacer $space={100} $samespace />
             <div id={CIDR_FROM_ID}>
               <CidrSGRules
-                title="CIDR From"
+                title={`CIDR From - ${centerSg || ''}`}
                 popoverPosition="left"
                 rules={rulesCidrSgFrom}
                 setRules={setRulesCidrSgFrom}
                 defaultTraffic="Egress"
+                isDisabled={!centerSg}
               />
             </div>
           </Styled.CardsCol>
           <Styled.CardsCol>
             <Styled.CenterColWithMarginAuto id={CENTRAL_ID}>
-              <SelectMainSG sgNames={sgNames} onSelectMainSg={setCenterSg} />
+              <SelectMainSG sgNames={sgNames} centerSg={centerSg} onSelectMainSg={setCenterSg} />
             </Styled.CenterColWithMarginAuto>
           </Styled.CardsCol>
           <Styled.CardsCol>
             <div id={SG_TO_ID}>
               <SGRules
                 sgNames={sgNames}
-                title="SG To"
+                title={`${centerSg || ''} - SG To`}
                 popoverPosition="right"
                 rules={rulesSgTo}
                 setRules={setRulesSgTo}
+                rulesOtherside={rulesSgFrom}
+                setRulesOtherside={setRulesSgFrom}
+                centerSg={centerSg}
+                isDisabled={!centerSg}
               />
             </div>
             <Spacer $space={100} $samespace />
             <div id={CIDR_TO_ID}>
               <CidrSGRules
-                title="CIDR To"
+                title={`${centerSg || ''} - CIDR To`}
                 popoverPosition="right"
                 rules={rulesCidrSgTo}
                 setRules={setRulesCidrSgTo}
                 defaultTraffic="Ingress"
+                isDisabled={!centerSg}
               />
             </div>
             <Spacer $space={100} $samespace />
             <div id={FQDN_TO_ID}>
-              <FQDNRules title="FQDN To" popoverPosition="right" rules={rulesFqdnTo} setRules={setRulesFqdnTo} />
+              <FQDNRules
+                title={`${centerSg || ''} - FQDN To`}
+                popoverPosition="right"
+                rules={rulesFqdnTo}
+                setRules={setRulesFqdnTo}
+                isDisabled={!centerSg}
+              />
             </div>
           </Styled.CardsCol>
           <Arrows key={arrowsKey} />

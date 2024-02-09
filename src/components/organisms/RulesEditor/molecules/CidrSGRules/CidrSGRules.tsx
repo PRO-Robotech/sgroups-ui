@@ -18,9 +18,17 @@ type TCidrSGRulesProps = {
   defaultTraffic: TTraffic
   rules: TFormCidrSgRule[]
   setRules: Dispatch<SetStateAction<TFormCidrSgRule[]>>
+  isDisabled?: boolean
 }
 
-export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, defaultTraffic, rules, setRules }) => {
+export const CidrSGRules: FC<TCidrSGRulesProps> = ({
+  title,
+  popoverPosition,
+  defaultTraffic,
+  rules,
+  setRules,
+  isDisabled,
+}) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -45,6 +53,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, def
       ...rules,
       {
         ...values,
+        traffic: defaultTraffic,
         formChanges: {
           status: STATUSES.new,
         },
@@ -57,7 +66,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, def
   const editRule = (index: number, values: TFormCidrSgRule) => {
     const newCidrSgRules = [...rules]
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
-      newCidrSgRules[index] = { ...values, formChanges: { status: STATUSES.new } }
+      newCidrSgRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
       const modifiedFields = []
       if (newCidrSgRules[index].cidr !== values.cidr) {
@@ -79,9 +88,13 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, def
         modifiedFields.push('trace')
       }
       if (modifiedFields.length === 0) {
-        newCidrSgRules[index] = { ...values }
+        newCidrSgRules[index] = { ...values, traffic: defaultTraffic }
       } else {
-        newCidrSgRules[index] = { ...values, formChanges: { status: STATUSES.modified, modifiedFields } }
+        newCidrSgRules[index] = {
+          ...values,
+          traffic: defaultTraffic,
+          formChanges: { status: STATUSES.modified, modifiedFields },
+        }
       }
     }
     setRules(newCidrSgRules)
@@ -96,7 +109,11 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, def
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
-      newCidrSgRules[index] = { ...newCidrSgRules[index], formChanges: { status: STATUSES.deleted } }
+      newCidrSgRules[index] = {
+        ...newCidrSgRules[index],
+        traffic: defaultTraffic,
+        formChanges: { status: STATUSES.deleted },
+      }
       setRules(newCidrSgRules)
       toggleEditPopover(index)
     }
@@ -252,6 +269,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, def
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(index, values)}
               defaultTraffic={defaultTraffic}
+              isDisabled={isDisabled}
             />
           }
           title="CIDR-SG"
@@ -296,7 +314,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({ title, popoverPosition, def
         placement={popoverPosition}
       >
         <Styled.FormItem>
-          <Button type="dashed" block icon={<PlusOutlined />}>
+          <Button type="dashed" block icon={<PlusOutlined />} disabled={isDisabled}>
             Add
           </Button>
         </Styled.FormItem>

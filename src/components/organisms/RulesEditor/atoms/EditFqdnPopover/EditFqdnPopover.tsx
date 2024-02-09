@@ -9,9 +9,10 @@ type TEditFqdnPopoverProps = {
   hide: () => void
   remove: () => void
   edit: (values: TFormFqdnRule) => void
+  isDisabled?: boolean
 }
 
-export const EditFqdnPopover: FC<TEditFqdnPopoverProps> = ({ values, hide, remove, edit }) => {
+export const EditFqdnPopover: FC<TEditFqdnPopoverProps> = ({ values, hide, remove, edit, isDisabled }) => {
   const [addForm] = Form.useForm()
 
   useEffect(() => {
@@ -29,13 +30,14 @@ export const EditFqdnPopover: FC<TEditFqdnPopoverProps> = ({ values, hide, remov
           allowClear
           tokenSeparators={[',', ' ']}
           getPopupContainer={node => node.parentNode}
+          disabled={isDisabled}
         />
       </Styled.FormItem>
       <Styled.FormItem label="Ports Source" name="portsSource">
-        <Input placeholder="Ports Source" />
+        <Input placeholder="Ports Source" disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.FormItem label="Ports Destination" name="portsDestination">
-        <Input placeholder="Ports Destination" />
+        <Input placeholder="Ports Destination" disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.FormItem
         name="transport"
@@ -52,10 +54,11 @@ export const EditFqdnPopover: FC<TEditFqdnPopoverProps> = ({ values, hide, remov
             { label: 'UDP', value: 'UDP' },
           ]}
           getPopupContainer={node => node.parentNode}
+          disabled={isDisabled}
         />
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
-        <Switch />
+        <Switch disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>
@@ -72,11 +75,12 @@ export const EditFqdnPopover: FC<TEditFqdnPopoverProps> = ({ values, hide, remov
               remove()
               hide()
             }}
+            disabled={isDisabled}
           >
             Remove
           </Button>
         </Styled.ButtonWithRightMargin>
-        <Button type="primary" block icon={<PlusCircleOutlined />} htmlType="submit">
+        <Button type="primary" block icon={<PlusCircleOutlined />} htmlType="submit" disabled={isDisabled}>
           Save
         </Button>
       </Styled.ButtonsContainer>

@@ -40,13 +40,14 @@ export const getRulesBySGTo = (sg: string): Promise<AxiosResponse<TSgRulesRespon
 
 export const removeRule = async (sgFrom: string, sgTo: string): Promise<AxiosResponse> => {
   const currentRules = (await getRules()).data.rules
-  const newRules = [...currentRules].filter(el => el.sgFrom !== sgFrom && el.sgTo !== sgTo)
+  const removedRules = [...currentRules].filter(el => el.sgFrom === sgFrom && el.sgTo === sgTo)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       sgRules: {
-        rules: newRules,
+        rules: removedRules,
       },
+      syncOp: 'Delete',
     },
     {
       headers: {
@@ -74,13 +75,14 @@ export const getFqdnRulesBySGFrom = (sg: string): Promise<AxiosResponse<TFqdnRul
 
 export const removeFqdnRule = async (sgFrom: string, FQDN: string): Promise<AxiosResponse> => {
   const currentRules = (await getFqdnRules()).data.rules
-  const newRules = [...currentRules].filter(el => el.sgFrom !== sgFrom && el.FQDN !== FQDN)
+  const removedRules = [...currentRules].filter(el => el.sgFrom === sgFrom && el.FQDN === FQDN)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       fqdnRules: {
-        rules: newRules,
+        rules: removedRules,
       },
+      syncOp: 'Delete',
     },
     {
       headers: {
@@ -108,13 +110,14 @@ export const getCidrSgRulesBySG = (sg: string): Promise<AxiosResponse<TCidrRules
 
 export const removeCidrSgRule = async (SG: string, CIDR: string): Promise<AxiosResponse> => {
   const currentRules = (await getCidrSgRules()).data.rules
-  const newRules = [...currentRules].filter(el => el.SG !== SG && el.CIDR !== CIDR)
+  const removedRules = [...currentRules].filter(el => el.SG === SG && el.CIDR === CIDR)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       cidrSgRules: {
-        rules: newRules,
+        rules: removedRules,
       },
+      syncOp: 'Delete',
     },
     {
       headers: {
@@ -128,8 +131,9 @@ export const upsertRules = async (
   sgRules: TSgRule[],
   fqdnRules: TFqdnRule[],
   cidrSgRules: TCidrRule[],
-): Promise<AxiosResponse | void> => {
+): Promise<AxiosResponse[] | void> => {
   if (sgRules.length > 0 || fqdnRules.length > 0 || cidrSgRules.length > 0) {
+    /* limitations of current API
     const body: {
       sgRules?: { rules: TSgRule[] }
       fqdnRules?: { rules: TFqdnRule[] }
@@ -155,7 +159,63 @@ export const upsertRules = async (
           'Content-Type': 'application/json',
         },
       },
-    )
+    ) */
+    const PromiseArr = []
+    if (sgRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            sgRules: {
+              rules: sgRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (fqdnRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            fqdnRules: {
+              rules: fqdnRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (cidrSgRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            cidrSgRules: {
+              rules: cidrSgRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    return Promise.all([...PromiseArr])
   }
   return Promise.resolve()
 }

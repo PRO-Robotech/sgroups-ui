@@ -24,6 +24,7 @@ type TChangesBlockProps = {
   rulesCidrSgFrom: TFormCidrSgRule[]
   rulesCidrSgTo: TFormCidrSgRule[]
   onClose: () => void
+  onSubmit: () => void
 }
 
 export const ChangesBlock: FC<TChangesBlockProps> = ({
@@ -34,6 +35,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
   rulesCidrSgFrom,
   rulesCidrSgTo,
   onClose,
+  onSubmit,
 }) => {
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -49,13 +51,14 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
     const fqdnRules = composeAllTypesOfFqdnRules(centerSg, rulesFqdnTo)
     const cidrRules = composeAllTypesOfCidrSgRules(centerSg, rulesCidrSgFrom, rulesCidrSgTo)
 
-    Promise.all([
-      upsertRules(sgRules.rules, fqdnRules.rules, cidrRules.rules),
-      deleteRules(sgRules.rulesToDelete, fqdnRules.rulesToDelete, cidrRules.rulesToDelete),
-    ])
+    deleteRules(sgRules.rulesToDelete, fqdnRules.rulesToDelete, cidrRules.rulesToDelete)
+      .then(() => {
+        // Do not touch: Seuquence is important. Promise.All wont work properly
+        upsertRules(sgRules.rules, fqdnRules.rules, cidrRules.rules)
+      })
       .then(() => {
         setIsLoading(false)
-        onClose()
+        onSubmit()
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
