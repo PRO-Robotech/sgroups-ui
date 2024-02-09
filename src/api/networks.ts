@@ -19,22 +19,20 @@ export const getNetworkByName = (name: string): Promise<AxiosResponse<TNWRespons
   )
 
 export const addNetwork = async (name: string, cidr: string): Promise<AxiosResponse> => {
-  const currentNetworks = (await getNetworks()).data.networks
-  const newNetworks = [
-    ...currentNetworks,
-    {
-      name,
-      network: {
-        CIDR: cidr,
-      },
-    },
-  ]
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       networks: {
-        networks: newNetworks,
+        networks: [
+          {
+            name,
+            network: {
+              CIDR: cidr,
+            },
+          },
+        ],
       },
+      syncOp: 'Upsert',
     },
     {
       headers: {
@@ -46,13 +44,14 @@ export const addNetwork = async (name: string, cidr: string): Promise<AxiosRespo
 
 export const removeNetwork = async (name: string): Promise<AxiosResponse> => {
   const currentNetworks = (await getNetworks()).data.networks
-  const newNetworks = [...currentNetworks].filter(el => el.name !== name)
+  const deletedNetworks = [...currentNetworks].filter(el => el.name === name)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       networks: {
-        networks: newNetworks,
+        networks: deletedNetworks,
       },
+      syncOp: 'Delete',
     },
     {
       headers: {
@@ -63,21 +62,21 @@ export const removeNetwork = async (name: string): Promise<AxiosResponse> => {
 }
 
 export const editNetwork = async (name: string, cidr: string): Promise<AxiosResponse> => {
-  const currentNetworks = (await getNetworks()).data.networks
-  const newNetworks = [...currentNetworks]
-  const editedNetworkIndex = newNetworks.findIndex(el => el.name === name)
-  newNetworks[editedNetworkIndex] = {
-    name,
-    network: {
-      CIDR: cidr,
+  const modifiedNetworks = [
+    {
+      name,
+      network: {
+        CIDR: cidr,
+      },
     },
-  }
+  ]
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       networks: {
-        networks: newNetworks,
+        networks: modifiedNetworks,
       },
+      syncOp: 'Upsert',
     },
     {
       headers: {
