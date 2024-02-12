@@ -1,16 +1,16 @@
 import React, { FC, useEffect } from 'react'
 import { Button, Form, Select, Switch } from 'antd'
 import { PlusCircleOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons'
-import { TFormSgSgIcmpRule } from 'localTypes/rules'
+import { TFormValuesSgSgIcmpRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
 type TEditSgSgIcmpPopoverProps = {
   sgNames: string[]
-  values: TFormSgSgIcmpRule
+  values: TFormValuesSgSgIcmpRule
   hide: () => void
   remove: () => void
-  edit: (values: TFormSgSgIcmpRule) => void
+  edit: (values: TFormValuesSgSgIcmpRule) => void
   isDisabled?: boolean
 }
 
@@ -29,7 +29,7 @@ export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
   }, [values, addForm])
 
   return (
-    <Form form={addForm} onFinish={(values: TFormSgSgIcmpRule) => edit(values)}>
+    <Form form={addForm} onFinish={(values: TFormValuesSgSgIcmpRule) => edit(values)}>
       <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Name' }]}>
         <Select
           showSearch
@@ -61,6 +61,19 @@ export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
           ]}
           getPopupContainer={node => node.parentNode}
           disabled={isDisabled}
+        />
+      </Styled.FormItem>
+      <Styled.FormItem label="Types" name="types">
+        <Select
+          mode="tags"
+          showSearch
+          placeholder="Select types"
+          optionFilterProp="children"
+          allowClear
+          tokenSeparators={[',', ' ']}
+          getPopupContainer={node => node.parentNode}
+          disabled={isDisabled}
+          dropdownStyle={{ display: 'none' }}
         />
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">

@@ -1,14 +1,14 @@
 import React, { FC } from 'react'
 import { Button, Form, Select, Switch } from 'antd'
 import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
-import { TFormSgSgIcmpRule } from 'localTypes/rules'
+import { TFormValuesSgSgIcmpRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
 type TAddSgSgIcmpPopoverProps = {
   sgNames: string[]
   hide: () => void
-  addNew: (values: TFormSgSgIcmpRule) => void
+  addNew: (values: TFormValuesSgSgIcmpRule) => void
 }
 
 export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide, addNew }) => {
@@ -17,7 +17,7 @@ export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormSgSgIcmpRule) => {
+      onFinish={(values: TFormValuesSgSgIcmpRule) => {
         addNew(values)
         addForm.resetFields()
       }}
@@ -37,20 +37,32 @@ export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide
         />
       </Styled.FormItem>
       <Styled.FormItem
-        name="ICMPv"
-        label="ICMPv"
+        name="IPv"
+        label="IPv"
         hasFeedback
         validateTrigger="onBlur"
-        rules={[{ required: true, message: 'Please choose ICMPv' }]}
+        rules={[{ required: true, message: 'Please choose IPv' }]}
       >
         <Select
           allowClear
-          placeholder="ICMPv"
+          placeholder="IPv"
           options={[
-            { label: 'ICMPv6', value: 'ICMPv6' },
-            { label: 'ICMPv4', value: 'ICMPv4' },
+            { label: 'IPv6', value: 'IPv6' },
+            { label: 'IPv4', value: 'IPv4' },
           ]}
           getPopupContainer={node => node.parentNode}
+        />
+      </Styled.FormItem>
+      <Styled.FormItem label="Types" name="types">
+        <Select
+          mode="tags"
+          showSearch
+          placeholder="Select types"
+          optionFilterProp="children"
+          allowClear
+          tokenSeparators={[',', ' ']}
+          getPopupContainer={node => node.parentNode}
+          dropdownStyle={{ display: 'none' }}
         />
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">

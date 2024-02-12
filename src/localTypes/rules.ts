@@ -108,6 +108,15 @@ export type TFormSgSgIcmpRule = {
   formChanges?: TFormChanges
 }
 
+export type TFormValuesSgSgIcmpRule = {
+  sg: string
+  logs: boolean
+  trace: boolean
+  IPv: TIpVersion
+  types: number[]
+  formChanges?: TFormChanges
+}
+
 export type TComposedForSubmitSgRules = {
   rules: TSgRule[]
   rulesToDelete: TSgRule[]
