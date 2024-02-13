@@ -31,19 +31,36 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({ rules }) => {
   const columns: ColumnsType<TColumn> = [
     {
       title: 'ICMP',
-      dataIndex: 'ICMP',
-      key: 'ICMP',
+      dataIndex: 'IPv',
+      key: 'IPv',
       width: 50,
-      render: (_, { ICMP, formChanges }) => (
-        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('transport')} className="no-scroll">
-          {ICMP.IPv} / {ICMP.Types.join(',')}
+      render: (_, { IPv, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('ipv')} className="no-scroll">
+          {IPv}
         </Styled.RulesEntrySgs>
       ),
       sorter: (a, b) => {
-        if (a.ICMP.IPv === b.ICMP.IPv) {
+        if (a.IPv === b.IPv) {
           return 0
         }
-        return a.ICMP.IPv === 'IPv6' ? -1 : 1
+        return a.IPv === 'IPv6' ? -1 : 1
+      },
+    },
+    {
+      title: 'ICMP Types',
+      dataIndex: 'types',
+      key: 'types',
+      width: 50,
+      render: (_, { types, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('types')} className="no-scroll">
+          {types.join(',')}
+        </Styled.RulesEntrySgs>
+      ),
+      sorter: (a, b) => {
+        if (a.types.length === b.types.length) {
+          return 0
+        }
+        return a.types.length > b.types.length ? -1 : 1
       },
     },
     {
@@ -147,7 +164,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({ rules }) => {
       }}
       dataSource={rules.map(row => ({
         ...row,
-        key: `${row.sg}-${row.ICMP.IPv}`,
+        key: `${row.sg}-${row.IPv}`,
       }))}
       columns={columns}
       virtual

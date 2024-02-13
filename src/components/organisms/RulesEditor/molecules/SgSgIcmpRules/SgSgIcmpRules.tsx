@@ -8,7 +8,7 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
-import { TFormSgSgIcmpRule, TFormValuesSgSgIcmpRule } from 'localTypes/rules'
+import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { AddSgSgIcmpPopover, EditSgSgIcmpPopover } from '../../atoms'
 import { Styled } from '../styled'
 
@@ -54,12 +54,11 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
     setEditOpen(newEditOpen)
   }
 
-  const addNew = (values: TFormValuesSgSgIcmpRule) => {
+  const addNew = (values: TFormSgSgIcmpRule) => {
     setRules([
       ...rules,
       {
         ...values,
-        ICMP: { IPv: values.IPv, Types: values.types },
         formChanges: {
           status: STATUSES.new,
         },
@@ -71,7 +70,6 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
         ...rulesOtherside,
         {
           ...values,
-          ICMP: { IPv: values.IPv, Types: values.types },
           formChanges: {
             status: STATUSES.new,
           },
@@ -84,26 +82,24 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (index: number, values: TFormValuesSgSgIcmpRule) => {
+  const editRule = (index: number, values: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rules]
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, ICMP, logs, trace }) =>
+      ({ sg, IPv, types, logs, trace }) =>
         sg === centerSg &&
-        ICMP.IPv === newSgSgIcmpRules[index].ICMP.IPv &&
-        JSON.stringify(ICMP.Types.sort()) === JSON.stringify(newSgSgIcmpRules[index].ICMP.Types.sort()) &&
+        IPv === newSgSgIcmpRules[index].IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
         logs === newSgSgIcmpRules[index].logs &&
         trace === newSgSgIcmpRules[index].trace,
     )
     if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIcmpRules[index] = {
         ...values,
-        ICMP: { IPv: values.IPv, Types: values.types },
         formChanges: { status: STATUSES.new },
       }
       newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
         ...values,
-        ICMP: { IPv: values.IPv, Types: values.types },
         formChanges: { status: STATUSES.new },
       }
     } else {
@@ -111,10 +107,10 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
       if (newSgSgIcmpRules[index].sg !== values.sg) {
         modifiedFields.push('sg')
       }
-      if (newSgSgIcmpRules[index].ICMP.IPv !== values.IPv) {
+      if (newSgSgIcmpRules[index].IPv !== values.IPv) {
         modifiedFields.push('ICMP')
       }
-      if (JSON.stringify(newSgSgIcmpRules[index].ICMP.Types.sort()) !== JSON.stringify(values.types.sort())) {
+      if (JSON.stringify(newSgSgIcmpRules[index].types.sort()) !== JSON.stringify(values.types.sort())) {
         modifiedFields.push('ICMP')
       }
       if (newSgSgIcmpRules[index].logs !== values.logs) {
@@ -124,20 +120,17 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
         modifiedFields.push('trace')
       }
       if (modifiedFields.length === 0) {
-        newSgSgIcmpRules[index] = { ...values, ICMP: { IPv: values.IPv, Types: values.types } }
+        newSgSgIcmpRules[index] = { ...values }
         newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
           ...values,
-          ICMP: { IPv: values.IPv, Types: values.types },
         }
       } else {
         newSgSgIcmpRules[index] = {
           ...values,
-          ICMP: { IPv: values.IPv, Types: values.types },
           formChanges: { status: STATUSES.modified, modifiedFields },
         }
         newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
           ...values,
-          ICMP: { IPv: values.IPv, Types: values.types },
           formChanges: { status: STATUSES.modified, modifiedFields },
         }
       }
@@ -152,10 +145,10 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
     const newSgSgIcmpRules = [...rules]
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, ICMP, logs, trace }) =>
+      ({ sg, IPv, types, logs, trace }) =>
         sg === centerSg &&
-        ICMP.IPv === newSgSgIcmpRules[index].ICMP.IPv &&
-        JSON.stringify(ICMP.Types.sort()) === JSON.stringify(newSgSgIcmpRules[index].ICMP.Types.sort()) &&
+        IPv === newSgSgIcmpRules[index].IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
         logs === newSgSgIcmpRules[index].logs &&
         trace === newSgSgIcmpRules[index].trace,
     )
@@ -194,20 +187,29 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
 
   const columns: ColumnsType<TColumn> = [
     {
-      title: 'ICMP',
-      dataIndex: 'ICMP',
-      key: 'ICMP',
+      title: 'IPv',
+      dataIndex: 'IPv',
+      key: 'IPv',
       width: 50,
-      render: (_, { ICMP }) => (
-        <Styled.RulesEntrySgs className="no-scroll">
-          {ICMP.IPv} / {ICMP.Types.join(',')}
-        </Styled.RulesEntrySgs>
-      ),
+      render: (_, { IPv }) => <Styled.RulesEntrySgs className="no-scroll">{IPv}</Styled.RulesEntrySgs>,
       sorter: (a, b) => {
-        if (a.ICMP.IPv === b.ICMP.IPv) {
+        if (a.IPv === b.IPv) {
           return 0
         }
-        return a.ICMP.IPv === 'IPv6' ? -1 : 1
+        return a.IPv === 'IPv6' ? -1 : 1
+      },
+    },
+    {
+      title: 'Types',
+      dataIndex: 'types',
+      key: 'types',
+      width: 50,
+      render: (_, { types }) => <Styled.RulesEntrySgs className="no-scroll">{types.join(',')}</Styled.RulesEntrySgs>,
+      sorter: (a, b) => {
+        if (a.types.length === b.types.length) {
+          return 0
+        }
+        return a.types.length > b.types.length ? -1 : 1
       },
     },
     {
@@ -308,8 +310,8 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
                 sg: rules[index].sg,
                 logs: rules[index].logs,
                 trace: rules[index].trace,
-                IPv: rules[index].ICMP.IPv,
-                types: rules[index].ICMP.Types,
+                IPv: rules[index].IPv,
+                types: rules[index].types,
                 formChanges: rules[index].formChanges,
               }}
               remove={() => removeRule(index)}
@@ -345,7 +347,7 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
           .map(row => ({
             ...row,
-            key: `${row.sg}-${row.ICMP.IPv}`,
+            key: `${row.sg}-${row.IPv}`,
           }))}
         columns={columns}
         virtual

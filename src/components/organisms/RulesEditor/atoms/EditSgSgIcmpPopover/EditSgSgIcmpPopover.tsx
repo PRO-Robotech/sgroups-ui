@@ -1,16 +1,16 @@
 import React, { FC, useEffect } from 'react'
 import { Button, Form, Select, Switch } from 'antd'
 import { PlusCircleOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons'
-import { TFormValuesSgSgIcmpRule } from 'localTypes/rules'
+import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
 type TEditSgSgIcmpPopoverProps = {
   sgNames: string[]
-  values: TFormValuesSgSgIcmpRule
+  values: TFormSgSgIcmpRule
   hide: () => void
   remove: () => void
-  edit: (values: TFormValuesSgSgIcmpRule) => void
+  edit: (values: TFormSgSgIcmpRule) => void
   isDisabled?: boolean
 }
 
@@ -29,7 +29,7 @@ export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
   }, [values, addForm])
 
   return (
-    <Form form={addForm} onFinish={(values: TFormValuesSgSgIcmpRule) => edit(values)}>
+    <Form form={addForm} onFinish={(values: TFormSgSgIcmpRule) => edit(values)}>
       <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Name' }]}>
         <Select
           showSearch

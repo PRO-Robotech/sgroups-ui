@@ -292,12 +292,12 @@ export const composeAllTypesOfSgSgIcmpRules = (
     rulesToDelete: [],
   }
 
-  rulesSgSgIcmpFrom.forEach(({ sg, ICMP, trace, logs, formChanges }) => {
+  rulesSgSgIcmpFrom.forEach(({ sg, IPv, types, trace, logs, formChanges }) => {
     if (formChanges?.status !== STATUSES.deleted) {
       const rule: TSgSgIcmpRule = {
         SgFrom: sg,
         SgTo: centerSg,
-        ICMP,
+        ICMP: { IPv, Types: types },
         logs: !!logs,
         trace: !!trace,
       }
@@ -315,12 +315,12 @@ export const composeAllTypesOfSgSgIcmpRules = (
     }
   })
 
-  rulesSgSgIcmpTo.forEach(({ sg, ICMP, trace, logs, formChanges }) => {
+  rulesSgSgIcmpTo.forEach(({ sg, IPv, types, trace, logs, formChanges }) => {
     if (formChanges?.status !== STATUSES.deleted) {
       const rule = {
         SgFrom: centerSg,
         SgTo: sg,
-        ICMP,
+        ICMP: { IPv, Types: types },
         logs: !!logs,
         trace: !!trace,
       }

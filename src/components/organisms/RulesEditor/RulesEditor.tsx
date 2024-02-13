@@ -121,13 +121,19 @@ export const RulesEditor: FC = () => {
                 traffic,
               })),
             )
-          const rulesSgSgIcmpFromMapped = rulesSgSgIcmpFrom.data.rules.map(el => ({
-            ...el,
-            sg: el.SgFrom,
+          const rulesSgSgIcmpFromMapped = rulesSgSgIcmpFrom.data.rules.map(({ SgFrom, logs, trace, ICMP }) => ({
+            sg: SgFrom,
+            logs,
+            trace,
+            IPv: ICMP.IPv,
+            types: ICMP.Types,
           }))
-          const rulesSgSgIcmpToMapped = rulesSgSgIcmpTo.data.rules.map(el => ({
-            ...el,
-            sg: el.SgTo,
+          const rulesSgSgIcmpToMapped = rulesSgSgIcmpTo.data.rules.map(({ SgTo, logs, trace, ICMP }) => ({
+            sg: SgTo,
+            logs,
+            trace,
+            IPv: ICMP.IPv,
+            types: ICMP.Types,
           }))
           setRulesSgFrom(rulesSgFromMapped)
           setRulesSgTo(rulesSgToMapped)

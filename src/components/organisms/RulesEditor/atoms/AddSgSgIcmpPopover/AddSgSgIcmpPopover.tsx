@@ -1,14 +1,14 @@
 import React, { FC } from 'react'
 import { Button, Form, Select, Switch } from 'antd'
 import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
-import { TFormValuesSgSgIcmpRule } from 'localTypes/rules'
+import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
 type TAddSgSgIcmpPopoverProps = {
   sgNames: string[]
   hide: () => void
-  addNew: (values: TFormValuesSgSgIcmpRule) => void
+  addNew: (values: TFormSgSgIcmpRule) => void
 }
 
 export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide, addNew }) => {
@@ -17,7 +17,7 @@ export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormValuesSgSgIcmpRule) => {
+      onFinish={(values: TFormSgSgIcmpRule) => {
         addNew(values)
         addForm.resetFields()
       }}

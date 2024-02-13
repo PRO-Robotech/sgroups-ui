@@ -104,14 +104,6 @@ export type TFormSgSgIcmpRule = {
   sg: string
   logs: boolean
   trace: boolean
-  ICMP: TICMPDescription
-  formChanges?: TFormChanges
-}
-
-export type TFormValuesSgSgIcmpRule = {
-  sg: string
-  logs: boolean
-  trace: boolean
   IPv: TIpVersion
   types: number[]
   formChanges?: TFormChanges
