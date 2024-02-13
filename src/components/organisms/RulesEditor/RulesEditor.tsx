@@ -60,6 +60,7 @@ export const RulesEditor: FC = () => {
 
   const fetchData = (centerSg?: string) => {
     if (centerSg) {
+      setIsLoading(true)
       setRulesSgFrom([])
       setRulesSgTo([])
       setRulesFqdnTo([])
@@ -84,8 +85,10 @@ export const RulesEditor: FC = () => {
           setRulesCidrSgTo(mapRulesCidrSgTo(rulesCidrSg.data.rules))
           setRulesSgSgIcmpFrom(mapRulesSgSgIcmpFrom(rulesSgSgIcmpFrom.data.rules))
           setRulesSgSgIcmpTo(mapRulesSgSgIcmpTo(rulesSgSgIcmpTo.data.rules))
+          setIsLoading(false)
         })
         .catch((error: AxiosError<TRequestErrorData>) => {
+          setIsLoading(false)
           if (error.response) {
             setError({ status: error.response.status, data: error.response.data })
           } else if (error.status) {
@@ -120,10 +123,6 @@ export const RulesEditor: FC = () => {
     )
   }
 
-  if (isLoading) {
-    return <Spin />
-  }
-
   return (
     <Styled.Container>
       <TransformBlock
@@ -156,6 +155,11 @@ export const RulesEditor: FC = () => {
         rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
         rulesSgSgIcmpTo={rulesSgSgIcmpTo}
       />
+      {isLoading && (
+        <Styled.Loader style={{}}>
+          <Spin size="large" />
+        </Styled.Loader>
+      )}
     </Styled.Container>
   )
 }
