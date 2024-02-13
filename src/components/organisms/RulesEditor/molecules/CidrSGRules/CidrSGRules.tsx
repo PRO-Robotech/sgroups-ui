@@ -268,7 +268,6 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(index, values)}
-              defaultTraffic={defaultTraffic}
               isDisabled={isDisabled}
             />
           }
@@ -306,7 +305,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
         scroll={{ x: 'max-content' }}
       />
       <Popover
-        content={<AddCidrSgPopover hide={toggleAddPopover} addNew={addNew} defaultTraffic={defaultTraffic} />}
+        content={<AddCidrSgPopover hide={toggleAddPopover} addNew={addNew} />}
         title="SG"
         trigger="click"
         open={addOpen}
