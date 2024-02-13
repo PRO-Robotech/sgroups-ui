@@ -55,9 +55,9 @@ export const SGTable: FC<TSGTableProps> = ({ rules }) => {
       dataIndex: 'sgs',
       key: 'sgs',
       width: 150,
-      render: (_, { sgs, formChanges }) => (
-        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('sgs')} className="no-scroll">
-          {sgs.join(', ')}
+      render: (_, { sg, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('sg')} className="no-scroll">
+          {sg}
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -95,11 +95,7 @@ export const SGTable: FC<TSGTableProps> = ({ rules }) => {
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { sgs }) =>
-        sgs
-          .toString()
-          .toLowerCase()
-          .includes((value as string).toLowerCase()),
+      onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'Logs',
@@ -127,7 +123,7 @@ export const SGTable: FC<TSGTableProps> = ({ rules }) => {
       width: 50,
       render: (_, { portsSource, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -141,7 +137,7 @@ export const SGTable: FC<TSGTableProps> = ({ rules }) => {
           $modified={formChanges?.modifiedFields?.includes('portsDestination')}
           className="no-scroll"
         >
-          {portsDestination.length === 0 ? 'any' : portsDestination}
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -157,7 +153,7 @@ export const SGTable: FC<TSGTableProps> = ({ rules }) => {
       }}
       dataSource={rules.map(row => ({
         ...row,
-        key: `${row.sgs.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+        key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
       }))}
       columns={columns}
       virtual

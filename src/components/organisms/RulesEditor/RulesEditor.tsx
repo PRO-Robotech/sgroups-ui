@@ -13,6 +13,15 @@ import {
   getSgSgIcmpRulesBySgTo,
 } from 'api/rules'
 import { TransformBlock, BottomBar } from './organisms'
+import {
+  mapRulesSgFrom,
+  mapRulesSgTo,
+  mapRulesFqdnTo,
+  mapRulesCidrSgFrom,
+  mapRulesCidrSgTo,
+  mapRulesSgSgIcmpFrom,
+  mapRulesSgSgIcmpTo,
+} from './utils'
 import { Styled } from './styled'
 
 export const RulesEditor: FC = () => {
@@ -68,80 +77,13 @@ export const RulesEditor: FC = () => {
         getSgSgIcmpRulesBySgFrom(centerSg),
       ])
         .then(([rulesSgFrom, rulesSgTo, rulesFqdnTo, rulesCidrSg, rulesSgSgIcmpFrom, rulesSgSgIcmpTo]) => {
-          const rulesSgFromMapped = rulesSgFrom.data.rules.flatMap(({ sgFrom, transport, ports, logs }) =>
-            ports.map(({ s, d }) => ({
-              sgs: [sgFrom],
-              transport,
-              portsSource: s,
-              portsDestination: d,
-              logs,
-            })),
-          )
-          const rulesSgToMapped = rulesSgTo.data.rules.flatMap(({ sgTo, transport, ports, logs }) =>
-            ports.map(({ s, d }) => ({
-              sgs: [sgTo],
-              transport,
-              portsSource: s,
-              portsDestination: d,
-              logs,
-            })),
-          )
-          const rulesFqdnToMapped = rulesFqdnTo.data.rules.flatMap(({ FQDN, transport, ports, logs }) =>
-            ports.map(({ s, d }) => ({
-              fqdn: FQDN,
-              portsSource: s,
-              portsDestination: d,
-              transport,
-              logs,
-            })),
-          )
-          const rulesCidrSgFromMapped = rulesCidrSg.data.rules
-            .filter(({ traffic }) => traffic === 'Ingress')
-            .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) =>
-              ports.map(({ s, d }) => ({
-                cidr: CIDR,
-                portsSource: s,
-                portsDestination: d,
-                transport,
-                logs,
-                trace,
-                traffic,
-              })),
-            )
-          const rulesCidrSgToMapped = rulesCidrSg.data.rules
-            .filter(({ traffic }) => traffic === 'Egress')
-            .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) =>
-              ports.map(({ s, d }) => ({
-                cidr: CIDR,
-                portsSource: s,
-                portsDestination: d,
-                transport,
-                logs,
-                trace,
-                traffic,
-              })),
-            )
-          const rulesSgSgIcmpFromMapped = rulesSgSgIcmpFrom.data.rules.map(({ SgFrom, logs, trace, ICMP }) => ({
-            sg: SgFrom,
-            logs,
-            trace,
-            IPv: ICMP.IPv,
-            types: ICMP.Types,
-          }))
-          const rulesSgSgIcmpToMapped = rulesSgSgIcmpTo.data.rules.map(({ SgTo, logs, trace, ICMP }) => ({
-            sg: SgTo,
-            logs,
-            trace,
-            IPv: ICMP.IPv,
-            types: ICMP.Types,
-          }))
-          setRulesSgFrom(rulesSgFromMapped)
-          setRulesSgTo(rulesSgToMapped)
-          setRulesFqdnTo(rulesFqdnToMapped)
-          setRulesCidrSgFrom(rulesCidrSgFromMapped)
-          setRulesCidrSgTo(rulesCidrSgToMapped)
-          setRulesSgSgIcmpFrom(rulesSgSgIcmpFromMapped)
-          setRulesSgSgIcmpTo(rulesSgSgIcmpToMapped)
+          setRulesSgFrom(mapRulesSgFrom(rulesSgFrom.data.rules))
+          setRulesSgTo(mapRulesSgTo(rulesSgTo.data.rules))
+          setRulesFqdnTo(mapRulesFqdnTo(rulesFqdnTo.data.rules))
+          setRulesCidrSgFrom(mapRulesCidrSgFrom(rulesCidrSg.data.rules))
+          setRulesCidrSgTo(mapRulesCidrSgTo(rulesCidrSg.data.rules))
+          setRulesSgSgIcmpFrom(mapRulesSgSgIcmpFrom(rulesSgSgIcmpFrom.data.rules))
+          setRulesSgSgIcmpTo(mapRulesSgSgIcmpTo(rulesSgSgIcmpTo.data.rules))
         })
         .catch((error: AxiosError<TRequestErrorData>) => {
           setIsLoading(false)

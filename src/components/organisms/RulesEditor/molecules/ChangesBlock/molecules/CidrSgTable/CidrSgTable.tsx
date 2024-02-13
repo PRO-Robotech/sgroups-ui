@@ -146,7 +146,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
       width: 50,
       render: (_, { portsSource, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -160,7 +160,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
           $modified={formChanges?.modifiedFields?.includes('portsDestination')}
           className="no-scroll"
         >
-          {portsDestination.length === 0 ? 'any' : portsDestination}
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
         </Styled.RulesEntryPorts>
       ),
     },

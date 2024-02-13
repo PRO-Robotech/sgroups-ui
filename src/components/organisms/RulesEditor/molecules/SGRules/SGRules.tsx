@@ -65,7 +65,7 @@ export const SGRules: FC<TSGRulesProps> = ({
       },
     ])
     /* remove as legacy after only ie-sg-sg will remain */
-    if (values.sgs.length === 1 && values.sgs[0] === centerSg) {
+    if (values.sg === centerSg) {
       setRulesOtherside([
         ...rulesOtherside,
         {
@@ -86,9 +86,8 @@ export const SGRules: FC<TSGRulesProps> = ({
     const newSgRules = [...rules]
     const newSgRulesOtherside = [...rulesOtherside]
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sgs, portsSource, portsDestination, transport, logs }) =>
-        sgs.length === 1 &&
-        sgs[0] === centerSg &&
+      ({ sg, portsSource, portsDestination, transport, logs }) =>
+        sg === centerSg &&
         portsSource === newSgRules[index].portsSource &&
         portsDestination === newSgRules[index].portsDestination &&
         transport === newSgRules[index].transport &&
@@ -99,8 +98,8 @@ export const SGRules: FC<TSGRulesProps> = ({
       newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
       const modifiedFields = []
-      if (JSON.stringify(newSgRules[index].sgs.sort()) !== JSON.stringify(values.sgs.sort())) {
-        modifiedFields.push('sgs')
+      if (newSgRules[index].sg !== values.sg) {
+        modifiedFields.push('sg')
       }
       if (newSgRules[index].portsSource !== values.portsSource) {
         modifiedFields.push('portsSource')
@@ -135,9 +134,8 @@ export const SGRules: FC<TSGRulesProps> = ({
     const newSgRules = [...rules]
     const newSgRulesOtherside = [...rulesOtherside]
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sgs, portsSource, portsDestination, transport, logs }) =>
-        sgs.length === 1 &&
-        sgs[0] === centerSg &&
+      ({ sg, portsSource, portsDestination, transport, logs }) =>
+        sg === centerSg &&
         portsSource === newSgRules[index].portsSource &&
         portsDestination === newSgRules[index].portsDestination &&
         transport === newSgRules[index].transport &&
@@ -199,7 +197,7 @@ export const SGRules: FC<TSGRulesProps> = ({
       dataIndex: 'sgs',
       key: 'sgs',
       width: 150,
-      render: (_, { sgs }) => <Styled.RulesEntrySgs className="no-scroll">{sgs.join(', ')}</Styled.RulesEntrySgs>,
+      render: (_, { sg }) => <Styled.RulesEntrySgs className="no-scroll">{sg}</Styled.RulesEntrySgs>,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
         <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
           <Input
@@ -235,11 +233,7 @@ export const SGRules: FC<TSGRulesProps> = ({
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { sgs }) =>
-        sgs
-          .toString()
-          .toLowerCase()
-          .includes((value as string).toLowerCase()),
+      onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'Logs',
@@ -267,7 +261,7 @@ export const SGRules: FC<TSGRulesProps> = ({
       width: 50,
       render: (_, { portsSource }) => (
         <Styled.RulesEntryPorts className="no-scroll">
-          {portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -278,7 +272,7 @@ export const SGRules: FC<TSGRulesProps> = ({
       width: 50,
       render: (_, { portsDestination }) => (
         <Styled.RulesEntryPorts className="no-scroll">
-          {portsDestination.length === 0 ? 'any' : portsDestination}
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -325,7 +319,7 @@ export const SGRules: FC<TSGRulesProps> = ({
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
           .map(row => ({
             ...row,
-            key: `${row.sgs.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+            key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
           }))}
         columns={columns}
         virtual

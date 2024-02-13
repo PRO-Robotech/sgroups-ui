@@ -241,7 +241,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       width: 50,
       render: (_, { portsSource }) => (
         <Styled.RulesEntryPorts className="no-scroll">
-          {portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -252,7 +252,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       width: 50,
       render: (_, { portsDestination }) => (
         <Styled.RulesEntryPorts className="no-scroll">
-          {portsDestination.length === 0 ? 'any' : portsDestination}
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
         </Styled.RulesEntryPorts>
       ),
     },

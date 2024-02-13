@@ -196,9 +196,11 @@ export const RulesList: FC = () => {
       width: 70,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
-          {ports.map(({ s, d }) => (
-            <p key={s + d}>{`${s || 'any'} : ${d || 'any'}`}</p>
-          ))}
+          {ports.length === 0 ? (
+            <p>any : any</p>
+          ) : (
+            ports.map(({ s, d }) => <p key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</p>)
+          )}
         </Styled.PortsContainer>
       ),
     },
@@ -249,9 +251,11 @@ export const RulesList: FC = () => {
       width: 70,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
-          {ports.map(({ s, d }) => (
-            <p key={s + d}>{`${s || 'any'} : ${d || 'any'}`}</p>
-          ))}
+          {ports.length === 0 ? (
+            <p>any : any</p>
+          ) : (
+            ports.map(({ s, d }) => <p key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</p>)
+          )}
         </Styled.PortsContainer>
       ),
     },
@@ -302,9 +306,11 @@ export const RulesList: FC = () => {
       width: 70,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
-          {ports.map(({ s, d }) => (
-            <p key={s + d}>{`${s || 'any'} : ${d || 'any'}`}</p>
-          ))}
+          {ports.length === 0 ? (
+            <p>any : any</p>
+          ) : (
+            ports.map(({ s, d }) => <p key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</p>)
+          )}
         </Styled.PortsContainer>
       ),
     },

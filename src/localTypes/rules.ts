@@ -1,8 +1,8 @@
 export type TTransport = 'TCP' | 'UDP'
 
 export type TPortGroup = {
-  d: string
-  s: string
+  d?: string
+  s?: string
 }
 
 export type TTraffic = 'Ingress' | 'Egress'
@@ -72,31 +72,31 @@ type TFormChanges = {
 }
 
 export type TFormSgRule = {
-  sgs: string[]
-  portsSource: string
-  portsDestination: string
+  sg: string
   transport: TTransport
   logs: boolean
+  portsDestination?: string
+  portsSource?: string
   formChanges?: TFormChanges
 }
 
 export type TFormFqdnRule = {
   fqdn: string
-  portsSource: string
-  portsDestination: string
   transport: TTransport
   logs: boolean
+  portsSource?: string
+  portsDestination?: string
   formChanges?: TFormChanges
 }
 
 export type TFormCidrSgRule = {
   cidr: string
-  portsSource: string
-  portsDestination: string
   transport: TTransport
   logs: boolean
   trace: boolean
   traffic: TTraffic
+  portsSource?: string
+  portsDestination?: string
   formChanges?: TFormChanges
 }
 

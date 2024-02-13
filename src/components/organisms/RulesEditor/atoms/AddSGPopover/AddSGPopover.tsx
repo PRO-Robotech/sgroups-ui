@@ -22,9 +22,8 @@ export const AddSGPopover: FC<TAddSGPopoverProps> = ({ sgNames, hide, addNew }) 
         addForm.resetFields()
       }}
     >
-      <Styled.FormItem label="Groups" name={['sgs']} rules={[{ required: true, message: 'Missing SG Names' }]}>
+      <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Names' }]}>
         <Select
-          mode="multiple"
           showSearch
           placeholder="Select SGs"
           optionFilterProp="children"
