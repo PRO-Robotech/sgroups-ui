@@ -247,7 +247,13 @@ export const RulesList: FC = () => {
       dataIndex: 'ports',
       key: 'ports',
       width: 70,
-      render: (_, { ports }) => <div>{ports.map(({ s, d }) => `${s} - ${d}`)}</div>,
+      render: (_, { ports }) => (
+        <Styled.PortsContainer>
+          {ports.map(({ s, d }) => (
+            <p key={s + d}>{`${s || 'any'} : ${d || 'any'}`}</p>
+          ))}
+        </Styled.PortsContainer>
+      ),
     },
     {
       title: 'Logs',
@@ -279,7 +285,7 @@ export const RulesList: FC = () => {
   const columnsCidr: ColumnsType<TCidrRuleColumn> = [
     {
       title: 'SG',
-      dataIndex: 'sg',
+      dataIndex: 'SG',
       key: 'SG',
       width: 150,
     },
@@ -294,7 +300,13 @@ export const RulesList: FC = () => {
       dataIndex: 'ports',
       key: 'ports',
       width: 70,
-      render: (_, { ports }) => <div>{ports.map(({ s, d }) => `${s} - ${d}`)}</div>,
+      render: (_, { ports }) => (
+        <Styled.PortsContainer>
+          {ports.map(({ s, d }) => (
+            <p key={s + d}>{`${s || 'any'} : ${d || 'any'}`}</p>
+          ))}
+        </Styled.PortsContainer>
+      ),
     },
     {
       title: 'Logs',
@@ -354,11 +366,14 @@ export const RulesList: FC = () => {
       dataIndex: 'ICMP',
       key: 'ICMP',
       width: 70,
-      render: (_, { ICMP }) => (
-        <div>
-          {ICMP.IPv} / {ICMP.Types.join(',')}
-        </div>
-      ),
+      render: (_, { ICMP }) => <div>{ICMP.IPv}</div>,
+    },
+    {
+      title: 'Types',
+      dataIndex: 'ICMP',
+      key: 'Types',
+      width: 70,
+      render: (_, { ICMP }) => <div>{ICMP.Types.join(',')}</div>,
     },
     {
       title: 'Logs',
