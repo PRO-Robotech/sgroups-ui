@@ -96,7 +96,7 @@ export const RulesEditor: FC = () => {
             })),
           )
           const rulesCidrSgFromMapped = rulesCidrSg.data.rules
-            .filter(({ traffic }) => traffic === 'Egress')
+            .filter(({ traffic }) => traffic === 'Ingress')
             .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) =>
               ports.map(({ s, d }) => ({
                 cidr: CIDR,
@@ -109,7 +109,7 @@ export const RulesEditor: FC = () => {
               })),
             )
           const rulesCidrSgToMapped = rulesCidrSg.data.rules
-            .filter(({ traffic }) => traffic === 'Ingress')
+            .filter(({ traffic }) => traffic === 'Egress')
             .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) =>
               ports.map(({ s, d }) => ({
                 cidr: CIDR,
