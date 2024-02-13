@@ -4,6 +4,7 @@ import { Button, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
+import ipRangeCheck from 'ip-range-check'
 import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
 import { TFormCidrSgRule } from 'localTypes/rules'
 import { Styled } from '../styled'
@@ -95,11 +96,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { cidr }) =>
-        cidr
-          .toString()
-          .toLowerCase()
-          .includes((value as string).toLowerCase()),
+      onFilter: (value, { cidr }) => ipRangeCheck(value as string, cidr),
     },
     {
       title: 'Logs',
