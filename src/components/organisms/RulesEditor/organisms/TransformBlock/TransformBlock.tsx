@@ -98,7 +98,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 rulesOtherside={rulesSgSgIcmpTo}
                 setRulesOtherside={setRulesSgSgIcmpTo}
                 centerSg={centerSg}
-                isDisabled={!centerSg}
+                isDisabled
               />
             </div>
             <Spacer $space={100} $samespace />
