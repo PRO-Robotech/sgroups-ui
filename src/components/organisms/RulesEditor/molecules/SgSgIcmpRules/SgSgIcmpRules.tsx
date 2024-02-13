@@ -108,10 +108,10 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
         modifiedFields.push('sg')
       }
       if (newSgSgIcmpRules[index].IPv !== values.IPv) {
-        modifiedFields.push('ICMP')
+        modifiedFields.push('ipv')
       }
       if (JSON.stringify(newSgSgIcmpRules[index].types.sort()) !== JSON.stringify(values.types.sort())) {
-        modifiedFields.push('ICMP')
+        modifiedFields.push('types')
       }
       if (newSgSgIcmpRules[index].logs !== values.logs) {
         modifiedFields.push('logs')

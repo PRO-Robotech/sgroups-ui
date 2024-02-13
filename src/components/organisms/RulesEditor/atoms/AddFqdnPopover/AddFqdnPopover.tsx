@@ -20,16 +20,8 @@ export const AddFqdnPopover: FC<TAddFqdnPopoverProps> = ({ hide, addNew }) => {
         addForm.resetFields()
       }}
     >
-      <Styled.FormItem label="Groups" name={['fqdns']} rules={[{ required: true, message: 'Missing FQDNs' }]}>
-        <Select
-          mode="tags"
-          showSearch
-          placeholder="Select FQDNs"
-          optionFilterProp="children"
-          allowClear
-          tokenSeparators={[',', ' ']}
-          getPopupContainer={node => node.parentNode}
-        />
+      <Styled.FormItem label="FQDN" name={['fqdn']} rules={[{ required: true, message: 'Missing FQDN' }]}>
+        <Input placeholder="FQDN" />
       </Styled.FormItem>
       <Styled.FormItem label="Ports Source" name="portsSource">
         <Input placeholder="Ports Source" />

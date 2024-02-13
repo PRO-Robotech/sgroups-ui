@@ -60,8 +60,8 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
       newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
       const modifiedFields = []
-      if (JSON.stringify(newFqdnRules[index].fqdns.sort()) !== JSON.stringify(values.fqdns.sort())) {
-        modifiedFields.push('fqdns')
+      if (newFqdnRules[index].fqdn !== values.fqdn) {
+        modifiedFields.push('fqdn')
       }
       if (newFqdnRules[index].portsSource !== values.portsSource) {
         modifiedFields.push('portsSource')
@@ -134,7 +134,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
       dataIndex: 'fqdns',
       key: 'fqdns',
       width: 150,
-      render: (_, { fqdns }) => <Styled.RulesEntrySgs className="no-scroll">{fqdns.join(', ')}</Styled.RulesEntrySgs>,
+      render: (_, { fqdn }) => <Styled.RulesEntrySgs className="no-scroll">{fqdn}</Styled.RulesEntrySgs>,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
         <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
           <Input
@@ -170,11 +170,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { fqdns }) =>
-        fqdns
-          .toString()
-          .toLowerCase()
-          .includes((value as string).toLowerCase()),
+      onFilter: (value, { fqdn }) => fqdn.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'Logs',
@@ -221,11 +217,11 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, { fqdns, logs, transport, portsSource, portsDestination }, index) => (
+      render: (_, { fqdn, logs, transport, portsSource, portsDestination }, index) => (
         <Popover
           content={
             <EditFqdnPopover
-              values={{ fqdns, logs, transport, portsSource, portsDestination }}
+              values={{ fqdn, logs, transport, portsSource, portsDestination }}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(index, values)}
@@ -259,7 +255,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
           .map(row => ({
             ...row,
-            key: `${row.fqdns.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+            key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
           }))}
         columns={columns}
         virtual

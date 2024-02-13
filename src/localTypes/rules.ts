@@ -81,7 +81,7 @@ export type TFormSgRule = {
 }
 
 export type TFormFqdnRule = {
-  fqdns: string[]
+  fqdn: string
   portsSource: string
   portsDestination: string
   transport: TTransport

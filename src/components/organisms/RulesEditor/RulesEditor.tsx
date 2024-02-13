@@ -88,7 +88,7 @@ export const RulesEditor: FC = () => {
           )
           const rulesFqdnToMapped = rulesFqdnTo.data.rules.flatMap(({ FQDN, transport, ports, logs }) =>
             ports.map(({ s, d }) => ({
-              fqdns: [FQDN],
+              fqdn: FQDN,
               portsSource: s,
               portsDestination: d,
               transport,
