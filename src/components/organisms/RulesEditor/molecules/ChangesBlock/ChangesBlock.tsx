@@ -64,10 +64,20 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
       .then(() => {
         // Do not touch: Seuquence is important. Promise.All wont work properly
         upsertRules(sgRules.rules, fqdnRules.rules, cidrRules.rules, sgSgIcmpRules.rules)
-      })
-      .then(() => {
-        setIsLoading(false)
-        onSubmit()
+          .then(() => {
+            setIsLoading(false)
+            onSubmit()
+          })
+          .catch((error: AxiosError<TRequestErrorData>) => {
+            setIsLoading(false)
+            if (error.response) {
+              setError({ status: error.response.status, data: error.response.data })
+            } else if (error.status) {
+              setError({ status: error.status })
+            } else {
+              setError({ status: 'Error while fetching' })
+            }
+          })
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)

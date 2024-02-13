@@ -58,7 +58,7 @@ export const RulesEditor: FC = () => {
       })
   }, [])
 
-  useEffect(() => {
+  const fetchData = (centerSg?: string) => {
     if (centerSg) {
       setRulesSgFrom([])
       setRulesSgTo([])
@@ -86,7 +86,6 @@ export const RulesEditor: FC = () => {
           setRulesSgSgIcmpTo(mapRulesSgSgIcmpTo(rulesSgSgIcmpTo.data.rules))
         })
         .catch((error: AxiosError<TRequestErrorData>) => {
-          setIsLoading(false)
           if (error.response) {
             setError({ status: error.response.status, data: error.response.data })
           } else if (error.status) {
@@ -105,6 +104,10 @@ export const RulesEditor: FC = () => {
       setRulesSgSgIcmpTo([])
       setError(undefined)
     }
+  }
+
+  useEffect(() => {
+    fetchData(centerSg)
   }, [centerSg])
 
   if (error) {
@@ -144,7 +147,7 @@ export const RulesEditor: FC = () => {
       />
       <BottomBar
         centerSg={centerSg}
-        onSubmit={() => setCenterSg(undefined)}
+        onSubmit={() => fetchData(centerSg)}
         rulesSgFrom={rulesSgFrom}
         rulesSgTo={rulesSgTo}
         rulesFqdnTo={rulesFqdnTo}

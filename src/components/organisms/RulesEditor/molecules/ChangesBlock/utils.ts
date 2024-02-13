@@ -325,47 +325,43 @@ export const composeAllTypesOfSgSgIcmpRules = (
   }
 
   rulesSgSgIcmpFrom.forEach(({ sg, IPv, types, trace, logs, formChanges }) => {
+    const rule: TSgSgIcmpRule = {
+      SgFrom: sg,
+      SgTo: centerSg,
+      ICMP: { IPv, Types: types },
+      logs: !!logs,
+      trace: !!trace,
+    }
     if (formChanges?.status !== STATUSES.deleted) {
-      const rule: TSgSgIcmpRule = {
-        SgFrom: sg,
-        SgTo: centerSg,
-        ICMP: { IPv, Types: types },
-        logs: !!logs,
-        trace: !!trace,
+      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
+      if (!ruleInRulesArr) {
+        result.rules.push(rule)
       }
-      if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
-        if (!ruleInRulesArr) {
-          result.rules.push(rule)
-        }
-      } else {
-        const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
-        if (!ruleInRulesArr) {
-          result.rulesToDelete.push(rule)
-        }
+    } else {
+      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
+      if (!ruleInRulesArr) {
+        result.rulesToDelete.push(rule)
       }
     }
   })
 
   rulesSgSgIcmpTo.forEach(({ sg, IPv, types, trace, logs, formChanges }) => {
+    const rule = {
+      SgFrom: centerSg,
+      SgTo: sg,
+      ICMP: { IPv, Types: types },
+      logs: !!logs,
+      trace: !!trace,
+    }
     if (formChanges?.status !== STATUSES.deleted) {
-      const rule = {
-        SgFrom: centerSg,
-        SgTo: sg,
-        ICMP: { IPv, Types: types },
-        logs: !!logs,
-        trace: !!trace,
+      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
+      if (!ruleInRulesArr) {
+        result.rules.push(rule)
       }
-      if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
-        if (!ruleInRulesArr) {
-          result.rules.push(rule)
-        }
-      } else {
-        const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
-        if (!ruleInRulesArr) {
-          result.rulesToDelete.push(rule)
-        }
+    } else {
+      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
+      if (!ruleInRulesArr) {
+        result.rulesToDelete.push(rule)
       }
     }
   })
