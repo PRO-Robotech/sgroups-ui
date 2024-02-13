@@ -108,7 +108,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 popoverPosition="left"
                 rules={rulesCidrSgFrom}
                 setRules={setRulesCidrSgFrom}
-                defaultTraffic="Egress"
+                defaultTraffic="Ingress"
                 isDisabled={!centerSg}
               />
             </div>
@@ -153,7 +153,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
                 popoverPosition="right"
                 rules={rulesCidrSgTo}
                 setRules={setRulesCidrSgTo}
-                defaultTraffic="Ingress"
+                defaultTraffic="Egress"
                 isDisabled={!centerSg}
               />
             </div>
