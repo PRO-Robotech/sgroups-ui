@@ -21,17 +21,19 @@ export const EditFqdnPopover: FC<TEditFqdnPopoverProps> = ({ values, hide, remov
 
   return (
     <Form form={addForm} onFinish={(values: TFormFqdnRule) => edit(values)}>
-      <Styled.FormItem label="Groups" name={['fqdns']} rules={[{ required: true, message: 'Missing FQDNs' }]}>
-        <Select
-          mode="tags"
-          showSearch
-          placeholder="Select FQDNs"
-          optionFilterProp="children"
-          allowClear
-          tokenSeparators={[',', ' ']}
-          getPopupContainer={node => node.parentNode}
-          disabled={isDisabled}
-        />
+      <Styled.FormItem
+        label="FQDN"
+        name={['fqdn']}
+        rules={[
+          { required: true, message: 'Missing FQDN' },
+          {
+            pattern:
+              /(?=^.{1,253}$)(^(((?!-)[a-zA-Z0-9-]{1,63}(?<!-))|((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63})$)/,
+            message: 'Please enter a valid FQDN',
+          },
+        ]}
+      >
+        <Input placeholder="FQDN" disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.FormItem label="Ports Source" name="portsSource">
         <Input placeholder="Ports Source" disabled={isDisabled} />

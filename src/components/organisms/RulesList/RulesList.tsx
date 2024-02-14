@@ -2,42 +2,56 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
+import { Collapse, CollapseProps, Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { DeleteOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
-import { getRules, removeRule, getFqdnRules, removeFqdnRule, getCidrSgRules, removeCidrSgRule } from 'api/rules'
+import {
+  getRules,
+  removeRule,
+  getFqdnRules,
+  removeFqdnRule,
+  getCidrSgRules,
+  removeCidrSgRule,
+  getSgSgIcmpRules,
+  removeSgSgIcmpRule,
+} from 'api/rules'
 import { ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TSgRule, TFqdnRule, TCidrRule } from 'localTypes/rules'
+import { TSgRule, TFqdnRule, TCidrRule, TSgSgIcmpRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
 export const RulesList: FC = () => {
   const [rules, setRules] = useState<TSgRule[]>([])
   const [fqdnRules, setFqdnRules] = useState<TFqdnRule[]>([])
   const [cidrRules, setCidrRules] = useState<TCidrRule[]>([])
+  const [sgSgIcmpRules, setSgSgIcmpRules] = useState<TSgSgIcmpRule[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [deleteErrorFqdn, setDeleteErrorFqdn] = useState<TRequestError | undefined>()
   const [deleteErrorCidr, setDeleteErrorCidr] = useState<TRequestError | undefined>()
+  const [deleteErrorSgSgIcmp, setDeleteErrorSgSgIcmp] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [isModalOpenFqdn, setIsModalOpenFqdn] = useState<boolean>(false)
   const [isModalOpenCidr, setIsModalOpenCidr] = useState<boolean>(false)
+  const [isModalOpenSgSgIcmp, setIsModalOpenSgSgIcmp] = useState<boolean>(false)
   const [pendingToDeleteRule, setPendingToDeleteRule] = useState<{ sgFrom: string; sgTo: string }>()
   const [pendingToDeleteFqdnRule, setPendingToDeleteFqdnRule] = useState<{ sgFrom: string; fqdn: string }>()
   const [pendingToDeleteCidrRule, setPendingToDeleteCidrRule] = useState<{ sg: string; cidr: string }>()
+  const [pendingToDeleteSgSgIcmpRule, setPendingToDeleteSgSgIcmpRule] = useState<{ sgFrom: string; sgTo: string }>()
   const history = useHistory()
 
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
-    Promise.all([getRules(), getFqdnRules(), getCidrSgRules()])
-      .then(([value1, value2, value3]) => {
+    Promise.all([getRules(), getFqdnRules(), getCidrSgRules(), getSgSgIcmpRules()])
+      .then(([value1, value2, value3, value4]) => {
         setIsLoading(false)
         setRules(value1.data.rules)
         setFqdnRules(value2.data.rules)
         setCidrRules(value3.data.rules)
+        setSgSgIcmpRules(value4.data.rules)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -111,6 +125,26 @@ export const RulesList: FC = () => {
       })
   }
 
+  const removeSgSgIcmpRuleFromList = (sgFrom: string, sgTo: string) => {
+    removeSgSgIcmpRule(sgFrom, sgTo)
+      .then(() => {
+        setSgSgIcmpRules([...sgSgIcmpRules].filter(el => el.SgFrom !== sgFrom || el.SgTo !== sgTo))
+        setIsModalOpenSgSgIcmp(false)
+        setPendingToDeleteSgSgIcmpRule(undefined)
+        setDeleteErrorSgSgIcmp(undefined)
+      })
+      .catch((error: AxiosError<TRequestErrorData>) => {
+        setIsLoading(false)
+        if (error.response) {
+          setDeleteErrorSgSgIcmp({ status: error.response.status, data: error.response.data })
+        } else if (error.status) {
+          setDeleteErrorSgSgIcmp({ status: error.status })
+        } else {
+          setDeleteErrorSgSgIcmp({ status: 'Error while fetching' })
+        }
+      })
+  }
+
   const openRemoveRuleModal = (sgFrom: string, sgTo: string) => {
     setPendingToDeleteRule({ sgFrom, sgTo })
     setIsModalOpen(true)
@@ -124,6 +158,11 @@ export const RulesList: FC = () => {
   const openRemoveCidrRuleModal = (sg: string, cidr: string) => {
     setPendingToDeleteCidrRule({ sg, cidr })
     setIsModalOpenCidr(true)
+  }
+
+  const openRemoveSgSgIcmpRuleModal = (sgFrom: string, sgTo: string) => {
+    setPendingToDeleteSgSgIcmpRule({ sgFrom, sgTo })
+    setIsModalOpenSgSgIcmp(true)
   }
 
   if (error) {
@@ -157,9 +196,11 @@ export const RulesList: FC = () => {
       width: 70,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
-          {ports.map(({ s, d }) => (
-            <p key={s + d}>{`${s || 'any'} : ${d || 'any'}`}</p>
-          ))}
+          {ports.length === 0 ? (
+            <div>any : any</div>
+          ) : (
+            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
+          )}
         </Styled.PortsContainer>
       ),
     },
@@ -208,7 +249,15 @@ export const RulesList: FC = () => {
       dataIndex: 'ports',
       key: 'ports',
       width: 70,
-      render: (_, { ports }) => <div>{ports.map(({ s, d }) => `${s} - ${d}`)}</div>,
+      render: (_, { ports }) => (
+        <Styled.PortsContainer>
+          {ports.length === 0 ? (
+            <div>any : any</div>
+          ) : (
+            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
+          )}
+        </Styled.PortsContainer>
+      ),
     },
     {
       title: 'Logs',
@@ -240,7 +289,7 @@ export const RulesList: FC = () => {
   const columnsCidr: ColumnsType<TCidrRuleColumn> = [
     {
       title: 'SG',
-      dataIndex: 'sg',
+      dataIndex: 'SG',
       key: 'SG',
       width: 150,
     },
@@ -255,7 +304,15 @@ export const RulesList: FC = () => {
       dataIndex: 'ports',
       key: 'ports',
       width: 70,
-      render: (_, { ports }) => <div>{ports.map(({ s, d }) => `${s} - ${d}`)}</div>,
+      render: (_, { ports }) => (
+        <Styled.PortsContainer>
+          {ports.length === 0 ? (
+            <div>any : any</div>
+          ) : (
+            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
+          )}
+        </Styled.PortsContainer>
+      ),
     },
     {
       title: 'Logs',
@@ -293,6 +350,156 @@ export const RulesList: FC = () => {
     },
   ]
 
+  type TSgSgIcmpRuleColumn = TSgSgIcmpRule & {
+    key: string
+  }
+
+  const columnsSgSgIcmp: ColumnsType<TSgSgIcmpRuleColumn> = [
+    {
+      title: 'SG From',
+      dataIndex: 'SgFrom',
+      key: 'SgFrom',
+      width: 150,
+    },
+    {
+      title: 'SG To',
+      dataIndex: 'SgTo',
+      key: 'SgTo',
+      width: 150,
+    },
+    {
+      title: 'ICMP',
+      dataIndex: 'ICMP',
+      key: 'ICMP',
+      width: 70,
+      render: (_, { ICMP }) => <div>{ICMP.IPv}</div>,
+    },
+    {
+      title: 'Types',
+      dataIndex: 'ICMP',
+      key: 'Types',
+      width: 70,
+      render: (_, { ICMP }) => <div>{ICMP.Types.join(',')}</div>,
+    },
+    {
+      title: 'Logs',
+      dataIndex: 'logs',
+      key: 'logs',
+      width: 150,
+      render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
+    },
+    {
+      title: 'Trace',
+      dataIndex: 'trace',
+      key: 'trace',
+      width: 150,
+      render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      width: 150,
+      render: (_, record: TSgSgIcmpRule) => (
+        <DeleteOutlined onClick={() => openRemoveSgSgIcmpRuleModal(record.SgFrom, record.SgTo)} />
+      ),
+    },
+  ]
+
+  const items: CollapseProps['items'] = [
+    {
+      key: '1',
+      label: <TitleWithNoTopMargin level={4}>SG Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!rules.length && !error && !isLoading && <Empty />}
+          {rules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: true,
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+              }}
+              dataSource={rules.map(row => ({ ...row, key: `${row.sgFrom}${row.sgTo}` }))}
+              columns={columns}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
+    {
+      key: '2',
+      label: <TitleWithNoTopMargin level={4}>SG-to-FQDN Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!fqdnRules.length && !error && !isLoading && <Empty />}
+          {fqdnRules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: true,
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+              }}
+              dataSource={fqdnRules.map(row => ({ ...row, key: `${row.sgFrom}${row.FQDN}` }))}
+              columns={columnsFqdn}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
+    {
+      key: '3',
+      label: <TitleWithNoTopMargin level={4}>SG-to-CIDR Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!cidrRules.length && !error && !isLoading && <Empty />}
+          {cidrRules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: true,
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+              }}
+              dataSource={cidrRules.map(row => ({ ...row, key: `${row.SG}${row.CIDR}` }))}
+              columns={columnsCidr}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
+    {
+      key: '4',
+      label: <TitleWithNoTopMargin level={4}>SG-to-SG-ICMP Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!sgSgIcmpRules.length && !error && !isLoading && <Empty />}
+          {sgSgIcmpRules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: true,
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+              }}
+              dataSource={sgSgIcmpRules.map(row => ({ ...row, key: `${row.SgFrom}${row.SgTo}` }))}
+              columns={columnsSgSgIcmp}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
+  ]
+
   return (
     <>
       <Card>
@@ -302,53 +509,7 @@ export const RulesList: FC = () => {
           Editor
         </Button>
         <Spacer $space={25} $samespace />
-        <TitleWithNoTopMargin level={3}>SG Rules</TitleWithNoTopMargin>
-        {!rules.length && !error && !isLoading && <Empty />}
-        {rules.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: true,
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-            }}
-            dataSource={rules.map(row => ({ ...row, key: `${row.sgFrom}${row.sgTo}` }))}
-            columns={columns}
-            scroll={{ x: 'max-content' }}
-          />
-        )}
-        <Spacer $space={15} $samespace />
-        <TitleWithNoTopMargin level={3}>SG-to-FQDN Rules</TitleWithNoTopMargin>
-        {!fqdnRules.length && !error && !isLoading && <Empty />}
-        {fqdnRules.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: true,
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-            }}
-            dataSource={fqdnRules.map(row => ({ ...row, key: `${row.sgFrom}${row.FQDN}` }))}
-            columns={columnsFqdn}
-            scroll={{ x: 'max-content' }}
-          />
-        )}{' '}
-        <Spacer $space={15} $samespace />
-        <TitleWithNoTopMargin level={3}>SG-to-CIDR Rules</TitleWithNoTopMargin>
-        {!cidrRules.length && !error && !isLoading && <Empty />}
-        {cidrRules.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: true,
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-            }}
-            dataSource={cidrRules.map(row => ({ ...row, key: `${row.SG}${row.CIDR}` }))}
-            columns={columnsCidr}
-            scroll={{ x: 'max-content' }}
-          />
-        )}
+        <Collapse items={items} defaultActiveKey={['1']} size="small" />
       </Card>
       <Modal
         title="Delete rule"
@@ -402,6 +563,27 @@ export const RulesList: FC = () => {
         </p>
         {deleteErrorCidr && (
           <Result status="error" title={deleteErrorCidr.status} subTitle={deleteErrorCidr.data?.message} />
+        )}
+      </Modal>
+      <Modal
+        title="Delete sgSgIcmp rule"
+        open={isModalOpenSgSgIcmp}
+        onOk={() =>
+          pendingToDeleteSgSgIcmpRule &&
+          removeSgSgIcmpRuleFromList(pendingToDeleteSgSgIcmpRule.sgFrom, pendingToDeleteSgSgIcmpRule.sgTo)
+        }
+        confirmLoading={isLoading}
+        onCancel={() => {
+          setIsModalOpenSgSgIcmp(false)
+          setDeleteErrorSgSgIcmp(undefined)
+        }}
+      >
+        <p>
+          Are you sure you want to delete sgSgIcmp rule: {pendingToDeleteSgSgIcmpRule?.sgFrom} -{' '}
+          {pendingToDeleteSgSgIcmpRule?.sgTo}
+        </p>
+        {deleteErrorSgSgIcmp && (
+          <Result status="error" title={deleteErrorSgSgIcmp.status} subTitle={deleteErrorSgSgIcmp.data?.message} />
         )}
       </Modal>
     </>

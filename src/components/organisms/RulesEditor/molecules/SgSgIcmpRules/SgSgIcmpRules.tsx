@@ -8,23 +8,23 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
-import { TFormSgRule } from 'localTypes/rules'
-import { AddSGPopover, EditSGPopover } from '../../atoms'
+import { TFormSgSgIcmpRule } from 'localTypes/rules'
+import { AddSgSgIcmpPopover, EditSgSgIcmpPopover } from '../../atoms'
 import { Styled } from '../styled'
 
-type TSGRulesProps = {
+type TSgSgIcmpRulesProps = {
   sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgRule[]
-  setRules: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesOtherside: TFormSgRule[]
-  setRulesOtherside: Dispatch<SetStateAction<TFormSgRule[]>>
+  rules: TFormSgSgIcmpRule[]
+  setRules: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+  rulesOtherside: TFormSgSgIcmpRule[]
+  setRulesOtherside: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
   centerSg?: string
   isDisabled?: boolean
 }
 
-export const SGRules: FC<TSGRulesProps> = ({
+export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
   sgNames,
   title,
   popoverPosition,
@@ -54,7 +54,7 @@ export const SGRules: FC<TSGRulesProps> = ({
     setEditOpen(newEditOpen)
   }
 
-  const addNew = (values: TFormSgRule) => {
+  const addNew = (values: TFormSgSgIcmpRule) => {
     setRules([
       ...rules,
       {
@@ -82,82 +82,93 @@ export const SGRules: FC<TSGRulesProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (index: number, values: TFormSgRule) => {
-    const newSgRules = [...rules]
-    const newSgRulesOtherside = [...rulesOtherside]
-    const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
+  const editRule = (index: number, values: TFormSgSgIcmpRule) => {
+    const newSgSgIcmpRules = [...rules]
+    const newSgSgIcmpRulesOtherside = [...rulesOtherside]
+    const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
+      ({ sg, IPv, types, logs, trace }) =>
         sg === centerSg &&
-        portsSource === newSgRules[index].portsSource &&
-        portsDestination === newSgRules[index].portsDestination &&
-        transport === newSgRules[index].transport &&
-        logs === newSgRules[index].logs,
+        IPv === newSgSgIcmpRules[index].IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
+        logs === newSgSgIcmpRules[index].logs &&
+        trace === newSgSgIcmpRules[index].trace,
     )
-    if (newSgRules[index].formChanges?.status === STATUSES.new) {
-      newSgRules[index] = { ...values, formChanges: { status: STATUSES.new } }
-      newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values, formChanges: { status: STATUSES.new } }
+    if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
+      newSgSgIcmpRules[index] = {
+        ...values,
+        formChanges: { status: STATUSES.new },
+      }
+      newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
+        ...values,
+        formChanges: { status: STATUSES.new },
+      }
     } else {
       const modifiedFields = []
-      if (newSgRules[index].sg !== values.sg) {
+      if (newSgSgIcmpRules[index].sg !== values.sg) {
         modifiedFields.push('sg')
       }
-      if (newSgRules[index].portsSource !== values.portsSource) {
-        modifiedFields.push('portsSource')
+      if (newSgSgIcmpRules[index].IPv !== values.IPv) {
+        modifiedFields.push('ipv')
       }
-      if (newSgRules[index].portsDestination !== values.portsDestination) {
-        modifiedFields.push('portsDestination')
+      if (JSON.stringify(newSgSgIcmpRules[index].types.sort()) !== JSON.stringify(values.types.sort())) {
+        modifiedFields.push('types')
       }
-      if (newSgRules[index].transport !== values.transport) {
-        modifiedFields.push('transport')
-      }
-      if (newSgRules[index].logs !== values.logs) {
+      if (newSgSgIcmpRules[index].logs !== values.logs) {
         modifiedFields.push('logs')
       }
+      if (newSgSgIcmpRules[index].trace !== values.trace) {
+        modifiedFields.push('trace')
+      }
       if (modifiedFields.length === 0) {
-        newSgRules[index] = { ...values }
-        newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values }
+        newSgSgIcmpRules[index] = { ...values }
+        newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
+          ...values,
+        }
       } else {
-        newSgRules[index] = { ...values, formChanges: { status: STATUSES.modified, modifiedFields } }
-        newSgRulesOtherside[newSgRulesOthersideIndex] = {
+        newSgSgIcmpRules[index] = {
+          ...values,
+          formChanges: { status: STATUSES.modified, modifiedFields },
+        }
+        newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
           ...values,
           formChanges: { status: STATUSES.modified, modifiedFields },
         }
       }
     }
-    setRules(newSgRules)
-    setRulesOtherside(newSgRulesOtherside)
+    setRules(newSgSgIcmpRules)
+    setRulesOtherside(newSgSgIcmpRulesOtherside)
     toggleEditPopover(index)
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const removeRule = (index: number) => {
-    const newSgRules = [...rules]
-    const newSgRulesOtherside = [...rulesOtherside]
-    const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
+    const newSgSgIcmpRules = [...rules]
+    const newSgSgIcmpRulesOtherside = [...rulesOtherside]
+    const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
+      ({ sg, IPv, types, logs, trace }) =>
         sg === centerSg &&
-        portsSource === newSgRules[index].portsSource &&
-        portsDestination === newSgRules[index].portsDestination &&
-        transport === newSgRules[index].transport &&
-        logs === newSgRules[index].logs,
+        IPv === newSgSgIcmpRules[index].IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
+        logs === newSgSgIcmpRules[index].logs &&
+        trace === newSgSgIcmpRules[index].trace,
     )
     const newEditOpenRules = [...editOpen]
-    if (newSgRules[index].formChanges?.status === STATUSES.new) {
-      setRules([...newSgRules.slice(0, index), ...newSgRules.slice(index + 1)])
+    if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
+      setRules([...newSgSgIcmpRules.slice(0, index), ...newSgSgIcmpRules.slice(index + 1)])
       setRulesOtherside([
-        ...newSgRulesOtherside.slice(0, newSgRulesOthersideIndex),
-        ...newSgRulesOtherside.slice(newSgRulesOthersideIndex + 1),
+        ...newSgSgIcmpRulesOtherside.slice(0, newSgSgSgIcmpRulesOthersideIndex),
+        ...newSgSgIcmpRulesOtherside.slice(newSgSgSgIcmpRulesOthersideIndex + 1),
       ])
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
-      newSgRules[index] = { ...newSgRules[index], formChanges: { status: STATUSES.deleted } }
-      newSgRulesOtherside[newSgRulesOthersideIndex] = {
-        ...newSgRulesOtherside[newSgRulesOthersideIndex],
+      newSgSgIcmpRules[index] = { ...newSgSgIcmpRules[index], formChanges: { status: STATUSES.deleted } }
+      newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
+        ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex],
         formChanges: { status: STATUSES.deleted },
       }
-      setRules(newSgRules)
-      setRulesOtherside(newSgRulesOtherside)
+      setRules(newSgSgIcmpRules)
+      setRulesOtherside(newSgSgIcmpRulesOtherside)
       toggleEditPopover(index)
     }
   }
@@ -172,30 +183,26 @@ export const SGRules: FC<TSGRulesProps> = ({
     setSearchText('')
   }
 
-  type TColumn = TFormSgRule & { key: string }
+  type TColumn = TFormSgSgIcmpRule & { key: string }
 
   const columns: ColumnsType<TColumn> = [
     {
-      title: 'Transport',
-      dataIndex: 'transport',
-      key: 'transport',
+      title: 'IPv',
+      dataIndex: 'IPv',
+      key: 'IPv',
       width: 50,
-      render: (_, { transport }) => (
-        <Styled.RulesEntryTransport $transport={transport} className="no-scroll">
-          {transport}
-        </Styled.RulesEntryTransport>
-      ),
+      render: (_, { IPv }) => <Styled.RulesEntrySgs className="no-scroll">{IPv}</Styled.RulesEntrySgs>,
       sorter: (a, b) => {
-        if (a.transport === b.transport) {
+        if (a.IPv === b.IPv) {
           return 0
         }
-        return a.transport === 'TCP' ? -1 : 1
+        return a.IPv === 'IPv6' ? -1 : 1
       },
     },
     {
-      title: 'SG Names',
-      dataIndex: 'sgs',
-      key: 'sgs',
+      title: 'SG Name',
+      dataIndex: 'sg',
+      key: 'sg',
       width: 150,
       render: (_, { sg }) => <Styled.RulesEntrySgs className="no-scroll">{sg}</Styled.RulesEntrySgs>,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -233,7 +240,11 @@ export const SGRules: FC<TSGRulesProps> = ({
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
+      onFilter: (value, { sg }) =>
+        sg
+          .toString()
+          .toLowerCase()
+          .includes((value as string).toLowerCase()),
     },
     {
       title: 'Logs',
@@ -255,26 +266,36 @@ export const SGRules: FC<TSGRulesProps> = ({
       },
     },
     {
-      title: 'Ports Source',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
+      title: 'Types',
+      dataIndex: 'types',
+      key: 'types',
       width: 50,
-      render: (_, { portsSource }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
-        </Styled.RulesEntryPorts>
-      ),
+      render: (_, { types }) => <Styled.RulesEntrySgs className="no-scroll">{types.join(',')}</Styled.RulesEntrySgs>,
+      sorter: (a, b) => {
+        if (a.types.length === b.types.length) {
+          return 0
+        }
+        return a.types.length > b.types.length ? -1 : 1
+      },
     },
     {
-      title: 'Ports Destination',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
+      title: 'Trace',
+      dataIndex: 'trace',
+      key: 'trace',
       width: 50,
-      render: (_, { portsDestination }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
+      render: (_, { trace }) => (
+        <Styled.RulesEntryMarks className="no-scroll">
+          <Tooltip title="Trace">
+            {trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
+          </Tooltip>
+        </Styled.RulesEntryMarks>
       ),
+      sorter: (a, b) => {
+        if (a.logs === b.logs) {
+          return 0
+        }
+        return a.logs ? -1 : 1
+      },
     },
     {
       title: 'Edit',
@@ -283,16 +304,23 @@ export const SGRules: FC<TSGRulesProps> = ({
       render: (_, __, index) => (
         <Popover
           content={
-            <EditSGPopover
+            <EditSgSgIcmpPopover
               sgNames={sgNames}
-              values={rules[index]}
+              values={{
+                sg: rules[index].sg,
+                logs: rules[index].logs,
+                trace: rules[index].trace,
+                IPv: rules[index].IPv,
+                types: rules[index].types,
+                formChanges: rules[index].formChanges,
+              }}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(index, values)}
               isDisabled={isDisabled}
             />
           }
-          title="SG"
+          title="SG SG ICMP"
           trigger="click"
           open={editOpen[index]}
           onOpenChange={() => toggleEditPopover(index)}
@@ -319,7 +347,7 @@ export const SGRules: FC<TSGRulesProps> = ({
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
           .map(row => ({
             ...row,
-            key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+            key: `${row.sg}-${row.IPv}`,
           }))}
         columns={columns}
         virtual
@@ -327,8 +355,8 @@ export const SGRules: FC<TSGRulesProps> = ({
         size="small"
       />
       <Popover
-        content={<AddSGPopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
-        title="SG"
+        content={<AddSgSgIcmpPopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
+        title="SG SG ICMP"
         trigger="click"
         open={addOpen}
         onOpenChange={toggleAddPopover}

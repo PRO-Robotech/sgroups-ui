@@ -1,8 +1,10 @@
 export const CARDS_CONTAINER = 'CardsContainer'
 export const SG_FROM_ID = 'SGFrom'
+export const SG_SG_ICMP_FROM_ID = 'SGSGICMPFrom'
 export const CIDR_FROM_ID = 'CIDRFrom'
 export const CENTRAL_ID = 'central'
 export const SG_TO_ID = 'SGTo'
+export const SG_SG_ICMP_TO_ID = 'SGSGICMPTo'
 export const CIDR_TO_ID = 'CIDRTo'
 export const FQDN_TO_ID = 'FQDNTo'
 

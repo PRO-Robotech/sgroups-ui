@@ -1,7 +1,7 @@
 import React, { FC, useEffect } from 'react'
 import { Button, Form, Input, Select, Switch } from 'antd'
 import { PlusCircleOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons'
-import { TFormCidrSgRule, TTraffic } from 'localTypes/rules'
+import { TFormCidrSgRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
 type TEditCidrSgPopoverProps = {
@@ -9,18 +9,10 @@ type TEditCidrSgPopoverProps = {
   hide: () => void
   remove: () => void
   edit: (values: TFormCidrSgRule) => void
-  defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
-export const EditCidrSgPopover: FC<TEditCidrSgPopoverProps> = ({
-  values,
-  hide,
-  remove,
-  edit,
-  defaultTraffic,
-  isDisabled,
-}) => {
+export const EditCidrSgPopover: FC<TEditCidrSgPopoverProps> = ({ values, hide, remove, edit, isDisabled }) => {
   const [addForm] = Form.useForm()
 
   useEffect(() => {
@@ -61,19 +53,6 @@ export const EditCidrSgPopover: FC<TEditCidrSgPopoverProps> = ({
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
         <Switch disabled={isDisabled} />
-      </Styled.FormItem>
-      <Styled.FormItem name="traffic" label="Traffic" hasFeedback validateTrigger="onBlur">
-        <Select
-          allowClear
-          placeholder="Traffic"
-          options={[
-            { label: 'Ingress', value: 'Ingress' },
-            { label: 'Egress', value: 'Egress' },
-          ]}
-          getPopupContainer={node => node.parentNode}
-          defaultValue={defaultTraffic}
-          disabled
-        />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>

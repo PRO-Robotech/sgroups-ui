@@ -4,16 +4,15 @@ import { Button, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
-import ipRangeCheck from 'ip-range-check'
 import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
-import { TFormCidrSgRule } from 'localTypes/rules'
+import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { Styled } from '../styled'
 
-type TCidrSgTableProps = {
-  rules: TFormCidrSgRule[]
+type TSgSgIcmpTableProps = {
+  rules: TFormSgSgIcmpRule[]
 }
 
-export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
+export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({ rules }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
 
@@ -27,38 +26,34 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
     setSearchText('')
   }
 
-  type TColumn = TFormCidrSgRule & { key: string }
+  type TColumn = TFormSgSgIcmpRule & { key: string }
 
   const columns: ColumnsType<TColumn> = [
     {
-      title: 'Transport',
-      dataIndex: 'transport',
-      key: 'transport',
+      title: 'ICMP',
+      dataIndex: 'IPv',
+      key: 'IPv',
       width: 50,
-      render: (_, { transport, formChanges }) => (
-        <Styled.RulesEntryTransport
-          $transport={transport}
-          $modified={formChanges?.modifiedFields?.includes('transport')}
-          className="no-scroll"
-        >
-          {transport}
-        </Styled.RulesEntryTransport>
+      render: (_, { IPv, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('ipv')} className="no-scroll">
+          {IPv}
+        </Styled.RulesEntrySgs>
       ),
       sorter: (a, b) => {
-        if (a.transport === b.transport) {
+        if (a.IPv === b.IPv) {
           return 0
         }
-        return a.transport === 'TCP' ? -1 : 1
+        return a.IPv === 'IPv6' ? -1 : 1
       },
     },
     {
-      title: 'CIDR',
-      dataIndex: 'cidr',
-      key: 'cidr',
+      title: 'SG Name',
+      dataIndex: 'sg',
+      key: 'sg',
       width: 150,
-      render: (_, { cidr, formChanges }) => (
-        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('cidr')} className="no-scroll">
-          {cidr}
+      render: (_, { sg, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('sg')} className="no-scroll">
+          {sg}
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -96,7 +91,11 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { cidr }) => ipRangeCheck(value as string, cidr),
+      onFilter: (value, { sg }) =>
+        sg
+          .toString()
+          .toLowerCase()
+          .includes((value as string).toLowerCase()),
     },
     {
       title: 'Logs',
@@ -118,48 +117,40 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
       },
     },
     {
+      title: 'Types',
+      dataIndex: 'types',
+      key: 'types',
+      width: 50,
+      render: (_, { types, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('types')} className="no-scroll">
+          {types.join(',')}
+        </Styled.RulesEntrySgs>
+      ),
+      sorter: (a, b) => {
+        if (a.types.length === b.types.length) {
+          return 0
+        }
+        return a.types.length > b.types.length ? -1 : 1
+      },
+    },
+    {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
       width: 50,
       render: (_, { trace, formChanges }) => (
         <Styled.RulesEntryMarks $modified={formChanges?.modifiedFields?.includes('trace')} className="no-scroll">
-          <Tooltip title="Trace">
+          <Tooltip title="trace">
             {trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
           </Tooltip>
         </Styled.RulesEntryMarks>
       ),
       sorter: (a, b) => {
-        if (a.logs === b.logs) {
+        if (a.trace === b.trace) {
           return 0
         }
-        return a.logs ? -1 : 1
+        return a.trace ? -1 : 1
       },
-    },
-    {
-      title: 'Ports Source',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
-      width: 50,
-      render: (_, { portsSource, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Ports Destination',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
-      width: 50,
-      render: (_, { portsDestination, formChanges }) => (
-        <Styled.RulesEntryPorts
-          $modified={formChanges?.modifiedFields?.includes('portsDestination')}
-          className="no-scroll"
-        >
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
     },
   ]
 
@@ -173,11 +164,12 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
       }}
       dataSource={rules.map(row => ({
         ...row,
-        key: `${row.cidr.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+        key: `${row.sg}-${row.IPv}`,
       }))}
       columns={columns}
       virtual
       scroll={{ x: 'max-content' }}
+      size="small"
     />
   )
 }

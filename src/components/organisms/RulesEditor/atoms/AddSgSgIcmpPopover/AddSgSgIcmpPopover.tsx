@@ -1,31 +1,31 @@
 import React, { FC } from 'react'
-import { Button, Form, Input, Select, Switch } from 'antd'
+import { Button, Form, Select, Switch } from 'antd'
 import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
-import { TFormSgRule } from 'localTypes/rules'
+import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
-type TAddSGPopoverProps = {
+type TAddSgSgIcmpPopoverProps = {
   sgNames: string[]
   hide: () => void
-  addNew: (values: TFormSgRule) => void
+  addNew: (values: TFormSgSgIcmpRule) => void
 }
 
-export const AddSGPopover: FC<TAddSGPopoverProps> = ({ sgNames, hide, addNew }) => {
+export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide, addNew }) => {
   const [addForm] = Form.useForm()
 
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormSgRule) => {
+      onFinish={(values: TFormSgSgIcmpRule) => {
         addNew(values)
         addForm.resetFields()
       }}
     >
-      <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Names' }]}>
+      <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Name' }]}>
         <Select
           showSearch
-          placeholder="Select SGs"
+          placeholder="Select SG"
           optionFilterProp="children"
           allowClear
           filterOption={filterSgName}
@@ -36,30 +36,39 @@ export const AddSGPopover: FC<TAddSGPopoverProps> = ({ sgNames, hide, addNew }) 
           getPopupContainer={node => node.parentNode}
         />
       </Styled.FormItem>
-      <Styled.FormItem label="Ports Source" name="portsSource">
-        <Input placeholder="Ports Source" />
-      </Styled.FormItem>
-      <Styled.FormItem label="Ports Destination" name="portsDestination">
-        <Input placeholder="Ports Destination" />
-      </Styled.FormItem>
       <Styled.FormItem
-        name="transport"
-        label="Transport"
+        name="IPv"
+        label="IPv"
         hasFeedback
         validateTrigger="onBlur"
-        rules={[{ required: true, message: 'Please choose transport' }]}
+        rules={[{ required: true, message: 'Please choose IPv' }]}
       >
         <Select
           allowClear
-          placeholder="Transport"
+          placeholder="IPv"
           options={[
-            { label: 'TCP', value: 'TCP' },
-            { label: 'UDP', value: 'UDP' },
+            { label: 'IPv6', value: 'IPv6' },
+            { label: 'IPv4', value: 'IPv4' },
           ]}
           getPopupContainer={node => node.parentNode}
         />
       </Styled.FormItem>
+      <Styled.FormItem label="Types" name="types">
+        <Select
+          mode="tags"
+          showSearch
+          placeholder="Select types"
+          optionFilterProp="children"
+          allowClear
+          tokenSeparators={[',', ' ']}
+          getPopupContainer={node => node.parentNode}
+          dropdownStyle={{ display: 'none' }}
+        />
+      </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
+        <Switch />
+      </Styled.FormItem>
+      <Styled.FormItem valuePropName="checked" name="trace" label="trace">
         <Switch />
       </Styled.FormItem>
       <Styled.ButtonsContainer>

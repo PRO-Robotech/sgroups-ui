@@ -1,4 +1,4 @@
-import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule } from 'localTypes/rules'
+import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
 
 export type TFormSgRuleChangesResult = {
   newRules: TFormSgRule[]
@@ -16,4 +16,10 @@ export type TFormCidrSgRuleChangesResult = {
   newRules: TFormCidrSgRule[]
   diffRules: TFormCidrSgRule[]
   deletedRules: TFormCidrSgRule[]
+}
+
+export type TFormSgSgIcmpRuleChangesResult = {
+  newRules: TFormSgSgIcmpRule[]
+  diffRules: TFormSgSgIcmpRule[]
+  deletedRules: TFormSgSgIcmpRule[]
 }

@@ -1,8 +1,8 @@
 export type TTransport = 'TCP' | 'UDP'
 
 export type TPortGroup = {
-  d: string
-  s: string
+  d?: string
+  s?: string
 }
 
 export type TTraffic = 'Ingress' | 'Egress'
@@ -45,6 +45,25 @@ export type TCidrRulesResponse = {
   rules: TCidrRule[]
 }
 
+export type TIpVersion = 'IPv4' | 'IPv6'
+
+export type TICMPDescription = {
+  IPv: TIpVersion
+  Types: number[]
+}
+
+export type TSgSgIcmpRule = {
+  SgFrom: string
+  SgTo: string
+  logs: boolean
+  trace: boolean
+  ICMP: TICMPDescription
+}
+
+export type TSgSgIcmpRulesResponse = {
+  rules: TSgSgIcmpRule[]
+}
+
 export type TFormChangesStatuses = 'modified' | 'deleted' | 'new'
 
 type TFormChanges = {
@@ -53,31 +72,40 @@ type TFormChanges = {
 }
 
 export type TFormSgRule = {
-  sgs: string[]
-  portsSource: string
-  portsDestination: string
+  sg: string
   transport: TTransport
   logs: boolean
+  portsDestination?: string
+  portsSource?: string
   formChanges?: TFormChanges
 }
 
 export type TFormFqdnRule = {
-  fqdns: string[]
-  portsSource: string
-  portsDestination: string
+  fqdn: string
   transport: TTransport
   logs: boolean
+  portsSource?: string
+  portsDestination?: string
   formChanges?: TFormChanges
 }
 
 export type TFormCidrSgRule = {
   cidr: string
-  portsSource: string
-  portsDestination: string
   transport: TTransport
   logs: boolean
   trace: boolean
   traffic: TTraffic
+  portsSource?: string
+  portsDestination?: string
+  formChanges?: TFormChanges
+}
+
+export type TFormSgSgIcmpRule = {
+  sg: string
+  logs: boolean
+  trace: boolean
+  IPv: TIpVersion
+  types: number[]
   formChanges?: TFormChanges
 }
 
@@ -94,4 +122,9 @@ export type TComposedForSubmitFqdnRules = {
 export type TComposedForSubmitCidrRules = {
   rules: TCidrRule[]
   rulesToDelete: TCidrRule[]
+}
+
+export type TComposedForSubmitSgSgIcmpRules = {
+  rules: TSgSgIcmpRule[]
+  rulesToDelete: TSgSgIcmpRule[]
 }

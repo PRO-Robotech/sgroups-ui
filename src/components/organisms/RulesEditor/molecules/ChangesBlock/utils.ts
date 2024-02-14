@@ -3,15 +3,23 @@ import {
   TSgRule,
   TFqdnRule,
   TCidrRule,
+  TSgSgIcmpRule,
   TFormSgRule,
   TFormFqdnRule,
   TFormCidrSgRule,
+  TFormSgSgIcmpRule,
   TComposedForSubmitSgRules,
   TComposedForSubmitFqdnRules,
   TComposedForSubmitCidrRules,
+  TComposedForSubmitSgSgIcmpRules,
 } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
-import { TFormSgRuleChangesResult, TFormFqdnRuleChangesResult, TFormCidrSgRuleChangesResult } from './types'
+import {
+  TFormSgRuleChangesResult,
+  TFormFqdnRuleChangesResult,
+  TFormCidrSgRuleChangesResult,
+  TFormSgSgIcmpRuleChangesResult,
+} from './types'
 
 export const getChangesSgRules = (rules: TFormSgRule[]): TFormSgRuleChangesResult | null => {
   const result: TFormSgRuleChangesResult = {
@@ -55,6 +63,20 @@ export const getChangesCidrSgRules = (rules: TFormCidrSgRule[]): TFormCidrSgRule
   return result
 }
 
+export const getChangesSgSgIcmpRules = (rules: TFormSgSgIcmpRule[]): TFormSgSgIcmpRuleChangesResult | null => {
+  const result: TFormSgSgIcmpRuleChangesResult = {
+    newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
+    diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
+    deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
+  }
+
+  if (result.newRules.length === 0 && result.diffRules.length === 0 && result.deletedRules.length === 0) {
+    return null
+  }
+
+  return result
+}
+
 const findPortsInPortsArr = (ports: TPortGroup, portsArr: TPortGroup[]) => {
   return portsArr.some(({ s, d }) => s === ports.s && d === ports.d)
 }
@@ -76,69 +98,83 @@ export const composeAllTypesOfSgRules = (
     rulesToDelete: [],
   }
 
-  rulesSgFrom.forEach(({ sgs, portsSource, portsDestination, transport, logs, formChanges }) =>
-    sgs.forEach(sgFrom => {
-      if (formChanges?.status !== STATUSES.deleted) {
-        const rule = {
-          logs: !!logs,
-          ports: [{ s: portsSource, d: portsDestination }],
-          sgFrom,
-          sgTo: centerSg,
-          transport,
+  rulesSgFrom.forEach(({ sg, portsSource, portsDestination, transport, logs, formChanges }) => {
+    const rule = {
+      sgFrom: sg,
+      sgTo: centerSg,
+      logs: !!logs,
+      transport,
+      ports:
+        (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
+          ? [{ s: portsSource, d: portsDestination }]
+          : [],
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      const ruleInRulesArr = findSgRuleInResultArr(rule, result.rules)
+      if (ruleInRulesArr) {
+        if (
+          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+        ) {
+          ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
         }
-        if (formChanges?.status !== STATUSES.deleted) {
-          const ruleInRulesArr = findSgRuleInResultArr(rule, result.rules)
-          if (ruleInRulesArr) {
-            if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
-              ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
-            }
-          } else {
-            result.rules.push(rule)
-          }
-        } else {
-          const ruleInRulesArr = findSgRuleInResultArr(rule, result.rulesToDelete)
-          if (ruleInRulesArr) {
-            ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
-          } else {
-            result.rulesToDelete.push(rule)
-          }
-        }
+      } else {
+        result.rules.push(rule)
       }
-    }),
-  )
+    } else {
+      const ruleInRulesArr = findSgRuleInResultArr(rule, result.rulesToDelete)
+      if (ruleInRulesArr) {
+        if (
+          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+        ) {
+          ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+        }
+      } else {
+        result.rulesToDelete.push(rule)
+      }
+    }
+  })
 
   rulesSgTo
-    .filter(({ sgs }) => sgs.length !== 1 && sgs[0] !== centerSg)
-    .forEach(({ sgs, portsSource, portsDestination, transport, logs, formChanges }) =>
-      sgs.forEach(sgTo => {
-        const rule = {
-          logs: !!logs,
-          ports: [{ s: portsSource, d: portsDestination }],
-          sgFrom: centerSg,
-          sgTo,
-          transport,
-        }
-        if (formChanges?.status !== STATUSES.deleted) {
-          const ruleInRulesArr = findSgRuleInResultArr(rule, result.rules)
-          if (ruleInRulesArr) {
-            if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
-              ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
-            }
-          } else {
-            result.rules.push(rule)
+    .filter(({ sg }) => sg !== centerSg)
+    .forEach(({ sg, portsSource, portsDestination, transport, logs, formChanges }) => {
+      const rule = {
+        sgFrom: centerSg,
+        sgTo: sg,
+        logs: !!logs,
+        transport,
+        ports:
+          (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
+            ? [{ s: portsSource, d: portsDestination }]
+            : [],
+      }
+      if (formChanges?.status !== STATUSES.deleted) {
+        const ruleInRulesArr = findSgRuleInResultArr(rule, result.rules)
+        if (ruleInRulesArr) {
+          if (
+            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+          ) {
+            ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
           }
         } else {
-          const ruleInRulesArr = findSgRuleInResultArr(rule, result.rulesToDelete)
-          if (ruleInRulesArr) {
-            if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
-              ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
-            }
-          } else {
-            result.rulesToDelete.push(rule)
-          }
+          result.rules.push(rule)
         }
-      }),
-    )
+      } else {
+        const ruleInRulesArr = findSgRuleInResultArr(rule, result.rulesToDelete)
+        if (ruleInRulesArr) {
+          if (
+            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+          ) {
+            ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+          }
+        } else {
+          result.rulesToDelete.push(rule)
+        }
+      }
+    })
 
   return result
 }
@@ -159,36 +195,43 @@ export const composeAllTypesOfFqdnRules = (
     rulesToDelete: [],
   }
 
-  rulesFqdnTo.forEach(({ fqdns, portsSource, portsDestination, transport, logs, formChanges }) =>
-    fqdns.forEach(FQDN => {
-      const rule = {
-        logs: !!logs,
-        ports: [{ s: portsSource, d: portsDestination }],
-        FQDN,
-        sgFrom: centerSg,
-        transport,
-      }
-      if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findFqdnRuleInResultArr(rule, result.rules)
-        if (ruleInRulesArr) {
-          if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
-            ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
-          }
-        } else {
-          result.rules.push(rule)
+  rulesFqdnTo.forEach(({ fqdn, portsSource, portsDestination, transport, logs, formChanges }) => {
+    const rule = {
+      FQDN: fqdn,
+      sgFrom: centerSg,
+      logs: !!logs,
+      transport,
+      ports:
+        (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
+          ? [{ s: portsSource, d: portsDestination }]
+          : [],
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      const ruleInRulesArr = findFqdnRuleInResultArr(rule, result.rules)
+      if (ruleInRulesArr) {
+        if (
+          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+        ) {
+          ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
         }
       } else {
-        const ruleInRulesArr = findFqdnRuleInResultArr(rule, result.rulesToDelete)
-        if (ruleInRulesArr) {
-          if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
-            ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
-          }
-        } else {
-          result.rulesToDelete.push(rule)
-        }
+        result.rules.push(rule)
       }
-    }),
-  )
+    } else {
+      const ruleInRulesArr = findFqdnRuleInResultArr(rule, result.rulesToDelete)
+      if (ruleInRulesArr) {
+        if (
+          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+        ) {
+          ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+        }
+      } else {
+        result.rulesToDelete.push(rule)
+      }
+    }
+  })
 
   return result
 }
@@ -218,18 +261,24 @@ export const composeAllTypesOfCidrSgRules = (
   const cidrRules = [...rulesCidrSgFrom, ...rulesCidrSgTo]
   cidrRules.forEach(({ cidr, portsSource, portsDestination, transport, logs, trace, traffic, formChanges }) => {
     const rule = {
-      logs: !!logs,
-      ports: [{ s: portsSource, d: portsDestination }],
       CIDR: cidr,
       SG: centerSg,
-      transport,
+      logs: !!logs,
       trace: !!trace,
+      transport,
       traffic,
+      ports:
+        (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
+          ? [{ s: portsSource, d: portsDestination }]
+          : [],
     }
     if (formChanges?.status !== STATUSES.deleted) {
       const ruleInRulesArr = findCidrSgRuleInResultArr(rule, result.rules)
       if (ruleInRulesArr) {
-        if (!findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports)) {
+        if (
+          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+        ) {
           ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
         }
       } else {
@@ -238,8 +287,80 @@ export const composeAllTypesOfCidrSgRules = (
     } else {
       const ruleInRulesArr = findCidrSgRuleInResultArr(rule, result.rulesToDelete)
       if (ruleInRulesArr) {
-        ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+        if (
+          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+        ) {
+          ruleInRulesArr.ports = [...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }]
+        }
       } else {
+        result.rulesToDelete.push(rule)
+      }
+    }
+  })
+
+  return result
+}
+
+const findSgSgIcmpRuleInResultArr = (rule: TSgSgIcmpRule, rulesArr: TSgSgIcmpRule[]) => {
+  return rulesArr.find(
+    ({ SgFrom, SgTo, logs, trace, ICMP }) =>
+      SgFrom === rule.SgFrom &&
+      SgTo === rule.SgTo &&
+      logs === rule.logs &&
+      trace === rule.trace &&
+      ICMP.IPv === rule.ICMP.IPv &&
+      JSON.stringify(ICMP.Types.sort()) === JSON.stringify(rule.ICMP.Types.sort()),
+  )
+}
+
+export const composeAllTypesOfSgSgIcmpRules = (
+  centerSg: string,
+  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[],
+  rulesSgSgIcmpTo: TFormSgSgIcmpRule[],
+): TComposedForSubmitSgSgIcmpRules => {
+  const result: TComposedForSubmitSgSgIcmpRules = {
+    rules: [],
+    rulesToDelete: [],
+  }
+
+  rulesSgSgIcmpFrom.forEach(({ sg, IPv, types, trace, logs, formChanges }) => {
+    const rule: TSgSgIcmpRule = {
+      SgFrom: sg,
+      SgTo: centerSg,
+      ICMP: { IPv, Types: types },
+      logs: !!logs,
+      trace: !!trace,
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
+      if (!ruleInRulesArr) {
+        result.rules.push(rule)
+      }
+    } else {
+      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
+      if (!ruleInRulesArr) {
+        result.rulesToDelete.push(rule)
+      }
+    }
+  })
+
+  rulesSgSgIcmpTo.forEach(({ sg, IPv, types, trace, logs, formChanges }) => {
+    const rule = {
+      SgFrom: centerSg,
+      SgTo: sg,
+      ICMP: { IPv, Types: types },
+      logs: !!logs,
+      trace: !!trace,
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
+      if (!ruleInRulesArr) {
+        result.rules.push(rule)
+      }
+    } else {
+      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
+      if (!ruleInRulesArr) {
         result.rulesToDelete.push(rule)
       }
     }

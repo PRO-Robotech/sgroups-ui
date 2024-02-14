@@ -1,16 +1,15 @@
 import React, { FC } from 'react'
 import { Button, Form, Input, Select, Switch } from 'antd'
 import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
-import { TFormCidrSgRule, TTraffic } from 'localTypes/rules'
+import { TFormCidrSgRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
 type TAddCidrSgPopoverProps = {
   hide: () => void
   addNew: (values: TFormCidrSgRule) => void
-  defaultTraffic: TTraffic
 }
 
-export const AddCidrSgPopover: FC<TAddCidrSgPopoverProps> = ({ hide, addNew, defaultTraffic }) => {
+export const AddCidrSgPopover: FC<TAddCidrSgPopoverProps> = ({ hide, addNew }) => {
   const [addForm] = Form.useForm()
 
   return (
@@ -52,19 +51,6 @@ export const AddCidrSgPopover: FC<TAddCidrSgPopoverProps> = ({ hide, addNew, def
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
         <Switch />
-      </Styled.FormItem>
-      <Styled.FormItem name="traffic" label="Traffic" hasFeedback validateTrigger="onBlur">
-        <Select
-          allowClear
-          placeholder="Traffic"
-          options={[
-            { label: 'Ingress', value: 'Ingress' },
-            { label: 'Egress', value: 'Egress' },
-          ]}
-          getPopupContainer={node => node.parentNode}
-          defaultValue={defaultTraffic}
-          disabled
-        />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>

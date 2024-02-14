@@ -2,10 +2,26 @@ import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Spin } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule } from 'localTypes/rules'
+import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
 import { getSecurityGroups } from 'api/securityGroups'
-import { getRulesBySGFrom, getRulesBySGTo, getFqdnRulesBySGFrom, getCidrSgRulesBySG } from 'api/rules'
+import {
+  getRulesBySGFrom,
+  getRulesBySGTo,
+  getFqdnRulesBySGFrom,
+  getCidrSgRulesBySG,
+  getSgSgIcmpRulesBySgFrom,
+  getSgSgIcmpRulesBySgTo,
+} from 'api/rules'
 import { TransformBlock, BottomBar } from './organisms'
+import {
+  mapRulesSgFrom,
+  mapRulesSgTo,
+  mapRulesFqdnTo,
+  mapRulesCidrSgFrom,
+  mapRulesCidrSgTo,
+  mapRulesSgSgIcmpFrom,
+  mapRulesSgSgIcmpTo,
+} from './utils'
 import { Styled } from './styled'
 
 export const RulesEditor: FC = () => {
@@ -16,6 +32,8 @@ export const RulesEditor: FC = () => {
   const [rulesFqdnTo, setRulesFqdnTo] = useState<TFormFqdnRule[]>([])
   const [rulesCidrSgFrom, setRulesCidrSgFrom] = useState<TFormCidrSgRule[]>([])
   const [rulesCidrSgTo, setRulesCidrSgTo] = useState<TFormCidrSgRule[]>([])
+  const [rulesSgSgIcmpFrom, setRulesSgSgIcmpFrom] = useState<TFormSgSgIcmpRule[]>([])
+  const [rulesSgSgIcmpTo, setRulesSgSgIcmpTo] = useState<TFormSgSgIcmpRule[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -40,79 +58,34 @@ export const RulesEditor: FC = () => {
       })
   }, [])
 
-  useEffect(() => {
+  const fetchData = (centerSg?: string) => {
     if (centerSg) {
+      setIsLoading(true)
       setRulesSgFrom([])
       setRulesSgTo([])
       setRulesFqdnTo([])
       setRulesCidrSgFrom([])
       setRulesCidrSgTo([])
+      setRulesSgSgIcmpFrom([])
+      setRulesSgSgIcmpTo([])
       setError(undefined)
       Promise.all([
         getRulesBySGTo(centerSg),
         getRulesBySGFrom(centerSg),
         getFqdnRulesBySGFrom(centerSg),
         getCidrSgRulesBySG(centerSg),
+        getSgSgIcmpRulesBySgTo(centerSg),
+        getSgSgIcmpRulesBySgFrom(centerSg),
       ])
-        .then(([rulesSgFrom, rulesSgTo, rulesFqdnTo, rulesCidrSg]) => {
-          const rulesSgFromMapped = rulesSgFrom.data.rules.flatMap(({ sgFrom, transport, ports, logs }) =>
-            ports.map(({ s, d }) => ({
-              sgs: [sgFrom],
-              transport,
-              portsSource: s,
-              portsDestination: d,
-              logs,
-            })),
-          )
-          const rulesSgToMapped = rulesSgTo.data.rules.flatMap(({ sgTo, transport, ports, logs }) =>
-            ports.map(({ s, d }) => ({
-              sgs: [sgTo],
-              transport,
-              portsSource: s,
-              portsDestination: d,
-              logs,
-            })),
-          )
-          const rulesFqdnToMapped = rulesFqdnTo.data.rules.flatMap(({ FQDN, transport, ports, logs }) =>
-            ports.map(({ s, d }) => ({
-              fqdns: [FQDN],
-              portsSource: s,
-              portsDestination: d,
-              transport,
-              logs,
-            })),
-          )
-          const rulesCidrSgFromMapped = rulesCidrSg.data.rules
-            .filter(({ traffic }) => traffic === 'Egress')
-            .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) =>
-              ports.map(({ s, d }) => ({
-                cidr: CIDR,
-                portsSource: s,
-                portsDestination: d,
-                transport,
-                logs,
-                trace,
-                traffic,
-              })),
-            )
-          const rulesCidrSgToMapped = rulesCidrSg.data.rules
-            .filter(({ traffic }) => traffic === 'Ingress')
-            .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) =>
-              ports.map(({ s, d }) => ({
-                cidr: CIDR,
-                portsSource: s,
-                portsDestination: d,
-                transport,
-                logs,
-                trace,
-                traffic,
-              })),
-            )
-          setRulesSgFrom(rulesSgFromMapped)
-          setRulesSgTo(rulesSgToMapped)
-          setRulesFqdnTo(rulesFqdnToMapped)
-          setRulesCidrSgFrom(rulesCidrSgFromMapped)
-          setRulesCidrSgTo(rulesCidrSgToMapped)
+        .then(([rulesSgFrom, rulesSgTo, rulesFqdnTo, rulesCidrSg, rulesSgSgIcmpFrom, rulesSgSgIcmpTo]) => {
+          setRulesSgFrom(mapRulesSgFrom(rulesSgFrom.data.rules))
+          setRulesSgTo(mapRulesSgTo(rulesSgTo.data.rules))
+          setRulesFqdnTo(mapRulesFqdnTo(rulesFqdnTo.data.rules))
+          setRulesCidrSgFrom(mapRulesCidrSgFrom(rulesCidrSg.data.rules))
+          setRulesCidrSgTo(mapRulesCidrSgTo(rulesCidrSg.data.rules))
+          setRulesSgSgIcmpFrom(mapRulesSgSgIcmpFrom(rulesSgSgIcmpFrom.data.rules))
+          setRulesSgSgIcmpTo(mapRulesSgSgIcmpTo(rulesSgSgIcmpTo.data.rules))
+          setIsLoading(false)
         })
         .catch((error: AxiosError<TRequestErrorData>) => {
           setIsLoading(false)
@@ -130,8 +103,14 @@ export const RulesEditor: FC = () => {
       setRulesFqdnTo([])
       setRulesCidrSgFrom([])
       setRulesCidrSgTo([])
+      setRulesSgSgIcmpFrom([])
+      setRulesSgSgIcmpTo([])
       setError(undefined)
     }
+  }
+
+  useEffect(() => {
+    fetchData(centerSg)
   }, [centerSg])
 
   if (error) {
@@ -142,10 +121,6 @@ export const RulesEditor: FC = () => {
         subTitle={`Code:${error.data?.code}. Message: ${error.data?.message}`}
       />
     )
-  }
-
-  if (isLoading) {
-    return <Spin />
   }
 
   return (
@@ -164,16 +139,27 @@ export const RulesEditor: FC = () => {
         setRulesCidrSgFrom={setRulesCidrSgFrom}
         rulesCidrSgTo={rulesCidrSgTo}
         setRulesCidrSgTo={setRulesCidrSgTo}
+        rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
+        setRulesSgSgIcmpFrom={setRulesSgSgIcmpFrom}
+        rulesSgSgIcmpTo={rulesSgSgIcmpTo}
+        setRulesSgSgIcmpTo={setRulesSgSgIcmpTo}
       />
       <BottomBar
         centerSg={centerSg}
-        onSubmit={() => setCenterSg(undefined)}
+        onSubmit={() => fetchData(centerSg)}
         rulesSgFrom={rulesSgFrom}
         rulesSgTo={rulesSgTo}
         rulesFqdnTo={rulesFqdnTo}
         rulesCidrSgTo={rulesCidrSgTo}
         rulesCidrSgFrom={rulesCidrSgFrom}
+        rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
+        rulesSgSgIcmpTo={rulesSgSgIcmpTo}
       />
+      {isLoading && (
+        <Styled.Loader style={{}}>
+          <Spin size="large" />
+        </Styled.Loader>
+      )}
     </Styled.Container>
   )
 }

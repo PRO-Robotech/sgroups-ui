@@ -6,6 +6,7 @@ import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
+import ipRangeCheck from 'ip-range-check'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormCidrSgRule, TTraffic } from 'localTypes/rules'
@@ -190,11 +191,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { cidr }) =>
-        cidr
-          .toString()
-          .toLowerCase()
-          .includes((value as string).toLowerCase()),
+      onFilter: (value, { cidr }) => ipRangeCheck(value as string, cidr),
     },
     {
       title: 'Logs',
@@ -241,7 +238,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       width: 50,
       render: (_, { portsSource }) => (
         <Styled.RulesEntryPorts className="no-scroll">
-          {portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -252,7 +249,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       width: 50,
       render: (_, { portsDestination }) => (
         <Styled.RulesEntryPorts className="no-scroll">
-          {portsDestination.length === 0 ? 'any' : portsDestination}
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -268,7 +265,6 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(index, values)}
-              defaultTraffic={defaultTraffic}
               isDisabled={isDisabled}
             />
           }
@@ -306,7 +302,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
         scroll={{ x: 'max-content' }}
       />
       <Popover
-        content={<AddCidrSgPopover hide={toggleAddPopover} addNew={addNew} defaultTraffic={defaultTraffic} />}
+        content={<AddCidrSgPopover hide={toggleAddPopover} addNew={addNew} />}
         title="SG"
         trigger="click"
         open={addOpen}

@@ -51,13 +51,13 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
       },
     },
     {
-      title: 'FQDNs',
-      dataIndex: 'fqdns',
-      key: 'fqdns',
+      title: 'FQDN',
+      dataIndex: 'fqdn',
+      key: 'fqdn',
       width: 150,
-      render: (_, { fqdns, formChanges }) => (
-        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('fqdns')} className="no-scroll">
-          {fqdns.join(', ')}
+      render: (_, { fqdn, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('fqdn')} className="no-scroll">
+          {fqdn}
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -95,11 +95,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { fqdns }) =>
-        fqdns
-          .toString()
-          .toLowerCase()
-          .includes((value as string).toLowerCase()),
+      onFilter: (value, { fqdn }) => fqdn.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'Logs',
@@ -127,7 +123,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
       width: 50,
       render: (_, { portsSource, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -141,7 +137,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
           $modified={formChanges?.modifiedFields?.includes('portsDestination')}
           className="no-scroll"
         >
-          {portsDestination.length === 0 ? 'any' : portsDestination}
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -157,7 +153,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
       }}
       dataSource={rules.map(row => ({
         ...row,
-        key: `${row.fqdns.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+        key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
       }))}
       columns={columns}
       virtual

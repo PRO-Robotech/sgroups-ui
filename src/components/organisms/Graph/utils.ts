@@ -19,8 +19,8 @@ export const mapRulesAndSgToEntries = (rules: TSgRule[], sgs: TSecurityGroup[]):
     networksFrom.forEach(sourceNw => {
       networksTo.forEach(destinationNw => {
         ports.forEach(({ s, d }) => {
-          const sourcePorts = s === '' ? ['any'] : s.split(',')
-          const destinationPorts = d === '' ? ['any'] : d.split(',')
+          const sourcePorts = s === '' || s === undefined ? ['any'] : s.split(',')
+          const destinationPorts = d === '' || d === undefined ? ['any'] : d.split(',')
           sourcePorts.forEach(sourcePort => {
             destinationPorts.forEach(destinationPort => {
               result.push({

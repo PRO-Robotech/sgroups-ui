@@ -1,20 +1,27 @@
 import React, { FC, useEffect } from 'react'
-import { Button, Form, Input, Select, Switch } from 'antd'
+import { Button, Form, Select, Switch } from 'antd'
 import { PlusCircleOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons'
-import { TFormSgRule } from 'localTypes/rules'
+import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
-type TEditSGPopoverProps = {
+type TEditSgSgIcmpPopoverProps = {
   sgNames: string[]
-  values: TFormSgRule
+  values: TFormSgSgIcmpRule
   hide: () => void
   remove: () => void
-  edit: (values: TFormSgRule) => void
+  edit: (values: TFormSgSgIcmpRule) => void
   isDisabled?: boolean
 }
 
-export const EditSGPopover: FC<TEditSGPopoverProps> = ({ sgNames, values, hide, remove, edit, isDisabled }) => {
+export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
+  sgNames,
+  values,
+  hide,
+  remove,
+  edit,
+  isDisabled,
+}) => {
   const [addForm] = Form.useForm()
 
   useEffect(() => {
@@ -22,8 +29,8 @@ export const EditSGPopover: FC<TEditSGPopoverProps> = ({ sgNames, values, hide, 
   }, [values, addForm])
 
   return (
-    <Form form={addForm} onFinish={(values: TFormSgRule) => edit(values)}>
-      <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Names' }]}>
+    <Form form={addForm} onFinish={(values: TFormSgSgIcmpRule) => edit(values)}>
+      <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Name' }]}>
         <Select
           showSearch
           placeholder="Select SG"
@@ -38,31 +45,41 @@ export const EditSGPopover: FC<TEditSGPopoverProps> = ({ sgNames, values, hide, 
           disabled={isDisabled}
         />
       </Styled.FormItem>
-      <Styled.FormItem label="Ports Source" name="portsSource">
-        <Input placeholder="Ports Source" disabled={isDisabled} />
-      </Styled.FormItem>
-      <Styled.FormItem label="Ports Destination" name="portsDestination">
-        <Input placeholder="Ports Destination" disabled={isDisabled} />
-      </Styled.FormItem>
       <Styled.FormItem
-        name="transport"
-        label="Transport"
+        name="IPv"
+        label="IPv"
         hasFeedback
         validateTrigger="onBlur"
-        rules={[{ required: true, message: 'Please choose transport' }]}
+        rules={[{ required: true, message: 'Please choose IPv' }]}
       >
         <Select
           allowClear
-          placeholder="Transport"
+          placeholder="IPv"
           options={[
-            { label: 'TCP', value: 'TCP' },
-            { label: 'UDP', value: 'UDP' },
+            { label: 'IPv6', value: 'IPv6' },
+            { label: 'IPv4', value: 'IPv4' },
           ]}
           getPopupContainer={node => node.parentNode}
           disabled={isDisabled}
         />
       </Styled.FormItem>
+      <Styled.FormItem label="Types" name="types">
+        <Select
+          mode="tags"
+          showSearch
+          placeholder="Select types"
+          optionFilterProp="children"
+          allowClear
+          tokenSeparators={[',', ' ']}
+          getPopupContainer={node => node.parentNode}
+          disabled={isDisabled}
+          dropdownStyle={{ display: 'none' }}
+        />
+      </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
+        <Switch disabled={isDisabled} />
+      </Styled.FormItem>
+      <Styled.FormItem valuePropName="checked" name="trace" label="trace">
         <Switch disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
