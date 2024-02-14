@@ -20,7 +20,18 @@ export const AddFqdnPopover: FC<TAddFqdnPopoverProps> = ({ hide, addNew }) => {
         addForm.resetFields()
       }}
     >
-      <Styled.FormItem label="FQDN" name={['fqdn']} rules={[{ required: true, message: 'Missing FQDN' }]}>
+      <Styled.FormItem
+        label="FQDN"
+        name={['fqdn']}
+        rules={[
+          { required: true, message: 'Missing FQDN' },
+          {
+            pattern:
+              /(?=^.{1,253}$)(^(((?!-)[a-zA-Z0-9-]{1,63}(?<!-))|((?!-)[a-zA-Z0-9-]{1,63}(?<!-)\.)+[a-zA-Z]{2,63})$)/,
+            message: 'Please enter a valid FQDN',
+          },
+        ]}
+      >
         <Input placeholder="FQDN" />
       </Styled.FormItem>
       <Styled.FormItem label="Ports Source" name="portsSource">
