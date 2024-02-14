@@ -2,7 +2,7 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
+import { Collapse, CollapseProps, Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { DeleteOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
@@ -197,9 +197,9 @@ export const RulesList: FC = () => {
       render: (_, { ports }) => (
         <Styled.PortsContainer>
           {ports.length === 0 ? (
-            <p>any : any</p>
+            <div>any : any</div>
           ) : (
-            ports.map(({ s, d }) => <p key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</p>)
+            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
           )}
         </Styled.PortsContainer>
       ),
@@ -252,9 +252,9 @@ export const RulesList: FC = () => {
       render: (_, { ports }) => (
         <Styled.PortsContainer>
           {ports.length === 0 ? (
-            <p>any : any</p>
+            <div>any : any</div>
           ) : (
-            ports.map(({ s, d }) => <p key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</p>)
+            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
           )}
         </Styled.PortsContainer>
       ),
@@ -307,9 +307,9 @@ export const RulesList: FC = () => {
       render: (_, { ports }) => (
         <Styled.PortsContainer>
           {ports.length === 0 ? (
-            <p>any : any</p>
+            <div>any : any</div>
           ) : (
-            ports.map(({ s, d }) => <p key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</p>)
+            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
           )}
         </Styled.PortsContainer>
       ),
@@ -405,6 +405,101 @@ export const RulesList: FC = () => {
     },
   ]
 
+  const items: CollapseProps['items'] = [
+    {
+      key: '1',
+      label: <TitleWithNoTopMargin level={4}>SG Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!rules.length && !error && !isLoading && <Empty />}
+          {rules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: true,
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+              }}
+              dataSource={rules.map(row => ({ ...row, key: `${row.sgFrom}${row.sgTo}` }))}
+              columns={columns}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
+    {
+      key: '2',
+      label: <TitleWithNoTopMargin level={4}>SG-to-FQDN Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!fqdnRules.length && !error && !isLoading && <Empty />}
+          {fqdnRules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: true,
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+              }}
+              dataSource={fqdnRules.map(row => ({ ...row, key: `${row.sgFrom}${row.FQDN}` }))}
+              columns={columnsFqdn}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
+    {
+      key: '3',
+      label: <TitleWithNoTopMargin level={4}>SG-to-CIDR Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!cidrRules.length && !error && !isLoading && <Empty />}
+          {cidrRules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: true,
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+              }}
+              dataSource={cidrRules.map(row => ({ ...row, key: `${row.SG}${row.CIDR}` }))}
+              columns={columnsCidr}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
+    {
+      key: '4',
+      label: <TitleWithNoTopMargin level={4}>SG-to-SG-ICMP Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!sgSgIcmpRules.length && !error && !isLoading && <Empty />}
+          {sgSgIcmpRules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: true,
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+              }}
+              dataSource={sgSgIcmpRules.map(row => ({ ...row, key: `${row.SgFrom}${row.SgTo}` }))}
+              columns={columnsSgSgIcmp}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
+  ]
+
   return (
     <>
       <Card>
@@ -414,69 +509,7 @@ export const RulesList: FC = () => {
           Editor
         </Button>
         <Spacer $space={25} $samespace />
-        <TitleWithNoTopMargin level={3}>SG Rules</TitleWithNoTopMargin>
-        {!rules.length && !error && !isLoading && <Empty />}
-        {rules.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: true,
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-            }}
-            dataSource={rules.map(row => ({ ...row, key: `${row.sgFrom}${row.sgTo}` }))}
-            columns={columns}
-            scroll={{ x: 'max-content' }}
-          />
-        )}
-        <Spacer $space={15} $samespace />
-        <TitleWithNoTopMargin level={3}>SG-to-FQDN Rules</TitleWithNoTopMargin>
-        {!fqdnRules.length && !error && !isLoading && <Empty />}
-        {fqdnRules.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: true,
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-            }}
-            dataSource={fqdnRules.map(row => ({ ...row, key: `${row.sgFrom}${row.FQDN}` }))}
-            columns={columnsFqdn}
-            scroll={{ x: 'max-content' }}
-          />
-        )}
-        <Spacer $space={15} $samespace />
-        <TitleWithNoTopMargin level={3}>SG-to-CIDR Rules</TitleWithNoTopMargin>
-        {!cidrRules.length && !error && !isLoading && <Empty />}
-        {cidrRules.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: true,
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-            }}
-            dataSource={cidrRules.map(row => ({ ...row, key: `${row.SG}${row.CIDR}` }))}
-            columns={columnsCidr}
-            scroll={{ x: 'max-content' }}
-          />
-        )}
-        <Spacer $space={15} $samespace />
-        <TitleWithNoTopMargin level={3}>SG-to-SG-ICMP Rules</TitleWithNoTopMargin>
-        {!sgSgIcmpRules.length && !error && !isLoading && <Empty />}
-        {sgSgIcmpRules.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: true,
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-            }}
-            dataSource={sgSgIcmpRules.map(row => ({ ...row, key: `${row.SgFrom}${row.SgTo}` }))}
-            columns={columnsSgSgIcmp}
-            scroll={{ x: 'max-content' }}
-          />
-        )}
+        <Collapse items={items} defaultActiveKey={['1']} />
       </Card>
       <Modal
         title="Delete rule"
