@@ -509,7 +509,7 @@ export const RulesList: FC = () => {
           Editor
         </Button>
         <Spacer $space={25} $samespace />
-        <Collapse items={items} defaultActiveKey={['1']} />
+        <Collapse items={items} defaultActiveKey={['1']} size="small" />
       </Card>
       <Modal
         title="Delete rule"
