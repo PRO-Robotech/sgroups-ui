@@ -64,6 +64,20 @@ export type TSgSgIcmpRulesResponse = {
   rules: TSgSgIcmpRule[]
 }
 
+export type TSgSgIeRule = {
+  Sg: string
+  SgLocal: string
+  logs: boolean
+  ports: TPortGroup[]
+  trace: boolean
+  traffic: TTraffic
+  transport: TTransport
+}
+
+export type TSgSgIeRulesResponse = {
+  rules: TSgSgIeRule[]
+}
+
 export type TFormChangesStatuses = 'modified' | 'deleted' | 'new'
 
 type TFormChanges = {

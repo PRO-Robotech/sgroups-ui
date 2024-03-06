@@ -4,6 +4,7 @@ import {
   TFqdnRulesResponse,
   TCidrRulesResponse,
   TSgSgIcmpRulesResponse,
+  TSgSgIeRulesResponse,
   TSgRule,
   TFqdnRule,
   TCidrRule,
@@ -165,6 +166,54 @@ export const removeSgSgIcmpRule = async (sgFrom: string, sgTo: string): Promise<
     `${getBaseEndpoint()}/v1/sync`,
     {
       sgIcmpRules: {
+        rules: removedRules,
+      },
+      syncOp: 'Delete',
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+}
+
+export const getSgSgIeRules = (): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
+  axios.post<TSgSgIeRulesResponse>(`${getBaseEndpoint()}/v1/ie-sg-sg/rules`)
+
+export const getSgSgIeRulesBySgFrom = (sg: string): Promise<AxiosResponse<TSgSgIcmpRulesResponse>> =>
+  axios.post<TSgSgIcmpRulesResponse>(
+    `${getBaseEndpoint()}/v1/ie-sg-sg/rules`,
+    {
+      Sg: [sg],
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+
+export const getSgSgIeRulesBySgTo = (sg: string): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
+  axios.post<TSgSgIeRulesResponse>(
+    `${getBaseEndpoint()}/v1/ie-sg-sg/rules`,
+    {
+      SgLocal: [sg],
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+
+export const removeSgSgIeRule = async (sgFrom: string, sgTo: string): Promise<AxiosResponse> => {
+  const currentRules = (await getSgSgIeRules()).data.rules
+  const removedRules = [...currentRules].filter(el => el.Sg === sgFrom && el.SgLocal === sgTo)
+  return axios.post(
+    `${getBaseEndpoint()}/v1/sync`,
+    {
+      sgSgRules: {
         rules: removedRules,
       },
       syncOp: 'Delete',
