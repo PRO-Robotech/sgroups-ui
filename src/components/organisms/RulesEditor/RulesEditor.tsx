@@ -2,7 +2,7 @@ import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Spin } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
+import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule, TFormSgSgIeRule } from 'localTypes/rules'
 import { getSecurityGroups } from 'api/securityGroups'
 import {
   getRulesBySGFrom,
@@ -11,6 +11,7 @@ import {
   getCidrSgRulesBySG,
   getSgSgIcmpRulesBySgFrom,
   getSgSgIcmpRulesBySgTo,
+  getSgSgIeRulesBySg,
 } from 'api/rules'
 import { TransformBlock, BottomBar } from './organisms'
 import {
@@ -21,6 +22,8 @@ import {
   mapRulesCidrSgTo,
   mapRulesSgSgIcmpFrom,
   mapRulesSgSgIcmpTo,
+  mapRulesSgSgIeFrom,
+  mapRulesSgSgIeTo,
 } from './utils'
 import { Styled } from './styled'
 
@@ -34,6 +37,8 @@ export const RulesEditor: FC = () => {
   const [rulesCidrSgTo, setRulesCidrSgTo] = useState<TFormCidrSgRule[]>([])
   const [rulesSgSgIcmpFrom, setRulesSgSgIcmpFrom] = useState<TFormSgSgIcmpRule[]>([])
   const [rulesSgSgIcmpTo, setRulesSgSgIcmpTo] = useState<TFormSgSgIcmpRule[]>([])
+  const [rulesSgSgIeFrom, setRulesSgSgIeFrom] = useState<TFormSgSgIeRule[]>([])
+  const [rulesSgSgIeTo, setRulesSgSgIeTo] = useState<TFormSgSgIeRule[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -68,6 +73,8 @@ export const RulesEditor: FC = () => {
       setRulesCidrSgTo([])
       setRulesSgSgIcmpFrom([])
       setRulesSgSgIcmpTo([])
+      setRulesSgSgIeFrom([])
+      setRulesSgSgIeTo([])
       setError(undefined)
       Promise.all([
         getRulesBySGTo(centerSg),
@@ -76,8 +83,9 @@ export const RulesEditor: FC = () => {
         getCidrSgRulesBySG(centerSg),
         getSgSgIcmpRulesBySgTo(centerSg),
         getSgSgIcmpRulesBySgFrom(centerSg),
+        getSgSgIeRulesBySg(centerSg),
       ])
-        .then(([rulesSgFrom, rulesSgTo, rulesFqdnTo, rulesCidrSg, rulesSgSgIcmpFrom, rulesSgSgIcmpTo]) => {
+        .then(([rulesSgFrom, rulesSgTo, rulesFqdnTo, rulesCidrSg, rulesSgSgIcmpFrom, rulesSgSgIcmpTo, rulesSgSgIe]) => {
           setRulesSgFrom(mapRulesSgFrom(rulesSgFrom.data.rules))
           setRulesSgTo(mapRulesSgTo(rulesSgTo.data.rules))
           setRulesFqdnTo(mapRulesFqdnTo(rulesFqdnTo.data.rules))
@@ -85,6 +93,8 @@ export const RulesEditor: FC = () => {
           setRulesCidrSgTo(mapRulesCidrSgTo(rulesCidrSg.data.rules))
           setRulesSgSgIcmpFrom(mapRulesSgSgIcmpFrom(rulesSgSgIcmpFrom.data.rules))
           setRulesSgSgIcmpTo(mapRulesSgSgIcmpTo(rulesSgSgIcmpTo.data.rules))
+          setRulesSgSgIeFrom(mapRulesSgSgIeFrom(rulesSgSgIe.data.rules))
+          setRulesSgSgIeTo(mapRulesSgSgIeTo(rulesSgSgIe.data.rules))
           setIsLoading(false)
         })
         .catch((error: AxiosError<TRequestErrorData>) => {
@@ -105,6 +115,8 @@ export const RulesEditor: FC = () => {
       setRulesCidrSgTo([])
       setRulesSgSgIcmpFrom([])
       setRulesSgSgIcmpTo([])
+      setRulesSgSgIeFrom([])
+      setRulesSgSgIeTo([])
       setError(undefined)
     }
   }
@@ -143,6 +155,10 @@ export const RulesEditor: FC = () => {
         setRulesSgSgIcmpFrom={setRulesSgSgIcmpFrom}
         rulesSgSgIcmpTo={rulesSgSgIcmpTo}
         setRulesSgSgIcmpTo={setRulesSgSgIcmpTo}
+        rulesSgSgIeFrom={rulesSgSgIeFrom}
+        setRulesSgSgIeFrom={setRulesSgSgIeFrom}
+        rulesSgSgIeTo={rulesSgSgIeTo}
+        setRulesSgSgIeTo={setRulesSgSgIeTo}
       />
       <BottomBar
         centerSg={centerSg}
@@ -154,6 +170,8 @@ export const RulesEditor: FC = () => {
         rulesCidrSgFrom={rulesCidrSgFrom}
         rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
         rulesSgSgIcmpTo={rulesSgSgIcmpTo}
+        rulesSgSgIeFrom={rulesSgSgIeFrom}
+        rulesSgSgIeTo={rulesSgSgIeTo}
       />
       {isLoading && (
         <Styled.Loader style={{}}>

@@ -9,6 +9,8 @@ import {
   SG_FROM_ID,
   SG_SG_ICMP_TO_ID,
   SG_TO_ID,
+  SG_SG_IE_FROM_ID,
+  SG_SG_IE_TO_ID,
   STROKE_COLOR,
 } from '../../constants'
 import { IngressArrow, EgressArrow, IngressEndLine, EgressStartLine } from '../../atoms'
@@ -50,11 +52,13 @@ export const Arrows: FC = () => {
         <IngressArrow idFirst={SG_FROM_ID} idSecond={CENTRAL_ID} />
         <IngressArrow idFirst={SG_SG_ICMP_FROM_ID} idSecond={CENTRAL_ID} />
         <IngressArrow idFirst={CIDR_FROM_ID} idSecond={CENTRAL_ID} />
+        <IngressArrow idFirst={SG_SG_IE_FROM_ID} idSecond={CENTRAL_ID} />
         <IngressEndLine id={CENTRAL_ID} />
         <EgressStartLine id={CENTRAL_ID} />
         <EgressArrow idFirst={CENTRAL_ID} idSecond={SG_TO_ID} />
         <EgressArrow idFirst={CENTRAL_ID} idSecond={SG_SG_ICMP_TO_ID} />
         <EgressArrow idFirst={CENTRAL_ID} idSecond={CIDR_TO_ID} />
+        <EgressArrow idFirst={CENTRAL_ID} idSecond={SG_SG_IE_TO_ID} />
         <EgressArrow idFirst={CENTRAL_ID} idSecond={FQDN_TO_ID} />
       </svg>
     </Styled.Container>

@@ -4,14 +4,17 @@ import {
   TFqdnRule,
   TCidrRule,
   TSgSgIcmpRule,
+  TSgSgIeRule,
   TFormSgRule,
   TFormFqdnRule,
   TFormCidrSgRule,
   TFormSgSgIcmpRule,
+  TFormSgSgIeRule,
   TComposedForSubmitSgRules,
   TComposedForSubmitFqdnRules,
   TComposedForSubmitCidrRules,
   TComposedForSubmitSgSgIcmpRules,
+  TComposedForSubmitSgSgIeRules,
 } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
 import {
@@ -19,6 +22,7 @@ import {
   TFormFqdnRuleChangesResult,
   TFormCidrSgRuleChangesResult,
   TFormSgSgIcmpRuleChangesResult,
+  TFormSgSgIeRuleChangesResult,
 } from './types'
 
 export const getChangesSgRules = (rules: TFormSgRule[]): TFormSgRuleChangesResult | null => {
@@ -65,6 +69,20 @@ export const getChangesCidrSgRules = (rules: TFormCidrSgRule[]): TFormCidrSgRule
 
 export const getChangesSgSgIcmpRules = (rules: TFormSgSgIcmpRule[]): TFormSgSgIcmpRuleChangesResult | null => {
   const result: TFormSgSgIcmpRuleChangesResult = {
+    newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
+    diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
+    deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
+  }
+
+  if (result.newRules.length === 0 && result.diffRules.length === 0 && result.deletedRules.length === 0) {
+    return null
+  }
+
+  return result
+}
+
+export const getChangesSgSgIeRules = (rules: TFormSgSgIeRule[]): TFormSgSgIeRuleChangesResult | null => {
+  const result: TFormSgSgIeRuleChangesResult = {
     newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
     diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
     deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
@@ -516,6 +534,72 @@ export const composeAllTypesOfSgSgIcmpRules = (
     } else {
       const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
       if (!ruleInRulesArr) {
+        result.rulesToDelete.push(rule)
+      }
+    }
+  })
+
+  return result
+}
+
+const findSgSgIeRuleInResultArr = (rule: TSgSgIeRule, rulesArr: TSgSgIeRule[]) => {
+  return rulesArr.find(
+    ({ Sg, SgLocal, logs, transport, trace, traffic }) =>
+      Sg === rule.Sg &&
+      SgLocal === rule.SgLocal &&
+      logs === rule.logs &&
+      transport === rule.transport &&
+      trace === rule.trace &&
+      traffic === rule.traffic,
+  )
+}
+
+export const composeAllTypesOfSgSgIeRules = (
+  centerSg: string,
+  rulesSgSgIeFrom: TFormSgSgIeRule[],
+  rulesSgSgIeTo: TFormSgSgIeRule[],
+): TComposedForSubmitSgSgIeRules => {
+  const result: TComposedForSubmitSgSgIeRules = {
+    rules: [],
+    rulesToDelete: [],
+  }
+
+  const sgSgIeRules = [...rulesSgSgIeFrom, ...rulesSgSgIeTo]
+  sgSgIeRules.forEach(({ sg, portsSource, portsDestination, transport, logs, trace, traffic, formChanges }) => {
+    const rule = {
+      SgLocal: sg,
+      Sg: centerSg,
+      logs: !!logs,
+      trace: !!trace,
+      transport,
+      traffic,
+      ports:
+        (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
+          ? [{ s: portsSource, d: portsDestination }]
+          : [],
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      const ruleInRulesArr = findSgSgIeRuleInResultArr(rule, result.rules)
+      if (ruleInRulesArr) {
+        if (
+          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+        ) {
+          ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
+        }
+      } else {
+        result.rules.push(rule)
+      }
+    } else {
+      const ruleInRulesArr = findSgSgIeRuleInResultArr(rule, result.rulesToDelete)
+      if (ruleInRulesArr) {
+        if (
+          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+        ) {
+          ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
+        }
+      } else {
         result.rulesToDelete.push(rule)
       }
     }

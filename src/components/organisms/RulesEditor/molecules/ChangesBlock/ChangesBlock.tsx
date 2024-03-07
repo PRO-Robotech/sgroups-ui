@@ -3,17 +3,19 @@ import { AxiosError } from 'axios'
 import { Button, Result, Spin } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { Spacer, TitleWithNoTopMargin } from 'components'
-import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
+import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule, TFormSgSgIeRule } from 'localTypes/rules'
 import { upsertRules, deleteRules } from 'api/rules'
 import {
   getChangesSgRules,
   getChangesFqdnRules,
   getChangesCidrSgRules,
   getChangesSgSgIcmpRules,
+  getChangesSgSgIeRules,
   composeAllTypesOfSgRules,
   composeAllTypesOfFqdnRules,
   composeAllTypesOfCidrSgRules,
   composeAllTypesOfSgSgIcmpRules,
+  composeAllTypesOfSgSgIeRules,
 } from './utils'
 import { RulesDiff } from './organisms'
 import { Styled } from './styled'
@@ -27,6 +29,8 @@ type TChangesBlockProps = {
   rulesCidrSgTo: TFormCidrSgRule[]
   rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
   rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
+  rulesSgSgIeFrom: TFormSgSgIeRule[]
+  rulesSgSgIeTo: TFormSgSgIeRule[]
   onClose: () => void
   onSubmit: () => void
 }
@@ -40,6 +44,8 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
   rulesCidrSgTo,
   rulesSgSgIcmpFrom,
   rulesSgSgIcmpTo,
+  rulesSgSgIeFrom,
+  rulesSgSgIeTo,
   onClose,
   onSubmit,
 }) => {
@@ -53,17 +59,26 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
   const changesResultCidrSgTo = getChangesCidrSgRules(rulesCidrSgTo)
   const changesResultSgSgIcmpFrom = getChangesSgSgIcmpRules(rulesSgSgIcmpFrom)
   const changesResultSgSgIcmpTo = getChangesSgSgIcmpRules(rulesSgSgIcmpTo)
+  const changesResultSgSgIeFrom = getChangesSgSgIeRules(rulesSgSgIeFrom)
+  const changesResultSgSgIeTo = getChangesSgSgIeRules(rulesSgSgIeTo)
 
   const handleOk = () => {
     const sgRules = composeAllTypesOfSgRules(centerSg, rulesSgFrom, rulesSgTo)
     const fqdnRules = composeAllTypesOfFqdnRules(centerSg, rulesFqdnTo)
     const cidrRules = composeAllTypesOfCidrSgRules(centerSg, rulesCidrSgFrom, rulesCidrSgTo)
     const sgSgIcmpRules = composeAllTypesOfSgSgIcmpRules(centerSg, rulesSgSgIcmpFrom, rulesSgSgIcmpTo)
+    const sgSgIeRules = composeAllTypesOfSgSgIeRules(centerSg, rulesSgSgIeFrom, rulesSgSgIeTo)
 
-    deleteRules(sgRules.rulesToDelete, fqdnRules.rulesToDelete, cidrRules.rulesToDelete, sgSgIcmpRules.rulesToDelete)
+    deleteRules(
+      sgRules.rulesToDelete,
+      fqdnRules.rulesToDelete,
+      cidrRules.rulesToDelete,
+      sgSgIcmpRules.rulesToDelete,
+      sgSgIeRules.rulesToDelete,
+    )
       .then(() => {
         // Do not touch: Seuquence is important. Promise.All wont work properly
-        upsertRules(sgRules.rules, fqdnRules.rules, cidrRules.rules, sgSgIcmpRules.rules)
+        upsertRules(sgRules.rules, fqdnRules.rules, cidrRules.rules, sgSgIcmpRules.rules, sgSgIeRules.rules)
           .then(() => {
             setIsLoading(false)
             onSubmit()
@@ -116,13 +131,21 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
         {changesResultSgSgIcmpTo && (
           <RulesDiff title="SG-SG-ICMP To" compareResult={{ type: 'sgSgIcmp', data: changesResultSgSgIcmpTo }} />
         )}
+        {changesResultSgSgIeFrom && (
+          <RulesDiff title="SG-SG-IE From" compareResult={{ type: 'sgSgIe', data: changesResultSgSgIeFrom }} />
+        )}
+        {changesResultSgSgIeTo && (
+          <RulesDiff title="SG-SG-IE To" compareResult={{ type: 'sgSgIe', data: changesResultSgSgIeTo }} />
+        )}
         {!changesResultSgFromResult &&
           !changesResultSgToResult &&
           !changesResultFqdnTo &&
           !changesResultCidrSgFrom &&
           !changesResultCidrSgTo &&
           !changesResultSgSgIcmpFrom &&
-          !changesResultSgSgIcmpTo && <div>No changes</div>}
+          !changesResultSgSgIcmpTo &&
+          !changesResultSgSgIeFrom &&
+          !changesResultSgSgIeTo && <div>No changes</div>}
       </Styled.ScrollContainer>
       <Spacer />
       <Styled.ButtonsContainer>

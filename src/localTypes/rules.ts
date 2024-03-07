@@ -123,6 +123,17 @@ export type TFormSgSgIcmpRule = {
   formChanges?: TFormChanges
 }
 
+export type TFormSgSgIeRule = {
+  sg: string
+  portsSource?: string
+  portsDestination?: string
+  logs: boolean
+  trace: boolean
+  traffic: TTraffic
+  transport: TTransport
+  formChanges?: TFormChanges
+}
+
 export type TComposedForSubmitSgRules = {
   rules: TSgRule[]
   rulesToDelete: TSgRule[]
@@ -141,4 +152,9 @@ export type TComposedForSubmitCidrRules = {
 export type TComposedForSubmitSgSgIcmpRules = {
   rules: TSgSgIcmpRule[]
   rulesToDelete: TSgSgIcmpRule[]
+}
+
+export type TComposedForSubmitSgSgIeRules = {
+  rules: TSgSgIeRule[]
+  rulesToDelete: TSgSgIeRule[]
 }
