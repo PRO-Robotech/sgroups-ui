@@ -18,10 +18,7 @@ type TSgSgIeRulesProps = {
   popoverPosition: TooltipPlacement
   rules: TFormSgSgIeRule[]
   setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
-  rulesOtherside: TFormSgSgIeRule[]
-  setRulesOtherside: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
   defaultTraffic: TTraffic
-  centerSg?: string
   isDisabled?: boolean
 }
 
@@ -31,10 +28,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
   popoverPosition,
   rules,
   setRules,
-  rulesOtherside,
-  setRulesOtherside,
   defaultTraffic,
-  centerSg,
   isDisabled,
 }) => {
   const [addOpen, setAddOpen] = useState(false)
@@ -67,20 +61,6 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
         },
       },
     ])
-    /* remove as legacy after only ie-sg-sg will remain */
-    if (values.sg === centerSg) {
-      setRulesOtherside([
-        ...rulesOtherside,
-        {
-          ...values,
-          traffic: defaultTraffic,
-          formChanges: {
-            status: STATUSES.new,
-          },
-        },
-      ])
-    }
-    /* end of remove block */
     setEditOpen([...editOpen, false])
     toggleAddPopover()
   }
@@ -88,22 +68,8 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const editRule = (index: number, values: TFormSgSgIeRule) => {
     const newSgSgIeRules = [...rules]
-    const newSgSgIeRulesOtherside = [...rulesOtherside]
-    const newSgSgIeRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
-        sg === centerSg &&
-        portsSource === newSgSgIeRules[index].portsSource &&
-        portsDestination === newSgSgIeRules[index].portsDestination &&
-        transport === newSgSgIeRules[index].transport &&
-        logs === newSgSgIeRules[index].logs,
-    )
     if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
-      newSgSgIeRulesOtherside[newSgSgIeRulesOthersideIndex] = {
-        ...values,
-        traffic: defaultTraffic,
-        formChanges: { status: STATUSES.new },
-      }
     } else {
       const modifiedFields = []
       if (newSgSgIeRules[index].sg !== values.sg) {
@@ -123,14 +89,8 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
       }
       if (modifiedFields.length === 0) {
         newSgSgIeRules[index] = { ...values }
-        newSgSgIeRulesOtherside[newSgSgIeRulesOthersideIndex] = { ...values }
       } else {
         newSgSgIeRules[index] = {
-          ...values,
-          traffic: defaultTraffic,
-          formChanges: { status: STATUSES.modified, modifiedFields },
-        }
-        newSgSgIeRulesOtherside[newSgSgIeRulesOthersideIndex] = {
           ...values,
           traffic: defaultTraffic,
           formChanges: { status: STATUSES.modified, modifiedFields },
@@ -138,29 +98,15 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
       }
     }
     setRules(newSgSgIeRules)
-    setRulesOtherside(newSgSgIeRulesOtherside)
     toggleEditPopover(index)
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const removeRule = (index: number) => {
     const newSgSgIeRules = [...rules]
-    const newSgSgIeRulesOtherside = [...rulesOtherside]
-    const newSgSgIeRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
-        sg === centerSg &&
-        portsSource === newSgSgIeRules[index].portsSource &&
-        portsDestination === newSgSgIeRules[index].portsDestination &&
-        transport === newSgSgIeRules[index].transport &&
-        logs === newSgSgIeRules[index].logs,
-    )
     const newEditOpenRules = [...editOpen]
     if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
       setRules([...newSgSgIeRules.slice(0, index), ...newSgSgIeRules.slice(index + 1)])
-      setRulesOtherside([
-        ...newSgSgIeRulesOtherside.slice(0, newSgSgIeRulesOthersideIndex),
-        ...newSgSgIeRulesOtherside.slice(newSgSgIeRulesOthersideIndex + 1),
-      ])
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
@@ -169,13 +115,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
         traffic: defaultTraffic,
         formChanges: { status: STATUSES.deleted },
       }
-      newSgSgIeRulesOtherside[newSgSgIeRulesOthersideIndex] = {
-        ...newSgSgIeRulesOtherside[newSgSgIeRulesOthersideIndex],
-        traffic: defaultTraffic,
-        formChanges: { status: STATUSES.deleted },
-      }
       setRules(newSgSgIeRules)
-      setRulesOtherside(newSgSgIeRulesOtherside)
       toggleEditPopover(index)
     }
   }
