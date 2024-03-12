@@ -191,7 +191,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={SG_SG_IE_TO_ID}>
               <SgSgIeRules
                 sgNames={sgNames}
-                title={`${centerSg || ''} - CIDR To`}
+                title={`${centerSg || ''} - SG-SG-IE To`}
                 popoverPosition="right"
                 rules={rulesSgSgIeTo}
                 setRules={setRulesSgSgIeTo}
