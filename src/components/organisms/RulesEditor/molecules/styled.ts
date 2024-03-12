@@ -1,6 +1,12 @@
 import styled from 'styled-components'
 import { Form } from 'antd'
 
+const RadioGroup = styled.div`
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+`
+
 const GroupRulesNode = styled.div`
   width: 700px;
   padding: 15px;
@@ -63,6 +69,7 @@ const RulesEntryPorts = styled.div`
 `
 
 export const Styled = {
+  RadioGroup,
   GroupRulesNode,
   FormItem,
   ButtonsContainer,

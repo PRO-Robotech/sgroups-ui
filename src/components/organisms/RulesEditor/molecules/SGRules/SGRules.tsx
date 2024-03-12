@@ -306,7 +306,7 @@ export const SGRules: FC<TSGRulesProps> = ({
   ]
 
   return (
-    <Styled.GroupRulesNode>
+    <>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
       <Table
         pagination={{
@@ -340,6 +340,6 @@ export const SGRules: FC<TSGRulesProps> = ({
           </Button>
         </Styled.FormItem>
       </Popover>
-    </Styled.GroupRulesNode>
+    </>
   )
 }

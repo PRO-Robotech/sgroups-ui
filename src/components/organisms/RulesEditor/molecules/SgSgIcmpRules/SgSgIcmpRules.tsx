@@ -334,7 +334,7 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
   ]
 
   return (
-    <Styled.GroupRulesNode>
+    <>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
       <Table
         pagination={{
@@ -368,6 +368,6 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
           </Button>
         </Styled.FormItem>
       </Popover>
-    </Styled.GroupRulesNode>
+    </>
   )
 }
