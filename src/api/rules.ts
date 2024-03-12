@@ -4,10 +4,12 @@ import {
   TFqdnRulesResponse,
   TCidrRulesResponse,
   TSgSgIcmpRulesResponse,
+  TSgSgIeRulesResponse,
   TSgRule,
   TFqdnRule,
   TCidrRule,
   TSgSgIcmpRule,
+  TSgSgIeRule,
 } from 'localTypes/rules'
 import { getBaseEndpoint } from './env'
 
@@ -177,19 +179,62 @@ export const removeSgSgIcmpRule = async (sgFrom: string, sgTo: string): Promise<
   )
 }
 
+export const getSgSgIeRules = (): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
+  axios.post<TSgSgIeRulesResponse>(`${getBaseEndpoint()}/v1/ie-sg-sg/rules`)
+
+export const getSgSgIeRulesBySg = (sg: string): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
+  axios.post<TSgSgIeRulesResponse>(
+    `${getBaseEndpoint()}/v1/ie-sg-sg/rules`,
+    {
+      Sg: [sg],
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+
+export const removeSgSgIeRule = async (sgFrom: string, sgTo: string): Promise<AxiosResponse> => {
+  const currentRules = (await getSgSgIeRules()).data.rules
+  const removedRules = [...currentRules].filter(el => el.Sg === sgFrom && el.SgLocal === sgTo)
+  return axios.post(
+    `${getBaseEndpoint()}/v1/sync`,
+    {
+      sgSgRules: {
+        rules: removedRules,
+      },
+      syncOp: 'Delete',
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+}
+
 export const upsertRules = async (
   sgRules: TSgRule[],
   fqdnRules: TFqdnRule[],
   cidrSgRules: TCidrRule[],
   sgSgIcmpRules: TSgSgIcmpRule[],
+  sgSgIeRules: TSgSgIeRule[],
 ): Promise<AxiosResponse[] | void> => {
-  if (sgRules.length > 0 || fqdnRules.length > 0 || cidrSgRules.length > 0) {
+  if (
+    sgRules.length > 0 ||
+    fqdnRules.length > 0 ||
+    cidrSgRules.length > 0 ||
+    sgSgIcmpRules.length > 0 ||
+    sgSgIeRules.length > 0
+  ) {
     /* limitations of current API
     const body: {
       sgRules?: { rules: TSgRule[] }
       fqdnRules?: { rules: TFqdnRule[] }
       cidrSgRules?: { rules: TCidrRule[] }
       sgSgIcmpRules?: {rules: TSgSgIcmpRule[] }
+      sgSgIeRules?: {rules: TSgSgIeRule[] }
     } = {}
     if (sgRules.length > 0) {
       body.sgRules = { rules: sgRules }
@@ -202,6 +247,9 @@ export const upsertRules = async (
     }
     if (sgSgIcmpRules.length > 0) {
       body.sgSgIcmpRules = { rules: sgSgIcmpRules }
+    }
+    if (sgSgIeRules.length > 0) {
+      body.sgSgRules = { rules: sgSgIeRules }
     }
     return axios.post(
       `${getBaseEndpoint()}/v1/sync`,
@@ -288,6 +336,24 @@ export const upsertRules = async (
         ),
       )
     }
+    if (sgSgIeRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            sgSgRules: {
+              rules: sgSgIeRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
     return Promise.all([...PromiseArr])
   }
   return Promise.resolve()
@@ -298,14 +364,22 @@ export const deleteRules = async (
   fqdnRules: TFqdnRule[],
   cidrSgRules: TCidrRule[],
   sgSgIcmpRules: TSgSgIcmpRule[],
+  sgSgIeRules: TSgSgIeRule[],
 ): Promise<AxiosResponse[] | void> => {
-  if (sgRules.length > 0 || fqdnRules.length > 0 || cidrSgRules.length > 0 || sgSgIcmpRules.length > 0) {
+  if (
+    sgRules.length > 0 ||
+    fqdnRules.length > 0 ||
+    cidrSgRules.length > 0 ||
+    sgSgIcmpRules.length > 0 ||
+    sgSgIeRules.length > 0
+  ) {
     /* limitations of current API
     const body: {
       sgRules?: { rules: TSgRule[] }
       fqdnRules?: { rules: TFqdnRule[] }
       cidrSgRules?: { rules: TCidrRule[] }
       sgSgIcmpRules?: { rules: TSgSgIcmpRule[] }
+      sgSgIeRules?: { rules: TSgSgIeRule[] }
     } = {}
     if (sgRules.length > 0) {
       body.sgRules = { rules: sgRules }
@@ -318,6 +392,9 @@ export const deleteRules = async (
     }
     if (sgSgIcmpRules.length > 0) {
       body.sgSgIcmpRules = { rules: sgSgIcmpRules }
+    }
+    if (sgSgIeRules.length > 0) {
+      body.sgSgRules = { rules: sgSgIeRules }
     }
     return axios.post(
       `${getBaseEndpoint()}/v1/sync`,
@@ -394,6 +471,24 @@ export const deleteRules = async (
           {
             sgSgIcmpRules: {
               rules: sgSgIcmpRules,
+            },
+            syncOp: 'Delete',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (sgSgIeRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            sgSgRules: {
+              rules: sgSgIeRules,
             },
             syncOp: 'Delete',
           },
@@ -524,4 +619,17 @@ export const editCidrSgRule = async (sourceRule: TCidrRule, editedRule: TCidrRul
     },
   )
 }
+
+export const getSgSgIeRulesBySgLocal = (sg: string): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
+  axios.post<TSgSgIeRulesResponse>(
+    `${getBaseEndpoint()}/v1/ie-sg-sg/rules`,
+    {
+      SgLocal: [sg],
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
 */

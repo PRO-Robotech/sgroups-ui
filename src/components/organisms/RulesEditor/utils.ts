@@ -7,6 +7,8 @@ import {
   TFormCidrSgRule,
   TSgSgIcmpRule,
   TFormSgSgIcmpRule,
+  TSgSgIeRule,
+  TFormSgSgIeRule,
 } from 'localTypes/rules'
 
 export const mapRulesSgFrom = (rules: TSgRule[]): TFormSgRule[] => {
@@ -134,4 +136,54 @@ export const mapRulesSgSgIcmpTo = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[] 
     IPv: ICMP.IPv,
     types: ICMP.Types,
   }))
+}
+
+export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
+  return rules
+    .filter(({ traffic }) => traffic === 'Ingress')
+    .flatMap(({ SgLocal, ports, transport, logs, trace, traffic }) => {
+      if (ports.length > 0) {
+        return ports.map(({ s, d }) => ({
+          sg: SgLocal,
+          portsSource: s,
+          portsDestination: d,
+          transport,
+          logs,
+          trace,
+          traffic,
+        }))
+      }
+      return {
+        sg: SgLocal,
+        transport,
+        logs,
+        trace,
+        traffic,
+      }
+    })
+}
+
+export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
+  return rules
+    .filter(({ traffic }) => traffic === 'Egress')
+    .flatMap(({ SgLocal, ports, transport, logs, trace, traffic }) => {
+      if (ports.length > 0) {
+        return ports.map(({ s, d }) => ({
+          sg: SgLocal,
+          portsSource: s,
+          portsDestination: d,
+          transport,
+          logs,
+          trace,
+          traffic,
+        }))
+      }
+      return {
+        sg: SgLocal,
+        transport,
+        logs,
+        trace,
+        traffic,
+      }
+    })
 }

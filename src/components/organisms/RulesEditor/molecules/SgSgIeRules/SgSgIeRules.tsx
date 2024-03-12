@@ -8,31 +8,27 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
-import { TFormSgRule } from 'localTypes/rules'
-import { AddSGPopover, EditSGPopover } from '../../atoms'
+import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
+import { AddSgSgIePopover, EditSgSgIePopover } from '../../atoms'
 import { Styled } from '../styled'
 
-type TSGRulesProps = {
+type TSgSgIeRulesProps = {
   sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgRule[]
-  setRules: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesOtherside: TFormSgRule[]
-  setRulesOtherside: Dispatch<SetStateAction<TFormSgRule[]>>
-  centerSg?: string
+  rules: TFormSgSgIeRule[]
+  setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+  defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
-export const SGRules: FC<TSGRulesProps> = ({
+export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
   sgNames,
   title,
   popoverPosition,
   rules,
   setRules,
-  rulesOtherside,
-  setRulesOtherside,
-  centerSg,
+  defaultTraffic,
   isDisabled,
 }) => {
   const [addOpen, setAddOpen] = useState(false)
@@ -54,110 +50,72 @@ export const SGRules: FC<TSGRulesProps> = ({
     setEditOpen(newEditOpen)
   }
 
-  const addNew = (values: TFormSgRule) => {
+  const addNew = (values: TFormSgSgIeRule) => {
     setRules([
       ...rules,
       {
         ...values,
+        traffic: defaultTraffic,
         formChanges: {
           status: STATUSES.new,
         },
       },
     ])
-    /* remove as legacy after only ie-sg-sg will remain */
-    if (values.sg === centerSg) {
-      setRulesOtherside([
-        ...rulesOtherside,
-        {
-          ...values,
-          formChanges: {
-            status: STATUSES.new,
-          },
-        },
-      ])
-    }
-    /* end of remove block */
     setEditOpen([...editOpen, false])
     toggleAddPopover()
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (index: number, values: TFormSgRule) => {
-    const newSgRules = [...rules]
-    const newSgRulesOtherside = [...rulesOtherside]
-    const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
-        sg === centerSg &&
-        portsSource === newSgRules[index].portsSource &&
-        portsDestination === newSgRules[index].portsDestination &&
-        transport === newSgRules[index].transport &&
-        logs === newSgRules[index].logs,
-    )
-    if (newSgRules[index].formChanges?.status === STATUSES.new) {
-      newSgRules[index] = { ...values, formChanges: { status: STATUSES.new } }
-      newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values, formChanges: { status: STATUSES.new } }
+  const editRule = (index: number, values: TFormSgSgIeRule) => {
+    const newSgSgIeRules = [...rules]
+    if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
+      newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
       const modifiedFields = []
-      if (newSgRules[index].sg !== values.sg) {
+      if (newSgSgIeRules[index].sg !== values.sg) {
         modifiedFields.push('sg')
       }
-      if (newSgRules[index].portsSource !== values.portsSource) {
+      if (newSgSgIeRules[index].portsSource !== values.portsSource) {
         modifiedFields.push('portsSource')
       }
-      if (newSgRules[index].portsDestination !== values.portsDestination) {
+      if (newSgSgIeRules[index].portsDestination !== values.portsDestination) {
         modifiedFields.push('portsDestination')
       }
-      if (newSgRules[index].transport !== values.transport) {
+      if (newSgSgIeRules[index].transport !== values.transport) {
         modifiedFields.push('transport')
       }
-      if (newSgRules[index].logs !== values.logs) {
+      if (newSgSgIeRules[index].logs !== values.logs) {
         modifiedFields.push('logs')
       }
       if (modifiedFields.length === 0) {
-        newSgRules[index] = { ...values }
-        newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values }
+        newSgSgIeRules[index] = { ...values }
       } else {
-        newSgRules[index] = { ...values, formChanges: { status: STATUSES.modified, modifiedFields } }
-        newSgRulesOtherside[newSgRulesOthersideIndex] = {
+        newSgSgIeRules[index] = {
           ...values,
+          traffic: defaultTraffic,
           formChanges: { status: STATUSES.modified, modifiedFields },
         }
       }
     }
-    setRules(newSgRules)
-    setRulesOtherside(newSgRulesOtherside)
+    setRules(newSgSgIeRules)
     toggleEditPopover(index)
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const removeRule = (index: number) => {
-    const newSgRules = [...rules]
-    const newSgRulesOtherside = [...rulesOtherside]
-    const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
-        sg === centerSg &&
-        portsSource === newSgRules[index].portsSource &&
-        portsDestination === newSgRules[index].portsDestination &&
-        transport === newSgRules[index].transport &&
-        logs === newSgRules[index].logs,
-    )
+    const newSgSgIeRules = [...rules]
     const newEditOpenRules = [...editOpen]
-    if (newSgRules[index].formChanges?.status === STATUSES.new) {
-      setRules([...newSgRules.slice(0, index), ...newSgRules.slice(index + 1)])
-      setRulesOtherside([
-        ...newSgRulesOtherside.slice(0, newSgRulesOthersideIndex),
-        ...newSgRulesOtherside.slice(newSgRulesOthersideIndex + 1),
-      ])
+    if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
+      setRules([...newSgSgIeRules.slice(0, index), ...newSgSgIeRules.slice(index + 1)])
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
-      newSgRules[index] = { ...newSgRules[index], formChanges: { status: STATUSES.deleted } }
-      newSgRulesOtherside[newSgRulesOthersideIndex] = {
-        ...newSgRulesOtherside[newSgRulesOthersideIndex],
+      newSgSgIeRules[index] = {
+        ...newSgSgIeRules[index],
+        traffic: defaultTraffic,
         formChanges: { status: STATUSES.deleted },
       }
-      setRules(newSgRules)
-      setRulesOtherside(newSgRulesOtherside)
+      setRules(newSgSgIeRules)
       toggleEditPopover(index)
     }
   }
@@ -172,7 +130,7 @@ export const SGRules: FC<TSGRulesProps> = ({
     setSearchText('')
   }
 
-  type TColumn = TFormSgRule & { key: string }
+  type TColumn = TFormSgSgIeRule & { key: string }
 
   const columns: ColumnsType<TColumn> = [
     {
@@ -283,7 +241,7 @@ export const SGRules: FC<TSGRulesProps> = ({
       render: (_, __, index) => (
         <Popover
           content={
-            <EditSGPopover
+            <EditSgSgIePopover
               sgNames={sgNames}
               values={rules[index]}
               remove={() => removeRule(index)}
@@ -292,7 +250,7 @@ export const SGRules: FC<TSGRulesProps> = ({
               isDisabled={isDisabled}
             />
           }
-          title="SG"
+          title="SG-SG-IE"
           trigger="click"
           open={editOpen[index]}
           onOpenChange={() => toggleEditPopover(index)}
@@ -306,7 +264,7 @@ export const SGRules: FC<TSGRulesProps> = ({
   ]
 
   return (
-    <>
+    <Styled.GroupRulesNode>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
       <Table
         pagination={{
@@ -327,8 +285,8 @@ export const SGRules: FC<TSGRulesProps> = ({
         size="small"
       />
       <Popover
-        content={<AddSGPopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
-        title="SG"
+        content={<AddSgSgIePopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
+        title="SG-SG-IE"
         trigger="click"
         open={addOpen}
         onOpenChange={toggleAddPopover}
@@ -340,6 +298,6 @@ export const SGRules: FC<TSGRulesProps> = ({
           </Button>
         </Styled.FormItem>
       </Popover>
-    </>
+    </Styled.GroupRulesNode>
   )
 }
