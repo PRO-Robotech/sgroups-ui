@@ -1,18 +1,25 @@
 import React, { FC, Dispatch, SetStateAction, useState, useEffect } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { Spacer } from 'components'
-import { TFormSgRule, TFormFqdnRule, TFormCidrSgRule, TFormSgSgIcmpRule, TFormSgSgIeRule } from 'localTypes/rules'
-import { FQDNRules, SelectMainSG, CidrSGRules, SgSgIeRules, SgAndSgSgIcmpRules } from '../../molecules'
+import {
+  TFormSgRule,
+  TFormFqdnRule,
+  TFormCidrSgRule,
+  TFormSgSgIcmpRule,
+  TFormSgSgIeRule,
+  TFormSgSgIeIcmpRule,
+} from 'localTypes/rules'
+import { FQDNRules, SelectMainSG, CidrSGRules, SgAndSgSgIcmpRules, SgSgIeAndSgSgIeIcmpRules } from '../../molecules'
 import { Arrows } from './molecules'
 import {
   CARDS_CONTAINER,
   SG_AND_SG_SG_ICMP_FROM_ID,
   CIDR_FROM_ID,
-  SG_SG_IE_FROM_ID,
+  SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID,
   CENTRAL_ID,
   SG_AND_SG_SG_ICMP_TO_ID,
   CIDR_TO_ID,
-  SG_SG_IE_TO_ID,
+  SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID,
   FQDN_TO_ID,
 } from './constants'
 import { Styled } from './styled'
@@ -37,6 +44,10 @@ type TTransformBlockProps = {
   setRulesSgSgIeFrom: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
   rulesSgSgIeTo: TFormSgSgIeRule[]
   setRulesSgSgIeTo: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[]
+  setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
+  setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   setCenterSg: Dispatch<SetStateAction<string | undefined>>
   centerSg?: string
 }
@@ -62,6 +73,10 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
   setRulesSgSgIeFrom,
   rulesSgSgIeTo,
   setRulesSgSgIeTo,
+  rulesSgSgIeIcmpFrom,
+  setRulesSgSgIeIcmpFrom,
+  rulesSgSgIeIcmpTo,
+  setRulesSgSgIeIcmpTo,
   centerSg,
 }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
@@ -76,6 +91,8 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
     rulesCidrSgTo.length,
     rulesSgSgIeFrom.length,
     rulesSgSgIeTo.length,
+    rulesSgSgIeIcmpFrom.length,
+    rulesSgSgIeIcmpTo.length,
   ])
 
   const forceArrowsUpdate = () => {
@@ -113,13 +130,16 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
               />
             </div>
             <Spacer $space={100} $samespace />
-            <div id={SG_SG_IE_FROM_ID}>
-              <SgSgIeRules
+            <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID}>
+              <SgSgIeAndSgSgIeIcmpRules
+                forceArrowsUpdate={forceArrowsUpdate}
                 sgNames={sgNames}
                 title={`SG-SG-IE From - ${centerSg || ''}`}
                 popoverPosition="left"
                 rules={rulesSgSgIeFrom}
                 setRules={setRulesSgSgIeFrom}
+                rulesIcmp={rulesSgSgIeIcmpFrom}
+                setRulesIcmp={setRulesSgSgIeIcmpFrom}
                 defaultTraffic="Ingress"
                 isDisabled={!centerSg}
               />
@@ -161,13 +181,16 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
               />
             </div>
             <Spacer $space={100} $samespace />
-            <div id={SG_SG_IE_TO_ID}>
-              <SgSgIeRules
+            <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID}>
+              <SgSgIeAndSgSgIeIcmpRules
+                forceArrowsUpdate={forceArrowsUpdate}
                 sgNames={sgNames}
                 title={`${centerSg || ''} - SG-SG-IE To`}
                 popoverPosition="right"
                 rules={rulesSgSgIeTo}
                 setRules={setRulesSgSgIeTo}
+                rulesIcmp={rulesSgSgIeIcmpTo}
+                setRulesIcmp={setRulesSgSgIeIcmpTo}
                 defaultTraffic="Egress"
                 isDisabled={!centerSg}
               />

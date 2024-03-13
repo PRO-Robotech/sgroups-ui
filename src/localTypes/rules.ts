@@ -78,6 +78,19 @@ export type TSgSgIeRulesResponse = {
   rules: TSgSgIeRule[]
 }
 
+export type TSgSgIeIcmpRule = {
+  Sg: string
+  SgLocal: string
+  logs: boolean
+  trace: boolean
+  ICMP: TICMPDescription
+  traffic: TTraffic
+}
+
+export type TSgSgIeIcmpRulesResponse = {
+  rules: TSgSgIeIcmpRule[]
+}
+
 export type TFormChangesStatuses = 'modified' | 'deleted' | 'new'
 
 type TFormChanges = {
@@ -134,6 +147,16 @@ export type TFormSgSgIeRule = {
   formChanges?: TFormChanges
 }
 
+export type TFormSgSgIeIcmpRule = {
+  sg: string
+  logs: boolean
+  trace: boolean
+  IPv: TIpVersion
+  types: number[]
+  traffic: TTraffic
+  formChanges?: TFormChanges
+}
+
 export type TComposedForSubmitSgRules = {
   rules: TSgRule[]
   rulesToDelete: TSgRule[]
@@ -157,4 +180,9 @@ export type TComposedForSubmitSgSgIcmpRules = {
 export type TComposedForSubmitSgSgIeRules = {
   rules: TSgSgIeRule[]
   rulesToDelete: TSgSgIeRule[]
+}
+
+export type TComposedForSubmitSgSgIeIcmpRules = {
+  rules: TSgSgIeIcmpRule[]
+  rulesToDelete: TSgSgIeIcmpRule[]
 }

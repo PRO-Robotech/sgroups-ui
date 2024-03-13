@@ -1,13 +1,14 @@
 import React, { FC, Fragment } from 'react'
 import { Typography } from 'antd'
 import { TitleWithNoTopMargin } from 'components'
-import { SGTable, FQDNTable, CidrSgTable, SgSgIcmpTable, SgSgIeTable } from '../../molecules'
+import { SGTable, FQDNTable, CidrSgTable, SgSgIcmpTable, SgSgIeTable, SgSgIeIcmpTable } from '../../molecules'
 import {
   TFormSgRuleChangesResult,
   TFormFqdnRuleChangesResult,
   TFormCidrSgRuleChangesResult,
   TFormSgSgIcmpRuleChangesResult,
   TFormSgSgIeRuleChangesResult,
+  TFormSgSgIeIcmpRuleChangesResult,
 } from '../../types'
 
 type TRulesDiffProps = {
@@ -32,6 +33,10 @@ type TRulesDiffProps = {
     | {
         type: 'sgSgIe'
         data: TFormSgSgIeRuleChangesResult
+      }
+    | {
+        type: 'sgSgIeIcmp'
+        data: TFormSgSgIeIcmpRuleChangesResult
       }
 }
 
@@ -140,25 +145,51 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
     )
   }
 
+  if (compareResult.type === 'sgSgIe') {
+    return (
+      <>
+        <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
+        {compareResult.data.newRules.length > 0 && (
+          <>
+            <Typography.Paragraph>New Rules:</Typography.Paragraph>
+            <SgSgIeTable rules={compareResult.data.newRules} />
+          </>
+        )}
+        {compareResult.data.diffRules.length > 0 && (
+          <>
+            <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
+            <SgSgIeTable rules={compareResult.data.diffRules} />
+          </>
+        )}
+        {compareResult.data.deletedRules.length > 0 && (
+          <>
+            <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
+            <SgSgIeTable rules={compareResult.data.deletedRules} />
+          </>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
       <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
       {compareResult.data.newRules.length > 0 && (
         <>
           <Typography.Paragraph>New Rules:</Typography.Paragraph>
-          <SgSgIeTable rules={compareResult.data.newRules} />
+          <SgSgIeIcmpTable rules={compareResult.data.newRules} />
         </>
       )}
       {compareResult.data.diffRules.length > 0 && (
         <>
           <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-          <SgSgIeTable rules={compareResult.data.diffRules} />
+          <SgSgIeIcmpTable rules={compareResult.data.diffRules} />
         </>
       )}
       {compareResult.data.deletedRules.length > 0 && (
         <>
           <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-          <SgSgIeTable rules={compareResult.data.deletedRules} />
+          <SgSgIeIcmpTable rules={compareResult.data.deletedRules} />
         </>
       )}
     </>
