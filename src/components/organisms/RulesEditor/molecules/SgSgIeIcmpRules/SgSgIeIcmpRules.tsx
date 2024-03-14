@@ -191,6 +191,19 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
           .includes((value as string).toLowerCase()),
     },
     {
+      title: 'Types',
+      dataIndex: 'types',
+      key: 'types',
+      width: 50,
+      render: (_, { types }) => <Styled.RulesEntrySgs className="no-scroll">{types.join(',')}</Styled.RulesEntrySgs>,
+      sorter: (a, b) => {
+        if (a.types.length === b.types.length) {
+          return 0
+        }
+        return a.types.length > b.types.length ? -1 : 1
+      },
+    },
+    {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
@@ -207,19 +220,6 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
           return 0
         }
         return a.logs ? -1 : 1
-      },
-    },
-    {
-      title: 'Types',
-      dataIndex: 'types',
-      key: 'types',
-      width: 50,
-      render: (_, { types }) => <Styled.RulesEntrySgs className="no-scroll">{types.join(',')}</Styled.RulesEntrySgs>,
-      sorter: (a, b) => {
-        if (a.types.length === b.types.length) {
-          return 0
-        }
-        return a.types.length > b.types.length ? -1 : 1
       },
     },
     {

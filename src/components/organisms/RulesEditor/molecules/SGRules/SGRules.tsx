@@ -255,7 +255,7 @@ export const SGRules: FC<TSGRulesProps> = ({
       },
     },
     {
-      title: 'Ports Source',
+      title: 'Ports Src',
       key: 'portsSource',
       dataIndex: 'portsSource',
       width: 50,
@@ -266,7 +266,7 @@ export const SGRules: FC<TSGRulesProps> = ({
       ),
     },
     {
-      title: 'Ports Destination',
+      title: 'Ports Dst',
       key: 'portsDestination',
       dataIndex: 'portsDestination',
       width: 50,
