@@ -662,12 +662,12 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
     }
     if (formChanges?.status !== STATUSES.deleted) {
       const ruleInRulesArr = findSgSgIeIcmpRuleInResultArr(rule, result.rules)
-      if (ruleInRulesArr) {
+      if (!ruleInRulesArr) {
         result.rules.push(rule)
       }
     } else {
       const ruleInRulesArr = findSgSgIeIcmpRuleInResultArr(rule, result.rulesToDelete)
-      if (ruleInRulesArr) {
+      if (!ruleInRulesArr) {
         result.rulesToDelete.push(rule)
       }
     }
