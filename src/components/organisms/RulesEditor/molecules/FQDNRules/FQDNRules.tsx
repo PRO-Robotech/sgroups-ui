@@ -13,6 +13,7 @@ import { AddFqdnPopover, EditFqdnPopover } from '../../atoms'
 import { Styled } from '../styled'
 
 type TFQDNRulesProps = {
+  forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
   rules: TFormFqdnRule[]
@@ -20,7 +21,14 @@ type TFQDNRulesProps = {
   isDisabled?: boolean
 }
 
-export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, setRules, isDisabled }) => {
+export const FQDNRules: FC<TFQDNRulesProps> = ({
+  forceArrowsUpdate,
+  title,
+  popoverPosition,
+  rules,
+  setRules,
+  isDisabled,
+}) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -54,8 +62,16 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
     toggleAddPopover()
   }
 
-  const editRule = (index: number, values: TFormFqdnRule) => {
+  const editRule = (oldValues: TFormFqdnRule, values: TFormFqdnRule) => {
     const newFqdnRules = [...rules]
+    const index = newFqdnRules.findIndex(
+      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+        fqdn === oldValues.fqdn &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
       newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
@@ -173,6 +189,28 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
       onFilter: (value, { fqdn }) => fqdn.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
+      title: 'Ports Src',
+      key: 'portsSource',
+      dataIndex: 'portsSource',
+      width: 50,
+      render: (_, { portsSource }) => (
+        <Styled.RulesEntryPorts className="no-scroll">
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
+      title: 'Ports Dst',
+      key: 'portsDestination',
+      dataIndex: 'portsDestination',
+      width: 50,
+      render: (_, { portsDestination }) => (
+        <Styled.RulesEntryPorts className="no-scroll">
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
@@ -192,28 +230,6 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
       },
     },
     {
-      title: 'Ports Source',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
-      width: 50,
-      render: (_, { portsSource }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Ports Destination',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
-      width: 50,
-      render: (_, { portsDestination }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
       title: 'Edit',
       key: 'edit',
       width: 50,
@@ -224,7 +240,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
               values={{ fqdn, logs, transport, portsSource, portsDestination }}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule({ fqdn, logs, transport, portsSource, portsDestination }, values)}
               isDisabled={isDisabled}
             />
           }
@@ -250,6 +266,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)

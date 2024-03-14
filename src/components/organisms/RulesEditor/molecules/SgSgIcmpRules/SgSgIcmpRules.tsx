@@ -13,6 +13,7 @@ import { AddSgSgIcmpPopover, EditSgSgIcmpPopover } from '../../atoms'
 import { Styled } from '../styled'
 
 type TSgSgIcmpRulesProps = {
+  forceArrowsUpdate: () => void
   sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
@@ -25,6 +26,7 @@ type TSgSgIcmpRulesProps = {
 }
 
 export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
+  forceArrowsUpdate,
   sgNames,
   title,
   popoverPosition,
@@ -82,8 +84,16 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (index: number, values: TFormSgSgIcmpRule) => {
+  const editRule = (oldValues: TFormSgSgIcmpRule, values: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rules]
+    const index = newSgSgIcmpRules.findIndex(
+      ({ sg, IPv, types, logs, trace }) =>
+        sg === oldValues.sg &&
+        IPv === oldValues.IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace,
+    )
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, IPv, types, logs, trace }) =>
@@ -247,6 +257,19 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
           .includes((value as string).toLowerCase()),
     },
     {
+      title: 'Types',
+      dataIndex: 'types',
+      key: 'types',
+      width: 50,
+      render: (_, { types }) => <Styled.RulesEntrySgs className="no-scroll">{types.join(',')}</Styled.RulesEntrySgs>,
+      sorter: (a, b) => {
+        if (a.types.length === b.types.length) {
+          return 0
+        }
+        return a.types.length > b.types.length ? -1 : 1
+      },
+    },
+    {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
@@ -263,19 +286,6 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
           return 0
         }
         return a.logs ? -1 : 1
-      },
-    },
-    {
-      title: 'Types',
-      dataIndex: 'types',
-      key: 'types',
-      width: 50,
-      render: (_, { types }) => <Styled.RulesEntrySgs className="no-scroll">{types.join(',')}</Styled.RulesEntrySgs>,
-      sorter: (a, b) => {
-        if (a.types.length === b.types.length) {
-          return 0
-        }
-        return a.types.length > b.types.length ? -1 : 1
       },
     },
     {
@@ -301,7 +311,7 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, __, index) => (
+      render: (_, oldValues, index) => (
         <Popover
           content={
             <EditSgSgIcmpPopover
@@ -316,7 +326,7 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
               }}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
             />
           }
@@ -342,6 +352,7 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)

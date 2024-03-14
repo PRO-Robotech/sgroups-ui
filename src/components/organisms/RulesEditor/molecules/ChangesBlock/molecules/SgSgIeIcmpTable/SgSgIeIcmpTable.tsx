@@ -5,14 +5,14 @@ import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
-import { TFormFqdnRule } from 'localTypes/rules'
+import { TFormSgSgIeIcmpRule } from 'localTypes/rules'
 import { Styled } from '../styled'
 
-type TFQDNTableProps = {
-  rules: TFormFqdnRule[]
+type TSgSgIeIcmpTableProps = {
+  rules: TFormSgSgIeIcmpRule[]
 }
 
-export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
+export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({ rules }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
 
@@ -26,38 +26,34 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
     setSearchText('')
   }
 
-  type TColumn = TFormFqdnRule & { key: string }
+  type TColumn = TFormSgSgIeIcmpRule & { key: string }
 
   const columns: ColumnsType<TColumn> = [
     {
-      title: 'Transport',
-      dataIndex: 'transport',
-      key: 'transport',
+      title: 'ICMP',
+      dataIndex: 'IPv',
+      key: 'IPv',
       width: 50,
-      render: (_, { transport, formChanges }) => (
-        <Styled.RulesEntryTransport
-          $transport={transport}
-          $modified={formChanges?.modifiedFields?.includes('transport')}
-          className="no-scroll"
-        >
-          {transport}
-        </Styled.RulesEntryTransport>
+      render: (_, { IPv, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('ipv')} className="no-scroll">
+          {IPv}
+        </Styled.RulesEntrySgs>
       ),
       sorter: (a, b) => {
-        if (a.transport === b.transport) {
+        if (a.IPv === b.IPv) {
           return 0
         }
-        return a.transport === 'TCP' ? -1 : 1
+        return a.IPv === 'IPv6' ? -1 : 1
       },
     },
     {
-      title: 'FQDN',
-      dataIndex: 'fqdn',
-      key: 'fqdn',
+      title: 'SG Name',
+      dataIndex: 'sg',
+      key: 'sg',
       width: 150,
-      render: (_, { fqdn, formChanges }) => (
-        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('fqdn')} className="no-scroll">
-          {fqdn}
+      render: (_, { sg, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('sg')} className="no-scroll">
+          {sg}
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -95,7 +91,28 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { fqdn }) => fqdn.toLowerCase().includes((value as string).toLowerCase()),
+      onFilter: (value, { sg }) =>
+        sg
+          .toString()
+          .toLowerCase()
+          .includes((value as string).toLowerCase()),
+    },
+    {
+      title: 'Types',
+      dataIndex: 'types',
+      key: 'types',
+      width: 50,
+      render: (_, { types, formChanges }) => (
+        <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('types')} className="no-scroll">
+          {types.join(',')}
+        </Styled.RulesEntrySgs>
+      ),
+      sorter: (a, b) => {
+        if (a.types.length === b.types.length) {
+          return 0
+        }
+        return a.types.length > b.types.length ? -1 : 1
+      },
     },
     {
       title: 'Logs',
@@ -117,29 +134,23 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
       },
     },
     {
-      title: 'Ports Src',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
+      title: 'Trace',
+      dataIndex: 'trace',
+      key: 'trace',
       width: 50,
-      render: (_, { portsSource, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
-        </Styled.RulesEntryPorts>
+      render: (_, { trace, formChanges }) => (
+        <Styled.RulesEntryMarks $modified={formChanges?.modifiedFields?.includes('trace')} className="no-scroll">
+          <Tooltip title="trace">
+            {trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
+          </Tooltip>
+        </Styled.RulesEntryMarks>
       ),
-    },
-    {
-      title: 'Ports Dst',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
-      width: 50,
-      render: (_, { portsDestination, formChanges }) => (
-        <Styled.RulesEntryPorts
-          $modified={formChanges?.modifiedFields?.includes('portsDestination')}
-          className="no-scroll"
-        >
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
+      sorter: (a, b) => {
+        if (a.trace === b.trace) {
+          return 0
+        }
+        return a.trace ? -1 : 1
+      },
     },
   ]
 
@@ -153,11 +164,12 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
       }}
       dataSource={rules.map(row => ({
         ...row,
-        key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+        key: `${row.sg}-${row.IPv}`,
       }))}
       columns={columns}
       virtual
       scroll={{ x: 'max-content' }}
+      size="small"
     />
   )
 }

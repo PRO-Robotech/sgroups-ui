@@ -2,43 +2,35 @@ import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { Radio } from 'antd'
 import type { RadioChangeEvent } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { TFormSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
+import { TFormSgSgIeRule, TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
 import { Spacer } from 'components'
-import { SGRules } from '../SGRules'
-import { SgSgIcmpRules } from '../SgSgIcmpRules'
+import { SgSgIeRules } from '../SgSgIeRules'
+import { SgSgIeIcmpRules } from '../SgSgIeIcmpRules'
 import { Styled } from '../styled'
 
-type TSgAndSgSgIcmpRulesProps = {
+type TSgSgIeAndSgSgIeIcmpRulesProps = {
   forceArrowsUpdate: () => void
   sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgRule[]
-  setRules: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesOtherside: TFormSgRule[]
-  setRulesOtherside: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesIcmp: TFormSgSgIcmpRule[]
-  setRulesIcmp: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
-  rulesOthersideIcmp: TFormSgSgIcmpRule[]
-  setRulesOthersideIcmp: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
-  centerSg?: string
+  rules: TFormSgSgIeRule[]
+  setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+  rulesIcmp: TFormSgSgIeIcmpRule[]
+  setRulesIcmp: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+  defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
-export const SgAndSgSgIcmpRules: FC<TSgAndSgSgIcmpRulesProps> = ({
+export const SgSgIeAndSgSgIeIcmpRules: FC<TSgSgIeAndSgSgIeIcmpRulesProps> = ({
   forceArrowsUpdate,
   sgNames,
   title,
   popoverPosition,
   rules,
   setRules,
-  rulesOtherside,
-  setRulesOtherside,
   rulesIcmp,
   setRulesIcmp,
-  rulesOthersideIcmp,
-  setRulesOthersideIcmp,
-  centerSg,
+  defaultTraffic,
   isDisabled,
 }) => {
   const [tab, setTab] = useState('tcpudp')
@@ -66,30 +58,26 @@ export const SgAndSgSgIcmpRules: FC<TSgAndSgSgIcmpRulesProps> = ({
       </Styled.RadioGroup>
       <Spacer $space={10} $samespace />
       {tab === 'tcpudp' && (
-        <SGRules
+        <SgSgIeRules
           forceArrowsUpdate={forceArrowsUpdate}
           sgNames={sgNames}
           title={title}
           popoverPosition={popoverPosition}
           rules={rules}
           setRules={setRules}
-          rulesOtherside={rulesOtherside}
-          setRulesOtherside={setRulesOtherside}
-          centerSg={centerSg}
+          defaultTraffic={defaultTraffic}
           isDisabled={isDisabled}
         />
       )}
       {tab === 'icmp' && (
-        <SgSgIcmpRules
+        <SgSgIeIcmpRules
           forceArrowsUpdate={forceArrowsUpdate}
           sgNames={sgNames}
           title={title}
           popoverPosition={popoverPosition}
           rules={rulesIcmp}
           setRules={setRulesIcmp}
-          rulesOtherside={rulesOthersideIcmp}
-          setRulesOtherside={setRulesOthersideIcmp}
-          centerSg={centerSg}
+          defaultTraffic={defaultTraffic}
           isDisabled={isDisabled}
         />
       )}

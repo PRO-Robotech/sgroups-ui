@@ -5,16 +5,19 @@ import {
   TCidrRule,
   TSgSgIcmpRule,
   TSgSgIeRule,
+  TSgSgIeIcmpRule,
   TFormSgRule,
   TFormFqdnRule,
   TFormCidrSgRule,
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
+  TFormSgSgIeIcmpRule,
   TComposedForSubmitSgRules,
   TComposedForSubmitFqdnRules,
   TComposedForSubmitCidrRules,
   TComposedForSubmitSgSgIcmpRules,
   TComposedForSubmitSgSgIeRules,
+  TComposedForSubmitSgSgIeIcmpRules,
 } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
 import {
@@ -23,6 +26,7 @@ import {
   TFormCidrSgRuleChangesResult,
   TFormSgSgIcmpRuleChangesResult,
   TFormSgSgIeRuleChangesResult,
+  TFormSgSgIeIcmpRuleChangesResult,
 } from './types'
 
 export const getChangesSgRules = (rules: TFormSgRule[]): TFormSgRuleChangesResult | null => {
@@ -83,6 +87,20 @@ export const getChangesSgSgIcmpRules = (rules: TFormSgSgIcmpRule[]): TFormSgSgIc
 
 export const getChangesSgSgIeRules = (rules: TFormSgSgIeRule[]): TFormSgSgIeRuleChangesResult | null => {
   const result: TFormSgSgIeRuleChangesResult = {
+    newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
+    diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
+    deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
+  }
+
+  if (result.newRules.length === 0 && result.diffRules.length === 0 && result.deletedRules.length === 0) {
+    return null
+  }
+
+  return result
+}
+
+export const getChangesSgSgIeIcmpRules = (rules: TFormSgSgIeIcmpRule[]): TFormSgSgIeIcmpRuleChangesResult | null => {
+  const result: TFormSgSgIeIcmpRuleChangesResult = {
     newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
     diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
     deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
@@ -600,6 +618,56 @@ export const composeAllTypesOfSgSgIeRules = (
           ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
         }
       } else {
+        result.rulesToDelete.push(rule)
+      }
+    }
+  })
+
+  return result
+}
+
+const findSgSgIeIcmpRuleInResultArr = (rule: TSgSgIeIcmpRule, rulesArr: TSgSgIeIcmpRule[]) => {
+  return rulesArr.find(
+    ({ Sg, SgLocal, logs, trace, traffic, ICMP }) =>
+      Sg === rule.Sg &&
+      SgLocal === rule.SgLocal &&
+      logs === rule.logs &&
+      trace === rule.trace &&
+      traffic === rule.traffic &&
+      ICMP.IPv === rule.ICMP.IPv &&
+      ICMP.IPv === rule.ICMP.IPv &&
+      JSON.stringify(ICMP.Types.sort()) === JSON.stringify(rule.ICMP.Types.sort()),
+  )
+}
+
+export const composeAllTypesOfSgSgIeIcmpRules = (
+  centerSg: string,
+  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[],
+  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[],
+): TComposedForSubmitSgSgIeIcmpRules => {
+  const result: TComposedForSubmitSgSgIeIcmpRules = {
+    rules: [],
+    rulesToDelete: [],
+  }
+
+  const sgSgIeIcmpRules = [...rulesSgSgIeIcmpFrom, ...rulesSgSgIeIcmpTo]
+  sgSgIeIcmpRules.forEach(({ sg, IPv, types, logs, trace, traffic, formChanges }) => {
+    const rule = {
+      SgLocal: sg,
+      Sg: centerSg,
+      ICMP: { IPv, Types: types },
+      logs: !!logs,
+      trace: !!trace,
+      traffic,
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      const ruleInRulesArr = findSgSgIeIcmpRuleInResultArr(rule, result.rules)
+      if (!ruleInRulesArr) {
+        result.rules.push(rule)
+      }
+    } else {
+      const ruleInRulesArr = findSgSgIeIcmpRuleInResultArr(rule, result.rulesToDelete)
+      if (!ruleInRulesArr) {
         result.rulesToDelete.push(rule)
       }
     }

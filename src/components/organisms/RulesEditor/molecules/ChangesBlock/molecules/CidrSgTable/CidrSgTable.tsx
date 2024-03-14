@@ -137,7 +137,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
       },
     },
     {
-      title: 'Ports Source',
+      title: 'Ports Src',
       key: 'portsSource',
       dataIndex: 'portsSource',
       width: 50,
@@ -148,7 +148,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
       ),
     },
     {
-      title: 'Ports Destination',
+      title: 'Ports Dst',
       key: 'portsDestination',
       dataIndex: 'portsDestination',
       width: 50,

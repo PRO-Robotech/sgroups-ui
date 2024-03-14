@@ -14,6 +14,7 @@ import { AddCidrSgPopover, EditCidrSgPopover } from '../../atoms'
 import { Styled } from '../styled'
 
 type TCidrSGRulesProps = {
+  forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
   defaultTraffic: TTraffic
@@ -23,6 +24,7 @@ type TCidrSGRulesProps = {
 }
 
 export const CidrSGRules: FC<TCidrSGRulesProps> = ({
+  forceArrowsUpdate,
   title,
   popoverPosition,
   defaultTraffic,
@@ -64,8 +66,18 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
     toggleAddPopover()
   }
 
-  const editRule = (index: number, values: TFormCidrSgRule) => {
+  const editRule = (oldValues: TFormCidrSgRule, values: TFormCidrSgRule) => {
     const newCidrSgRules = [...rules]
+    const index = newCidrSgRules.findIndex(
+      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+        cidr === oldValues.cidr &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
       newCidrSgRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
@@ -194,6 +206,28 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       onFilter: (value, { cidr }) => ipRangeCheck(value as string, cidr),
     },
     {
+      title: 'Ports Src',
+      key: 'portsSource',
+      dataIndex: 'portsSource',
+      width: 50,
+      render: (_, { portsSource }) => (
+        <Styled.RulesEntryPorts className="no-scroll">
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
+      title: 'Ports Dst',
+      key: 'portsDestination',
+      dataIndex: 'portsDestination',
+      width: 50,
+      render: (_, { portsDestination }) => (
+        <Styled.RulesEntryPorts className="no-scroll">
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
@@ -232,39 +266,17 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       },
     },
     {
-      title: 'Ports Source',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
-      width: 50,
-      render: (_, { portsSource }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Ports Destination',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
-      width: 50,
-      render: (_, { portsDestination }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, __, index) => (
+      render: (_, oldValues, index) => (
         <Popover
           content={
             <EditCidrSgPopover
               values={rules[index]}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
             />
           }
@@ -290,6 +302,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)

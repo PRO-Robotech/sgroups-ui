@@ -2,9 +2,9 @@ import styled from 'styled-components'
 import { Form } from 'antd'
 
 const RadioGroup = styled.div`
-  width: 100%;
   display: flex;
   justify-content: flex-end;
+  width: 100%;
 `
 
 const GroupRulesNode = styled.div`

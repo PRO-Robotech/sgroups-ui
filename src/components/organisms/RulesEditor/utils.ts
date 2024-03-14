@@ -9,6 +9,8 @@ import {
   TFormSgSgIcmpRule,
   TSgSgIeRule,
   TFormSgSgIeRule,
+  TSgSgIeIcmpRule,
+  TFormSgSgIeIcmpRule,
 } from 'localTypes/rules'
 
 export const mapRulesSgFrom = (rules: TSgRule[]): TFormSgRule[] => {
@@ -181,6 +183,36 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
       return {
         sg: SgLocal,
         transport,
+        logs,
+        trace,
+        traffic,
+      }
+    })
+}
+
+export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpRule[] => {
+  return rules
+    .filter(({ traffic }) => traffic === 'Ingress')
+    .flatMap(({ SgLocal, ICMP, logs, trace, traffic }) => {
+      return {
+        sg: SgLocal,
+        IPv: ICMP.IPv,
+        types: ICMP.Types,
+        logs,
+        trace,
+        traffic,
+      }
+    })
+}
+
+export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpRule[] => {
+  return rules
+    .filter(({ traffic }) => traffic === 'Egress')
+    .flatMap(({ SgLocal, ICMP, logs, trace, traffic }) => {
+      return {
+        sg: SgLocal,
+        IPv: ICMP.IPv,
+        types: ICMP.Types,
         logs,
         trace,
         traffic,

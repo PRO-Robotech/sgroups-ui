@@ -8,22 +8,22 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
-import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
-import { AddSgSgIePopover, EditSgSgIePopover } from '../../atoms'
+import { TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
+import { AddSgSgIeIcmpPopover, EditSgSgIeIcmpPopover } from '../../atoms'
 import { Styled } from '../styled'
 
-type TSgSgIeRulesProps = {
+type TSgSgIeIcmpRulesProps = {
   forceArrowsUpdate: () => void
   sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgSgIeRule[]
-  setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+  rules: TFormSgSgIeIcmpRule[]
+  setRules: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
-export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
+export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
   forceArrowsUpdate,
   sgNames,
   title,
@@ -52,7 +52,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
     setEditOpen(newEditOpen)
   }
 
-  const addNew = (values: TFormSgSgIeRule) => {
+  const addNew = (values: TFormSgSgIeIcmpRule) => {
     setRules([
       ...rules,
       {
@@ -68,66 +68,62 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (oldValues: TFormSgSgIeRule, values: TFormSgSgIeRule) => {
-    const newSgSgIeRules = [...rules]
-    const index = newSgSgIeRules.findIndex(
-      ({ sg, portsSource, portsDestination, logs, trace, traffic, transport }) =>
+  const editRule = (oldValues: TFormSgSgIeIcmpRule, values: TFormSgSgIeIcmpRule) => {
+    const newSgSgIeIcmpRules = [...rules]
+    const index = newSgSgIeIcmpRules.findIndex(
+      ({ sg, IPv, types, logs, trace, traffic }) =>
         sg === oldValues.sg &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
+        IPv === oldValues.IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
         logs === oldValues.logs &&
         trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        transport === oldValues.transport,
+        traffic === oldValues.traffic,
     )
-    if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
-      newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
+    if (newSgSgIeIcmpRules[index].formChanges?.status === STATUSES.new) {
+      newSgSgIeIcmpRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
       const modifiedFields = []
-      if (newSgSgIeRules[index].sg !== values.sg) {
+      if (newSgSgIeIcmpRules[index].sg !== values.sg) {
         modifiedFields.push('sg')
       }
-      if (newSgSgIeRules[index].portsSource !== values.portsSource) {
-        modifiedFields.push('portsSource')
+      if (newSgSgIeIcmpRules[index].IPv !== values.IPv) {
+        modifiedFields.push('ipv')
       }
-      if (newSgSgIeRules[index].portsDestination !== values.portsDestination) {
-        modifiedFields.push('portsDestination')
+      if (JSON.stringify(newSgSgIeIcmpRules[index].types.sort()) !== JSON.stringify(values.types.sort())) {
+        modifiedFields.push('types')
       }
-      if (newSgSgIeRules[index].transport !== values.transport) {
-        modifiedFields.push('transport')
-      }
-      if (newSgSgIeRules[index].logs !== values.logs) {
+      if (newSgSgIeIcmpRules[index].logs !== values.logs) {
         modifiedFields.push('logs')
       }
       if (modifiedFields.length === 0) {
-        newSgSgIeRules[index] = { ...values }
+        newSgSgIeIcmpRules[index] = { ...values }
       } else {
-        newSgSgIeRules[index] = {
+        newSgSgIeIcmpRules[index] = {
           ...values,
           traffic: defaultTraffic,
           formChanges: { status: STATUSES.modified, modifiedFields },
         }
       }
     }
-    setRules(newSgSgIeRules)
+    setRules(newSgSgIeIcmpRules)
     toggleEditPopover(index)
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const removeRule = (index: number) => {
-    const newSgSgIeRules = [...rules]
+    const newSgSgIeIcmpRules = [...rules]
     const newEditOpenRules = [...editOpen]
-    if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
-      setRules([...newSgSgIeRules.slice(0, index), ...newSgSgIeRules.slice(index + 1)])
+    if (newSgSgIeIcmpRules[index].formChanges?.status === STATUSES.new) {
+      setRules([...newSgSgIeIcmpRules.slice(0, index), ...newSgSgIeIcmpRules.slice(index + 1)])
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
-      newSgSgIeRules[index] = {
-        ...newSgSgIeRules[index],
+      newSgSgIeIcmpRules[index] = {
+        ...newSgSgIeIcmpRules[index],
         traffic: defaultTraffic,
         formChanges: { status: STATUSES.deleted },
       }
-      setRules(newSgSgIeRules)
+      setRules(newSgSgIeIcmpRules)
       toggleEditPopover(index)
     }
   }
@@ -142,30 +138,26 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
     setSearchText('')
   }
 
-  type TColumn = TFormSgSgIeRule & { key: string }
+  type TColumn = TFormSgSgIeIcmpRule & { key: string }
 
   const columns: ColumnsType<TColumn> = [
     {
-      title: 'Transport',
-      dataIndex: 'transport',
-      key: 'transport',
+      title: 'IPv',
+      dataIndex: 'IPv',
+      key: 'IPv',
       width: 50,
-      render: (_, { transport }) => (
-        <Styled.RulesEntryTransport $transport={transport} className="no-scroll">
-          {transport}
-        </Styled.RulesEntryTransport>
-      ),
+      render: (_, { IPv }) => <Styled.RulesEntrySgs className="no-scroll">{IPv}</Styled.RulesEntrySgs>,
       sorter: (a, b) => {
-        if (a.transport === b.transport) {
+        if (a.IPv === b.IPv) {
           return 0
         }
-        return a.transport === 'TCP' ? -1 : 1
+        return a.IPv === 'IPv6' ? -1 : 1
       },
     },
     {
-      title: 'SG Names',
-      dataIndex: 'sgs',
-      key: 'sgs',
+      title: 'SG Name',
+      dataIndex: 'sg',
+      key: 'sg',
       width: 150,
       render: (_, { sg }) => <Styled.RulesEntrySgs className="no-scroll">{sg}</Styled.RulesEntrySgs>,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -203,29 +195,24 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
         </div>
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
+      onFilter: (value, { sg }) =>
+        sg
+          .toString()
+          .toLowerCase()
+          .includes((value as string).toLowerCase()),
     },
     {
-      title: 'Ports Src',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
+      title: 'Types',
+      dataIndex: 'types',
+      key: 'types',
       width: 50,
-      render: (_, { portsSource }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Ports Dst',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
-      width: 50,
-      render: (_, { portsDestination }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
+      render: (_, { types }) => <Styled.RulesEntrySgs className="no-scroll">{types.join(',')}</Styled.RulesEntrySgs>,
+      sorter: (a, b) => {
+        if (a.types.length === b.types.length) {
+          return 0
+        }
+        return a.types.length > b.types.length ? -1 : 1
+      },
     },
     {
       title: 'Logs',
@@ -247,13 +234,32 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
       },
     },
     {
+      title: 'Trace',
+      dataIndex: 'trace',
+      key: 'trace',
+      width: 50,
+      render: (_, { trace }) => (
+        <Styled.RulesEntryMarks className="no-scroll">
+          <Tooltip title="Trace">
+            {trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
+          </Tooltip>
+        </Styled.RulesEntryMarks>
+      ),
+      sorter: (a, b) => {
+        if (a.logs === b.logs) {
+          return 0
+        }
+        return a.logs ? -1 : 1
+      },
+    },
+    {
       title: 'Edit',
       key: 'edit',
       width: 50,
       render: (_, oldValues, index) => (
         <Popover
           content={
-            <EditSgSgIePopover
+            <EditSgSgIeIcmpPopover
               sgNames={sgNames}
               values={rules[index]}
               remove={() => removeRule(index)}
@@ -262,7 +268,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
               isDisabled={isDisabled}
             />
           }
-          title="SG-SG-IE"
+          title="SG-SG-IE-ICMP"
           trigger="click"
           open={editOpen[index]}
           onOpenChange={() => toggleEditPopover(index)}
@@ -290,7 +296,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
           .map(row => ({
             ...row,
-            key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+            key: `${row.sg}-${row.IPv}`,
           }))}
         columns={columns}
         virtual
@@ -298,7 +304,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
         size="small"
       />
       <Popover
-        content={<AddSgSgIePopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
+        content={<AddSgSgIeIcmpPopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
         title="SG-SG-IE"
         trigger="click"
         open={addOpen}

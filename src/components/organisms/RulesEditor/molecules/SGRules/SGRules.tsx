@@ -13,6 +13,7 @@ import { AddSGPopover, EditSGPopover } from '../../atoms'
 import { Styled } from '../styled'
 
 type TSGRulesProps = {
+  forceArrowsUpdate: () => void
   sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
@@ -25,6 +26,7 @@ type TSGRulesProps = {
 }
 
 export const SGRules: FC<TSGRulesProps> = ({
+  forceArrowsUpdate,
   sgNames,
   title,
   popoverPosition,
@@ -82,8 +84,16 @@ export const SGRules: FC<TSGRulesProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (index: number, values: TFormSgRule) => {
+  const editRule = (oldValues: TFormSgRule, values: TFormSgRule) => {
     const newSgRules = [...rules]
+    const index = newSgRules.findIndex(
+      ({ sg, portsSource, portsDestination, transport, logs }) =>
+        sg === oldValues.sg &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs,
+    )
     const newSgRulesOtherside = [...rulesOtherside]
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, portsSource, portsDestination, transport, logs }) =>
@@ -236,6 +246,28 @@ export const SGRules: FC<TSGRulesProps> = ({
       onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
+      title: 'Ports Src',
+      key: 'portsSource',
+      dataIndex: 'portsSource',
+      width: 50,
+      render: (_, { portsSource }) => (
+        <Styled.RulesEntryPorts className="no-scroll">
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
+      title: 'Ports Dst',
+      key: 'portsDestination',
+      dataIndex: 'portsDestination',
+      width: 50,
+      render: (_, { portsDestination }) => (
+        <Styled.RulesEntryPorts className="no-scroll">
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
@@ -255,32 +287,10 @@ export const SGRules: FC<TSGRulesProps> = ({
       },
     },
     {
-      title: 'Ports Source',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
-      width: 50,
-      render: (_, { portsSource }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Ports Destination',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
-      width: 50,
-      render: (_, { portsDestination }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, __, index) => (
+      render: (_, oldValues, index) => (
         <Popover
           content={
             <EditSGPopover
@@ -288,7 +298,7 @@ export const SGRules: FC<TSGRulesProps> = ({
               values={rules[index]}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
             />
           }
@@ -314,6 +324,7 @@ export const SGRules: FC<TSGRulesProps> = ({
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
