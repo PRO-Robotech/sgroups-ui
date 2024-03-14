@@ -147,6 +147,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <Spacer $space={100} $samespace />
             <div id={CIDR_FROM_ID}>
               <CidrSGRules
+                forceArrowsUpdate={forceArrowsUpdate}
                 title={`CIDR From - ${centerSg || ''}`}
                 popoverPosition="left"
                 rules={rulesCidrSgFrom}
@@ -198,6 +199,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <Spacer $space={100} $samespace />
             <div id={CIDR_TO_ID}>
               <CidrSGRules
+                forceArrowsUpdate={forceArrowsUpdate}
                 title={`${centerSg || ''} - CIDR To`}
                 popoverPosition="right"
                 rules={rulesCidrSgTo}
@@ -209,6 +211,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <Spacer $space={100} $samespace />
             <div id={FQDN_TO_ID}>
               <FQDNRules
+                forceArrowsUpdate={forceArrowsUpdate}
                 title={`${centerSg || ''} - FQDN To`}
                 popoverPosition="right"
                 rules={rulesFqdnTo}

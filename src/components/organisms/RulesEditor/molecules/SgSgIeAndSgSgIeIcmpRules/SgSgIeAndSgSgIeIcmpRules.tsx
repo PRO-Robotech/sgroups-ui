@@ -59,6 +59,7 @@ export const SgSgIeAndSgSgIeIcmpRules: FC<TSgSgIeAndSgSgIeIcmpRulesProps> = ({
       <Spacer $space={10} $samespace />
       {tab === 'tcpudp' && (
         <SgSgIeRules
+          forceArrowsUpdate={forceArrowsUpdate}
           sgNames={sgNames}
           title={title}
           popoverPosition={popoverPosition}
@@ -70,6 +71,7 @@ export const SgSgIeAndSgSgIeIcmpRules: FC<TSgSgIeAndSgSgIeIcmpRulesProps> = ({
       )}
       {tab === 'icmp' && (
         <SgSgIeIcmpRules
+          forceArrowsUpdate={forceArrowsUpdate}
           sgNames={sgNames}
           title={title}
           popoverPosition={popoverPosition}

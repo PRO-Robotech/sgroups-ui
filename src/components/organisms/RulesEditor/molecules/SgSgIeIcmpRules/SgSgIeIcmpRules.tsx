@@ -13,6 +13,7 @@ import { AddSgSgIeIcmpPopover, EditSgSgIeIcmpPopover } from '../../atoms'
 import { Styled } from '../styled'
 
 type TSgSgIeIcmpRulesProps = {
+  forceArrowsUpdate: () => void
   sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
@@ -23,6 +24,7 @@ type TSgSgIeIcmpRulesProps = {
 }
 
 export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
+  forceArrowsUpdate,
   sgNames,
   title,
   popoverPosition,
@@ -279,6 +281,7 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)

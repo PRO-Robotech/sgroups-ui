@@ -13,6 +13,7 @@ import { AddFqdnPopover, EditFqdnPopover } from '../../atoms'
 import { Styled } from '../styled'
 
 type TFQDNRulesProps = {
+  forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
   rules: TFormFqdnRule[]
@@ -20,7 +21,14 @@ type TFQDNRulesProps = {
   isDisabled?: boolean
 }
 
-export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, setRules, isDisabled }) => {
+export const FQDNRules: FC<TFQDNRulesProps> = ({
+  forceArrowsUpdate,
+  title,
+  popoverPosition,
+  rules,
+  setRules,
+  isDisabled,
+}) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -250,6 +258,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({ title, popoverPosition, rules, 
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)

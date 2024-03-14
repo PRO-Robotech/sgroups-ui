@@ -14,6 +14,7 @@ import { AddCidrSgPopover, EditCidrSgPopover } from '../../atoms'
 import { Styled } from '../styled'
 
 type TCidrSGRulesProps = {
+  forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
   defaultTraffic: TTraffic
@@ -23,6 +24,7 @@ type TCidrSGRulesProps = {
 }
 
 export const CidrSGRules: FC<TCidrSGRulesProps> = ({
+  forceArrowsUpdate,
   title,
   popoverPosition,
   defaultTraffic,
@@ -290,6 +292,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
