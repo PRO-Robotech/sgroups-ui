@@ -206,6 +206,28 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       onFilter: (value, { cidr }) => ipRangeCheck(value as string, cidr),
     },
     {
+      title: 'Ports Src',
+      key: 'portsSource',
+      dataIndex: 'portsSource',
+      width: 50,
+      render: (_, { portsSource }) => (
+        <Styled.RulesEntryPorts className="no-scroll">
+          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
+      title: 'Ports Dst',
+      key: 'portsDestination',
+      dataIndex: 'portsDestination',
+      width: 50,
+      render: (_, { portsDestination }) => (
+        <Styled.RulesEntryPorts className="no-scroll">
+          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
@@ -242,28 +264,6 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
         }
         return a.logs ? -1 : 1
       },
-    },
-    {
-      title: 'Ports Src',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
-      width: 50,
-      render: (_, { portsSource }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Ports Dst',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
-      width: 50,
-      render: (_, { portsDestination }) => (
-        <Styled.RulesEntryPorts className="no-scroll">
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
     },
     {
       title: 'Edit',

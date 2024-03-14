@@ -246,25 +246,6 @@ export const SGRules: FC<TSGRulesProps> = ({
       onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
-      title: 'Logs',
-      dataIndex: 'logs',
-      key: 'logs',
-      width: 50,
-      render: (_, { logs }) => (
-        <Styled.RulesEntryMarks className="no-scroll">
-          <Tooltip title="Logs">
-            {logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
-          </Tooltip>
-        </Styled.RulesEntryMarks>
-      ),
-      sorter: (a, b) => {
-        if (a.logs === b.logs) {
-          return 0
-        }
-        return a.logs ? -1 : 1
-      },
-    },
-    {
       title: 'Ports Src',
       key: 'portsSource',
       dataIndex: 'portsSource',
@@ -285,6 +266,25 @@ export const SGRules: FC<TSGRulesProps> = ({
           {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
         </Styled.RulesEntryPorts>
       ),
+    },
+    {
+      title: 'Logs',
+      dataIndex: 'logs',
+      key: 'logs',
+      width: 50,
+      render: (_, { logs }) => (
+        <Styled.RulesEntryMarks className="no-scroll">
+          <Tooltip title="Logs">
+            {logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
+          </Tooltip>
+        </Styled.RulesEntryMarks>
+      ),
+      sorter: (a, b) => {
+        if (a.logs === b.logs) {
+          return 0
+        }
+        return a.logs ? -1 : 1
+      },
     },
     {
       title: 'Edit',
