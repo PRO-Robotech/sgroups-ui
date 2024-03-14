@@ -9,6 +9,7 @@ const RadioGroup = styled.div`
 
 const GroupRulesNode = styled.div`
   width: 700px;
+  min-height: 350px;
   padding: 15px;
   background: white;
   border-radius: 10px;
