@@ -84,8 +84,16 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (index: number, values: TFormSgSgIcmpRule) => {
+  const editRule = (oldValues: TFormSgSgIcmpRule, values: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rules]
+    const index = newSgSgIcmpRules.findIndex(
+      ({ sg, IPv, types, logs, trace }) =>
+        sg === oldValues.sg &&
+        IPv === oldValues.IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace,
+    )
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, IPv, types, logs, trace }) =>
@@ -303,7 +311,7 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, __, index) => (
+      render: (_, oldValues, index) => (
         <Popover
           content={
             <EditSgSgIcmpPopover
@@ -318,7 +326,7 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
               }}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
             />
           }

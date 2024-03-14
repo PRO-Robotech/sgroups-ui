@@ -68,8 +68,17 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (index: number, values: TFormSgSgIeIcmpRule) => {
+  const editRule = (oldValues: TFormSgSgIeIcmpRule, values: TFormSgSgIeIcmpRule) => {
     const newSgSgIeIcmpRules = [...rules]
+    const index = newSgSgIeIcmpRules.findIndex(
+      ({ sg, IPv, types, logs, trace, traffic }) =>
+        sg === oldValues.sg &&
+        IPv === oldValues.IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic,
+    )
     if (newSgSgIeIcmpRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIeIcmpRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
@@ -247,7 +256,7 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, __, index) => (
+      render: (_, oldValues, index) => (
         <Popover
           content={
             <EditSgSgIeIcmpPopover
@@ -255,7 +264,7 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
               values={rules[index]}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
             />
           }

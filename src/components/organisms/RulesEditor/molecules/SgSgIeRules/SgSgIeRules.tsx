@@ -68,8 +68,18 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const editRule = (index: number, values: TFormSgSgIeRule) => {
+  const editRule = (oldValues: TFormSgSgIeRule, values: TFormSgSgIeRule) => {
     const newSgSgIeRules = [...rules]
+    const index = newSgSgIeRules.findIndex(
+      ({ sg, portsSource, portsDestination, logs, trace, traffic, transport }) =>
+        sg === oldValues.sg &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic &&
+        transport === oldValues.transport,
+    )
     if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
@@ -240,7 +250,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, __, index) => (
+      render: (_, oldValues, index) => (
         <Popover
           content={
             <EditSgSgIePopover
@@ -248,7 +258,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
               values={rules[index]}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
             />
           }

@@ -62,8 +62,16 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({
     toggleAddPopover()
   }
 
-  const editRule = (index: number, values: TFormFqdnRule) => {
+  const editRule = (oldValues: TFormFqdnRule, values: TFormFqdnRule) => {
     const newFqdnRules = [...rules]
+    const index = newFqdnRules.findIndex(
+      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+        fqdn === oldValues.fqdn &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
       newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
@@ -232,7 +240,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({
               values={{ fqdn, logs, transport, portsSource, portsDestination }}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule({ fqdn, logs, transport, portsSource, portsDestination }, values)}
               isDisabled={isDisabled}
             />
           }

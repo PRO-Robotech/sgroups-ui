@@ -66,8 +66,18 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
     toggleAddPopover()
   }
 
-  const editRule = (index: number, values: TFormCidrSgRule) => {
+  const editRule = (oldValues: TFormCidrSgRule, values: TFormCidrSgRule) => {
     const newCidrSgRules = [...rules]
+    const index = newCidrSgRules.findIndex(
+      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+        cidr === oldValues.cidr &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
       newCidrSgRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
@@ -259,14 +269,14 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, __, index) => (
+      render: (_, oldValues, index) => (
         <Popover
           content={
             <EditCidrSgPopover
               values={rules[index]}
               remove={() => removeRule(index)}
               hide={() => toggleEditPopover(index)}
-              edit={values => editRule(index, values)}
+              edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
             />
           }
