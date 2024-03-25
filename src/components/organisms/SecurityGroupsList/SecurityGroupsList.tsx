@@ -196,6 +196,7 @@ export const SecurityGroupsList: FC = () => {
               showQuickJumper: true,
               showSizeChanger: false,
               defaultPageSize: ITEMS_PER_PAGE,
+              hideOnSinglePage: true,
             }}
             dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
             columns={columns}

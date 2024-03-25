@@ -68,6 +68,14 @@ const RulesEntryPorts = styled.div`
   border-radius: 5px;
 `
 
+const EditButton = styled.div`
+  cursor: pointer;
+
+  &:hover {
+    color: #4096ff;
+  }
+`
+
 export const Styled = {
   RadioGroup,
   GroupRulesNode,
@@ -78,4 +86,5 @@ export const Styled = {
   RulesEntrySgs,
   RulesEntryMarks,
   RulesEntryPorts,
+  EditButton,
 }

@@ -269,7 +269,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
           placement={popoverPosition}
           className="no-scroll"
         >
-          Edit
+          <Styled.EditButton>Edit</Styled.EditButton>
         </Popover>
       ),
     },
@@ -285,6 +285,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
           onChange: forceArrowsUpdate,
+          hideOnSinglePage: true,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)

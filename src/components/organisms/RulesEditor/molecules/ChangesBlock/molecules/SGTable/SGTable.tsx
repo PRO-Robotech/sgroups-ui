@@ -150,6 +150,7 @@ export const SGTable: FC<TSGTableProps> = ({ rules }) => {
         showQuickJumper: true,
         showSizeChanger: false,
         defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+        hideOnSinglePage: true,
       }}
       dataSource={rules.map(row => ({
         ...row,

@@ -86,6 +86,7 @@ export const TableView: FC<TTableViewProps> = ({ data, isExtended, setIsExtended
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               size="small"
               dataSource={dataSource}

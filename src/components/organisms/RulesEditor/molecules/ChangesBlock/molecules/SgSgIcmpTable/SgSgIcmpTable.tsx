@@ -161,6 +161,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({ rules }) => {
         showQuickJumper: true,
         showSizeChanger: false,
         defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+        hideOnSinglePage: true,
       }}
       dataSource={rules.map(row => ({
         ...row,

@@ -251,7 +251,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({
           placement={popoverPosition}
           className="no-scroll"
         >
-          Edit
+          <Styled.EditButton>Edit</Styled.EditButton>
         </Popover>
       ),
     },
@@ -267,6 +267,7 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
           onChange: forceArrowsUpdate,
+          hideOnSinglePage: true,
         }}
         dataSource={rules
           .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)

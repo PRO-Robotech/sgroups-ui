@@ -519,6 +519,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={rules.map(row => ({ ...row, key: `${row.sgFrom}${row.sgTo}` }))}
               columns={columns}
@@ -542,6 +543,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={fqdnRules.map(row => ({ ...row, key: `${row.sgFrom}${row.FQDN}` }))}
               columns={columnsFqdn}
@@ -565,6 +567,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={cidrRules.map(row => ({ ...row, key: `${row.SG}${row.CIDR}` }))}
               columns={columnsCidr}
@@ -588,6 +591,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={sgSgIcmpRules.map(row => ({ ...row, key: `${row.SgFrom}${row.SgTo}` }))}
               columns={columnsSgSgIcmp}
@@ -611,6 +615,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={sgSgIeRules.map(row => ({ ...row, key: `${row.Sg}${row.SgLocal}` }))}
               columns={columnsSgSgIe}

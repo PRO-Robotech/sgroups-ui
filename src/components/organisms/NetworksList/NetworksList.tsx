@@ -120,6 +120,7 @@ export const NetworksList: FC = () => {
               showQuickJumper: true,
               showSizeChanger: false,
               defaultPageSize: ITEMS_PER_PAGE,
+              hideOnSinglePage: true,
             }}
             dataSource={networks.map(row => ({ name: row.name, cidr: row.network.CIDR, key: row.name }))}
             columns={columns}
