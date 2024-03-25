@@ -10,6 +10,7 @@ import {
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
 } from 'localTypes/rules'
+import { BASEPREFIX } from 'constants/basePrefix'
 import { ChangesBlock } from '../../molecules'
 import { Styled } from './styled'
 
@@ -86,7 +87,7 @@ export const BottomBar: FC<TBottomBarProps> = ({
           <Breadcrumb
             items={[
               {
-                href: '/',
+                href: `${BASEPREFIX}/`,
                 title: <HomeOutlined />,
               },
               {

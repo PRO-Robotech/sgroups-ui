@@ -108,20 +108,24 @@ export const NetworksList: FC = () => {
       <Card>
         <TitleWithNoTopMargin level={2}>Networks</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
-        <Button onClick={() => history.push('/networks/add')}>Add</Button>
+        <Button onClick={() => history.push('/networks/add')} type="primary">
+          Add
+        </Button>
         <Spacer $space={15} $samespace />
         {!networks.length && !error && !isLoading && <Empty />}
-        <Table
-          pagination={{
-            position: ['bottomCenter'],
-            showQuickJumper: true,
-            showSizeChanger: false,
-            defaultPageSize: ITEMS_PER_PAGE,
-          }}
-          dataSource={networks.map(row => ({ name: row.name, cidr: row.network.CIDR, key: row.name }))}
-          columns={columns}
-          scroll={{ x: 'max-content' }}
-        />
+        {networks.length > 0 && (
+          <Table
+            pagination={{
+              position: ['bottomCenter'],
+              showQuickJumper: true,
+              showSizeChanger: false,
+              defaultPageSize: ITEMS_PER_PAGE,
+            }}
+            dataSource={networks.map(row => ({ name: row.name, cidr: row.network.CIDR, key: row.name }))}
+            columns={columns}
+            scroll={{ x: 'max-content' }}
+          />
+        )}
       </Card>
       <Modal
         title="Delete network"

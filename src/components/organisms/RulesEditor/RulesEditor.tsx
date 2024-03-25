@@ -18,8 +18,8 @@ import {
   getCidrSgRulesBySG,
   getSgSgIcmpRulesBySgFrom,
   getSgSgIcmpRulesBySgTo,
-  getSgSgIeRulesBySg,
-  getSgSgIeIcmpRulesBySg,
+  getSgSgIeRulesBySgLocal,
+  getSgSgIeIcmpRulesBySgLocal,
 } from 'api/rules'
 import { TransformBlock, BottomBar } from './organisms'
 import {
@@ -97,8 +97,8 @@ export const RulesEditor: FC = () => {
         getCidrSgRulesBySG(centerSg),
         getSgSgIcmpRulesBySgTo(centerSg),
         getSgSgIcmpRulesBySgFrom(centerSg),
-        getSgSgIeRulesBySg(centerSg),
-        getSgSgIeIcmpRulesBySg(centerSg),
+        getSgSgIeRulesBySgLocal(centerSg),
+        getSgSgIeIcmpRulesBySgLocal(centerSg),
       ])
         .then(
           ([

@@ -585,8 +585,8 @@ export const composeAllTypesOfSgSgIeRules = (
   const sgSgIeRules = [...rulesSgSgIeFrom, ...rulesSgSgIeTo]
   sgSgIeRules.forEach(({ sg, portsSource, portsDestination, transport, logs, trace, traffic, formChanges }) => {
     const rule = {
-      SgLocal: sg,
-      Sg: centerSg,
+      SgLocal: centerSg,
+      Sg: sg,
       logs: !!logs,
       trace: !!trace,
       transport,
@@ -653,8 +653,8 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
   const sgSgIeIcmpRules = [...rulesSgSgIeIcmpFrom, ...rulesSgSgIeIcmpTo]
   sgSgIeIcmpRules.forEach(({ sg, IPv, types, logs, trace, traffic, formChanges }) => {
     const rule = {
-      SgLocal: sg,
-      Sg: centerSg,
+      SgLocal: centerSg,
+      Sg: sg,
       ICMP: { IPv, Types: types },
       logs: !!logs,
       trace: !!trace,

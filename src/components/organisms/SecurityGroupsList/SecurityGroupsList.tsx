@@ -1,9 +1,11 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
+import { Card, Table, Button, Result, Spin, Empty, Modal, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import type { FilterDropdownProps } from 'antd/es/table/interface'
+import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
@@ -18,6 +20,8 @@ export const SecurityGroupsList: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [pendingToDeleteSG, setPendingToDeleteSG] = useState<string>()
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [searchText, setSearchText] = useState('')
   const history = useHistory()
 
   useEffect(() => {
@@ -72,6 +76,16 @@ export const SecurityGroupsList: FC = () => {
     return <Spin />
   }
 
+  const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
+    confirm()
+    setSearchText(searchText[0])
+  }
+
+  const handleReset = (clearFilters: () => void) => {
+    clearFilters()
+    setSearchText('')
+  }
+
   type TColumn = TSecurityGroup & {
     key: string
   }
@@ -82,6 +96,42 @@ export const SecurityGroupsList: FC = () => {
       dataIndex: 'name',
       key: 'name',
       width: 150,
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
+          <Input
+            placeholder="search"
+            value={selectedKeys[0]}
+            onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+            onPressEnter={() => handleSearch(selectedKeys as string[], confirm)}
+            style={{ marginBottom: 8, display: 'block' }}
+          />
+          <Space>
+            <Button
+              type="primary"
+              onClick={() => handleSearch(selectedKeys as string[], confirm)}
+              icon={<SearchOutlined />}
+              size="small"
+              style={{ width: 90 }}
+            >
+              Search
+            </Button>
+            <Button onClick={() => clearFilters && handleReset(clearFilters)} size="small" style={{ width: 90 }}>
+              Reset
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              onClick={() => {
+                close()
+              }}
+            >
+              close
+            </Button>
+          </Space>
+        </div>
+      ),
+      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'Default action',
@@ -134,20 +184,24 @@ export const SecurityGroupsList: FC = () => {
       <Card>
         <TitleWithNoTopMargin level={2}>Security Groups</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
-        <Button onClick={() => history.push('/security-groups/add')}>Add</Button>
+        <Button onClick={() => history.push('/security-groups/add')} type="primary">
+          Add
+        </Button>
         <Spacer $space={15} $samespace />
         {!securityGroups.length && !error && !isLoading && <Empty />}
-        <Table
-          pagination={{
-            position: ['bottomCenter'],
-            showQuickJumper: true,
-            showSizeChanger: false,
-            defaultPageSize: ITEMS_PER_PAGE,
-          }}
-          dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
-          columns={columns}
-          scroll={{ x: 'max-content' }}
-        />
+        {securityGroups.length > 0 && (
+          <Table
+            pagination={{
+              position: ['bottomCenter'],
+              showQuickJumper: true,
+              showSizeChanger: false,
+              defaultPageSize: ITEMS_PER_PAGE,
+            }}
+            dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
+            columns={columns}
+            scroll={{ x: 'max-content' }}
+          />
+        )}
       </Card>
       <Modal
         title="Delete security group"

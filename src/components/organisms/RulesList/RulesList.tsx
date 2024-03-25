@@ -155,7 +155,7 @@ export const RulesList: FC = () => {
   const removeSgSgIeRuleFromList = (sgFrom: string, sgTo: string) => {
     removeSgSgIeRule(sgFrom, sgTo)
       .then(() => {
-        setSgSgIeRules([...sgSgIeRules].filter(el => el.Sg !== sgFrom || el.SgLocal !== sgTo))
+        setSgSgIeRules([...sgSgIeRules].filter(el => el.SgLocal !== sgFrom || el.Sg !== sgTo))
         setIsModalOpenSgSgIe(false)
         setPendingToDeleteSgSgIeRule(undefined)
         setDeleteErrorSgSgIe(undefined)
@@ -500,7 +500,7 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TSgSgIeRule) => (
-        <DeleteOutlined onClick={() => openRemoveSgSgIeRuleModal(record.Sg, record.SgLocal)} />
+        <DeleteOutlined onClick={() => openRemoveSgSgIeRuleModal(record.SgLocal, record.Sg)} />
       ),
     },
   ]
