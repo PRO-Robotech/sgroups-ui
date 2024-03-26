@@ -103,6 +103,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
     <TransformWrapper
       minScale={0.05}
       initialScale={0.5}
+      limitToBounds={false}
       doubleClick={{ disabled: true }}
       alignmentAnimation={{ disabled: true }}
       centerOnInit

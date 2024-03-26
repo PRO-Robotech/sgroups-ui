@@ -6,7 +6,7 @@ import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
-import { TitleWithNoTopMargin } from 'components'
+import { TitleWithNoTopMargin, ShortenedTextWithTooltip } from 'components'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormFqdnRule } from 'localTypes/rules'
 import { AddFqdnPopover, EditFqdnPopover } from '../../atoms'
@@ -150,7 +150,11 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({
       dataIndex: 'fqdns',
       key: 'fqdns',
       width: 150,
-      render: (_, { fqdn }) => <Styled.RulesEntrySgs className="no-scroll">{fqdn}</Styled.RulesEntrySgs>,
+      render: (_, { fqdn }) => (
+        <Styled.RulesEntrySgs className="no-scroll">
+          <ShortenedTextWithTooltip text={fqdn} />
+        </Styled.RulesEntrySgs>
+      ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
         <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
           <Input
