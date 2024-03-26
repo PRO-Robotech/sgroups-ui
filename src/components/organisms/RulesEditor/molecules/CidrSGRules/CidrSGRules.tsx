@@ -7,7 +7,7 @@ import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
-import { TitleWithNoTopMargin } from 'components/atoms'
+import { TitleWithNoTopMargin, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormCidrSgRule, TTraffic } from 'localTypes/rules'
 import { AddCidrSgPopover, EditCidrSgPopover } from '../../atoms'
@@ -296,25 +296,27 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
   return (
     <Styled.GroupRulesNode>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: true,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={rules
-          .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
-          .map(row => ({
-            ...row,
-            key: `${row.cidr.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
-          }))}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-      />
+      <ThWhiteSpaceNoWrap>
+        <Table
+          pagination={{
+            position: ['bottomCenter'],
+            showQuickJumper: true,
+            showSizeChanger: false,
+            defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+            onChange: forceArrowsUpdate,
+            hideOnSinglePage: true,
+          }}
+          dataSource={rules
+            .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
+            .map(row => ({
+              ...row,
+              key: `${row.cidr.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+            }))}
+          columns={columns}
+          virtual
+          scroll={{ x: 'max-content' }}
+        />
+      </ThWhiteSpaceNoWrap>
       <Popover
         content={<AddCidrSgPopover hide={toggleAddPopover} addNew={addNew} />}
         title="SG"

@@ -6,7 +6,7 @@ import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
-import { TitleWithNoTopMargin, ShortenedTextWithTooltip } from 'components'
+import { TitleWithNoTopMargin, ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormFqdnRule } from 'localTypes/rules'
 import { AddFqdnPopover, EditFqdnPopover } from '../../atoms'
@@ -264,25 +264,27 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({
   return (
     <Styled.GroupRulesNode>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: true,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={rules
-          .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
-          .map(row => ({
-            ...row,
-            key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
-          }))}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-      />
+      <ThWhiteSpaceNoWrap>
+        <Table
+          pagination={{
+            position: ['bottomCenter'],
+            showQuickJumper: true,
+            showSizeChanger: false,
+            defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+            onChange: forceArrowsUpdate,
+            hideOnSinglePage: true,
+          }}
+          dataSource={rules
+            .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
+            .map(row => ({
+              ...row,
+              key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+            }))}
+          columns={columns}
+          virtual
+          scroll={{ x: 'max-content' }}
+        />
+      </ThWhiteSpaceNoWrap>
       <Popover
         content={<AddFqdnPopover hide={toggleAddPopover} addNew={addNew} />}
         title="FQDN"

@@ -6,7 +6,7 @@ import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined, CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
-import { TitleWithNoTopMargin } from 'components/atoms'
+import { TitleWithNoTopMargin, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
 import { AddSgSgIeIcmpPopover, EditSgSgIeIcmpPopover } from '../../atoms'
@@ -284,26 +284,28 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
   return (
     <>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: true,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={rules
-          .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
-          .map(row => ({
-            ...row,
-            key: `${row.sg}-${row.IPv}`,
-          }))}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-        size="small"
-      />
+      <ThWhiteSpaceNoWrap>
+        <Table
+          pagination={{
+            position: ['bottomCenter'],
+            showQuickJumper: true,
+            showSizeChanger: false,
+            defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+            onChange: forceArrowsUpdate,
+            hideOnSinglePage: true,
+          }}
+          dataSource={rules
+            .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
+            .map(row => ({
+              ...row,
+              key: `${row.sg}-${row.IPv}`,
+            }))}
+          columns={columns}
+          virtual
+          scroll={{ x: 'max-content' }}
+          size="small"
+        />
+      </ThWhiteSpaceNoWrap>
       <Popover
         content={<AddSgSgIeIcmpPopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
         title="SG-SG-IE"
