@@ -4,6 +4,7 @@ import { Button, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
+import { ThWhiteSpaceNoWrap } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
 import { TFormSgSgIeIcmpRule } from 'localTypes/rules'
 import { Styled } from '../styled'
@@ -155,22 +156,24 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({ rules }) => {
   ]
 
   return (
-    <Table
-      pagination={{
-        position: ['bottomCenter'],
-        showQuickJumper: true,
-        showSizeChanger: false,
-        defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-        hideOnSinglePage: true,
-      }}
-      dataSource={rules.map(row => ({
-        ...row,
-        key: `${row.sg}-${row.IPv}`,
-      }))}
-      columns={columns}
-      virtual
-      scroll={{ x: 'max-content' }}
-      size="small"
-    />
+    <ThWhiteSpaceNoWrap>
+      <Table
+        pagination={{
+          position: ['bottomCenter'],
+          showQuickJumper: true,
+          showSizeChanger: false,
+          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          hideOnSinglePage: true,
+        }}
+        dataSource={rules.map(row => ({
+          ...row,
+          key: `${row.sg}-${row.IPv}`,
+        }))}
+        columns={columns}
+        virtual
+        scroll={{ x: 'max-content' }}
+        size="small"
+      />
+    </ThWhiteSpaceNoWrap>
   )
 }
