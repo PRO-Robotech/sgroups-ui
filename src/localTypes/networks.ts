@@ -8,3 +8,9 @@ export type TNetwork = {
 export type TNWResponse = {
   networks: TNetwork[]
 }
+
+export type TNetworkForm = {
+  id: number
+  name: string
+  CIDR: string
+}
