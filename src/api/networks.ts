@@ -43,7 +43,7 @@ export const addNetwork = async (name: string, cidr: string): Promise<AxiosRespo
 }
 
 export const addNetworks = async (nws: TNetworkForm[]): Promise<AxiosResponse> => {
-  const networks = nws.filter(({ name, CIDR }) => name.length > 0 && CIDR.length > 0)
+  const networks = nws.filter(({ name, CIDR }) => name && CIDR && name.length > 0 && CIDR.length > 0)
   const body = networks.map(({ name, CIDR }) => ({
     name,
     network: {

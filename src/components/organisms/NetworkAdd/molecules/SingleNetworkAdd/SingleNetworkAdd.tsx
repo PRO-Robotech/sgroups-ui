@@ -1,14 +1,15 @@
 import React, { FC } from 'react'
-import { Card, Form, Input } from 'antd'
+import { Card, Form, Input, Button } from 'antd'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { TNetworkForm } from 'localTypes/networks'
 import { Styled } from './styled'
 
 type TSingleNetworkAdd = {
   onFormChange: (values: Pick<TNetworkForm, 'name' | 'CIDR'>) => void
+  removeNwCard: () => void
 }
 
-export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange }) => {
+export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNwCard }) => {
   const [form] = Form.useForm()
 
   return (
@@ -41,6 +42,11 @@ export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange }) => {
           >
             <Input allowClear />
           </Styled.FormItem>
+          <Styled.ButtonFormItem>
+            <Button type="dashed" onClick={removeNwCard}>
+              Delete
+            </Button>
+          </Styled.ButtonFormItem>
         </Styled.Container>
       </Form>
     </Card>

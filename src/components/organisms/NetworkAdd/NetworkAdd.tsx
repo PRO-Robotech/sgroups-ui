@@ -24,6 +24,10 @@ export const NetworkAdd: FC = () => {
     setNetworks([...networks, { id: networks[networks.length - 1].id + 1, name: '', CIDR: '' }])
   }
 
+  const removeNwCard = (id: number) => {
+    setNetworks([...networks].filter(el => el.id !== id))
+  }
+
   useEffect(() => {
     if (networks.length === 0) {
       setNetworks([{ id: 0, name: '', CIDR: '' }])
@@ -84,6 +88,7 @@ export const NetworkAdd: FC = () => {
         <Fragment key={id}>
           <SingleNetworkAdd
             onFormChange={(values: Pick<TNetworkForm, 'name' | 'CIDR'>) => onFormChange(id, values.name, values.CIDR)}
+            removeNwCard={() => removeNwCard(id)}
           />
           <Spacer $space={15} $samespace />
         </Fragment>
@@ -91,7 +96,7 @@ export const NetworkAdd: FC = () => {
       <Button onClick={addAnotherNetwork} type="dashed">
         Add another
       </Button>
-      <br />
+      <Spacer $space={15} $samespace />
       <Button onClick={submit} type="primary">
         Submit all
       </Button>
