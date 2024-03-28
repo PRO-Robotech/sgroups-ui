@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Typography, Form, Select, Result, Spin } from 'antd'
 import { Spacer, TitleWithNoTopMargin } from 'components'
@@ -11,7 +11,7 @@ import { Styled } from './styled'
 
 type TSelectMainSGProps = {
   sgNames: string[]
-  onSelectMainSg: Dispatch<SetStateAction<string | undefined>>
+  onSelectMainSg: (value?: string) => void
   centerSg?: string
 }
 
@@ -28,6 +28,7 @@ export const SelectMainSG: FC<TSelectMainSGProps> = ({ sgNames, onSelectMainSg, 
       setIsLoading(false)
       setError(undefined)
     } else {
+      setCurValues([{ name: 'name', value: centerSg }])
       setIsLoading(true)
       getSecurityGroupByName(centerSg)
         .then(({ data }) => {
@@ -47,6 +48,14 @@ export const SelectMainSG: FC<TSelectMainSGProps> = ({ sgNames, onSelectMainSg, 
     }
   }, [centerSg])
 
+  useEffect(() => {
+    if (!centerSg) {
+      setCurValues([{ name: 'name', value: undefined }])
+    } else {
+      setCurValues([{ name: 'name', value: centerSg }])
+    }
+  }, [centerSg, curValues])
+
   return (
     <Styled.GroupRulesNode>
       <TitleWithNoTopMargin level={4}>Main SG</TitleWithNoTopMargin>
@@ -57,8 +66,8 @@ export const SelectMainSG: FC<TSelectMainSGProps> = ({ sgNames, onSelectMainSg, 
       <Spacer $space={10} $samespace />
       <Form
         fields={curValues}
-        onFieldsChange={(_, allFields) => {
-          setCurValues(allFields)
+        onFieldsChange={() => {
+          // setCurValues(allFields)
         }}
       >
         <Styled.FormItem name="name">

@@ -48,13 +48,13 @@ type TTransformBlockProps = {
   setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
   setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
-  setCenterSg: Dispatch<SetStateAction<string | undefined>>
+  onSelectMainSg: (value?: string) => void
   centerSg?: string
 }
 
 export const TransformBlock: FC<TTransformBlockProps> = ({
   sgNames,
-  setCenterSg,
+  onSelectMainSg,
   rulesSgFrom,
   setRulesSgFrom,
   rulesSgTo,
@@ -160,7 +160,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
           </Styled.CardsCol>
           <Styled.CardsCol>
             <Styled.CenterColWithMarginAuto id={CENTRAL_ID}>
-              <SelectMainSG sgNames={sgNames} centerSg={centerSg} onSelectMainSg={setCenterSg} />
+              <SelectMainSG sgNames={sgNames} centerSg={centerSg} onSelectMainSg={onSelectMainSg} />
             </Styled.CenterColWithMarginAuto>
           </Styled.CardsCol>
           <Styled.CardsCol>

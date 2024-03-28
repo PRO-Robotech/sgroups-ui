@@ -219,3 +219,41 @@ export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpR
       }
     })
 }
+
+export const checkIfChangesExist = (
+  rulesSgFrom: TFormSgRule[],
+  rulesSgTo: TFormSgRule[],
+  rulesFqdnTo: TFormFqdnRule[],
+  rulesCidrSgFrom: TFormCidrSgRule[],
+  rulesCidrSgTo: TFormCidrSgRule[],
+  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[],
+  rulesSgSgIcmpTo: TFormSgSgIcmpRule[],
+  rulesSgSgIeFrom: TFormSgSgIeRule[],
+  rulesSgSgIeTo: TFormSgSgIeRule[],
+  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[],
+  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[],
+): boolean => {
+  if (
+    [
+      ...rulesSgFrom,
+      ...rulesSgTo,
+      ...rulesFqdnTo,
+      ...rulesCidrSgFrom,
+      ...rulesCidrSgTo,
+      ...rulesSgSgIcmpFrom,
+      ...rulesSgSgIcmpTo,
+      ...rulesSgSgIeFrom,
+      ...rulesSgSgIeTo,
+      ...rulesSgSgIeIcmpFrom,
+      ...rulesSgSgIeIcmpTo,
+    ].some(
+      ({ formChanges }) =>
+        formChanges?.status === 'new' ||
+        formChanges?.status === 'deleted' ||
+        (formChanges?.status === 'modified' && formChanges.modifiedFields && formChanges.modifiedFields?.length > 0),
+    )
+  ) {
+    return true
+  }
+  return false
+}
