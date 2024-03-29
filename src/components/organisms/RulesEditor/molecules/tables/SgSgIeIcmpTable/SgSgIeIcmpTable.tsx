@@ -1,21 +1,115 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, useState } from 'react'
-import { Button, Tooltip, Table, Input, Space } from 'antd'
+import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
+import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
-import { TFormSgSgIeIcmpRule } from 'localTypes/rules'
+import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
+import { EditSgSgIeIcmpPopover } from '../../../atoms'
 import { Styled } from '../styled'
 
 type TSgSgIeIcmpTableProps = {
+  isChangesMode: boolean
+  sgNames: string[]
+  popoverPosition: TooltipPlacement
+  defaultTraffic: TTraffic
   rules: TFormSgSgIeIcmpRule[]
+  setRules: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+  setEditOpen: Dispatch<SetStateAction<boolean[]>>
+  editOpen: boolean[]
+  isDisabled?: boolean
+  forceArrowsUpdate?: () => void
 }
 
-export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({ rules }) => {
+export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
+  isChangesMode,
+  sgNames,
+  popoverPosition,
+  defaultTraffic,
+  rules,
+  setRules,
+  setEditOpen,
+  editOpen,
+  isDisabled,
+  forceArrowsUpdate,
+}) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+
+  useEffect(() => {
+    setEditOpen(Array(rules.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false))
+  }, [rules, setEditOpen])
+
+  const toggleEditPopover = (index: number) => {
+    const newEditOpen = [...editOpen]
+    newEditOpen[index] = !newEditOpen[index]
+    setEditOpen(newEditOpen)
+  }
+
+  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
+  const editRule = (oldValues: TFormSgSgIeIcmpRule, values: TFormSgSgIeIcmpRule) => {
+    const newSgSgIeIcmpRules = [...rules]
+    const index = newSgSgIeIcmpRules.findIndex(
+      ({ sg, IPv, types, logs, trace, traffic }) =>
+        sg === oldValues.sg &&
+        IPv === oldValues.IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic,
+    )
+    if (newSgSgIeIcmpRules[index].formChanges?.status === STATUSES.new) {
+      newSgSgIeIcmpRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
+    } else {
+      const modifiedFields = []
+      if (newSgSgIeIcmpRules[index].sg !== values.sg) {
+        modifiedFields.push('sg')
+      }
+      if (newSgSgIeIcmpRules[index].IPv !== values.IPv) {
+        modifiedFields.push('ipv')
+      }
+      if (JSON.stringify(newSgSgIeIcmpRules[index].types.sort()) !== JSON.stringify(values.types.sort())) {
+        modifiedFields.push('types')
+      }
+      if (newSgSgIeIcmpRules[index].logs !== values.logs) {
+        modifiedFields.push('logs')
+      }
+      if (modifiedFields.length === 0) {
+        newSgSgIeIcmpRules[index] = { ...values }
+      } else {
+        newSgSgIeIcmpRules[index] = {
+          ...values,
+          traffic: defaultTraffic,
+          formChanges: { status: STATUSES.modified, modifiedFields },
+        }
+      }
+    }
+    setRules(newSgSgIeIcmpRules)
+    toggleEditPopover(index)
+  }
+
+  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
+  const removeRule = (index: number) => {
+    const newSgSgIeIcmpRules = [...rules]
+    const newEditOpenRules = [...editOpen]
+    if (newSgSgIeIcmpRules[index].formChanges?.status === STATUSES.new) {
+      setRules([...newSgSgIeIcmpRules.slice(0, index), ...newSgSgIeIcmpRules.slice(index + 1)])
+      toggleEditPopover(index)
+      setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
+    } else {
+      newSgSgIeIcmpRules[index] = {
+        ...newSgSgIeIcmpRules[index],
+        traffic: defaultTraffic,
+        formChanges: { status: STATUSES.deleted },
+      }
+      setRules(newSgSgIeIcmpRules)
+      toggleEditPopover(index)
+    }
+  }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
     confirm()
@@ -153,7 +247,46 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({ rules }) => {
         return a.trace ? -1 : 1
       },
     },
+    {
+      title: 'Edit',
+      key: 'edit',
+      width: 50,
+      render: (_, oldValues, index) => (
+        <Popover
+          content={
+            <EditSgSgIeIcmpPopover
+              sgNames={sgNames}
+              values={rules[index]}
+              remove={() => removeRule(index)}
+              hide={() => toggleEditPopover(index)}
+              edit={values => editRule(oldValues, values)}
+              isDisabled={isDisabled}
+            />
+          }
+          title="SG-SG-IE-ICMP"
+          trigger="click"
+          open={editOpen[index]}
+          onOpenChange={() => toggleEditPopover(index)}
+          placement={popoverPosition}
+          className="no-scroll"
+        >
+          <Styled.EditButton>Edit</Styled.EditButton>
+        </Popover>
+      ),
+    },
   ]
+
+  const dataSource = isChangesMode
+    ? rules.map(row => ({
+        ...row,
+        key: `${row.sg}-${row.IPv}`,
+      }))
+    : rules
+        .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
+        .map(row => ({
+          ...row,
+          key: `${row.sg}-${row.IPv}`,
+        }))
 
   return (
     <ThWhiteSpaceNoWrap>
@@ -163,12 +296,10 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({ rules }) => {
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
           hideOnSinglePage: true,
         }}
-        dataSource={rules.map(row => ({
-          ...row,
-          key: `${row.sg}-${row.IPv}`,
-        }))}
+        dataSource={dataSource}
         columns={columns}
         virtual
         scroll={{ x: 'max-content' }}

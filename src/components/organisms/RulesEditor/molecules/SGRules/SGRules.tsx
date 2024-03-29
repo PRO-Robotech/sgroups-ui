@@ -1,4 +1,3 @@
-/* eslint-disable react/no-unstable-nested-components */
 import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
@@ -37,7 +36,6 @@ export const SGRules: FC<TSGRulesProps> = ({
 }) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 
   const toggleAddPopover = () => {
     setAddOpen(!addOpen)

@@ -30,8 +30,6 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
 }) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchText, setSearchText] = useState('')
 
   const toggleAddPopover = () => {
     setAddOpen(!addOpen)

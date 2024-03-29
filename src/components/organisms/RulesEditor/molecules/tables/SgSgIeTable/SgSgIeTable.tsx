@@ -1,21 +1,54 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, useState } from 'react'
-import { Button, Tooltip, Table, Input, Space } from 'antd'
+import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
+import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
-import { TFormSgSgIeRule } from 'localTypes/rules'
+import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
+import { EditSgSgIePopover } from '../../../atoms'
 import { Styled } from '../styled'
 
 type TSgSgIeTableProps = {
+  isChangesMode: boolean
+  sgNames: string[]
+  popoverPosition: TooltipPlacement
+  defaultTraffic: TTraffic
   rules: TFormSgSgIeRule[]
+  setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+  setEditOpen: Dispatch<SetStateAction<boolean[]>>
+  editOpen: boolean[]
+  isDisabled?: boolean
+  forceArrowsUpdate?: () => void
 }
 
-export const SgSgIeTable: FC<TSgSgIeTableProps> = ({ rules }) => {
+export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
+  isChangesMode,
+  sgNames,
+  popoverPosition,
+  defaultTraffic,
+  rules,
+  setRules,
+  setEditOpen,
+  editOpen,
+  isDisabled,
+  forceArrowsUpdate,
+}) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+
+  useEffect(() => {
+    setEditOpen(Array(rules.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false))
+  }, [rules, setEditOpen])
+
+  const toggleEditPopover = (index: number) => {
+    const newEditOpen = [...editOpen]
+    newEditOpen[index] = !newEditOpen[index]
+    setEditOpen(newEditOpen)
+  }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
     confirm()
@@ -25,6 +58,71 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({ rules }) => {
   const handleReset = (clearFilters: () => void) => {
     clearFilters()
     setSearchText('')
+  }
+
+  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
+  const editRule = (oldValues: TFormSgSgIeRule, values: TFormSgSgIeRule) => {
+    const newSgSgIeRules = [...rules]
+    const index = newSgSgIeRules.findIndex(
+      ({ sg, portsSource, portsDestination, logs, trace, traffic, transport }) =>
+        sg === oldValues.sg &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic &&
+        transport === oldValues.transport,
+    )
+    if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
+      newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
+    } else {
+      const modifiedFields = []
+      if (newSgSgIeRules[index].sg !== values.sg) {
+        modifiedFields.push('sg')
+      }
+      if (newSgSgIeRules[index].portsSource !== values.portsSource) {
+        modifiedFields.push('portsSource')
+      }
+      if (newSgSgIeRules[index].portsDestination !== values.portsDestination) {
+        modifiedFields.push('portsDestination')
+      }
+      if (newSgSgIeRules[index].transport !== values.transport) {
+        modifiedFields.push('transport')
+      }
+      if (newSgSgIeRules[index].logs !== values.logs) {
+        modifiedFields.push('logs')
+      }
+      if (modifiedFields.length === 0) {
+        newSgSgIeRules[index] = { ...values }
+      } else {
+        newSgSgIeRules[index] = {
+          ...values,
+          traffic: defaultTraffic,
+          formChanges: { status: STATUSES.modified, modifiedFields },
+        }
+      }
+    }
+    setRules(newSgSgIeRules)
+    toggleEditPopover(index)
+  }
+
+  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
+  const removeRule = (index: number) => {
+    const newSgSgIeRules = [...rules]
+    const newEditOpenRules = [...editOpen]
+    if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
+      setRules([...newSgSgIeRules.slice(0, index), ...newSgSgIeRules.slice(index + 1)])
+      toggleEditPopover(index)
+      setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
+    } else {
+      newSgSgIeRules[index] = {
+        ...newSgSgIeRules[index],
+        traffic: defaultTraffic,
+        formChanges: { status: STATUSES.deleted },
+      }
+      setRules(newSgSgIeRules)
+      toggleEditPopover(index)
+    }
   }
 
   type TColumn = TFormSgSgIeRule & { key: string }
@@ -142,7 +240,46 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({ rules }) => {
         </Styled.RulesEntryPorts>
       ),
     },
+    {
+      title: 'Edit',
+      key: 'edit',
+      width: 50,
+      render: (_, oldValues, index) => (
+        <Popover
+          content={
+            <EditSgSgIePopover
+              sgNames={sgNames}
+              values={rules[index]}
+              remove={() => removeRule(index)}
+              hide={() => toggleEditPopover(index)}
+              edit={values => editRule(oldValues, values)}
+              isDisabled={isDisabled}
+            />
+          }
+          title="SG-SG-IE"
+          trigger="click"
+          open={editOpen[index]}
+          onOpenChange={() => toggleEditPopover(index)}
+          placement={popoverPosition}
+          className="no-scroll"
+        >
+          <Styled.EditButton>Edit</Styled.EditButton>
+        </Popover>
+      ),
+    },
   ]
+
+  const dataSource = isChangesMode
+    ? rules.map(row => ({
+        ...row,
+        key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+      }))
+    : rules
+        .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
+        .map(row => ({
+          ...row,
+          key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+        }))
 
   return (
     <ThWhiteSpaceNoWrap>
@@ -152,12 +289,10 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({ rules }) => {
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
           hideOnSinglePage: true,
         }}
-        dataSource={rules.map(row => ({
-          ...row,
-          key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
-        }))}
+        dataSource={dataSource}
         columns={columns}
         virtual
         scroll={{ x: 'max-content' }}
