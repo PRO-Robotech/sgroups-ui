@@ -1,7 +1,7 @@
 import React, { FC, Fragment } from 'react'
 import { Typography } from 'antd'
 import { TitleWithNoTopMargin } from 'components'
-import { SGTable, FQDNTable, CidrSgTable, SgSgIcmpTable, SgSgIeTable, SgSgIeIcmpTable } from '../../molecules'
+import { SGTable, FQDNTable, CidrSgTable, SgSgIcmpTable, SgSgIeTable, SgSgIeIcmpTable } from '../../../tables'
 import {
   TFormSgRuleChangesResult,
   TFormFqdnRuleChangesResult,

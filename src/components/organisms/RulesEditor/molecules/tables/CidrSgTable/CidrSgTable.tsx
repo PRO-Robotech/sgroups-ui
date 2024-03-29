@@ -1,22 +1,119 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, useState } from 'react'
-import { Button, Tooltip, Table, Input, Space } from 'antd'
+import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
+import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
 import { ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
-import { TFormCidrSgRule } from 'localTypes/rules'
+import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { TFormCidrSgRule, TTraffic } from 'localTypes/rules'
+import { EditCidrSgPopover } from '../../../atoms'
 import { Styled } from '../styled'
 
 type TCidrSgTableProps = {
+  isChangesMode: boolean
+  defaultTraffic: TTraffic
   rules: TFormCidrSgRule[]
+  setRules: Dispatch<SetStateAction<TFormCidrSgRule[]>>
+  setEditOpen: Dispatch<SetStateAction<boolean[]>>
+  editOpen: boolean[]
+  popoverPosition: TooltipPlacement
+  isDisabled?: boolean
+  forceArrowsUpdate?: () => void
 }
 
-export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
+export const CidrSgTable: FC<TCidrSgTableProps> = ({
+  isChangesMode,
+  defaultTraffic,
+  rules,
+  setRules,
+  setEditOpen,
+  editOpen,
+  popoverPosition,
+  isDisabled,
+  forceArrowsUpdate,
+}) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+
+  useEffect(() => {
+    setEditOpen(Array(rules.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false))
+  }, [rules, setEditOpen])
+
+  const toggleEditPopover = (index: number) => {
+    const newEditOpen = [...editOpen]
+    newEditOpen[index] = !newEditOpen[index]
+    setEditOpen(newEditOpen)
+  }
+
+  const editRule = (oldValues: TFormCidrSgRule, values: TFormCidrSgRule) => {
+    const newCidrSgRules = [...rules]
+    const index = newCidrSgRules.findIndex(
+      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+        cidr === oldValues.cidr &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
+    if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
+      newCidrSgRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
+    } else {
+      const modifiedFields = []
+      if (newCidrSgRules[index].cidr !== values.cidr) {
+        modifiedFields.push('cidr')
+      }
+      if (newCidrSgRules[index].portsSource !== values.portsSource) {
+        modifiedFields.push('portsSource')
+      }
+      if (newCidrSgRules[index].portsDestination !== values.portsDestination) {
+        modifiedFields.push('portsDestination')
+      }
+      if (newCidrSgRules[index].transport !== values.transport) {
+        modifiedFields.push('transport')
+      }
+      if (newCidrSgRules[index].logs !== values.logs) {
+        modifiedFields.push('logs')
+      }
+      if (newCidrSgRules[index].trace !== values.trace) {
+        modifiedFields.push('trace')
+      }
+      if (modifiedFields.length === 0) {
+        newCidrSgRules[index] = { ...values, traffic: defaultTraffic }
+      } else {
+        newCidrSgRules[index] = {
+          ...values,
+          traffic: defaultTraffic,
+          formChanges: { status: STATUSES.modified, modifiedFields },
+        }
+      }
+    }
+    setRules(newCidrSgRules)
+    toggleEditPopover(index)
+  }
+
+  const removeRule = (index: number) => {
+    const newCidrSgRules = [...rules]
+    const newEditOpenRules = [...editOpen]
+    if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
+      setRules([...newCidrSgRules.slice(0, index), ...newCidrSgRules.slice(index + 1)])
+      toggleEditPopover(index)
+      setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
+    } else {
+      newCidrSgRules[index] = {
+        ...newCidrSgRules[index],
+        traffic: defaultTraffic,
+        formChanges: { status: STATUSES.deleted },
+      }
+      setRules(newCidrSgRules)
+      toggleEditPopover(index)
+    }
+  }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
     confirm()
@@ -162,7 +259,45 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
         </Styled.RulesEntryPorts>
       ),
     },
+    {
+      title: 'Edit',
+      key: 'edit',
+      width: 50,
+      render: (_, oldValues, index) => (
+        <Popover
+          content={
+            <EditCidrSgPopover
+              values={rules[index]}
+              remove={() => removeRule(index)}
+              hide={() => toggleEditPopover(index)}
+              edit={values => editRule(oldValues, values)}
+              isDisabled={isDisabled}
+            />
+          }
+          title="CIDR-SG"
+          trigger="click"
+          open={editOpen[index]}
+          onOpenChange={() => toggleEditPopover(index)}
+          placement={popoverPosition}
+          className="no-scroll"
+        >
+          <Styled.EditButton>Edit</Styled.EditButton>
+        </Popover>
+      ),
+    },
   ]
+
+  const dataSource = isChangesMode
+    ? rules.map(row => ({
+        ...row,
+        key: `${row.cidr.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+      }))
+    : rules
+        .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
+        .map(row => ({
+          ...row,
+          key: `${row.cidr.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+        }))
 
   return (
     <ThWhiteSpaceNoWrap>
@@ -172,12 +307,10 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({ rules }) => {
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
           hideOnSinglePage: true,
         }}
-        dataSource={rules.map(row => ({
-          ...row,
-          key: `${row.cidr.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
-        }))}
+        dataSource={dataSource}
         columns={columns}
         virtual
         scroll={{ x: 'max-content' }}

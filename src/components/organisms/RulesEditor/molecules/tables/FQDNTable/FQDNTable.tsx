@@ -1,21 +1,103 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, useState } from 'react'
-import { Button, Tooltip, Table, Input, Space } from 'antd'
+import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
+import { TooltipPlacement } from 'antd/es/tooltip'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
-import { ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
+import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
+import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormFqdnRule } from 'localTypes/rules'
+import { EditFqdnPopover } from '../../../atoms'
 import { Styled } from '../styled'
 
 type TFQDNTableProps = {
+  isChangesMode: boolean
   rules: TFormFqdnRule[]
+  setRules: Dispatch<SetStateAction<TFormFqdnRule[]>>
+  setEditOpen: Dispatch<SetStateAction<boolean[]>>
+  editOpen: boolean[]
+  popoverPosition: TooltipPlacement
+  isDisabled?: boolean
+  forceArrowsUpdate?: () => void
 }
 
-export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
+export const FQDNTable: FC<TFQDNTableProps> = ({
+  isChangesMode,
+  rules,
+  setRules,
+  setEditOpen,
+  editOpen,
+  popoverPosition,
+  isDisabled,
+  forceArrowsUpdate,
+}) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+
+  useEffect(() => {
+    setEditOpen(Array(rules.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false))
+  }, [rules, setEditOpen])
+
+  const toggleEditPopover = (index: number) => {
+    const newEditOpen = [...editOpen]
+    newEditOpen[index] = !newEditOpen[index]
+    setEditOpen(newEditOpen)
+  }
+
+  const editRule = (oldValues: TFormFqdnRule, values: TFormFqdnRule) => {
+    const newFqdnRules = [...rules]
+    const index = newFqdnRules.findIndex(
+      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+        fqdn === oldValues.fqdn &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
+    if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
+      newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
+    } else {
+      const modifiedFields = []
+      if (newFqdnRules[index].fqdn !== values.fqdn) {
+        modifiedFields.push('fqdn')
+      }
+      if (newFqdnRules[index].portsSource !== values.portsSource) {
+        modifiedFields.push('portsSource')
+      }
+      if (newFqdnRules[index].portsDestination !== values.portsDestination) {
+        modifiedFields.push('portsDestination')
+      }
+      if (newFqdnRules[index].transport !== values.transport) {
+        modifiedFields.push('transport')
+      }
+      if (newFqdnRules[index].logs !== values.logs) {
+        modifiedFields.push('logs')
+      }
+      if (modifiedFields.length === 0) {
+        newFqdnRules[index] = { ...values }
+      } else {
+        newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.modified, modifiedFields } }
+      }
+    }
+    setRules(newFqdnRules)
+    toggleEditPopover(index)
+  }
+
+  const removeRule = (index: number) => {
+    const newFqdnRules = [...rules]
+    const newEditOpenRules = [...editOpen]
+    if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
+      setRules([...newFqdnRules.slice(0, index), ...newFqdnRules.slice(index + 1)])
+      toggleEditPopover(index)
+      setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
+    } else {
+      newFqdnRules[index] = { ...newFqdnRules[index], formChanges: { status: STATUSES.deleted } }
+      setRules(newFqdnRules)
+      toggleEditPopover(index)
+    }
+  }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
     confirm()
@@ -58,7 +140,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
       width: 150,
       render: (_, { fqdn, formChanges }) => (
         <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('fqdn')} className="no-scroll">
-          {fqdn}
+          <ShortenedTextWithTooltip text={fqdn} />
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -142,7 +224,45 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
         </Styled.RulesEntryPorts>
       ),
     },
+    {
+      title: 'Edit',
+      key: 'edit',
+      width: 50,
+      render: (_, { fqdn, logs, transport, portsSource, portsDestination }, index) => (
+        <Popover
+          content={
+            <EditFqdnPopover
+              values={{ fqdn, logs, transport, portsSource, portsDestination }}
+              remove={() => removeRule(index)}
+              hide={() => toggleEditPopover(index)}
+              edit={values => editRule({ fqdn, logs, transport, portsSource, portsDestination }, values)}
+              isDisabled={isDisabled}
+            />
+          }
+          title="FQDN"
+          trigger="click"
+          open={editOpen[index]}
+          onOpenChange={() => toggleEditPopover(index)}
+          placement={popoverPosition}
+          className="no-scroll"
+        >
+          <Styled.EditButton>Edit</Styled.EditButton>
+        </Popover>
+      ),
+    },
   ]
+
+  const dataSource = isChangesMode
+    ? rules.map(row => ({
+        ...row,
+        key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+      }))
+    : rules
+        .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
+        .map(row => ({
+          ...row,
+          key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+        }))
 
   return (
     <ThWhiteSpaceNoWrap>
@@ -152,12 +272,10 @@ export const FQDNTable: FC<TFQDNTableProps> = ({ rules }) => {
           showQuickJumper: true,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
+          onChange: forceArrowsUpdate,
           hideOnSinglePage: true,
         }}
-        dataSource={rules.map(row => ({
-          ...row,
-          key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
-        }))}
+        dataSource={dataSource}
         columns={columns}
         virtual
         scroll={{ x: 'max-content' }}

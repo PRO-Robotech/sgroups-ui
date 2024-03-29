@@ -26,7 +26,7 @@ import {
   composeAllTypesOfSgSgIeRules,
   composeAllTypesOfSgSgIeIcmpRules,
 } from './utils'
-import { RulesDiff } from './organisms'
+import { RulesDiff } from './molecules'
 import { Styled } from './styled'
 
 type TChangesBlockProps = {
