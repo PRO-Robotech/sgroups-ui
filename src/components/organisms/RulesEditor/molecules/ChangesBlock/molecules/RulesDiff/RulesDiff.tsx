@@ -1,6 +1,16 @@
-import React, { FC, Fragment } from 'react'
+import React, { FC, Dispatch, SetStateAction, useState } from 'react'
 import { Typography } from 'antd'
+import { TooltipPlacement } from 'antd/es/tooltip'
 import { TitleWithNoTopMargin } from 'components'
+import {
+  TFormSgRule,
+  TFormFqdnRule,
+  TFormCidrSgRule,
+  TFormSgSgIcmpRule,
+  TFormSgSgIeRule,
+  TFormSgSgIeIcmpRule,
+  TTraffic,
+} from 'localTypes/rules'
 import { SGTable, FQDNTable, CidrSgTable, SgSgIcmpTable, SgSgIeTable, SgSgIeIcmpTable } from '../../../tables'
 import {
   TFormSgRuleChangesResult,
@@ -17,30 +27,59 @@ type TRulesDiffProps = {
     | {
         type: 'sg'
         data: TFormSgRuleChangesResult
+        sgNames: string[]
+        setRules: Dispatch<SetStateAction<TFormSgRule[]>>
+        rulesOtherside: TFormSgRule[]
+        setRulesOtherside: Dispatch<SetStateAction<TFormSgRule[]>>
+        popoverPosition: TooltipPlacement
+        centerSg?: string
       }
     | {
         type: 'fqdn'
         data: TFormFqdnRuleChangesResult
+        setRules: Dispatch<SetStateAction<TFormFqdnRule[]>>
+        popoverPosition: TooltipPlacement
       }
     | {
         type: 'cidr'
         data: TFormCidrSgRuleChangesResult
+        defaultTraffic: TTraffic
+        setRules: Dispatch<SetStateAction<TFormCidrSgRule[]>>
+        popoverPosition: TooltipPlacement
       }
     | {
         type: 'sgSgIcmp'
         data: TFormSgSgIcmpRuleChangesResult
+        sgNames: string[]
+        popoverPosition: TooltipPlacement
+        setRules: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+        rulesOtherside: TFormSgSgIcmpRule[]
+        setRulesOtherside: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+        centerSg?: string
       }
     | {
         type: 'sgSgIe'
         data: TFormSgSgIeRuleChangesResult
+        sgNames: string[]
+        popoverPosition: TooltipPlacement
+        defaultTraffic: TTraffic
+        setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
       }
     | {
         type: 'sgSgIeIcmp'
         data: TFormSgSgIeIcmpRuleChangesResult
+        sgNames: string[]
+        popoverPosition: TooltipPlacement
+        defaultTraffic: TTraffic
+        setRules: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
       }
 }
 
 export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
+  const [editOpenNewRules, setEditOpenNewRules] = useState<boolean[]>([])
+  const [editOpenModifiedRules, setEditOpenModifiedRules] = useState<boolean[]>([])
+  const [editOpenDeletedRules, setEditOpenDeletedRules] = useState<boolean[]>([])
+
   if (compareResult.type === 'sg') {
     return (
       <>

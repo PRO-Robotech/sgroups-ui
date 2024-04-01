@@ -221,19 +221,31 @@ export const RulesEditor: FC = () => {
         setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
       />
       <BottomBar
+        sgNames={sgNames}
         centerSg={centerSg}
         onSubmit={() => fetchData(centerSg)}
         rulesSgFrom={rulesSgFrom}
+        setRulesSgFrom={setRulesSgFrom}
         rulesSgTo={rulesSgTo}
+        setRulesSgTo={setRulesSgTo}
         rulesFqdnTo={rulesFqdnTo}
-        rulesCidrSgTo={rulesCidrSgTo}
+        setRulesFqdnTo={setRulesFqdnTo}
         rulesCidrSgFrom={rulesCidrSgFrom}
+        setRulesCidrSgFrom={setRulesCidrSgFrom}
+        rulesCidrSgTo={rulesCidrSgTo}
+        setRulesCidrSgTo={setRulesCidrSgTo}
         rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
+        setRulesSgSgIcmpFrom={setRulesSgSgIcmpFrom}
         rulesSgSgIcmpTo={rulesSgSgIcmpTo}
+        setRulesSgSgIcmpTo={setRulesSgSgIcmpTo}
         rulesSgSgIeFrom={rulesSgSgIeFrom}
+        setRulesSgSgIeFrom={setRulesSgSgIeFrom}
         rulesSgSgIeTo={rulesSgSgIeTo}
+        setRulesSgSgIeTo={setRulesSgSgIeTo}
         rulesSgSgIeIcmpFrom={rulesSgSgIeIcmpFrom}
+        setRulesSgSgIeIcmpFrom={setRulesSgSgIeIcmpFrom}
         rulesSgSgIeIcmpTo={rulesSgSgIeIcmpTo}
+        setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
       />
       {isLoading && (
         <Styled.Loader style={{}}>

@@ -1,4 +1,5 @@
-import React, { FC, useState } from 'react'
+/* eslint-disable max-lines-per-function */
+import React, { FC, Dispatch, SetStateAction, useState } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Result, Spin } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -31,34 +32,58 @@ import { Styled } from './styled'
 
 type TChangesBlockProps = {
   centerSg: string
+  sgNames: string[]
   rulesSgFrom: TFormSgRule[]
+  setRulesSgFrom: Dispatch<SetStateAction<TFormSgRule[]>>
   rulesSgTo: TFormSgRule[]
+  setRulesSgTo: Dispatch<SetStateAction<TFormSgRule[]>>
   rulesFqdnTo: TFormFqdnRule[]
+  setRulesFqdnTo: Dispatch<SetStateAction<TFormFqdnRule[]>>
   rulesCidrSgFrom: TFormCidrSgRule[]
+  setRulesCidrSgFrom: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   rulesCidrSgTo: TFormCidrSgRule[]
+  setRulesCidrSgTo: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
+  setRulesSgSgIcmpFrom: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
   rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
+  setRulesSgSgIcmpTo: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
   rulesSgSgIeFrom: TFormSgSgIeRule[]
+  setRulesSgSgIeFrom: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
   rulesSgSgIeTo: TFormSgSgIeRule[]
+  setRulesSgSgIeTo: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
   rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[]
+  setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
+  setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   onClose: () => void
   onSubmit: () => void
 }
 
 export const ChangesBlock: FC<TChangesBlockProps> = ({
   centerSg,
+  sgNames,
   rulesSgFrom,
+  setRulesSgFrom,
   rulesSgTo,
+  setRulesSgTo,
   rulesFqdnTo,
+  setRulesFqdnTo,
   rulesCidrSgFrom,
+  setRulesCidrSgFrom,
   rulesCidrSgTo,
+  setRulesCidrSgTo,
   rulesSgSgIcmpFrom,
+  setRulesSgSgIcmpFrom,
   rulesSgSgIcmpTo,
+  setRulesSgSgIcmpTo,
   rulesSgSgIeFrom,
+  setRulesSgSgIeFrom,
   rulesSgSgIeTo,
+  setRulesSgSgIeTo,
   rulesSgSgIeIcmpFrom,
+  setRulesSgSgIeIcmpFrom,
   rulesSgSgIeIcmpTo,
+  setRulesSgSgIeIcmpTo,
   onClose,
   onSubmit,
 }) => {
@@ -135,40 +160,151 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
       <TitleWithNoTopMargin level={3}>Changes for: {centerSg}</TitleWithNoTopMargin>
       <Styled.ScrollContainer>
         {changesResultSgFromResult && (
-          <RulesDiff title="SG From" compareResult={{ type: 'sg', data: changesResultSgFromResult }} />
+          <RulesDiff
+            title="SG From"
+            compareResult={{
+              type: 'sg',
+              data: changesResultSgFromResult,
+              sgNames,
+              setRules: setRulesSgFrom,
+              rulesOtherside: rulesSgTo,
+              setRulesOtherside: setRulesSgTo,
+              popoverPosition: 'right',
+              centerSg,
+            }}
+          />
         )}
         {changesResultSgToResult && (
-          <RulesDiff title="SG To" compareResult={{ type: 'sg', data: changesResultSgToResult }} />
+          <RulesDiff
+            title="SG To"
+            compareResult={{
+              type: 'sg',
+              data: changesResultSgToResult,
+              sgNames,
+              setRules: setRulesSgTo,
+              rulesOtherside: rulesSgFrom,
+              setRulesOtherside: setRulesSgFrom,
+              popoverPosition: 'right',
+              centerSg,
+            }}
+          />
         )}
         {changesResultFqdnTo && (
-          <RulesDiff title="FQDN To" compareResult={{ type: 'fqdn', data: changesResultFqdnTo }} />
+          <RulesDiff
+            title="FQDN To"
+            compareResult={{
+              type: 'fqdn',
+              data: changesResultFqdnTo,
+              setRules: setRulesFqdnTo,
+              popoverPosition: 'left',
+            }}
+          />
         )}
         {changesResultCidrSgFrom && (
-          <RulesDiff title="CIDR-SG From" compareResult={{ type: 'cidr', data: changesResultCidrSgFrom }} />
+          <RulesDiff
+            title="CIDR-SG From"
+            compareResult={{
+              type: 'cidr',
+              data: changesResultCidrSgFrom,
+              defaultTraffic: 'Ingress',
+              setRules: setRulesCidrSgFrom,
+              popoverPosition: 'left',
+            }}
+          />
         )}
         {changesResultCidrSgTo && (
-          <RulesDiff title="CIDR-SG To" compareResult={{ type: 'cidr', data: changesResultCidrSgTo }} />
+          <RulesDiff
+            title="CIDR-SG To"
+            compareResult={{
+              type: 'cidr',
+              data: changesResultCidrSgTo,
+              defaultTraffic: 'Egress',
+              setRules: setRulesCidrSgTo,
+              popoverPosition: 'left',
+            }}
+          />
         )}
         {changesResultSgSgIcmpFrom && (
-          <RulesDiff title="SG-SG-ICMP From" compareResult={{ type: 'sgSgIcmp', data: changesResultSgSgIcmpFrom }} />
+          <RulesDiff
+            title="SG-SG-ICMP From"
+            compareResult={{
+              type: 'sgSgIcmp',
+              data: changesResultSgSgIcmpFrom,
+              sgNames,
+              popoverPosition: 'left',
+              setRules: setRulesSgSgIcmpFrom,
+              rulesOtherside: rulesSgSgIcmpTo,
+              setRulesOtherside: setRulesSgSgIcmpTo,
+              centerSg,
+            }}
+          />
         )}
         {changesResultSgSgIcmpTo && (
-          <RulesDiff title="SG-SG-ICMP To" compareResult={{ type: 'sgSgIcmp', data: changesResultSgSgIcmpTo }} />
+          <RulesDiff
+            title="SG-SG-ICMP To"
+            compareResult={{
+              type: 'sgSgIcmp',
+              data: changesResultSgSgIcmpTo,
+              sgNames,
+              popoverPosition: 'left',
+              setRules: setRulesSgSgIcmpTo,
+              rulesOtherside: rulesSgSgIcmpFrom,
+              setRulesOtherside: setRulesSgSgIcmpFrom,
+              centerSg,
+            }}
+          />
         )}
         {changesResultSgSgIeFrom && (
-          <RulesDiff title="SG-SG-IE From" compareResult={{ type: 'sgSgIe', data: changesResultSgSgIeFrom }} />
+          <RulesDiff
+            title="SG-SG-IE From"
+            compareResult={{
+              type: 'sgSgIe',
+              data: changesResultSgSgIeFrom,
+              sgNames,
+              popoverPosition: 'left',
+              defaultTraffic: 'Ingress',
+              setRules: setRulesSgSgIeFrom,
+            }}
+          />
         )}
         {changesResultSgSgIeTo && (
-          <RulesDiff title="SG-SG-IE To" compareResult={{ type: 'sgSgIe', data: changesResultSgSgIeTo }} />
+          <RulesDiff
+            title="SG-SG-IE To"
+            compareResult={{
+              type: 'sgSgIe',
+              data: changesResultSgSgIeTo,
+              sgNames,
+              popoverPosition: 'left',
+              defaultTraffic: 'Egress',
+              setRules: setRulesSgSgIeTo,
+            }}
+          />
         )}
         {changesResultSgSgIeIcmpFrom && (
           <RulesDiff
             title="SG-SG-IE-ICMP From"
-            compareResult={{ type: 'sgSgIeIcmp', data: changesResultSgSgIeIcmpFrom }}
+            compareResult={{
+              type: 'sgSgIeIcmp',
+              data: changesResultSgSgIeIcmpFrom,
+              sgNames,
+              popoverPosition: 'left',
+              defaultTraffic: 'Ingress',
+              setRules: setRulesSgSgIeIcmpFrom,
+            }}
           />
         )}
         {changesResultSgSgIeIcmpTo && (
-          <RulesDiff title="SG-SG-IE-ICMP To" compareResult={{ type: 'sgSgIeIcmp', data: changesResultSgSgIeIcmpTo }} />
+          <RulesDiff
+            title="SG-SG-IE-ICMP To"
+            compareResult={{
+              type: 'sgSgIeIcmp',
+              data: changesResultSgSgIeIcmpTo,
+              sgNames,
+              popoverPosition: 'left',
+              defaultTraffic: 'Egress',
+              setRules: setRulesSgSgIeIcmpTo,
+            }}
+          />
         )}
         {!changesResultSgFromResult &&
           !changesResultSgToResult &&
