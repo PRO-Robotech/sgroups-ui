@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import React, { FC, Dispatch, SetStateAction, useState } from 'react'
 import { Typography } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
@@ -87,19 +88,52 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
         {compareResult.data.newRules.length > 0 && (
           <>
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
-            <SGTable rules={compareResult.data.newRules} />
+            <SGTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              rules={compareResult.data.newRules}
+              setRules={compareResult.setRules}
+              rulesOtherside={compareResult.rulesOtherside}
+              setRulesOtherside={compareResult.setRulesOtherside}
+              setEditOpen={setEditOpenNewRules}
+              editOpen={editOpenNewRules}
+              popoverPosition={compareResult.popoverPosition}
+              centerSg={compareResult.centerSg}
+            />
           </>
         )}
         {compareResult.data.diffRules.length > 0 && (
           <>
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-            <SGTable rules={compareResult.data.diffRules} />
+            <SGTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              rules={compareResult.data.diffRules}
+              setRules={compareResult.setRules}
+              rulesOtherside={compareResult.rulesOtherside}
+              setRulesOtherside={compareResult.setRulesOtherside}
+              setEditOpen={setEditOpenModifiedRules}
+              editOpen={editOpenModifiedRules}
+              popoverPosition={compareResult.popoverPosition}
+              centerSg={compareResult.centerSg}
+            />
           </>
         )}
         {compareResult.data.deletedRules.length > 0 && (
           <>
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-            <SGTable rules={compareResult.data.deletedRules} />
+            <SGTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              rules={compareResult.data.deletedRules}
+              setRules={compareResult.setRules}
+              rulesOtherside={compareResult.rulesOtherside}
+              setRulesOtherside={compareResult.setRulesOtherside}
+              setEditOpen={setEditOpenDeletedRules}
+              editOpen={editOpenDeletedRules}
+              popoverPosition={compareResult.popoverPosition}
+              centerSg={compareResult.centerSg}
+            />
           </>
         )}
       </>
@@ -113,19 +147,40 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
         {compareResult.data.newRules.length > 0 && (
           <>
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
-            <FQDNTable rules={compareResult.data.newRules} />
+            <FQDNTable
+              isChangesMode
+              rules={compareResult.data.newRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenNewRules}
+              editOpen={editOpenNewRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
           </>
         )}
         {compareResult.data.diffRules.length > 0 && (
           <>
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-            <FQDNTable rules={compareResult.data.diffRules} />
+            <FQDNTable
+              isChangesMode
+              rules={compareResult.data.diffRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenModifiedRules}
+              editOpen={editOpenModifiedRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
           </>
         )}
         {compareResult.data.deletedRules.length > 0 && (
           <>
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-            <FQDNTable rules={compareResult.data.deletedRules} />
+            <FQDNTable
+              isChangesMode
+              rules={compareResult.data.deletedRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenDeletedRules}
+              editOpen={editOpenDeletedRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
           </>
         )}
       </>
@@ -139,19 +194,43 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
         {compareResult.data.newRules.length > 0 && (
           <>
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
-            <CidrSgTable rules={compareResult.data.newRules} />
+            <CidrSgTable
+              isChangesMode
+              defaultTraffic={compareResult.defaultTraffic}
+              rules={compareResult.data.newRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenNewRules}
+              editOpen={editOpenNewRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
           </>
         )}
         {compareResult.data.diffRules.length > 0 && (
           <>
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-            <CidrSgTable rules={compareResult.data.diffRules} />
+            <CidrSgTable
+              isChangesMode
+              defaultTraffic={compareResult.defaultTraffic}
+              rules={compareResult.data.diffRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenModifiedRules}
+              editOpen={editOpenModifiedRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
           </>
         )}
         {compareResult.data.deletedRules.length > 0 && (
           <>
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-            <CidrSgTable rules={compareResult.data.deletedRules} />
+            <CidrSgTable
+              isChangesMode
+              defaultTraffic={compareResult.defaultTraffic}
+              rules={compareResult.data.deletedRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenDeletedRules}
+              editOpen={editOpenDeletedRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
           </>
         )}
       </>
@@ -165,19 +244,52 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
         {compareResult.data.newRules.length > 0 && (
           <>
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
-            <SgSgIcmpTable rules={compareResult.data.newRules} />
+            <SgSgIcmpTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              popoverPosition={compareResult.popoverPosition}
+              rules={compareResult.data.newRules}
+              setRules={compareResult.setRules}
+              rulesOtherside={compareResult.rulesOtherside}
+              setRulesOtherside={compareResult.setRulesOtherside}
+              editOpen={editOpenNewRules}
+              setEditOpen={setEditOpenNewRules}
+              centerSg={compareResult.centerSg}
+            />
           </>
         )}
         {compareResult.data.diffRules.length > 0 && (
           <>
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-            <SgSgIcmpTable rules={compareResult.data.diffRules} />
+            <SgSgIcmpTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              popoverPosition={compareResult.popoverPosition}
+              rules={compareResult.data.diffRules}
+              setRules={compareResult.setRules}
+              rulesOtherside={compareResult.rulesOtherside}
+              setRulesOtherside={compareResult.setRulesOtherside}
+              editOpen={editOpenModifiedRules}
+              setEditOpen={setEditOpenModifiedRules}
+              centerSg={compareResult.centerSg}
+            />
           </>
         )}
         {compareResult.data.deletedRules.length > 0 && (
           <>
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-            <SgSgIcmpTable rules={compareResult.data.deletedRules} />
+            <SgSgIcmpTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              popoverPosition={compareResult.popoverPosition}
+              rules={compareResult.data.deletedRules}
+              setRules={compareResult.setRules}
+              rulesOtherside={compareResult.rulesOtherside}
+              setRulesOtherside={compareResult.setRulesOtherside}
+              editOpen={editOpenDeletedRules}
+              setEditOpen={setEditOpenDeletedRules}
+              centerSg={compareResult.centerSg}
+            />
           </>
         )}
       </>
@@ -191,19 +303,46 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
         {compareResult.data.newRules.length > 0 && (
           <>
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
-            <SgSgIeTable rules={compareResult.data.newRules} />
+            <SgSgIeTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              popoverPosition={compareResult.popoverPosition}
+              defaultTraffic={compareResult.defaultTraffic}
+              rules={compareResult.data.newRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenNewRules}
+              editOpen={editOpenNewRules}
+            />
           </>
         )}
         {compareResult.data.diffRules.length > 0 && (
           <>
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-            <SgSgIeTable rules={compareResult.data.diffRules} />
+            <SgSgIeTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              popoverPosition={compareResult.popoverPosition}
+              defaultTraffic={compareResult.defaultTraffic}
+              rules={compareResult.data.diffRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenModifiedRules}
+              editOpen={editOpenModifiedRules}
+            />
           </>
         )}
         {compareResult.data.deletedRules.length > 0 && (
           <>
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-            <SgSgIeTable rules={compareResult.data.deletedRules} />
+            <SgSgIeTable
+              isChangesMode
+              sgNames={compareResult.sgNames}
+              popoverPosition={compareResult.popoverPosition}
+              defaultTraffic={compareResult.defaultTraffic}
+              rules={compareResult.data.deletedRules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenDeletedRules}
+              editOpen={editOpenDeletedRules}
+            />
           </>
         )}
       </>
@@ -216,19 +355,46 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
       {compareResult.data.newRules.length > 0 && (
         <>
           <Typography.Paragraph>New Rules:</Typography.Paragraph>
-          <SgSgIeIcmpTable rules={compareResult.data.newRules} />
+          <SgSgIeIcmpTable
+            isChangesMode
+            sgNames={compareResult.sgNames}
+            popoverPosition={compareResult.popoverPosition}
+            defaultTraffic={compareResult.defaultTraffic}
+            rules={compareResult.data.newRules}
+            setRules={compareResult.setRules}
+            editOpen={editOpenNewRules}
+            setEditOpen={setEditOpenNewRules}
+          />
         </>
       )}
       {compareResult.data.diffRules.length > 0 && (
         <>
           <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-          <SgSgIeIcmpTable rules={compareResult.data.diffRules} />
+          <SgSgIeIcmpTable
+            isChangesMode
+            sgNames={compareResult.sgNames}
+            popoverPosition={compareResult.popoverPosition}
+            defaultTraffic={compareResult.defaultTraffic}
+            rules={compareResult.data.diffRules}
+            setRules={compareResult.setRules}
+            editOpen={editOpenModifiedRules}
+            setEditOpen={setEditOpenModifiedRules}
+          />
         </>
       )}
       {compareResult.data.deletedRules.length > 0 && (
         <>
           <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-          <SgSgIeIcmpTable rules={compareResult.data.deletedRules} />
+          <SgSgIeIcmpTable
+            isChangesMode
+            sgNames={compareResult.sgNames}
+            popoverPosition={compareResult.popoverPosition}
+            defaultTraffic={compareResult.defaultTraffic}
+            rules={compareResult.data.deletedRules}
+            setRules={compareResult.setRules}
+            editOpen={editOpenDeletedRules}
+            setEditOpen={setEditOpenDeletedRules}
+          />
         </>
       )}
     </>

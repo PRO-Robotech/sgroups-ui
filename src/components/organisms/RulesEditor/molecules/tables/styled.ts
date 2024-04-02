@@ -81,8 +81,6 @@ const EditButton = styled.div`
 `
 
 export const Styled = {
-  RadioGroup,
-  GroupRulesNode,
   FormItem,
   ButtonsContainer,
   ButtonWithRightMargin,

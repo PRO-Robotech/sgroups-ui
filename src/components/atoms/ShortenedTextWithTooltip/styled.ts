@@ -7,8 +7,8 @@ type TShortenedTextProps = {
 export const ShortenedText = styled.div<TShortenedTextProps>`
   max-width: ${({ $maxWidth }) => $maxWidth}px;
   overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
+  text-overflow: ellipsis;
 `
 
 export const Styled = {
