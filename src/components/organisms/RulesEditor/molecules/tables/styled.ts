@@ -1,14 +1,6 @@
 import styled from 'styled-components'
 import { Form } from 'antd'
 
-const GroupRulesNode = styled.div`
-  width: 700px;
-  padding: 15px;
-  background: white;
-  border-radius: 10px;
-  box-shadow: 0 0 24px rgba(23, 49, 65, 0.13);
-`
-
 const FormItem = styled(Form.Item)`
   margin-bottom: 5px;
 
@@ -80,8 +72,15 @@ const RulesEntryPorts = styled.div<TRulesEntryPortsProps>`
   border-radius: 5px;
 `
 
+const EditButton = styled.div`
+  cursor: pointer;
+
+  &:hover {
+    color: #4096ff;
+  }
+`
+
 export const Styled = {
-  GroupRulesNode,
   FormItem,
   ButtonsContainer,
   ButtonWithRightMargin,
@@ -89,4 +88,5 @@ export const Styled = {
   RulesEntrySgs,
   RulesEntryMarks,
   RulesEntryPorts,
+  EditButton,
 }

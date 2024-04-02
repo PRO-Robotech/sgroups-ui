@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios'
-import { TNWResponse } from 'localTypes/networks'
+import { TNWResponse, TNetworkForm } from 'localTypes/networks'
 import { getBaseEndpoint } from './env'
 
 export const getNetworks = (): Promise<AxiosResponse<TNWResponse>> =>
@@ -31,6 +31,31 @@ export const addNetwork = async (name: string, cidr: string): Promise<AxiosRespo
             },
           },
         ],
+      },
+      syncOp: 'Upsert',
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+}
+
+export const addNetworks = async (nws: TNetworkForm[]): Promise<AxiosResponse> => {
+  const networks = nws.filter(({ name, CIDR }) => name && CIDR && name.length > 0 && CIDR.length > 0)
+  const body = networks.map(({ name, CIDR }) => ({
+    name,
+    network: {
+      CIDR,
+    },
+  }))
+
+  return axios.post(
+    `${getBaseEndpoint()}/v1/sync`,
+    {
+      networks: {
+        networks: body,
       },
       syncOp: 'Upsert',
     },

@@ -143,10 +143,10 @@ export const mapRulesSgSgIcmpTo = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[] 
 export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Ingress')
-    .flatMap(({ SgLocal, ports, transport, logs, trace, traffic }) => {
+    .flatMap(({ Sg, ports, transport, logs, trace, traffic }) => {
       if (ports.length > 0) {
         return ports.map(({ s, d }) => ({
-          sg: SgLocal,
+          sg: Sg,
           portsSource: s,
           portsDestination: d,
           transport,
@@ -156,7 +156,7 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         }))
       }
       return {
-        sg: SgLocal,
+        sg: Sg,
         transport,
         logs,
         trace,
@@ -168,10 +168,10 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
 export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Egress')
-    .flatMap(({ SgLocal, ports, transport, logs, trace, traffic }) => {
+    .flatMap(({ Sg, ports, transport, logs, trace, traffic }) => {
       if (ports.length > 0) {
         return ports.map(({ s, d }) => ({
-          sg: SgLocal,
+          sg: Sg,
           portsSource: s,
           portsDestination: d,
           transport,
@@ -181,7 +181,7 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         }))
       }
       return {
-        sg: SgLocal,
+        sg: Sg,
         transport,
         logs,
         trace,
@@ -193,9 +193,9 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
 export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Ingress')
-    .flatMap(({ SgLocal, ICMP, logs, trace, traffic }) => {
+    .flatMap(({ Sg, ICMP, logs, trace, traffic }) => {
       return {
-        sg: SgLocal,
+        sg: Sg,
         IPv: ICMP.IPv,
         types: ICMP.Types,
         logs,
@@ -208,9 +208,9 @@ export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcm
 export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Egress')
-    .flatMap(({ SgLocal, ICMP, logs, trace, traffic }) => {
+    .flatMap(({ Sg, ICMP, logs, trace, traffic }) => {
       return {
-        sg: SgLocal,
+        sg: Sg,
         IPv: ICMP.IPv,
         types: ICMP.Types,
         logs,
@@ -218,4 +218,42 @@ export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpR
         traffic,
       }
     })
+}
+
+export const checkIfChangesExist = (
+  rulesSgFrom: TFormSgRule[],
+  rulesSgTo: TFormSgRule[],
+  rulesFqdnTo: TFormFqdnRule[],
+  rulesCidrSgFrom: TFormCidrSgRule[],
+  rulesCidrSgTo: TFormCidrSgRule[],
+  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[],
+  rulesSgSgIcmpTo: TFormSgSgIcmpRule[],
+  rulesSgSgIeFrom: TFormSgSgIeRule[],
+  rulesSgSgIeTo: TFormSgSgIeRule[],
+  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[],
+  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[],
+): boolean => {
+  if (
+    [
+      ...rulesSgFrom,
+      ...rulesSgTo,
+      ...rulesFqdnTo,
+      ...rulesCidrSgFrom,
+      ...rulesCidrSgTo,
+      ...rulesSgSgIcmpFrom,
+      ...rulesSgSgIcmpTo,
+      ...rulesSgSgIeFrom,
+      ...rulesSgSgIeTo,
+      ...rulesSgSgIeIcmpFrom,
+      ...rulesSgSgIeIcmpTo,
+    ].some(
+      ({ formChanges }) =>
+        formChanges?.status === 'new' ||
+        formChanges?.status === 'deleted' ||
+        (formChanges?.status === 'modified' && formChanges.modifiedFields && formChanges.modifiedFields?.length > 0),
+    )
+  ) {
+    return true
+  }
+  return false
 }

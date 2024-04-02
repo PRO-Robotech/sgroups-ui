@@ -14,7 +14,6 @@ const FormItem = styled(Form.Item)`
     min-width: 150px;
   }
 `
-
 const ButtonFormItem = styled(Form.Item)`
   display: flex;
   align-items: center;

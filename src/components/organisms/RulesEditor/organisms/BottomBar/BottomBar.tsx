@@ -1,4 +1,4 @@
-import React, { FC, useState, useEffect, useCallback } from 'react'
+import React, { FC, Dispatch, SetStateAction, useState, useEffect, useCallback } from 'react'
 import { Button, Breadcrumb } from 'antd'
 import { HomeOutlined } from '@ant-design/icons'
 import { Spacer } from 'components'
@@ -10,39 +10,64 @@ import {
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
 } from 'localTypes/rules'
+import { BASEPREFIX } from 'constants/basePrefix'
 import { ChangesBlock } from '../../molecules'
 import { Styled } from './styled'
 
 type TBottomBarProps = {
   onSubmit: () => void
+  sgNames: string[]
   rulesSgFrom: TFormSgRule[]
+  setRulesSgFrom: Dispatch<SetStateAction<TFormSgRule[]>>
   rulesSgTo: TFormSgRule[]
+  setRulesSgTo: Dispatch<SetStateAction<TFormSgRule[]>>
   rulesFqdnTo: TFormFqdnRule[]
+  setRulesFqdnTo: Dispatch<SetStateAction<TFormFqdnRule[]>>
   rulesCidrSgFrom: TFormCidrSgRule[]
+  setRulesCidrSgFrom: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   rulesCidrSgTo: TFormCidrSgRule[]
+  setRulesCidrSgTo: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
+  setRulesSgSgIcmpFrom: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
   rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
+  setRulesSgSgIcmpTo: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
   rulesSgSgIeFrom: TFormSgSgIeRule[]
+  setRulesSgSgIeFrom: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
   rulesSgSgIeTo: TFormSgSgIeRule[]
+  setRulesSgSgIeTo: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
   rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[]
+  setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
+  setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   centerSg?: string
 }
 
 export const BottomBar: FC<TBottomBarProps> = ({
   centerSg,
+  sgNames,
   onSubmit,
   rulesSgFrom,
+  setRulesSgFrom,
   rulesSgTo,
+  setRulesSgTo,
   rulesFqdnTo,
+  setRulesFqdnTo,
   rulesCidrSgFrom,
+  setRulesCidrSgFrom,
   rulesCidrSgTo,
+  setRulesCidrSgTo,
   rulesSgSgIcmpFrom,
+  setRulesSgSgIcmpFrom,
   rulesSgSgIcmpTo,
+  setRulesSgSgIcmpTo,
   rulesSgSgIeFrom,
+  setRulesSgSgIeFrom,
   rulesSgSgIeTo,
+  setRulesSgSgIeTo,
   rulesSgSgIeIcmpFrom,
+  setRulesSgSgIeIcmpFrom,
   rulesSgSgIeIcmpTo,
+  setRulesSgSgIeIcmpTo,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -86,7 +111,7 @@ export const BottomBar: FC<TBottomBarProps> = ({
           <Breadcrumb
             items={[
               {
-                href: '/',
+                href: `${BASEPREFIX}/`,
                 title: <HomeOutlined />,
               },
               {
@@ -105,18 +130,30 @@ export const BottomBar: FC<TBottomBarProps> = ({
       </Styled.FlexContainer>
       {centerSg && isOpen && (
         <ChangesBlock
+          sgNames={sgNames}
           centerSg={centerSg}
           rulesSgFrom={rulesSgFrom}
+          setRulesSgFrom={setRulesSgFrom}
           rulesSgTo={rulesSgTo}
+          setRulesSgTo={setRulesSgTo}
           rulesFqdnTo={rulesFqdnTo}
-          rulesCidrSgTo={rulesCidrSgTo}
+          setRulesFqdnTo={setRulesFqdnTo}
           rulesCidrSgFrom={rulesCidrSgFrom}
+          setRulesCidrSgFrom={setRulesCidrSgFrom}
+          rulesCidrSgTo={rulesCidrSgTo}
+          setRulesCidrSgTo={setRulesCidrSgTo}
           rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
+          setRulesSgSgIcmpFrom={setRulesSgSgIcmpFrom}
           rulesSgSgIcmpTo={rulesSgSgIcmpTo}
+          setRulesSgSgIcmpTo={setRulesSgSgIcmpTo}
           rulesSgSgIeFrom={rulesSgSgIeFrom}
+          setRulesSgSgIeFrom={setRulesSgSgIeFrom}
           rulesSgSgIeTo={rulesSgSgIeTo}
+          setRulesSgSgIeTo={setRulesSgSgIeTo}
           rulesSgSgIeIcmpFrom={rulesSgSgIeIcmpFrom}
+          setRulesSgSgIeIcmpFrom={setRulesSgSgIeIcmpFrom}
           rulesSgSgIeIcmpTo={rulesSgSgIeIcmpTo}
+          setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
           onClose={() => {
             setIsOpen(false)
           }}

@@ -155,7 +155,7 @@ export const RulesList: FC = () => {
   const removeSgSgIeRuleFromList = (sgFrom: string, sgTo: string) => {
     removeSgSgIeRule(sgFrom, sgTo)
       .then(() => {
-        setSgSgIeRules([...sgSgIeRules].filter(el => el.Sg !== sgFrom || el.SgLocal !== sgTo))
+        setSgSgIeRules([...sgSgIeRules].filter(el => el.SgLocal !== sgFrom || el.Sg !== sgTo))
         setIsModalOpenSgSgIe(false)
         setPendingToDeleteSgSgIeRule(undefined)
         setDeleteErrorSgSgIe(undefined)
@@ -500,7 +500,7 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TSgSgIeRule) => (
-        <DeleteOutlined onClick={() => openRemoveSgSgIeRuleModal(record.Sg, record.SgLocal)} />
+        <DeleteOutlined onClick={() => openRemoveSgSgIeRuleModal(record.SgLocal, record.Sg)} />
       ),
     },
   ]
@@ -519,6 +519,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={rules.map(row => ({ ...row, key: `${row.sgFrom}${row.sgTo}` }))}
               columns={columns}
@@ -542,6 +543,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={fqdnRules.map(row => ({ ...row, key: `${row.sgFrom}${row.FQDN}` }))}
               columns={columnsFqdn}
@@ -565,6 +567,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={cidrRules.map(row => ({ ...row, key: `${row.SG}${row.CIDR}` }))}
               columns={columnsCidr}
@@ -588,6 +591,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={sgSgIcmpRules.map(row => ({ ...row, key: `${row.SgFrom}${row.SgTo}` }))}
               columns={columnsSgSgIcmp}
@@ -611,6 +615,7 @@ export const RulesList: FC = () => {
                 showQuickJumper: true,
                 showSizeChanger: false,
                 defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
               }}
               dataSource={sgSgIeRules.map(row => ({ ...row, key: `${row.Sg}${row.SgLocal}` }))}
               columns={columnsSgSgIe}

@@ -184,11 +184,11 @@ export const removeSgSgIcmpRule = async (sgFrom: string, sgTo: string): Promise<
 export const getSgSgIeRules = (): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
   axios.post<TSgSgIeRulesResponse>(`${getBaseEndpoint()}/v1/ie-sg-sg/rules`)
 
-export const getSgSgIeRulesBySg = (sg: string): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
+export const getSgSgIeRulesBySgLocal = (sg: string): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
   axios.post<TSgSgIeRulesResponse>(
     `${getBaseEndpoint()}/v1/ie-sg-sg/rules`,
     {
-      Sg: [sg],
+      SgLocal: [sg],
     },
     {
       headers: {
@@ -199,7 +199,7 @@ export const getSgSgIeRulesBySg = (sg: string): Promise<AxiosResponse<TSgSgIeRul
 
 export const removeSgSgIeRule = async (sgFrom: string, sgTo: string): Promise<AxiosResponse> => {
   const currentRules = (await getSgSgIeRules()).data.rules
-  const removedRules = [...currentRules].filter(el => el.Sg === sgFrom && el.SgLocal === sgTo)
+  const removedRules = [...currentRules].filter(el => el.SgLocal === sgFrom && el.Sg === sgTo)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
@@ -219,11 +219,11 @@ export const removeSgSgIeRule = async (sgFrom: string, sgTo: string): Promise<Ax
 export const getSgSgIeIcmpRules = (): Promise<AxiosResponse<TSgSgIeIcmpRulesResponse>> =>
   axios.post<TSgSgIeIcmpRulesResponse>(`${getBaseEndpoint()}/v1/ie-sg-sg-icmp/rules`)
 
-export const getSgSgIeIcmpRulesBySg = (sg: string): Promise<AxiosResponse<TSgSgIeIcmpRulesResponse>> =>
+export const getSgSgIeIcmpRulesBySgLocal = (sg: string): Promise<AxiosResponse<TSgSgIeIcmpRulesResponse>> =>
   axios.post<TSgSgIeIcmpRulesResponse>(
     `${getBaseEndpoint()}/v1/ie-sg-sg-icmp/rules`,
     {
-      Sg: [sg],
+      SgLocal: [sg],
     },
     {
       headers: {
@@ -234,7 +234,7 @@ export const getSgSgIeIcmpRulesBySg = (sg: string): Promise<AxiosResponse<TSgSgI
 
 export const removeSgSgIeIcmpRule = async (sgFrom: string, sgTo: string): Promise<AxiosResponse> => {
   const currentRules = (await getSgSgIeIcmpRules()).data.rules
-  const removedRules = [...currentRules].filter(el => el.Sg === sgFrom && el.SgLocal === sgTo)
+  const removedRules = [...currentRules].filter(el => el.SgLocal === sgFrom && el.Sg === sgTo)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
@@ -705,11 +705,11 @@ export const editCidrSgRule = async (sourceRule: TCidrRule, editedRule: TCidrRul
   )
 }
 
-export const getSgSgIeRulesBySgLocal = (sg: string): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
+export const getSgSgIeRulesBySg = (sg: string): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
   axios.post<TSgSgIeRulesResponse>(
     `${getBaseEndpoint()}/v1/ie-sg-sg/rules`,
     {
-      SgLocal: [sg],
+      Sg: [sg],
     },
     {
       headers: {

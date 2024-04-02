@@ -18,8 +18,8 @@ import {
   getCidrSgRulesBySG,
   getSgSgIcmpRulesBySgFrom,
   getSgSgIcmpRulesBySgTo,
-  getSgSgIeRulesBySg,
-  getSgSgIeIcmpRulesBySg,
+  getSgSgIeRulesBySgLocal,
+  getSgSgIeIcmpRulesBySgLocal,
 } from 'api/rules'
 import { TransformBlock, BottomBar } from './organisms'
 import {
@@ -34,7 +34,9 @@ import {
   mapRulesSgSgIeTo,
   mapRulesSgSgIeIcmpFrom,
   mapRulesSgSgIeIcmpTo,
+  checkIfChangesExist,
 } from './utils'
+import { SelectMainSgModal } from './atoms'
 import { Styled } from './styled'
 
 export const RulesEditor: FC = () => {
@@ -51,6 +53,8 @@ export const RulesEditor: FC = () => {
   const [rulesSgSgIeTo, setRulesSgSgIeTo] = useState<TFormSgSgIeRule[]>([])
   const [rulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpFrom] = useState<TFormSgSgIeIcmpRule[]>([])
   const [rulesSgSgIeIcmpTo, setRulesSgSgIeIcmpTo] = useState<TFormSgSgIeIcmpRule[]>([])
+  const [isChangeMainSgModalVisible, setChangeMainSgModalVisible] = useState<boolean>(false)
+  const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -97,8 +101,8 @@ export const RulesEditor: FC = () => {
         getCidrSgRulesBySG(centerSg),
         getSgSgIcmpRulesBySgTo(centerSg),
         getSgSgIcmpRulesBySgFrom(centerSg),
-        getSgSgIeRulesBySg(centerSg),
-        getSgSgIeIcmpRulesBySg(centerSg),
+        getSgSgIeRulesBySgLocal(centerSg),
+        getSgSgIeIcmpRulesBySgLocal(centerSg),
       ])
         .then(
           ([
@@ -151,6 +155,28 @@ export const RulesEditor: FC = () => {
     }
   }
 
+  const onSelectMainSg = (newSg?: string) => {
+    const result = checkIfChangesExist(
+      rulesSgFrom,
+      rulesSgTo,
+      rulesFqdnTo,
+      rulesCidrSgFrom,
+      rulesCidrSgTo,
+      rulesSgSgIcmpFrom,
+      rulesSgSgIcmpTo,
+      rulesSgSgIeFrom,
+      rulesSgSgIeTo,
+      rulesSgSgIeIcmpFrom,
+      rulesSgSgIeIcmpTo,
+    )
+    if (result) {
+      setPendingSg(newSg)
+      setChangeMainSgModalVisible(true)
+    } else {
+      setCenterSg(newSg)
+    }
+  }
+
   useEffect(() => {
     fetchData(centerSg)
   }, [centerSg])
@@ -170,7 +196,7 @@ export const RulesEditor: FC = () => {
       <TransformBlock
         sgNames={sgNames}
         centerSg={centerSg}
-        setCenterSg={setCenterSg}
+        onSelectMainSg={onSelectMainSg}
         rulesSgFrom={rulesSgFrom}
         setRulesSgFrom={setRulesSgFrom}
         rulesSgTo={rulesSgTo}
@@ -195,25 +221,46 @@ export const RulesEditor: FC = () => {
         setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
       />
       <BottomBar
+        sgNames={sgNames}
         centerSg={centerSg}
         onSubmit={() => fetchData(centerSg)}
         rulesSgFrom={rulesSgFrom}
+        setRulesSgFrom={setRulesSgFrom}
         rulesSgTo={rulesSgTo}
+        setRulesSgTo={setRulesSgTo}
         rulesFqdnTo={rulesFqdnTo}
-        rulesCidrSgTo={rulesCidrSgTo}
+        setRulesFqdnTo={setRulesFqdnTo}
         rulesCidrSgFrom={rulesCidrSgFrom}
+        setRulesCidrSgFrom={setRulesCidrSgFrom}
+        rulesCidrSgTo={rulesCidrSgTo}
+        setRulesCidrSgTo={setRulesCidrSgTo}
         rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
+        setRulesSgSgIcmpFrom={setRulesSgSgIcmpFrom}
         rulesSgSgIcmpTo={rulesSgSgIcmpTo}
+        setRulesSgSgIcmpTo={setRulesSgSgIcmpTo}
         rulesSgSgIeFrom={rulesSgSgIeFrom}
+        setRulesSgSgIeFrom={setRulesSgSgIeFrom}
         rulesSgSgIeTo={rulesSgSgIeTo}
+        setRulesSgSgIeTo={setRulesSgSgIeTo}
         rulesSgSgIeIcmpFrom={rulesSgSgIeIcmpFrom}
+        setRulesSgSgIeIcmpFrom={setRulesSgSgIeIcmpFrom}
         rulesSgSgIeIcmpTo={rulesSgSgIeIcmpTo}
+        setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
       />
       {isLoading && (
         <Styled.Loader style={{}}>
           <Spin size="large" />
         </Styled.Loader>
       )}
+      <SelectMainSgModal
+        isOpen={isChangeMainSgModalVisible}
+        handleOk={() => {
+          setCenterSg(pendingSg)
+          setChangeMainSgModalVisible(false)
+          setPendingSg(undefined)
+        }}
+        handleCancel={() => setChangeMainSgModalVisible(false)}
+      />
     </Styled.Container>
   )
 }
