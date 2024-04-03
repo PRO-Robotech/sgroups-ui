@@ -13,7 +13,11 @@ import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { Styled } from './styled'
 
-export const SecurityGroupsList: FC = () => {
+type TSecurityGroupsListProps = {
+  id?: string
+}
+
+export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   const [securityGroups, setSecurityGroups] = useState<TSecurityGroup[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
@@ -96,6 +100,7 @@ export const SecurityGroupsList: FC = () => {
       dataIndex: 'name',
       key: 'name',
       width: 150,
+      defaultFilteredValue: id ? [id] : [],
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
         <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
           <Input
@@ -182,7 +187,7 @@ export const SecurityGroupsList: FC = () => {
   return (
     <>
       <Card>
-        <TitleWithNoTopMargin level={2}>Security Groups</TitleWithNoTopMargin>
+        <TitleWithNoTopMargin level={2}>Security Groups {id}</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Button onClick={() => history.push('/security-groups/add')} type="primary">
           Add
