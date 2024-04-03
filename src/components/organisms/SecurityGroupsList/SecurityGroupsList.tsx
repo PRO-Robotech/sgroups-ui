@@ -187,7 +187,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   return (
     <>
       <Card>
-        <TitleWithNoTopMargin level={2}>Security Groups {id}</TitleWithNoTopMargin>
+        <TitleWithNoTopMargin level={2}>Security Groups</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Button onClick={() => history.push('/security-groups/add')} type="primary">
           Add
