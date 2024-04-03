@@ -78,7 +78,7 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
   }
 
   if (success) {
-    history.push('/security-groups')
+    history.push(`/security-groups/${id}`)
   }
 
   if (error) {

@@ -20,14 +20,14 @@ export const App: FC = () => (
       <Route exact path="/">
         <MainPage />
       </Route>
-      <Route exact path="/security-groups/:securityGroupId?">
-        <SecurityGroupsPage />
-      </Route>
       <Route exact path="/security-groups/add">
         <SecurityGroupsAddPage />
       </Route>
       <Route path="/security-groups/edit/:securityGroupId">
         <SecurityGroupsEditPage />
+      </Route>
+      <Route exact path="/security-groups/:securityGroupId?">
+        <SecurityGroupsPage />
       </Route>
       <Route exact path="/networks">
         <NetworksPage />

@@ -66,7 +66,7 @@ export const SecurityGroupAdd: FC = () => {
   }
 
   if (success) {
-    history.push('/security-groups')
+    history.push(`/security-groups/${form.getFieldValue('name')}`)
   }
 
   if (error) {
