@@ -98,6 +98,10 @@ type TFormChanges = {
   modifiedFields?: string[]
 }
 
+type TCheckStatus = {
+  checked?: boolean
+}
+
 export type TFormSgRule = {
   sg: string
   transport: TTransport
@@ -105,7 +109,7 @@ export type TFormSgRule = {
   portsDestination?: string
   portsSource?: string
   formChanges?: TFormChanges
-}
+} & TCheckStatus
 
 export type TFormFqdnRule = {
   fqdn: string
@@ -114,7 +118,7 @@ export type TFormFqdnRule = {
   portsSource?: string
   portsDestination?: string
   formChanges?: TFormChanges
-}
+} & TCheckStatus
 
 export type TFormCidrSgRule = {
   cidr: string
@@ -125,7 +129,7 @@ export type TFormCidrSgRule = {
   portsSource?: string
   portsDestination?: string
   formChanges?: TFormChanges
-}
+} & TCheckStatus
 
 export type TFormSgSgIcmpRule = {
   sg: string
@@ -134,7 +138,7 @@ export type TFormSgSgIcmpRule = {
   IPv: TIpVersion
   types: number[]
   formChanges?: TFormChanges
-}
+} & TCheckStatus
 
 export type TFormSgSgIeRule = {
   sg: string
@@ -145,7 +149,7 @@ export type TFormSgSgIeRule = {
   traffic: TTraffic
   transport: TTransport
   formChanges?: TFormChanges
-}
+} & TCheckStatus
 
 export type TFormSgSgIeIcmpRule = {
   sg: string
@@ -155,7 +159,7 @@ export type TFormSgSgIeIcmpRule = {
   types: number[]
   traffic: TTraffic
   formChanges?: TFormChanges
-}
+} & TCheckStatus
 
 export type TComposedForSubmitSgRules = {
   rules: TSgRule[]
