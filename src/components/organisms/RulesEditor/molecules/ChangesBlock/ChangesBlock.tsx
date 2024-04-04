@@ -178,6 +178,32 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
       })
   }
 
+  const handleClose = () => {
+    const uncheckedRulesSgFrom = [...rulesSgFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgTo = [...rulesSgTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesFqdnTo = [...rulesFqdnTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesCidrSgFrom = [...rulesCidrSgFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesCidrSgTo = [...rulesCidrSgTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgSgIcmpFrom = [...rulesSgSgIcmpFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgSgIcmpTo = [...rulesSgSgIcmpTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgSgIeFrom = [...rulesSgSgIeFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgSgIeTo = [...rulesSgSgIeTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgSgIeIcmpFrom = [...rulesSgSgIeIcmpFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgSgIeIcmpTo = [...rulesSgSgIeIcmpTo].map(el => ({ ...el, checked: false }))
+    setRulesSgFrom(uncheckedRulesSgFrom)
+    setRulesSgTo(uncheckedRulesSgTo)
+    setRulesFqdnTo(uncheckedRulesFqdnTo)
+    setRulesCidrSgFrom(uncheckedRulesCidrSgFrom)
+    setRulesCidrSgTo(uncheckedRulesCidrSgTo)
+    setRulesSgSgIcmpFrom(uncheckedRulesSgSgIcmpFrom)
+    setRulesSgSgIcmpTo(uncheckedRulesSgSgIcmpTo)
+    setRulesSgSgIeFrom(uncheckedRulesSgSgIeFrom)
+    setRulesSgSgIeTo(uncheckedRulesSgSgIeTo)
+    setRulesSgSgIeIcmpFrom(uncheckedRulesSgSgIeIcmpFrom)
+    setRulesSgSgIeIcmpTo(uncheckedRulesSgSgIeIcmpTo)
+    onClose()
+  }
+
   return (
     <>
       <TitleWithNoTopMargin level={3}>Changes for: {centerSg}</TitleWithNoTopMargin>
@@ -343,7 +369,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
       </Styled.ScrollContainer>
       <Spacer />
       <Styled.ButtonsContainer>
-        <Button type="default" onClick={onClose}>
+        <Button type="default" onClick={handleClose}>
           Cancel
         </Button>
         <Button type="primary" onClick={handleOk}>
