@@ -3,7 +3,7 @@
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import type { FilterDropdownProps } from 'antd/es/table/interface'
+import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { ThWhiteSpaceNoWrap } from 'components/atoms'
@@ -338,6 +338,30 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
           key: `${row.sg}-${row.IPv}`,
         }))
 
+  const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
+    ? {
+        type: 'checkbox',
+        onSelect: (record: TColumn, selected: boolean) => {
+          const newRules = [...rules]
+          const pendingToCheckRuleIndex = newRules.findIndex(
+            ({ sg, logs, trace, IPv, types }) =>
+              record.sg === sg &&
+              record.logs === logs &&
+              record.trace === trace &&
+              record.IPv === IPv &&
+              JSON.stringify(record.types.sort()) === JSON.stringify(types.sort()),
+          )
+          if (selected) {
+            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
+          } else {
+            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
+          }
+          setRules(newRules)
+        },
+        columnWidth: 16,
+      }
+    : undefined
+
   return (
     <ThWhiteSpaceNoWrap>
       <Table
@@ -354,6 +378,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
         virtual
         scroll={{ x: 'max-content' }}
         size="small"
+        rowSelection={rowSelection}
       />
     </ThWhiteSpaceNoWrap>
   )
