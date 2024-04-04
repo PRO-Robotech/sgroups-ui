@@ -103,12 +103,35 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
   const changesResultSgSgIeIcmpTo = getChangesSgSgIeIcmpRules(rulesSgSgIeIcmpTo)
 
   const handleOk = () => {
-    const sgRules = composeAllTypesOfSgRules(centerSg, rulesSgFrom, rulesSgTo)
-    const fqdnRules = composeAllTypesOfFqdnRules(centerSg, rulesFqdnTo)
-    const cidrRules = composeAllTypesOfCidrSgRules(centerSg, rulesCidrSgFrom, rulesCidrSgTo)
-    const sgSgIcmpRules = composeAllTypesOfSgSgIcmpRules(centerSg, rulesSgSgIcmpFrom, rulesSgSgIcmpTo)
-    const sgSgIeRules = composeAllTypesOfSgSgIeRules(centerSg, rulesSgSgIeFrom, rulesSgSgIeTo)
-    const sgSgIeIcmpRules = composeAllTypesOfSgSgIeIcmpRules(centerSg, rulesSgSgIeIcmpFrom, rulesSgSgIeIcmpTo)
+    const sgRules = composeAllTypesOfSgRules(
+      centerSg,
+      rulesSgFrom.filter(({ checked }) => checked),
+      rulesSgTo.filter(({ checked }) => checked),
+    )
+    const fqdnRules = composeAllTypesOfFqdnRules(
+      centerSg,
+      rulesFqdnTo.filter(({ checked }) => checked),
+    )
+    const cidrRules = composeAllTypesOfCidrSgRules(
+      centerSg,
+      rulesCidrSgFrom.filter(({ checked }) => checked),
+      rulesCidrSgTo.filter(({ checked }) => checked),
+    )
+    const sgSgIcmpRules = composeAllTypesOfSgSgIcmpRules(
+      centerSg,
+      rulesSgSgIcmpFrom.filter(({ checked }) => checked),
+      rulesSgSgIcmpTo.filter(({ checked }) => checked),
+    )
+    const sgSgIeRules = composeAllTypesOfSgSgIeRules(
+      centerSg,
+      rulesSgSgIeFrom.filter(({ checked }) => checked),
+      rulesSgSgIeTo.filter(({ checked }) => checked),
+    )
+    const sgSgIeIcmpRules = composeAllTypesOfSgSgIeIcmpRules(
+      centerSg,
+      rulesSgSgIeIcmpFrom.filter(({ checked }) => checked),
+      rulesSgSgIeIcmpTo.filter(({ checked }) => checked),
+    )
 
     deleteRules(
       sgRules.rulesToDelete,
