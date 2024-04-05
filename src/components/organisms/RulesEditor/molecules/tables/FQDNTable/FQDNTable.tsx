@@ -293,7 +293,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       <Table
         pagination={{
           position: ['bottomCenter'],
-          showQuickJumper: true,
+          showQuickJumper: false,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
           onChange: forceArrowsUpdate,

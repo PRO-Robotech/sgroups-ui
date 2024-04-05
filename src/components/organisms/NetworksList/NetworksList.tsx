@@ -9,6 +9,7 @@ import { getNetworks, removeNetwork } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork } from 'localTypes/networks'
+import { Styled } from './styled'
 
 export const NetworksList: FC = () => {
   const [networks, setNetworks] = useState<TNetwork[]>([])
@@ -117,7 +118,9 @@ export const NetworksList: FC = () => {
           <Table
             pagination={{
               position: ['bottomCenter'],
-              showQuickJumper: true,
+              showQuickJumper: {
+                goButton: <Styled.ButtonWithMarginLeft size="small">Go</Styled.ButtonWithMarginLeft>,
+              },
               showSizeChanger: false,
               defaultPageSize: ITEMS_PER_PAGE,
               hideOnSinglePage: true,

@@ -312,7 +312,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
       <Table
         pagination={{
           position: ['bottomCenter'],
-          showQuickJumper: true,
+          showQuickJumper: false,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
           onChange: forceArrowsUpdate,

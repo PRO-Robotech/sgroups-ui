@@ -212,7 +212,9 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
           <Table
             pagination={{
               position: ['bottomCenter'],
-              showQuickJumper: true,
+              showQuickJumper: {
+                goButton: <Styled.ButtonWithMarginLeft size="small">Go</Styled.ButtonWithMarginLeft>,
+              },
               showSizeChanger: false,
               defaultPageSize: ITEMS_PER_PAGE,
               hideOnSinglePage: true,
