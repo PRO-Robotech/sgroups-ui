@@ -21,7 +21,18 @@ export const EditCidrSgPopover: FC<TEditCidrSgPopoverProps> = ({ values, hide, r
 
   return (
     <Form form={addForm} onFinish={(values: TFormCidrSgRule) => edit(values)}>
-      <Styled.FormItem label="CIDR" name="cidr" rules={[{ required: true, message: 'Missing CIDR' }]}>
+      <Styled.FormItem
+        label="CIDR"
+        name="cidr"
+        rules={[
+          { required: true, message: 'Missing CIDR' },
+          {
+            required: true,
+            pattern: /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/,
+            message: 'Please input valid CIDR',
+          },
+        ]}
+      >
         <Input placeholder="CIDR" disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.FormItem label="Ports Source" name="portsSource">
