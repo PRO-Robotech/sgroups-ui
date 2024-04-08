@@ -53,7 +53,12 @@ export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide
           getPopupContainer={node => node.parentNode}
         />
       </Styled.FormItem>
-      <Styled.FormItem label="Types" name="types">
+      <Styled.FormItem
+        label="Types"
+        name="types"
+        tooltip="Separator: space / coma"
+        rules={[{ required: true, message: 'Please choose IPv' }]}
+      >
         <Select
           mode="tags"
           showSearch
@@ -63,6 +68,7 @@ export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide
           tokenSeparators={[',', ' ']}
           getPopupContainer={node => node.parentNode}
           dropdownStyle={{ display: 'none' }}
+          suffixIcon={null}
         />
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">

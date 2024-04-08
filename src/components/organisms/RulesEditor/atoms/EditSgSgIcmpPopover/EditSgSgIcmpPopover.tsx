@@ -63,7 +63,12 @@ export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
           disabled={isDisabled}
         />
       </Styled.FormItem>
-      <Styled.FormItem label="Types" name="types">
+      <Styled.FormItem
+        label="Types"
+        name="types"
+        tooltip="Separator: space / coma"
+        rules={[{ required: true, message: 'Please choose IPv' }]}
+      >
         <Select
           mode="tags"
           showSearch
@@ -74,6 +79,7 @@ export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
           getPopupContainer={node => node.parentNode}
           disabled={isDisabled}
           dropdownStyle={{ display: 'none' }}
+          suffixIcon={null}
         />
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
