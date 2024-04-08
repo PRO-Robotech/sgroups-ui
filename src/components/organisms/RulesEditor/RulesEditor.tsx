@@ -39,7 +39,11 @@ import {
 import { SelectMainSgModal } from './atoms'
 import { Styled } from './styled'
 
-export const RulesEditor: FC = () => {
+type TRulesEditorProps = {
+  id?: string
+}
+
+export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const [sgNames, setSgNames] = useState<string[]>([])
   const [centerSg, setCenterSg] = useState<string>()
   const [rulesSgFrom, setRulesSgFrom] = useState<TFormSgRule[]>([])
@@ -180,6 +184,10 @@ export const RulesEditor: FC = () => {
   useEffect(() => {
     fetchData(centerSg)
   }, [centerSg])
+
+  useEffect(() => {
+    setCenterSg(id)
+  }, [id])
 
   if (error) {
     return (

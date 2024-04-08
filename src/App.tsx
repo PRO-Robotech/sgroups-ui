@@ -41,7 +41,7 @@ export const App: FC = () => (
       <Route exact path="/rules">
         <RulesPage />
       </Route>
-      <Route exact path="/rules/editor">
+      <Route exact path="/rules/editor/:securityGroupId?">
         <RulesEditorPage />
       </Route>
       <Route exact path="/graph">
