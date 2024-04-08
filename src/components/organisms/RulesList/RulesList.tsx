@@ -4,7 +4,7 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Collapse, CollapseProps, Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { DeleteOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import {
   getRules,
@@ -254,7 +254,10 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TSgRule) => (
-        <DeleteOutlined onClick={() => openRemoveRuleModal(record.sgFrom, record.sgTo)} />
+        <>
+          <EditOutlined onClick={() => history.push(`/rules/editor/${record.sgFrom}`)} />
+          <DeleteOutlined onClick={() => openRemoveRuleModal(record.sgFrom, record.sgTo)} />
+        </>
       ),
     },
   ]
@@ -309,7 +312,10 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TFqdnRule) => (
-        <DeleteOutlined onClick={() => openRemoveFqdnRuleModal(record.sgFrom, record.FQDN)} />
+        <>
+          <EditOutlined onClick={() => history.push(`/rules/editor/${record.sgFrom}`)} />
+          <DeleteOutlined onClick={() => openRemoveFqdnRuleModal(record.sgFrom, record.FQDN)} />
+        </>
       ),
     },
   ]
@@ -377,7 +383,10 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TCidrRule) => (
-        <DeleteOutlined onClick={() => openRemoveCidrRuleModal(record.SG, record.CIDR)} />
+        <>
+          <EditOutlined onClick={() => history.push(`/rules/editor/${record.SG}`)} />
+          <DeleteOutlined onClick={() => openRemoveCidrRuleModal(record.SG, record.CIDR)} />
+        </>
       ),
     },
   ]
@@ -432,7 +441,10 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TSgSgIcmpRule) => (
-        <DeleteOutlined onClick={() => openRemoveSgSgIcmpRuleModal(record.SgFrom, record.SgTo)} />
+        <>
+          <EditOutlined onClick={() => history.push(`/rules/editor/${record.SgFrom}`)} />
+          <DeleteOutlined onClick={() => openRemoveSgSgIcmpRuleModal(record.SgFrom, record.SgTo)} />
+        </>
       ),
     },
   ]
@@ -500,7 +512,10 @@ export const RulesList: FC = () => {
       key: 'action',
       width: 150,
       render: (_, record: TSgSgIeRule) => (
-        <DeleteOutlined onClick={() => openRemoveSgSgIeRuleModal(record.SgLocal, record.Sg)} />
+        <>
+          <EditOutlined onClick={() => history.push(`/rules/editor/${record.SgLocal}`)} />
+          <DeleteOutlined onClick={() => openRemoveSgSgIeRuleModal(record.SgLocal, record.Sg)} />
+        </>
       ),
     },
   ]
