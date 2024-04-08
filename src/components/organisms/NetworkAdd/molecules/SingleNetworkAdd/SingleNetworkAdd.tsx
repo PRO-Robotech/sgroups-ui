@@ -5,7 +5,7 @@ import { TNetworkForm } from 'localTypes/networks'
 import { Styled } from './styled'
 
 type TSingleNetworkAdd = {
-  onFormChange: (values: Pick<TNetworkForm, 'name' | 'CIDR'>) => void
+  onFormChange: (values: Pick<TNetworkForm, 'name' | 'CIDR'>, validateResult: boolean) => void
   removeNwCard: () => void
 }
 
@@ -16,7 +16,16 @@ export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNw
     <Card>
       <TitleWithNoTopMargin level={2}>Add a network</TitleWithNoTopMargin>
       <Spacer $space={15} $samespace />
-      <Form form={form} name="control-hooks" onValuesChange={(_, allValues) => onFormChange(allValues)}>
+      <Form
+        form={form}
+        name="control-hooks"
+        onValuesChange={(_, allValues) => {
+          form
+            .validateFields()
+            .then(() => onFormChange(allValues, true))
+            .catch(() => onFormChange(allValues, false))
+        }}
+      >
         <Styled.Container>
           <Styled.FormItem
             name="name"

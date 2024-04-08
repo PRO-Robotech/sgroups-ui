@@ -21,7 +21,7 @@ export const NetworkAdd: FC = () => {
   }
 
   const addAnotherNetwork = () => {
-    setNetworks([...networks, { id: networks[networks.length - 1].id + 1, name: '', CIDR: '' }])
+    setNetworks([...networks, { id: networks[networks.length - 1].id + 1, name: '', CIDR: '', validateResult: false }])
   }
 
   const removeNwCard = (id: number) => {
@@ -30,14 +30,14 @@ export const NetworkAdd: FC = () => {
 
   useEffect(() => {
     if (networks.length === 0) {
-      setNetworks([{ id: 0, name: '', CIDR: '' }])
+      setNetworks([{ id: 0, name: '', CIDR: '', validateResult: false }])
     }
   }, [networks])
 
-  const onFormChange = (id: number, name: string, CIDR: string) => {
+  const onFormChange = (id: number, name: string, CIDR: string, validateResult: boolean) => {
     const index = networks.findIndex(el => el.id === id)
     const newNetworks = [...networks]
-    newNetworks[index] = { id, name, CIDR }
+    newNetworks[index] = { id, name, CIDR, validateResult }
     setNetworks(newNetworks)
   }
 
@@ -87,7 +87,9 @@ export const NetworkAdd: FC = () => {
       {networks.map(({ id }) => (
         <Fragment key={id}>
           <SingleNetworkAdd
-            onFormChange={(values: Pick<TNetworkForm, 'name' | 'CIDR'>) => onFormChange(id, values.name, values.CIDR)}
+            onFormChange={(values: Pick<TNetworkForm, 'name' | 'CIDR'>, validateResult: boolean) =>
+              onFormChange(id, values.name, values.CIDR, validateResult)
+            }
             removeNwCard={() => removeNwCard(id)}
           />
           <Spacer $space={15} $samespace />
@@ -97,7 +99,11 @@ export const NetworkAdd: FC = () => {
         Add another
       </Button>
       <Spacer $space={15} $samespace />
-      <Button onClick={submit} type="primary">
+      <Button
+        onClick={submit}
+        type="primary"
+        disabled={networks.some(({ validateResult }) => validateResult === false)}
+      >
         Submit all
       </Button>
       {contextHolder}

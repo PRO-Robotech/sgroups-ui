@@ -13,4 +13,5 @@ export type TNetworkForm = {
   id: number
   name: string
   CIDR: string
+  validateResult: boolean
 }

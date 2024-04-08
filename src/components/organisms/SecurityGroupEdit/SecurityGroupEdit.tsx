@@ -1,9 +1,9 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Button, Form, Select, Switch, Breadcrumb, Result, Spin, Alert } from 'antd'
+import { Card, Form, Select, Switch, Breadcrumb, Result, Spin, Alert } from 'antd'
 import type { SelectProps } from 'antd'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
 import { getSecurityGroupByName, editSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -135,9 +135,7 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
                 <Switch />
               </Styled.FormItem>
               <Styled.ButtonFormItem>
-                <Button type="primary" htmlType="submit">
-                  Submit
-                </Button>
+                <SubmitButton form={form}>Submit</SubmitButton>
               </Styled.ButtonFormItem>
             </Styled.Container>
           </Form>
