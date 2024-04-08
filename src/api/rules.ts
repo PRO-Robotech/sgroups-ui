@@ -168,7 +168,7 @@ export const removeSgSgIcmpRule = async (sgFrom: string, sgTo: string): Promise<
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
-      sgIcmpRules: {
+      sgSgIcmpRules: {
         rules: removedRules,
       },
       syncOp: 'Delete',
