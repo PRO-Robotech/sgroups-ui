@@ -20,14 +20,14 @@ export const App: FC = () => (
       <Route exact path="/">
         <MainPage />
       </Route>
-      <Route exact path="/security-groups">
-        <SecurityGroupsPage />
-      </Route>
       <Route exact path="/security-groups/add">
         <SecurityGroupsAddPage />
       </Route>
       <Route path="/security-groups/edit/:securityGroupId">
         <SecurityGroupsEditPage />
+      </Route>
+      <Route exact path="/security-groups/:securityGroupId?">
+        <SecurityGroupsPage />
       </Route>
       <Route exact path="/networks">
         <NetworksPage />
@@ -41,7 +41,7 @@ export const App: FC = () => (
       <Route exact path="/rules">
         <RulesPage />
       </Route>
-      <Route exact path="/rules/editor">
+      <Route exact path="/rules/editor/:securityGroupId?">
         <RulesEditorPage />
       </Route>
       <Route exact path="/graph">

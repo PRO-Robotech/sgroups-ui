@@ -1,9 +1,9 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Button, Form, Input, Select, Switch, Breadcrumb, Result, Alert, Spin } from 'antd'
+import { Card, Form, Input, Select, Switch, Breadcrumb, Result, Alert, Spin } from 'antd'
 import type { SelectProps } from 'antd'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { getNetworks } from 'api/networks'
@@ -66,7 +66,7 @@ export const SecurityGroupAdd: FC = () => {
   }
 
   if (success) {
-    history.push('/security-groups')
+    history.push(`/security-groups/${form.getFieldValue('name')}`)
   }
 
   if (error) {
@@ -151,9 +151,7 @@ export const SecurityGroupAdd: FC = () => {
               <Switch />
             </Styled.FormItem>
             <Styled.ButtonFormItem>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
+              <SubmitButton form={form}>Submit</SubmitButton>
             </Styled.ButtonFormItem>
           </Styled.Container>
         </Form>

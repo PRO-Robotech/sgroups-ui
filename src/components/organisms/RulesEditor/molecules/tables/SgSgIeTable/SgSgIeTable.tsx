@@ -3,7 +3,7 @@
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import type { FilterDropdownProps } from 'antd/es/table/interface'
+import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { ThWhiteSpaceNoWrap } from 'components/atoms'
@@ -281,12 +281,38 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
           key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
         }))
 
+  const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
+    ? {
+        type: 'checkbox',
+        onSelect: (record: TColumn, selected: boolean) => {
+          const newRules = [...rules]
+          const pendingToCheckRuleIndex = newRules.findIndex(
+            ({ sg, transport, logs, trace, traffic, portsDestination, portsSource }) =>
+              record.sg === sg &&
+              record.transport === transport &&
+              record.logs === logs &&
+              record.trace === trace &&
+              record.traffic === traffic &&
+              record.portsDestination === portsDestination &&
+              record.portsSource === portsSource,
+          )
+          if (selected) {
+            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
+          } else {
+            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
+          }
+          setRules(newRules)
+        },
+        columnWidth: 16,
+      }
+    : undefined
+
   return (
     <ThWhiteSpaceNoWrap>
       <Table
         pagination={{
           position: ['bottomCenter'],
-          showQuickJumper: true,
+          showQuickJumper: false,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
           onChange: forceArrowsUpdate,
@@ -297,6 +323,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
         virtual
         scroll={{ x: 'max-content' }}
         size="small"
+        rowSelection={rowSelection}
       />
     </ThWhiteSpaceNoWrap>
   )

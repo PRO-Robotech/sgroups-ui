@@ -4,7 +4,7 @@ import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import type { ColumnsType } from 'antd/es/table'
-import type { FilterDropdownProps } from 'antd/es/table/interface'
+import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
@@ -264,12 +264,36 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
           key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
         }))
 
+  const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
+    ? {
+        type: 'checkbox',
+        onSelect: (record: TColumn, selected: boolean) => {
+          const newRules = [...rules]
+          const pendingToCheckRuleIndex = newRules.findIndex(
+            ({ fqdn, transport, logs, portsDestination, portsSource }) =>
+              record.fqdn === fqdn &&
+              record.transport === transport &&
+              record.logs === logs &&
+              record.portsDestination === portsDestination &&
+              record.portsSource === portsSource,
+          )
+          if (selected) {
+            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
+          } else {
+            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
+          }
+          setRules(newRules)
+        },
+        columnWidth: 16,
+      }
+    : undefined
+
   return (
     <ThWhiteSpaceNoWrap>
       <Table
         pagination={{
           position: ['bottomCenter'],
-          showQuickJumper: true,
+          showQuickJumper: false,
           showSizeChanger: false,
           defaultPageSize: ITEMS_PER_PAGE_EDITOR,
           onChange: forceArrowsUpdate,
@@ -279,6 +303,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
         columns={columns}
         virtual
         scroll={{ x: 'max-content' }}
+        rowSelection={rowSelection}
       />
     </ThWhiteSpaceNoWrap>
   )

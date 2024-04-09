@@ -1,8 +1,8 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Button, Form, Input, Breadcrumb, Result, Spin, Alert } from 'antd'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { Card, Form, Input, Breadcrumb, Result, Spin, Alert } from 'antd'
+import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
 import { getNetworkByName, editNetwork } from 'api/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork } from 'localTypes/networks'
@@ -100,9 +100,7 @@ export const NetworkEdit: FC<TNetworkEditProps> = ({ id }) => {
                 <Input allowClear />
               </Styled.FormItem>
               <Styled.ButtonFormItem>
-                <Button type="primary" htmlType="submit">
-                  Submit
-                </Button>
+                <SubmitButton form={form}>Submit</SubmitButton>
               </Styled.ButtonFormItem>
             </Styled.Container>
           </Form>

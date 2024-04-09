@@ -2,7 +2,7 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, Button, Result, Spin, Empty, Modal, Input, Space } from 'antd'
+import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
@@ -13,7 +13,19 @@ import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { Styled } from './styled'
 
-export const SecurityGroupsList: FC = () => {
+type TSecurityGroupsListProps = {
+  id?: string
+}
+
+type TColumn = TSecurityGroup & {
+  key: string
+}
+
+type OnChange = NonNullable<TableProps<TColumn>['onChange']>
+
+type Filters = Parameters<OnChange>[1]
+
+export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   const [securityGroups, setSecurityGroups] = useState<TSecurityGroup[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
@@ -22,7 +34,12 @@ export const SecurityGroupsList: FC = () => {
   const [pendingToDeleteSG, setPendingToDeleteSG] = useState<string>()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
+
+  useEffect(() => {
+    setFilteredInfo({ name: id ? [id] : null })
+  }, [id])
 
   useEffect(() => {
     setIsLoading(true)
@@ -86,16 +103,13 @@ export const SecurityGroupsList: FC = () => {
     setSearchText('')
   }
 
-  type TColumn = TSecurityGroup & {
-    key: string
-  }
-
   const columns: ColumnsType<TColumn> = [
     {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
       width: 150,
+      filteredValue: filteredInfo.name || null,
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
         <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
           <Input
@@ -179,6 +193,11 @@ export const SecurityGroupsList: FC = () => {
     },
   ]
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleChange: OnChange = (pagination, filters, sorter, extra) => {
+    setFilteredInfo(filters)
+  }
+
   return (
     <>
       <Card>
@@ -193,7 +212,9 @@ export const SecurityGroupsList: FC = () => {
           <Table
             pagination={{
               position: ['bottomCenter'],
-              showQuickJumper: true,
+              showQuickJumper: {
+                goButton: <Styled.ButtonWithMarginLeft size="small">Go</Styled.ButtonWithMarginLeft>,
+              },
               showSizeChanger: false,
               defaultPageSize: ITEMS_PER_PAGE,
               hideOnSinglePage: true,
@@ -201,6 +222,7 @@ export const SecurityGroupsList: FC = () => {
             dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
             columns={columns}
             scroll={{ x: 'max-content' }}
+            onChange={handleChange}
           />
         )}
       </Card>
