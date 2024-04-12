@@ -7,9 +7,10 @@ import { Styled } from './styled'
 type TSingleNetworkAdd = {
   onFormChange: (values: Pick<TNetworkForm, 'name' | 'CIDR'>, validateResult: boolean) => void
   removeNwCard: () => void
+  isDeleteButtonDisabled: boolean
 }
 
-export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNwCard }) => {
+export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNwCard, isDeleteButtonDisabled }) => {
   const [form] = Form.useForm()
 
   return (
@@ -52,7 +53,7 @@ export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNw
             <Input allowClear />
           </Styled.FormItem>
           <Styled.ButtonFormItem>
-            <Button type="dashed" onClick={removeNwCard}>
+            <Button type="dashed" onClick={removeNwCard} disabled={isDeleteButtonDisabled}>
               Delete
             </Button>
           </Styled.ButtonFormItem>

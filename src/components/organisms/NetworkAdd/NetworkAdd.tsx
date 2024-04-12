@@ -13,9 +13,9 @@ export const NetworkAdd: FC = () => {
   const [networks, setNetworks] = useState<TNetworkForm[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const openNotification = () => {
+  const openNotification = (isMany: boolean) => {
     api.success({
-      message: 'Network added',
+      message: isMany ? 'Networks added' : 'Network added',
       placement: 'topRight',
     })
   }
@@ -47,7 +47,7 @@ export const NetworkAdd: FC = () => {
     addNetworks(networks)
       .then(() => {
         setIsLoading(false)
-        openNotification()
+        openNotification(networks.length > 1)
         setNetworks([])
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
@@ -91,6 +91,7 @@ export const NetworkAdd: FC = () => {
               onFormChange(id, values.name, values.CIDR, validateResult)
             }
             removeNwCard={() => removeNwCard(id)}
+            isDeleteButtonDisabled={networks.length < 2}
           />
           <Spacer $space={15} $samespace />
         </Fragment>
