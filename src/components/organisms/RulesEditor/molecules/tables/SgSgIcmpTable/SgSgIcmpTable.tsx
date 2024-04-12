@@ -341,6 +341,14 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
     ? {
         type: 'checkbox',
+        onChange: (selectedRowKeys, _, info) => {
+          const { type } = info
+          if (type === 'all') {
+            const checked = selectedRowKeys.length > 0
+            const newRules = [...rules].map(el => ({ ...el, checked }))
+            setRules(newRules)
+          }
+        },
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rules]
           const pendingToCheckRuleIndex = newRules.findIndex(
