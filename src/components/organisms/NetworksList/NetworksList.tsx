@@ -1,15 +1,25 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
+import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getNetworks, removeNetwork } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork } from 'localTypes/networks'
 import { Styled } from './styled'
+
+type TColumn = {
+  name: string
+  cidr: string
+  key: string
+}
+
+type OnChange = NonNullable<TableProps<TColumn>['onChange']>
+
+type Filters = Parameters<OnChange>[1]
 
 export const NetworksList: FC = () => {
   const [networks, setNetworks] = useState<TNetwork[]>([])
@@ -18,6 +28,8 @@ export const NetworksList: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [pendingToDeleteNW, setPendingToDeleteNW] = useState<string>()
+  const [searchText, setSearchText] = useState('')
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
 
   useEffect(() => {
@@ -39,6 +51,15 @@ export const NetworksList: FC = () => {
         }
       })
   }, [])
+
+  const handleSearch = (searchText: string) => {
+    setFilteredInfo({ name: searchText ? [searchText] : null })
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const handleChange: OnChange = (pagination, filters, sorter, extra) => {
+    setFilteredInfo(filters)
+  }
 
   const removeNetworkFromList = (name: string) => {
     removeNetwork(name)
@@ -68,14 +89,9 @@ export const NetworksList: FC = () => {
   if (error) {
     return <Result status="error" title={error.status} subTitle={error.data?.message} />
   }
+
   if (isLoading) {
     return <Spin />
-  }
-
-  type TColumn = {
-    name: string
-    cidr: string
-    key: string
   }
 
   const columns: ColumnsType<TColumn> = [
@@ -84,6 +100,8 @@ export const NetworksList: FC = () => {
       dataIndex: 'name',
       key: 'name',
       width: 150,
+      filteredValue: filteredInfo.name || null,
+      onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'CIDR',
@@ -109,9 +127,24 @@ export const NetworksList: FC = () => {
       <Card>
         <TitleWithNoTopMargin level={2}>Networks</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
-        <Button onClick={() => history.push('/networks/add')} type="primary">
-          Add
-        </Button>
+        <Styled.FiltersContainer>
+          <div>
+            <Input
+              allowClear
+              placeholder="Filter by SG name"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              onPressEnter={() => handleSearch(searchText)}
+            />
+          </div>
+          <div>
+            <Styled.ButtonWithMarginLeft
+              onClick={() => handleSearch(searchText)}
+              icon={<SearchOutlined />}
+              type="primary"
+            />
+          </div>
+        </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
         {!networks.length && !error && !isLoading && <Empty />}
         {networks.length > 0 && (
@@ -128,8 +161,13 @@ export const NetworksList: FC = () => {
             dataSource={networks.map(row => ({ name: row.name, cidr: row.network.CIDR, key: row.name }))}
             columns={columns}
             scroll={{ x: 'max-content' }}
+            onChange={handleChange}
           />
         )}
+        <Spacer $space={15} $samespace />
+        <Button onClick={() => history.push('/networks/add')} type="primary">
+          Add
+        </Button>
       </Card>
       <Modal
         title="Delete network"
