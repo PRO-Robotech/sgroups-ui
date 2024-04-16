@@ -52,7 +52,8 @@ export const FQDNRules: FC<TFQDNRulesProps> = ({
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
       <FQDNTable
         isChangesMode={false}
-        rules={rules}
+        rulesAll={rules}
+        rulesData={rules}
         setRules={setRules}
         editOpen={editOpen}
         setEditOpen={setEditOpen}

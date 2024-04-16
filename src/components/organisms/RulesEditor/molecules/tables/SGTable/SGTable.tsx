@@ -1,6 +1,6 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
@@ -15,7 +15,8 @@ import { Styled } from '../styled'
 type TSGTableProps = {
   isChangesMode: boolean
   sgNames: string[]
-  rules: TFormSgRule[]
+  rulesData: TFormSgRule[]
+  rulesAll: TFormSgRule[]
   setRules: Dispatch<SetStateAction<TFormSgRule[]>>
   rulesOtherside: TFormSgRule[]
   setRulesOtherside: Dispatch<SetStateAction<TFormSgRule[]>>
@@ -30,7 +31,8 @@ type TSGTableProps = {
 export const SGTable: FC<TSGTableProps> = ({
   isChangesMode,
   sgNames,
-  rules,
+  rulesData,
+  rulesAll,
   setRules,
   rulesOtherside,
   setRulesOtherside,
@@ -43,10 +45,13 @@ export const SGTable: FC<TSGTableProps> = ({
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
 
   useEffect(() => {
-    setEditOpen(Array(rules.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false))
-  }, [rules, setEditOpen])
+    setEditOpen(
+      Array(rulesData.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false),
+    )
+  }, [rulesData, setEditOpen])
 
   const toggleEditPopover = (index: number) => {
     const newEditOpen = [...editOpen]
@@ -56,7 +61,7 @@ export const SGTable: FC<TSGTableProps> = ({
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const editRule = (oldValues: TFormSgRule, values: TFormSgRule) => {
-    const newSgRules = [...rules]
+    const newSgRules = [...rulesAll]
     const index = newSgRules.findIndex(
       ({ sg, portsSource, portsDestination, transport, logs }) =>
         sg === oldValues.sg &&
@@ -111,8 +116,16 @@ export const SGTable: FC<TSGTableProps> = ({
   }
 
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const removeRule = (index: number) => {
-    const newSgRules = [...rules]
+  const removeRule = (oldValues: TFormSgRule) => {
+    const newSgRules = [...rulesAll]
+    const index = newSgRules.findIndex(
+      ({ sg, portsSource, portsDestination, transport, logs }) =>
+        sg === oldValues.sg &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs,
+    )
     const newSgRulesOtherside = [...rulesOtherside]
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, portsSource, portsDestination, transport, logs }) =>
@@ -277,8 +290,8 @@ export const SGTable: FC<TSGTableProps> = ({
           content={
             <EditSGPopover
               sgNames={sgNames}
-              values={rules[index]}
-              remove={() => removeRule(index)}
+              values={oldValues}
+              remove={() => removeRule(oldValues)}
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
@@ -298,11 +311,11 @@ export const SGTable: FC<TSGTableProps> = ({
   ]
 
   const dataSource = isChangesMode
-    ? rules.map(row => ({
+    ? rulesData.map(row => ({
         ...row,
         key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
       }))
-    : rules
+    : rulesData
         .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
         .map(row => ({
           ...row,
@@ -311,24 +324,55 @@ export const SGTable: FC<TSGTableProps> = ({
 
   const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
     ? {
+        selectedRowKeys,
         type: 'checkbox',
-        onChange: (selectedRowKeys, _, info) => {
-          const { type } = info
-          if (type === 'all') {
-            const checked = selectedRowKeys.length > 0
-            const newRules = [...rules].map(el => ({ ...el, checked }))
-            setRules(newRules)
-          }
+        onChange: (newSelectedRowKeys, newSelectedRows) => {
+          const newRules = [...rulesAll]
+          const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
+          const checkedIndexes = newSelectedRows
+            .filter(({ key }) => newSelectedRowKeys.includes(key))
+            .map(newRow =>
+              rulesAll.findIndex(
+                ({ sg, portsSource, portsDestination, transport, logs }) =>
+                  sg === newRow.sg &&
+                  portsSource === newRow.portsSource &&
+                  portsDestination === newRow.portsDestination &&
+                  transport === newRow.transport &&
+                  logs === newRow.logs,
+              ),
+            )
+          const uncheckedIndexes = newSelectedRows
+            .filter(({ key }) => uncheckedKeys.includes(key))
+            .map(newRow =>
+              rulesAll.findIndex(
+                ({ sg, portsSource, portsDestination, transport, logs }) =>
+                  sg === newRow.sg &&
+                  portsSource === newRow.portsSource &&
+                  portsDestination === newRow.portsDestination &&
+                  transport === newRow.transport &&
+                  logs === newRow.logs,
+              ),
+            )
+          checkedIndexes.forEach(
+            // eslint-disable-next-line no-return-assign
+            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
+          )
+          uncheckedIndexes.forEach(
+            // eslint-disable-next-line no-return-assign
+            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
+          )
+          setRules(newRules)
+          setSelectedRowKeys(newSelectedRowKeys)
         },
         onSelect: (record: TColumn, selected: boolean) => {
-          const newRules = [...rules]
+          const newRules = [...rulesAll]
           const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ sg, transport, logs, portsDestination, portsSource }) =>
-              record.sg === sg &&
-              record.transport === transport &&
-              record.logs === logs &&
-              record.portsDestination === portsDestination &&
-              record.portsSource === portsSource,
+            ({ sg, portsSource, portsDestination, transport, logs }) =>
+              sg === record.sg &&
+              portsSource === record.portsSource &&
+              portsDestination === record.portsDestination &&
+              transport === record.transport &&
+              logs === record.logs,
           )
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }

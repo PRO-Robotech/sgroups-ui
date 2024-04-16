@@ -215,6 +215,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               type: 'sg',
               data: changesResultSgFromResult,
               sgNames,
+              rules: rulesSgFrom,
               setRules: setRulesSgFrom,
               rulesOtherside: rulesSgTo,
               setRulesOtherside: setRulesSgTo,
@@ -230,6 +231,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               type: 'sg',
               data: changesResultSgToResult,
               sgNames,
+              rules: rulesSgTo,
               setRules: setRulesSgTo,
               rulesOtherside: rulesSgFrom,
               setRulesOtherside: setRulesSgFrom,
@@ -244,6 +246,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             compareResult={{
               type: 'fqdn',
               data: changesResultFqdnTo,
+              rules: rulesFqdnTo,
               setRules: setRulesFqdnTo,
               popoverPosition: 'left',
             }}
@@ -256,6 +259,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               type: 'cidr',
               data: changesResultCidrSgFrom,
               defaultTraffic: 'Ingress',
+              rules: rulesCidrSgFrom,
               setRules: setRulesCidrSgFrom,
               popoverPosition: 'left',
             }}
@@ -268,6 +272,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               type: 'cidr',
               data: changesResultCidrSgTo,
               defaultTraffic: 'Egress',
+              rules: rulesCidrSgTo,
               setRules: setRulesCidrSgTo,
               popoverPosition: 'left',
             }}
@@ -281,6 +286,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               data: changesResultSgSgIcmpFrom,
               sgNames,
               popoverPosition: 'left',
+              rules: rulesSgSgIcmpFrom,
               setRules: setRulesSgSgIcmpFrom,
               rulesOtherside: rulesSgSgIcmpTo,
               setRulesOtherside: setRulesSgSgIcmpTo,
@@ -296,6 +302,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               data: changesResultSgSgIcmpTo,
               sgNames,
               popoverPosition: 'left',
+              rules: rulesSgSgIcmpTo,
               setRules: setRulesSgSgIcmpTo,
               rulesOtherside: rulesSgSgIcmpFrom,
               setRulesOtherside: setRulesSgSgIcmpFrom,
@@ -312,6 +319,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Ingress',
+              rules: rulesSgSgIeFrom,
               setRules: setRulesSgSgIeFrom,
             }}
           />
@@ -325,6 +333,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Egress',
+              rules: rulesSgSgIeTo,
               setRules: setRulesSgSgIeTo,
             }}
           />
@@ -338,6 +347,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Ingress',
+              rules: rulesSgSgIeIcmpFrom,
               setRules: setRulesSgSgIeIcmpFrom,
             }}
           />
@@ -351,6 +361,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Egress',
+              rules: rulesSgSgIeIcmpTo,
               setRules: setRulesSgSgIeIcmpTo,
             }}
           />

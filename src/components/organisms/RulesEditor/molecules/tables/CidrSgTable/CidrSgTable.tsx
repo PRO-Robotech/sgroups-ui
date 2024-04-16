@@ -1,6 +1,6 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
@@ -16,7 +16,8 @@ import { Styled } from '../styled'
 type TCidrSgTableProps = {
   isChangesMode: boolean
   defaultTraffic: TTraffic
-  rules: TFormCidrSgRule[]
+  rulesData: TFormCidrSgRule[]
+  rulesAll: TFormCidrSgRule[]
   setRules: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   setEditOpen: Dispatch<SetStateAction<boolean[]>>
   editOpen: boolean[]
@@ -28,7 +29,8 @@ type TCidrSgTableProps = {
 export const CidrSgTable: FC<TCidrSgTableProps> = ({
   isChangesMode,
   defaultTraffic,
-  rules,
+  rulesData,
+  rulesAll,
   setRules,
   setEditOpen,
   editOpen,
@@ -38,10 +40,13 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
 
   useEffect(() => {
-    setEditOpen(Array(rules.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false))
-  }, [rules, setEditOpen])
+    setEditOpen(
+      Array(rulesData.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false),
+    )
+  }, [rulesData, setEditOpen])
 
   const toggleEditPopover = (index: number) => {
     const newEditOpen = [...editOpen]
@@ -50,7 +55,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
   }
 
   const editRule = (oldValues: TFormCidrSgRule, values: TFormCidrSgRule) => {
-    const newCidrSgRules = [...rules]
+    const newCidrSgRules = [...rulesAll]
     const index = newCidrSgRules.findIndex(
       ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
         cidr === oldValues.cidr &&
@@ -97,8 +102,18 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
     toggleEditPopover(index)
   }
 
-  const removeRule = (index: number) => {
-    const newCidrSgRules = [...rules]
+  const removeRule = (oldValues: TFormCidrSgRule) => {
+    const newCidrSgRules = [...rulesAll]
+    const index = newCidrSgRules.findIndex(
+      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+        cidr === oldValues.cidr &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
     const newEditOpenRules = [...editOpen]
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
       setRules([...newCidrSgRules.slice(0, index), ...newCidrSgRules.slice(index + 1)])
@@ -267,8 +282,8 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
         <Popover
           content={
             <EditCidrSgPopover
-              values={rules[index]}
-              remove={() => removeRule(index)}
+              values={oldValues}
+              remove={() => removeRule(oldValues)}
               hide={() => toggleEditPopover(index)}
               edit={values => editRule(oldValues, values)}
               isDisabled={isDisabled}
@@ -288,11 +303,11 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
   ]
 
   const dataSource = isChangesMode
-    ? rules.map(row => ({
+    ? rulesData.map(row => ({
         ...row,
         key: `${row.cidr.toLocaleString()}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
       }))
-    : rules
+    : rulesData
         .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
         .map(row => ({
           ...row,
@@ -301,34 +316,69 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
 
   const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
     ? {
+        selectedRowKeys,
         type: 'checkbox',
-        onChange: (selectedRowKeys, _, info) => {
-          const { type } = info
-          if (type === 'all') {
-            const checked = selectedRowKeys.length > 0
-            const newRules = [...rules].map(el => ({ ...el, checked }))
-            setRules(newRules)
-          }
-        },
-        onSelect: (record: TColumn, selected: boolean) => {
-          const newRules = [...rules]
-          const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ cidr, transport, logs, trace, traffic, portsDestination, portsSource }) =>
-              record.cidr === cidr &&
-              record.transport === transport &&
-              record.logs === logs &&
-              record.trace === trace &&
-              record.traffic === traffic &&
-              record.portsDestination === portsDestination &&
-              record.portsSource === portsSource,
+        onChange: (newSelectedRowKeys, newSelectedRows) => {
+          const newRules = [...rulesAll]
+          const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
+          const checkedIndexes = newSelectedRows
+            .filter(({ key }) => newSelectedRowKeys.includes(key))
+            .map(newRow =>
+              rulesAll.findIndex(
+                ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+                  cidr === newRow.cidr &&
+                  transport === newRow.transport &&
+                  logs === newRow.logs &&
+                  trace === newRow.trace &&
+                  traffic === newRow.traffic &&
+                  portsSource === newRow.portsSource &&
+                  portsDestination === newRow.portsDestination,
+              ),
+            )
+          const uncheckedIndexes = newSelectedRows
+            .filter(({ key }) => uncheckedKeys.includes(key))
+            .map(newRow =>
+              rulesAll.findIndex(
+                ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+                  cidr === newRow.cidr &&
+                  transport === newRow.transport &&
+                  logs === newRow.logs &&
+                  trace === newRow.trace &&
+                  traffic === newRow.traffic &&
+                  portsSource === newRow.portsSource &&
+                  portsDestination === newRow.portsDestination,
+              ),
+            )
+          checkedIndexes.forEach(
+            // eslint-disable-next-line no-return-assign
+            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
           )
-          if (selected) {
-            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
-          } else {
-            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
-          }
+          uncheckedIndexes.forEach(
+            // eslint-disable-next-line no-return-assign
+            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
+          )
           setRules(newRules)
+          setSelectedRowKeys(newSelectedRowKeys)
         },
+        // onSelect: (record: TColumn, selected: boolean) => {
+        //   const newRules = [...rulesAll]
+        //   const pendingToCheckRuleIndex = newRules.findIndex(
+        //     ({ cidr, transport, logs, trace, traffic, portsDestination, portsSource }) =>
+        //       record.cidr === cidr &&
+        //       record.transport === transport &&
+        //       record.logs === logs &&
+        //       record.trace === trace &&
+        //       record.traffic === traffic &&
+        //       record.portsDestination === portsDestination &&
+        //       record.portsSource === portsSource,
+        //   )
+        //   if (selected) {
+        //     newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
+        //   } else {
+        //     newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
+        //   }
+        //   setRules(newRules)
+        // },
         columnWidth: 16,
       }
     : undefined

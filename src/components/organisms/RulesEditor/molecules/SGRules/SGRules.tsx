@@ -74,7 +74,8 @@ export const SGRules: FC<TSGRulesProps> = ({
       <SGTable
         isChangesMode={false}
         sgNames={sgNames}
-        rules={rules}
+        rulesAll={rules}
+        rulesData={rules}
         setRules={setRules}
         rulesOtherside={rulesOtherside}
         setRulesOtherside={setRulesOtherside}
