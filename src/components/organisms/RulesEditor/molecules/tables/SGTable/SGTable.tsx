@@ -341,7 +341,7 @@ export const SGTable: FC<TSGTableProps> = ({
                   logs === newRow.logs,
               ),
             )
-          const uncheckedIndexes = newSelectedRows
+          const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(

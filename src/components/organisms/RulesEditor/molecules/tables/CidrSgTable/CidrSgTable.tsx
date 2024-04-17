@@ -335,7 +335,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
                   portsDestination === newRow.portsDestination,
               ),
             )
-          const uncheckedIndexes = newSelectedRows
+          const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
@@ -360,25 +360,25 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
           setRules(newRules)
           setSelectedRowKeys(newSelectedRowKeys)
         },
-        // onSelect: (record: TColumn, selected: boolean) => {
-        //   const newRules = [...rulesAll]
-        //   const pendingToCheckRuleIndex = newRules.findIndex(
-        //     ({ cidr, transport, logs, trace, traffic, portsDestination, portsSource }) =>
-        //       record.cidr === cidr &&
-        //       record.transport === transport &&
-        //       record.logs === logs &&
-        //       record.trace === trace &&
-        //       record.traffic === traffic &&
-        //       record.portsDestination === portsDestination &&
-        //       record.portsSource === portsSource,
-        //   )
-        //   if (selected) {
-        //     newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
-        //   } else {
-        //     newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
-        //   }
-        //   setRules(newRules)
-        // },
+        onSelect: (record: TColumn, selected: boolean) => {
+          const newRules = [...rulesAll]
+          const pendingToCheckRuleIndex = newRules.findIndex(
+            ({ cidr, transport, logs, trace, traffic, portsDestination, portsSource }) =>
+              record.cidr === cidr &&
+              record.transport === transport &&
+              record.logs === logs &&
+              record.trace === trace &&
+              record.traffic === traffic &&
+              record.portsDestination === portsDestination &&
+              record.portsSource === portsSource,
+          )
+          if (selected) {
+            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
+          } else {
+            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
+          }
+          setRules(newRules)
+        },
         columnWidth: 16,
       }
     : undefined

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import React, { FC, Dispatch, SetStateAction, useState } from 'react'
+import React, { FC, useEffect, Dispatch, SetStateAction, useState } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Result, Spin } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -26,6 +26,7 @@ import {
   composeAllTypesOfSgSgIcmpRules,
   composeAllTypesOfSgSgIeRules,
   composeAllTypesOfSgSgIeIcmpRules,
+  checkIfSomeChangesMarked,
 } from './utils'
 import { RulesDiff } from './molecules'
 import { Styled } from './styled'
@@ -89,6 +90,40 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
 }) => {
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState<boolean>(true)
+
+  useEffect(() => {
+    const isSomeChangesMarked = checkIfSomeChangesMarked(
+      rulesSgFrom,
+      rulesSgTo,
+      rulesFqdnTo,
+      rulesCidrSgFrom,
+      rulesCidrSgTo,
+      rulesSgSgIcmpFrom,
+      rulesSgSgIcmpTo,
+      rulesSgSgIeFrom,
+      rulesSgSgIeTo,
+      rulesSgSgIeIcmpFrom,
+      rulesSgSgIeIcmpTo,
+    )
+    if (isSomeChangesMarked) {
+      setIsSubmitDisabled(false)
+    } else {
+      setIsSubmitDisabled(true)
+    }
+  }, [
+    rulesSgFrom,
+    rulesSgTo,
+    rulesFqdnTo,
+    rulesCidrSgFrom,
+    rulesCidrSgTo,
+    rulesSgSgIcmpFrom,
+    rulesSgSgIcmpTo,
+    rulesSgSgIeFrom,
+    rulesSgSgIeTo,
+    rulesSgSgIeIcmpFrom,
+    rulesSgSgIeIcmpTo,
+  ])
 
   const changesResultSgFromResult = getChangesSgRules(rulesSgFrom)
   const changesResultSgToResult = getChangesSgRules(rulesSgTo)
@@ -383,7 +418,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
         <Button type="default" onClick={handleClose}>
           Cancel
         </Button>
-        <Button type="primary" onClick={handleOk}>
+        <Button type="primary" onClick={handleOk} disabled={isSubmitDisabled}>
           Submit
         </Button>
       </Styled.ButtonsContainer>

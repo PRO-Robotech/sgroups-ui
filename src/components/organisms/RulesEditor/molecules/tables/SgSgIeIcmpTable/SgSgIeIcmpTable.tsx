@@ -325,7 +325,7 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
                   traffic === newRow.traffic,
               ),
             )
-          const uncheckedIndexes = newSelectedRows
+          const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(

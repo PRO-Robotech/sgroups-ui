@@ -363,7 +363,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
                   trace === newRow.trace,
               ),
             )
-          const uncheckedIndexes = newSelectedRows
+          const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(

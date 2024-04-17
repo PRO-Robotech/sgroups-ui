@@ -296,7 +296,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
                   portsDestination === newRow.portsDestination,
               ),
             )
-          const uncheckedIndexes = newSelectedRows
+          const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(

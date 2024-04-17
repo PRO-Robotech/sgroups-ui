@@ -317,7 +317,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
                   transport === newRow.transport,
               ),
             )
-          const uncheckedIndexes = newSelectedRows
+          const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
