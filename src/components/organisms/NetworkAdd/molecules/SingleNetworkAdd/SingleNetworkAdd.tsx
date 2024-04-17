@@ -1,6 +1,6 @@
 import React, { FC } from 'react'
 import { Card, Form, Input, Button } from 'antd'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { Spacer } from 'components'
 import { TNetworkForm } from 'localTypes/networks'
 import { Styled } from './styled'
 
@@ -15,7 +15,6 @@ export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNw
 
   return (
     <Card>
-      <TitleWithNoTopMargin level={2}>Add a network</TitleWithNoTopMargin>
       <Spacer $space={15} $samespace />
       <Form
         form={form}

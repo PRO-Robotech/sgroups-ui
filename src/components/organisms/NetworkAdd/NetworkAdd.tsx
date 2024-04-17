@@ -1,7 +1,7 @@
 import React, { FC, Fragment, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Breadcrumb, notification, Spin, Result } from 'antd'
-import { Spacer } from 'components'
+import { TitleWithNoTopMargin, Spacer } from 'components'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetworkForm } from 'localTypes/networks'
 import { addNetworks } from 'api/networks'
@@ -84,6 +84,7 @@ export const NetworkAdd: FC = () => {
           subTitle={`Code:${error.data?.code}. Message: ${error.data?.message}`}
         />
       )}
+      <TitleWithNoTopMargin level={2}>Add a network</TitleWithNoTopMargin>
       {networks.map(({ id }) => (
         <Fragment key={id}>
           <SingleNetworkAdd
