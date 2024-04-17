@@ -62,6 +62,9 @@ export const AddSgSgIePopover: FC<TAddSgSgIePopoverProps> = ({ sgNames, hide, ad
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
         <Switch />
       </Styled.FormItem>
+      <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
+        <Switch />
+      </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>
           <Button

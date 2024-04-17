@@ -85,7 +85,7 @@ export const EditSgSgIeIcmpPopover: FC<TEditSgSgIeIcmpPopoverProps> = ({
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
         <Switch disabled={isDisabled} />
       </Styled.FormItem>
-      <Styled.FormItem valuePropName="checked" name="trace" label="trace">
+      <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
         <Switch disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.ButtonsContainer>

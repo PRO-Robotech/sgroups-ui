@@ -87,6 +87,9 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
       if (newSgSgIeRules[index].logs !== values.logs) {
         modifiedFields.push('logs')
       }
+      if (newSgSgIeRules[index].trace !== values.trace) {
+        modifiedFields.push('trace')
+      }
       if (modifiedFields.length === 0) {
         newSgSgIeRules[index] = { ...values }
       } else {
@@ -228,6 +231,25 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
           return 0
         }
         return a.logs ? -1 : 1
+      },
+    },
+    {
+      title: 'Trace',
+      dataIndex: 'trace',
+      key: 'trace',
+      width: 50,
+      render: (_, { trace, formChanges }) => (
+        <Styled.RulesEntryMarks $modified={formChanges?.modifiedFields?.includes('trace')} className="no-scroll">
+          <Tooltip title="trace">
+            {trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
+          </Tooltip>
+        </Styled.RulesEntryMarks>
+      ),
+      sorter: (a, b) => {
+        if (a.trace === b.trace) {
+          return 0
+        }
+        return a.trace ? -1 : 1
       },
     },
     {
