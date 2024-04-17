@@ -67,7 +67,17 @@ export const EditSgSgIeIcmpPopover: FC<TEditSgSgIeIcmpPopoverProps> = ({
         label="Types"
         name="types"
         tooltip="Separator: space / coma"
-        rules={[{ required: true, message: 'Please choose IPv' }]}
+        rules={[
+          { required: true, message: 'Please choose type' },
+          () => ({
+            validator(_, value: string[]) {
+              if (value.some(el => /^\b(?:1\d{2}|2[0-4]\d|[1-9]?\d|25[0-5])\b$/.test(el) === false)) {
+                return Promise.reject(new Error('Please enter valid type'))
+              }
+              return Promise.resolve()
+            },
+          }),
+        ]}
       >
         <Select
           mode="tags"
@@ -85,7 +95,7 @@ export const EditSgSgIeIcmpPopover: FC<TEditSgSgIeIcmpPopoverProps> = ({
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
         <Switch disabled={isDisabled} />
       </Styled.FormItem>
-      <Styled.FormItem valuePropName="checked" name="trace" label="trace">
+      <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
         <Switch disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.ButtonsContainer>

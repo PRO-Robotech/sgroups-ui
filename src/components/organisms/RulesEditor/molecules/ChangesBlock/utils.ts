@@ -675,3 +675,31 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
 
   return result
 }
+
+export const checkIfSomeChangesMarked = (
+  rulesSgFrom: TFormSgRule[],
+  rulesSgTo: TFormSgRule[],
+  rulesFqdnTo: TFormFqdnRule[],
+  rulesCidrSgFrom: TFormCidrSgRule[],
+  rulesCidrSgTo: TFormCidrSgRule[],
+  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[],
+  rulesSgSgIcmpTo: TFormSgSgIcmpRule[],
+  rulesSgSgIeFrom: TFormSgSgIeRule[],
+  rulesSgSgIeTo: TFormSgSgIeRule[],
+  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[],
+  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[],
+): boolean => {
+  return [
+    rulesSgFrom.some(({ checked }) => checked === true),
+    rulesSgTo.some(({ checked }) => checked === true),
+    rulesFqdnTo.some(({ checked }) => checked === true),
+    rulesCidrSgFrom.some(({ checked }) => checked === true),
+    rulesCidrSgTo.some(({ checked }) => checked === true),
+    rulesSgSgIcmpFrom.some(({ checked }) => checked === true),
+    rulesSgSgIcmpTo.some(({ checked }) => checked === true),
+    rulesSgSgIeFrom.some(({ checked }) => checked === true),
+    rulesSgSgIeTo.some(({ checked }) => checked === true),
+    rulesSgSgIeIcmpFrom.some(({ checked }) => checked === true),
+    rulesSgSgIeIcmpTo.some(({ checked }) => checked === true),
+  ].includes(true)
+}

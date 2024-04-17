@@ -1,7 +1,7 @@
 import React, { FC, Fragment, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Breadcrumb, notification, Spin, Result } from 'antd'
-import { Spacer } from 'components'
+import { TitleWithNoTopMargin, Spacer } from 'components'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetworkForm } from 'localTypes/networks'
 import { addNetworks } from 'api/networks'
@@ -13,9 +13,9 @@ export const NetworkAdd: FC = () => {
   const [networks, setNetworks] = useState<TNetworkForm[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const openNotification = () => {
+  const openNotification = (isMany: boolean) => {
     api.success({
-      message: 'Network added',
+      message: isMany ? 'Networks added' : 'Network added',
       placement: 'topRight',
     })
   }
@@ -47,7 +47,7 @@ export const NetworkAdd: FC = () => {
     addNetworks(networks)
       .then(() => {
         setIsLoading(false)
-        openNotification()
+        openNotification(networks.length > 1)
         setNetworks([])
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
@@ -84,6 +84,7 @@ export const NetworkAdd: FC = () => {
           subTitle={`Code:${error.data?.code}. Message: ${error.data?.message}`}
         />
       )}
+      <TitleWithNoTopMargin level={2}>Add a network</TitleWithNoTopMargin>
       {networks.map(({ id }) => (
         <Fragment key={id}>
           <SingleNetworkAdd
@@ -91,6 +92,7 @@ export const NetworkAdd: FC = () => {
               onFormChange(id, values.name, values.CIDR, validateResult)
             }
             removeNwCard={() => removeNwCard(id)}
+            isDeleteButtonDisabled={networks.length < 2}
           />
           <Spacer $space={15} $samespace />
         </Fragment>

@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import React, { FC, Dispatch, SetStateAction, useState } from 'react'
+import React, { FC, useEffect, Dispatch, SetStateAction, useState } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Result, Spin } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -26,6 +26,7 @@ import {
   composeAllTypesOfSgSgIcmpRules,
   composeAllTypesOfSgSgIeRules,
   composeAllTypesOfSgSgIeIcmpRules,
+  checkIfSomeChangesMarked,
 } from './utils'
 import { RulesDiff } from './molecules'
 import { Styled } from './styled'
@@ -89,6 +90,40 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
 }) => {
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isSubmitDisabled, setIsSubmitDisabled] = useState<boolean>(true)
+
+  useEffect(() => {
+    const isSomeChangesMarked = checkIfSomeChangesMarked(
+      rulesSgFrom,
+      rulesSgTo,
+      rulesFqdnTo,
+      rulesCidrSgFrom,
+      rulesCidrSgTo,
+      rulesSgSgIcmpFrom,
+      rulesSgSgIcmpTo,
+      rulesSgSgIeFrom,
+      rulesSgSgIeTo,
+      rulesSgSgIeIcmpFrom,
+      rulesSgSgIeIcmpTo,
+    )
+    if (isSomeChangesMarked) {
+      setIsSubmitDisabled(false)
+    } else {
+      setIsSubmitDisabled(true)
+    }
+  }, [
+    rulesSgFrom,
+    rulesSgTo,
+    rulesFqdnTo,
+    rulesCidrSgFrom,
+    rulesCidrSgTo,
+    rulesSgSgIcmpFrom,
+    rulesSgSgIcmpTo,
+    rulesSgSgIeFrom,
+    rulesSgSgIeTo,
+    rulesSgSgIeIcmpFrom,
+    rulesSgSgIeIcmpTo,
+  ])
 
   const changesResultSgFromResult = getChangesSgRules(rulesSgFrom)
   const changesResultSgToResult = getChangesSgRules(rulesSgTo)
@@ -215,6 +250,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               type: 'sg',
               data: changesResultSgFromResult,
               sgNames,
+              rules: rulesSgFrom,
               setRules: setRulesSgFrom,
               rulesOtherside: rulesSgTo,
               setRulesOtherside: setRulesSgTo,
@@ -230,6 +266,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               type: 'sg',
               data: changesResultSgToResult,
               sgNames,
+              rules: rulesSgTo,
               setRules: setRulesSgTo,
               rulesOtherside: rulesSgFrom,
               setRulesOtherside: setRulesSgFrom,
@@ -244,6 +281,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             compareResult={{
               type: 'fqdn',
               data: changesResultFqdnTo,
+              rules: rulesFqdnTo,
               setRules: setRulesFqdnTo,
               popoverPosition: 'left',
             }}
@@ -256,6 +294,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               type: 'cidr',
               data: changesResultCidrSgFrom,
               defaultTraffic: 'Ingress',
+              rules: rulesCidrSgFrom,
               setRules: setRulesCidrSgFrom,
               popoverPosition: 'left',
             }}
@@ -268,6 +307,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               type: 'cidr',
               data: changesResultCidrSgTo,
               defaultTraffic: 'Egress',
+              rules: rulesCidrSgTo,
               setRules: setRulesCidrSgTo,
               popoverPosition: 'left',
             }}
@@ -281,6 +321,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               data: changesResultSgSgIcmpFrom,
               sgNames,
               popoverPosition: 'left',
+              rules: rulesSgSgIcmpFrom,
               setRules: setRulesSgSgIcmpFrom,
               rulesOtherside: rulesSgSgIcmpTo,
               setRulesOtherside: setRulesSgSgIcmpTo,
@@ -296,6 +337,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               data: changesResultSgSgIcmpTo,
               sgNames,
               popoverPosition: 'left',
+              rules: rulesSgSgIcmpTo,
               setRules: setRulesSgSgIcmpTo,
               rulesOtherside: rulesSgSgIcmpFrom,
               setRulesOtherside: setRulesSgSgIcmpFrom,
@@ -312,6 +354,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Ingress',
+              rules: rulesSgSgIeFrom,
               setRules: setRulesSgSgIeFrom,
             }}
           />
@@ -325,6 +368,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Egress',
+              rules: rulesSgSgIeTo,
               setRules: setRulesSgSgIeTo,
             }}
           />
@@ -338,6 +382,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Ingress',
+              rules: rulesSgSgIeIcmpFrom,
               setRules: setRulesSgSgIeIcmpFrom,
             }}
           />
@@ -351,6 +396,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
               sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Egress',
+              rules: rulesSgSgIeIcmpTo,
               setRules: setRulesSgSgIeIcmpTo,
             }}
           />
@@ -372,7 +418,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
         <Button type="default" onClick={handleClose}>
           Cancel
         </Button>
-        <Button type="primary" onClick={handleOk}>
+        <Button type="primary" onClick={handleOk} disabled={isSubmitDisabled}>
           Submit
         </Button>
       </Styled.ButtonsContainer>

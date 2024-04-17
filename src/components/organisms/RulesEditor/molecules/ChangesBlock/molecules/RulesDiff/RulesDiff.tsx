@@ -29,6 +29,7 @@ type TRulesDiffProps = {
         type: 'sg'
         data: TFormSgRuleChangesResult
         sgNames: string[]
+        rules: TFormSgRule[]
         setRules: Dispatch<SetStateAction<TFormSgRule[]>>
         rulesOtherside: TFormSgRule[]
         setRulesOtherside: Dispatch<SetStateAction<TFormSgRule[]>>
@@ -38,6 +39,7 @@ type TRulesDiffProps = {
     | {
         type: 'fqdn'
         data: TFormFqdnRuleChangesResult
+        rules: TFormFqdnRule[]
         setRules: Dispatch<SetStateAction<TFormFqdnRule[]>>
         popoverPosition: TooltipPlacement
       }
@@ -45,6 +47,7 @@ type TRulesDiffProps = {
         type: 'cidr'
         data: TFormCidrSgRuleChangesResult
         defaultTraffic: TTraffic
+        rules: TFormCidrSgRule[]
         setRules: Dispatch<SetStateAction<TFormCidrSgRule[]>>
         popoverPosition: TooltipPlacement
       }
@@ -53,6 +56,7 @@ type TRulesDiffProps = {
         data: TFormSgSgIcmpRuleChangesResult
         sgNames: string[]
         popoverPosition: TooltipPlacement
+        rules: TFormSgSgIcmpRule[]
         setRules: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
         rulesOtherside: TFormSgSgIcmpRule[]
         setRulesOtherside: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
@@ -64,6 +68,7 @@ type TRulesDiffProps = {
         sgNames: string[]
         popoverPosition: TooltipPlacement
         defaultTraffic: TTraffic
+        rules: TFormSgSgIeRule[]
         setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
       }
     | {
@@ -72,6 +77,7 @@ type TRulesDiffProps = {
         sgNames: string[]
         popoverPosition: TooltipPlacement
         defaultTraffic: TTraffic
+        rules: TFormSgSgIeIcmpRule[]
         setRules: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
       }
 }
@@ -91,7 +97,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <SGTable
               isChangesMode
               sgNames={compareResult.sgNames}
-              rules={compareResult.data.newRules}
+              rulesData={compareResult.data.newRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               rulesOtherside={compareResult.rulesOtherside}
               setRulesOtherside={compareResult.setRulesOtherside}
@@ -108,7 +115,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <SGTable
               isChangesMode
               sgNames={compareResult.sgNames}
-              rules={compareResult.data.diffRules}
+              rulesData={compareResult.data.diffRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               rulesOtherside={compareResult.rulesOtherside}
               setRulesOtherside={compareResult.setRulesOtherside}
@@ -125,7 +133,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <SGTable
               isChangesMode
               sgNames={compareResult.sgNames}
-              rules={compareResult.data.deletedRules}
+              rulesData={compareResult.data.deletedRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               rulesOtherside={compareResult.rulesOtherside}
               setRulesOtherside={compareResult.setRulesOtherside}
@@ -133,6 +142,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               editOpen={editOpenDeletedRules}
               popoverPosition={compareResult.popoverPosition}
               centerSg={compareResult.centerSg}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -149,7 +159,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
             <FQDNTable
               isChangesMode
-              rules={compareResult.data.newRules}
+              rulesData={compareResult.data.newRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenNewRules}
               editOpen={editOpenNewRules}
@@ -162,7 +173,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
             <FQDNTable
               isChangesMode
-              rules={compareResult.data.diffRules}
+              rulesData={compareResult.data.diffRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenModifiedRules}
               editOpen={editOpenModifiedRules}
@@ -175,11 +187,13 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
             <FQDNTable
               isChangesMode
-              rules={compareResult.data.deletedRules}
+              rulesData={compareResult.data.deletedRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenDeletedRules}
               editOpen={editOpenDeletedRules}
               popoverPosition={compareResult.popoverPosition}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -197,7 +211,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <CidrSgTable
               isChangesMode
               defaultTraffic={compareResult.defaultTraffic}
-              rules={compareResult.data.newRules}
+              rulesData={compareResult.data.newRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenNewRules}
               editOpen={editOpenNewRules}
@@ -211,7 +226,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <CidrSgTable
               isChangesMode
               defaultTraffic={compareResult.defaultTraffic}
-              rules={compareResult.data.diffRules}
+              rulesData={compareResult.data.diffRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenModifiedRules}
               editOpen={editOpenModifiedRules}
@@ -225,11 +241,13 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <CidrSgTable
               isChangesMode
               defaultTraffic={compareResult.defaultTraffic}
-              rules={compareResult.data.deletedRules}
+              rulesData={compareResult.data.deletedRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenDeletedRules}
               editOpen={editOpenDeletedRules}
               popoverPosition={compareResult.popoverPosition}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -248,7 +266,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               isChangesMode
               sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
-              rules={compareResult.data.newRules}
+              rulesData={compareResult.data.newRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               rulesOtherside={compareResult.rulesOtherside}
               setRulesOtherside={compareResult.setRulesOtherside}
@@ -265,7 +284,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               isChangesMode
               sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
-              rules={compareResult.data.diffRules}
+              rulesData={compareResult.data.diffRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               rulesOtherside={compareResult.rulesOtherside}
               setRulesOtherside={compareResult.setRulesOtherside}
@@ -282,13 +302,15 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               isChangesMode
               sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
-              rules={compareResult.data.deletedRules}
+              rulesData={compareResult.data.deletedRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               rulesOtherside={compareResult.rulesOtherside}
               setRulesOtherside={compareResult.setRulesOtherside}
               editOpen={editOpenDeletedRules}
               setEditOpen={setEditOpenDeletedRules}
               centerSg={compareResult.centerSg}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -308,7 +330,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
-              rules={compareResult.data.newRules}
+              rulesData={compareResult.data.newRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenNewRules}
               editOpen={editOpenNewRules}
@@ -323,7 +346,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
-              rules={compareResult.data.diffRules}
+              rulesData={compareResult.data.diffRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenModifiedRules}
               editOpen={editOpenModifiedRules}
@@ -338,10 +362,12 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
-              rules={compareResult.data.deletedRules}
+              rulesData={compareResult.data.deletedRules}
+              rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenDeletedRules}
               editOpen={editOpenDeletedRules}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -360,7 +386,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             sgNames={compareResult.sgNames}
             popoverPosition={compareResult.popoverPosition}
             defaultTraffic={compareResult.defaultTraffic}
-            rules={compareResult.data.newRules}
+            rulesData={compareResult.data.newRules}
+            rulesAll={compareResult.rules}
             setRules={compareResult.setRules}
             editOpen={editOpenNewRules}
             setEditOpen={setEditOpenNewRules}
@@ -375,7 +402,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             sgNames={compareResult.sgNames}
             popoverPosition={compareResult.popoverPosition}
             defaultTraffic={compareResult.defaultTraffic}
-            rules={compareResult.data.diffRules}
+            rulesData={compareResult.data.diffRules}
+            rulesAll={compareResult.rules}
             setRules={compareResult.setRules}
             editOpen={editOpenModifiedRules}
             setEditOpen={setEditOpenModifiedRules}
@@ -390,10 +418,12 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             sgNames={compareResult.sgNames}
             popoverPosition={compareResult.popoverPosition}
             defaultTraffic={compareResult.defaultTraffic}
-            rules={compareResult.data.deletedRules}
+            rulesData={compareResult.data.deletedRules}
+            rulesAll={compareResult.rules}
             setRules={compareResult.setRules}
             editOpen={editOpenDeletedRules}
             setEditOpen={setEditOpenDeletedRules}
+            isRestoreButtonActive
           />
         </>
       )}

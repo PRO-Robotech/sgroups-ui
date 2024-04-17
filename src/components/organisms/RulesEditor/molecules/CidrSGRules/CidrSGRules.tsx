@@ -55,7 +55,8 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
       <CidrSgTable
         isChangesMode={false}
-        rules={rules}
+        rulesAll={rules}
+        rulesData={rules}
         setRules={setRules}
         editOpen={editOpen}
         setEditOpen={setEditOpen}

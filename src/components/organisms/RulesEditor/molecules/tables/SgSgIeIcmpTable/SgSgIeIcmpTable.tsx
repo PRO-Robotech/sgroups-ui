@@ -1,6 +1,6 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
@@ -17,11 +17,13 @@ type TSgSgIeIcmpTableProps = {
   sgNames: string[]
   popoverPosition: TooltipPlacement
   defaultTraffic: TTraffic
-  rules: TFormSgSgIeIcmpRule[]
+  rulesData: TFormSgSgIeIcmpRule[]
+  rulesAll: TFormSgSgIeIcmpRule[]
   setRules: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   setEditOpen: Dispatch<SetStateAction<boolean[]>>
   editOpen: boolean[]
   isDisabled?: boolean
+  isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
 
@@ -30,19 +32,24 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
   sgNames,
   popoverPosition,
   defaultTraffic,
-  rules,
+  rulesData,
+  rulesAll,
   setRules,
   setEditOpen,
   editOpen,
   isDisabled,
+  isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
 
   useEffect(() => {
-    setEditOpen(Array(rules.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false))
-  }, [rules, setEditOpen])
+    setEditOpen(
+      Array(rulesData.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false),
+    )
+  }, [rulesData, setEditOpen])
 
   const toggleEditPopover = (index: number) => {
     const newEditOpen = [...editOpen]
@@ -50,9 +57,8 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
     setEditOpen(newEditOpen)
   }
 
-  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const editRule = (oldValues: TFormSgSgIeIcmpRule, values: TFormSgSgIeIcmpRule) => {
-    const newSgSgIeIcmpRules = [...rules]
+    const newSgSgIeIcmpRules = [...rulesAll]
     const index = newSgSgIeIcmpRules.findIndex(
       ({ sg, IPv, types, logs, trace, traffic }) =>
         sg === oldValues.sg &&
@@ -78,6 +84,9 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
       if (newSgSgIeIcmpRules[index].logs !== values.logs) {
         modifiedFields.push('logs')
       }
+      if (newSgSgIeIcmpRules[index].trace !== values.trace) {
+        modifiedFields.push('trace')
+      }
       if (modifiedFields.length === 0) {
         newSgSgIeIcmpRules[index] = { ...values }
       } else {
@@ -92,10 +101,18 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
     toggleEditPopover(index)
   }
 
-  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
-  const removeRule = (index: number) => {
-    const newSgSgIeIcmpRules = [...rules]
+  const removeRule = (oldValues: TFormSgSgIeIcmpRule) => {
+    const newSgSgIeIcmpRules = [...rulesAll]
     const newEditOpenRules = [...editOpen]
+    const index = newSgSgIeIcmpRules.findIndex(
+      ({ sg, IPv, types, logs, trace, traffic }) =>
+        sg === oldValues.sg &&
+        IPv === oldValues.IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic,
+    )
     if (newSgSgIeIcmpRules[index].formChanges?.status === STATUSES.new) {
       setRules([...newSgSgIeIcmpRules.slice(0, index), ...newSgSgIeIcmpRules.slice(index + 1)])
       toggleEditPopover(index)
@@ -109,6 +126,26 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
       setRules(newSgSgIeIcmpRules)
       toggleEditPopover(index)
     }
+  }
+
+  const restoreRule = (oldValues: TFormSgSgIeIcmpRule) => {
+    const newSgSgIeIcmpRules = [...rulesAll]
+    const index = newSgSgIeIcmpRules.findIndex(
+      ({ sg, IPv, types, logs, trace, traffic }) =>
+        sg === oldValues.sg &&
+        IPv === oldValues.IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic,
+    )
+    newSgSgIeIcmpRules[index] = {
+      ...newSgSgIeIcmpRules[index],
+      traffic: defaultTraffic,
+      formChanges: { status: STATUSES.modified },
+      checked: false,
+    }
+    setRules(newSgSgIeIcmpRules)
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -252,36 +289,41 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
       key: 'edit',
       width: 50,
       render: (_, oldValues, index) => (
-        <Popover
-          content={
-            <EditSgSgIeIcmpPopover
-              sgNames={sgNames}
-              values={rules[index]}
-              remove={() => removeRule(index)}
-              hide={() => toggleEditPopover(index)}
-              edit={values => editRule(oldValues, values)}
-              isDisabled={isDisabled}
-            />
-          }
-          title="SG-SG-IE-ICMP"
-          trigger="click"
-          open={editOpen[index]}
-          onOpenChange={() => toggleEditPopover(index)}
-          placement={popoverPosition}
-          className="no-scroll"
-        >
-          <Styled.EditButton>Edit</Styled.EditButton>
-        </Popover>
+        <>
+          {isRestoreButtonActive && (
+            <Styled.EditButton onClick={() => restoreRule(oldValues)}>Restore</Styled.EditButton>
+          )}
+          <Popover
+            content={
+              <EditSgSgIeIcmpPopover
+                sgNames={sgNames}
+                values={oldValues}
+                remove={() => removeRule(oldValues)}
+                hide={() => toggleEditPopover(index)}
+                edit={values => editRule(oldValues, values)}
+                isDisabled={isDisabled}
+              />
+            }
+            title="SG-SG-IE-ICMP"
+            trigger="click"
+            open={editOpen[index]}
+            onOpenChange={() => toggleEditPopover(index)}
+            placement={popoverPosition}
+            className="no-scroll"
+          >
+            <Styled.EditButton>Edit</Styled.EditButton>
+          </Popover>
+        </>
       ),
     },
   ]
 
   const dataSource = isChangesMode
-    ? rules.map(row => ({
+    ? rulesData.map(row => ({
         ...row,
         key: `${row.sg}-${row.IPv}`,
       }))
-    : rules
+    : rulesData
         .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
         .map(row => ({
           ...row,
@@ -290,17 +332,58 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
 
   const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
     ? {
+        selectedRowKeys,
         type: 'checkbox',
+        onChange: (newSelectedRowKeys, newSelectedRows) => {
+          const newRules = [...rulesAll]
+          const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
+          const checkedIndexes = newSelectedRows
+            .filter(({ key }) => newSelectedRowKeys.includes(key))
+            .map(newRow =>
+              rulesAll.findIndex(
+                ({ sg, IPv, types, logs, trace, traffic }) =>
+                  sg === newRow.sg &&
+                  IPv === newRow.IPv &&
+                  JSON.stringify(types.sort()) === JSON.stringify(newRow.types.sort()) &&
+                  logs === newRow.logs &&
+                  trace === newRow.trace &&
+                  traffic === newRow.traffic,
+              ),
+            )
+          const uncheckedIndexes = dataSource
+            .filter(({ key }) => uncheckedKeys.includes(key))
+            .map(newRow =>
+              rulesAll.findIndex(
+                ({ sg, IPv, types, logs, trace, traffic }) =>
+                  sg === newRow.sg &&
+                  IPv === newRow.IPv &&
+                  JSON.stringify(types.sort()) === JSON.stringify(newRow.types.sort()) &&
+                  logs === newRow.logs &&
+                  trace === newRow.trace &&
+                  traffic === newRow.traffic,
+              ),
+            )
+          checkedIndexes.forEach(
+            // eslint-disable-next-line no-return-assign
+            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
+          )
+          uncheckedIndexes.forEach(
+            // eslint-disable-next-line no-return-assign
+            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
+          )
+          setRules(newRules)
+          setSelectedRowKeys(newSelectedRowKeys)
+        },
         onSelect: (record: TColumn, selected: boolean) => {
-          const newRules = [...rules]
+          const newRules = [...rulesAll]
           const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ sg, logs, trace, IPv, types, traffic }) =>
-              record.sg === sg &&
-              record.logs === logs &&
-              record.trace === trace &&
-              record.IPv === IPv &&
-              JSON.stringify(record.types.sort()) === JSON.stringify(types.sort()) &&
-              record.traffic === traffic,
+            ({ sg, IPv, types, logs, trace, traffic }) =>
+              sg === record.sg &&
+              IPv === record.IPv &&
+              JSON.stringify(types.sort()) === JSON.stringify(record.types.sort()) &&
+              logs === record.logs &&
+              trace === record.trace &&
+              traffic === record.traffic,
           )
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }

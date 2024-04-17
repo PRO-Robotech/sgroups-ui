@@ -256,7 +256,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
         setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
       />
       {isLoading && (
-        <Styled.Loader style={{}}>
+        <Styled.Loader>
           <Spin size="large" />
         </Styled.Loader>
       )}

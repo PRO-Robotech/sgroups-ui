@@ -17,10 +17,12 @@ import {
   removeSgSgIcmpRule,
   getSgSgIeRules,
   removeSgSgIeRule,
+  getSgSgIeIcmpRules,
+  removeSgSgIeIcmpRule,
 } from 'api/rules'
 import { ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TSgRule, TFqdnRule, TCidrRule, TSgSgIcmpRule, TSgSgIeRule } from 'localTypes/rules'
+import { TSgRule, TFqdnRule, TCidrRule, TSgSgIcmpRule, TSgSgIeRule, TSgSgIeIcmpRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
 export const RulesList: FC = () => {
@@ -29,36 +31,48 @@ export const RulesList: FC = () => {
   const [cidrRules, setCidrRules] = useState<TCidrRule[]>([])
   const [sgSgIcmpRules, setSgSgIcmpRules] = useState<TSgSgIcmpRule[]>([])
   const [sgSgIeRules, setSgSgIeRules] = useState<TSgSgIeRule[]>([])
+  const [sgSgIeIcmpRules, setSgSgIeIcmpRules] = useState<TSgSgIeIcmpRule[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [deleteErrorFqdn, setDeleteErrorFqdn] = useState<TRequestError | undefined>()
   const [deleteErrorCidr, setDeleteErrorCidr] = useState<TRequestError | undefined>()
   const [deleteErrorSgSgIcmp, setDeleteErrorSgSgIcmp] = useState<TRequestError | undefined>()
   const [deleteErrorSgSgIe, setDeleteErrorSgSgIe] = useState<TRequestError | undefined>()
+  const [deleteErrorSgSgIeIcmp, setDeleteErrorSgSgIeIcmp] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [isModalOpenFqdn, setIsModalOpenFqdn] = useState<boolean>(false)
   const [isModalOpenCidr, setIsModalOpenCidr] = useState<boolean>(false)
   const [isModalOpenSgSgIcmp, setIsModalOpenSgSgIcmp] = useState<boolean>(false)
   const [isModalOpenSgSgIe, setIsModalOpenSgSgIe] = useState<boolean>(false)
+  const [isModalOpenSgSgIeIcmp, setIsModalOpenSgSgIeIcmp] = useState<boolean>(false)
   const [pendingToDeleteRule, setPendingToDeleteRule] = useState<{ sgFrom: string; sgTo: string }>()
   const [pendingToDeleteFqdnRule, setPendingToDeleteFqdnRule] = useState<{ sgFrom: string; fqdn: string }>()
   const [pendingToDeleteCidrRule, setPendingToDeleteCidrRule] = useState<{ sg: string; cidr: string }>()
   const [pendingToDeleteSgSgIcmpRule, setPendingToDeleteSgSgIcmpRule] = useState<{ sgFrom: string; sgTo: string }>()
   const [pendingToDeleteSgSgIeRule, setPendingToDeleteSgSgIeRule] = useState<{ sgFrom: string; sgTo: string }>()
+  const [pendingToDeleteSgSgIeIcmpRule, setPendingToDeleteSgSgIeIcmpRule] = useState<{ sgFrom: string; sgTo: string }>()
   const history = useHistory()
 
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
-    Promise.all([getRules(), getFqdnRules(), getCidrSgRules(), getSgSgIcmpRules(), getSgSgIeRules()])
-      .then(([value1, value2, value3, value4, value5]) => {
+    Promise.all([
+      getRules(),
+      getFqdnRules(),
+      getCidrSgRules(),
+      getSgSgIcmpRules(),
+      getSgSgIeRules(),
+      getSgSgIeIcmpRules(),
+    ])
+      .then(([value1, value2, value3, value4, value5, value6]) => {
         setIsLoading(false)
         setRules(value1.data.rules)
         setFqdnRules(value2.data.rules)
         setCidrRules(value3.data.rules)
         setSgSgIcmpRules(value4.data.rules)
         setSgSgIeRules(value5.data.rules)
+        setSgSgIeIcmpRules(value6.data.rules)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -172,6 +186,26 @@ export const RulesList: FC = () => {
       })
   }
 
+  const removeSgSgIeIcmpRuleFromList = (sgFrom: string, sgTo: string) => {
+    removeSgSgIeIcmpRule(sgFrom, sgTo)
+      .then(() => {
+        setSgSgIeIcmpRules([...sgSgIeIcmpRules].filter(el => el.SgLocal !== sgFrom || el.Sg !== sgTo))
+        setIsModalOpenSgSgIeIcmp(false)
+        setPendingToDeleteSgSgIeIcmpRule(undefined)
+        setDeleteErrorSgSgIeIcmp(undefined)
+      })
+      .catch((error: AxiosError<TRequestErrorData>) => {
+        setIsLoading(false)
+        if (error.response) {
+          setDeleteErrorSgSgIeIcmp({ status: error.response.status, data: error.response.data })
+        } else if (error.status) {
+          setDeleteErrorSgSgIeIcmp({ status: error.status })
+        } else {
+          setDeleteErrorSgSgIeIcmp({ status: 'Error while fetching' })
+        }
+      })
+  }
+
   const openRemoveRuleModal = (sgFrom: string, sgTo: string) => {
     setPendingToDeleteRule({ sgFrom, sgTo })
     setIsModalOpen(true)
@@ -195,6 +229,11 @@ export const RulesList: FC = () => {
   const openRemoveSgSgIeRuleModal = (sgFrom: string, sgTo: string) => {
     setPendingToDeleteSgSgIeRule({ sgFrom, sgTo })
     setIsModalOpenSgSgIe(true)
+  }
+
+  const openRemoveSgSgIeIcmpRuleModal = (sgFrom: string, sgTo: string) => {
+    setPendingToDeleteSgSgIeIcmpRule({ sgFrom, sgTo })
+    setIsModalOpenSgSgIeIcmp(true)
   }
 
   if (error) {
@@ -520,6 +559,70 @@ export const RulesList: FC = () => {
     },
   ]
 
+  type TSgSgIeIcmpRuleColumn = TSgSgIeIcmpRule & {
+    key: string
+  }
+
+  const columnsSgSgIeIcmp: ColumnsType<TSgSgIeIcmpRuleColumn> = [
+    {
+      title: 'SG',
+      dataIndex: 'Sg',
+      key: 'Sg',
+      width: 150,
+    },
+    {
+      title: 'SG Local',
+      dataIndex: 'SgLocal',
+      key: 'SgLocal',
+      width: 150,
+    },
+    {
+      title: 'ICMP',
+      dataIndex: 'ICMP',
+      key: 'ICMP',
+      width: 70,
+      render: (_, { ICMP }) => <div>{ICMP.IPv}</div>,
+    },
+    {
+      title: 'Types',
+      dataIndex: 'ICMP',
+      key: 'Types',
+      width: 70,
+      render: (_, { ICMP }) => <div>{ICMP.Types.join(',')}</div>,
+    },
+    {
+      title: 'Logs',
+      dataIndex: 'logs',
+      key: 'logs',
+      width: 150,
+      render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
+    },
+    {
+      title: 'Trace',
+      dataIndex: 'trace',
+      key: 'trace',
+      width: 150,
+      render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
+    },
+    {
+      title: 'Traffic',
+      dataIndex: 'traffic',
+      key: 'traffic',
+      width: 150,
+    },
+    {
+      title: 'Action',
+      key: 'action',
+      width: 150,
+      render: (_, record: TSgSgIeIcmpRule) => (
+        <>
+          <EditOutlined onClick={() => history.push(`/rules/editor/${record.SgLocal}`)} />
+          <DeleteOutlined onClick={() => openRemoveSgSgIeIcmpRuleModal(record.SgLocal, record.Sg)} />
+        </>
+      ),
+    },
+  ]
+
   const items: CollapseProps['items'] = [
     {
       key: '1',
@@ -651,6 +754,32 @@ export const RulesList: FC = () => {
         </>
       ),
     },
+    {
+      key: '6',
+      label: <TitleWithNoTopMargin level={4}>SG-to-SG-ie-ICMP Rules</TitleWithNoTopMargin>,
+      children: (
+        <>
+          {!sgSgIeIcmpRules.length && !error && !isLoading && <Empty />}
+          {sgSgIeIcmpRules.length > 0 && (
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: {
+                  goButton: <Styled.ButtonWithMarginLeft size="small">Go</Styled.ButtonWithMarginLeft>,
+                },
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
+              }}
+              dataSource={sgSgIeIcmpRules.map(row => ({ ...row, key: `${row.Sg}${row.SgLocal}` }))}
+              columns={columnsSgSgIeIcmp}
+              scroll={{ x: 'max-content' }}
+              size="small"
+            />
+          )}
+        </>
+      ),
+    },
   ]
 
   return (
@@ -758,6 +887,27 @@ export const RulesList: FC = () => {
         </p>
         {deleteErrorSgSgIe && (
           <Result status="error" title={deleteErrorSgSgIe.status} subTitle={deleteErrorSgSgIe.data?.message} />
+        )}
+      </Modal>
+      <Modal
+        title="Delete sgSgIeIcmp rule"
+        open={isModalOpenSgSgIeIcmp}
+        onOk={() =>
+          pendingToDeleteSgSgIeIcmpRule &&
+          removeSgSgIeIcmpRuleFromList(pendingToDeleteSgSgIeIcmpRule.sgFrom, pendingToDeleteSgSgIeIcmpRule.sgTo)
+        }
+        confirmLoading={isLoading}
+        onCancel={() => {
+          setIsModalOpenSgSgIeIcmp(false)
+          setDeleteErrorSgSgIeIcmp(undefined)
+        }}
+      >
+        <p>
+          Are you sure you want to delete sgSgIeIcmp rule: {pendingToDeleteSgSgIeIcmpRule?.sgFrom} -{' '}
+          {pendingToDeleteSgSgIeIcmpRule?.sgTo}
+        </p>
+        {deleteErrorSgSgIeIcmp && (
+          <Result status="error" title={deleteErrorSgSgIeIcmp.status} subTitle={deleteErrorSgSgIeIcmp.data?.message} />
         )}
       </Modal>
     </>

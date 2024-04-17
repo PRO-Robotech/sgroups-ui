@@ -1,6 +1,6 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import type { ColumnsType } from 'antd/es/table'
@@ -14,31 +14,38 @@ import { Styled } from '../styled'
 
 type TFQDNTableProps = {
   isChangesMode: boolean
-  rules: TFormFqdnRule[]
+  rulesData: TFormFqdnRule[]
+  rulesAll: TFormFqdnRule[]
   setRules: Dispatch<SetStateAction<TFormFqdnRule[]>>
   setEditOpen: Dispatch<SetStateAction<boolean[]>>
   editOpen: boolean[]
   popoverPosition: TooltipPlacement
   isDisabled?: boolean
+  isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
 
 export const FQDNTable: FC<TFQDNTableProps> = ({
   isChangesMode,
-  rules,
+  rulesData,
+  rulesAll,
   setRules,
   setEditOpen,
   editOpen,
   popoverPosition,
   isDisabled,
+  isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
+  const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
 
   useEffect(() => {
-    setEditOpen(Array(rules.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false))
-  }, [rules, setEditOpen])
+    setEditOpen(
+      Array(rulesData.filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted).length).fill(false),
+    )
+  }, [rulesData, setEditOpen])
 
   const toggleEditPopover = (index: number) => {
     const newEditOpen = [...editOpen]
@@ -47,7 +54,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
   }
 
   const editRule = (oldValues: TFormFqdnRule, values: TFormFqdnRule) => {
-    const newFqdnRules = [...rules]
+    const newFqdnRules = [...rulesAll]
     const index = newFqdnRules.findIndex(
       ({ fqdn, transport, logs, portsSource, portsDestination }) =>
         fqdn === oldValues.fqdn &&
@@ -85,8 +92,16 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
     toggleEditPopover(index)
   }
 
-  const removeRule = (index: number) => {
-    const newFqdnRules = [...rules]
+  const removeRule = (oldValues: TFormFqdnRule) => {
+    const newFqdnRules = [...rulesAll]
+    const index = newFqdnRules.findIndex(
+      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+        fqdn === oldValues.fqdn &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
     const newEditOpenRules = [...editOpen]
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
       setRules([...newFqdnRules.slice(0, index), ...newFqdnRules.slice(index + 1)])
@@ -97,6 +112,20 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       setRules(newFqdnRules)
       toggleEditPopover(index)
     }
+  }
+
+  const restoreRule = (oldValues: TFormFqdnRule) => {
+    const newFqdnRules = [...rulesAll]
+    const index = newFqdnRules.findIndex(
+      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+        fqdn === oldValues.fqdn &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
+    newFqdnRules[index] = { ...newFqdnRules[index], formChanges: { status: STATUSES.modified }, checked: false }
+    setRules(newFqdnRules)
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -228,36 +257,41 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       title: 'Edit',
       key: 'edit',
       width: 50,
-      render: (_, { fqdn, logs, transport, portsSource, portsDestination }, index) => (
-        <Popover
-          content={
-            <EditFqdnPopover
-              values={{ fqdn, logs, transport, portsSource, portsDestination }}
-              remove={() => removeRule(index)}
-              hide={() => toggleEditPopover(index)}
-              edit={values => editRule({ fqdn, logs, transport, portsSource, portsDestination }, values)}
-              isDisabled={isDisabled}
-            />
-          }
-          title="FQDN"
-          trigger="click"
-          open={editOpen[index]}
-          onOpenChange={() => toggleEditPopover(index)}
-          placement={popoverPosition}
-          className="no-scroll"
-        >
-          <Styled.EditButton>Edit</Styled.EditButton>
-        </Popover>
+      render: (_, oldValues, index) => (
+        <>
+          {isRestoreButtonActive && (
+            <Styled.EditButton onClick={() => restoreRule(oldValues)}>Restore</Styled.EditButton>
+          )}
+          <Popover
+            content={
+              <EditFqdnPopover
+                values={oldValues}
+                remove={() => removeRule(oldValues)}
+                hide={() => toggleEditPopover(index)}
+                edit={values => editRule(oldValues, values)}
+                isDisabled={isDisabled}
+              />
+            }
+            title="FQDN"
+            trigger="click"
+            open={editOpen[index]}
+            onOpenChange={() => toggleEditPopover(index)}
+            placement={popoverPosition}
+            className="no-scroll"
+          >
+            <Styled.EditButton>Edit</Styled.EditButton>
+          </Popover>
+        </>
       ),
     },
   ]
 
   const dataSource = isChangesMode
-    ? rules.map(row => ({
+    ? rulesData.map(row => ({
         ...row,
         key: `${row.fqdn}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
       }))
-    : rules
+    : rulesData
         .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
         .map(row => ({
           ...row,
@@ -266,16 +300,55 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
 
   const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
     ? {
+        selectedRowKeys,
         type: 'checkbox',
+        onChange: (newSelectedRowKeys, newSelectedRows) => {
+          const newRules = [...rulesAll]
+          const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
+          const checkedIndexes = newSelectedRows
+            .filter(({ key }) => newSelectedRowKeys.includes(key))
+            .map(newRow =>
+              rulesAll.findIndex(
+                ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+                  fqdn === newRow.fqdn &&
+                  transport === newRow.transport &&
+                  logs === newRow.logs &&
+                  portsSource === newRow.portsSource &&
+                  portsDestination === newRow.portsDestination,
+              ),
+            )
+          const uncheckedIndexes = dataSource
+            .filter(({ key }) => uncheckedKeys.includes(key))
+            .map(newRow =>
+              rulesAll.findIndex(
+                ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+                  fqdn === newRow.fqdn &&
+                  transport === newRow.transport &&
+                  logs === newRow.logs &&
+                  portsSource === newRow.portsSource &&
+                  portsDestination === newRow.portsDestination,
+              ),
+            )
+          checkedIndexes.forEach(
+            // eslint-disable-next-line no-return-assign
+            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
+          )
+          uncheckedIndexes.forEach(
+            // eslint-disable-next-line no-return-assign
+            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
+          )
+          setRules(newRules)
+          setSelectedRowKeys(newSelectedRowKeys)
+        },
         onSelect: (record: TColumn, selected: boolean) => {
-          const newRules = [...rules]
+          const newRules = [...rulesAll]
           const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ fqdn, transport, logs, portsDestination, portsSource }) =>
-              record.fqdn === fqdn &&
-              record.transport === transport &&
-              record.logs === logs &&
-              record.portsDestination === portsDestination &&
-              record.portsSource === portsSource,
+            ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+              fqdn === record.fqdn &&
+              transport === record.transport &&
+              logs === record.logs &&
+              portsSource === record.portsSource &&
+              portsDestination === record.portsDestination,
           )
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }

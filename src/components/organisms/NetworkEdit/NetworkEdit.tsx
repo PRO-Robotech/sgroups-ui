@@ -96,7 +96,17 @@ export const NetworkEdit: FC<TNetworkEditProps> = ({ id }) => {
           <Spacer $space={15} $samespace />
           <Form form={form} name="control-hooks" onFinish={onFinish}>
             <Styled.Container>
-              <Styled.FormItem name="cidr" label="CIDR">
+              <Styled.FormItem
+                name="cidr"
+                label="CIDR"
+                rules={[
+                  {
+                    required: true,
+                    pattern: /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/,
+                    message: 'Please input valid CIDR',
+                  },
+                ]}
+              >
                 <Input allowClear />
               </Styled.FormItem>
               <Styled.ButtonFormItem>

@@ -65,6 +65,9 @@ export const EditSgSgIePopover: FC<TEditSgSgIePopoverProps> = ({ sgNames, values
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
         <Switch disabled={isDisabled} />
       </Styled.FormItem>
+      <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
+        <Switch disabled={isDisabled} />
+      </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>
           <Button type="dashed" block icon={<CloseOutlined />} onClick={hide}>

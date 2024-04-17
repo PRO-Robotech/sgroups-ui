@@ -1,20 +1,20 @@
 import React, { FC } from 'react'
 import { Card, Form, Input, Button } from 'antd'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { Spacer } from 'components'
 import { TNetworkForm } from 'localTypes/networks'
 import { Styled } from './styled'
 
 type TSingleNetworkAdd = {
   onFormChange: (values: Pick<TNetworkForm, 'name' | 'CIDR'>, validateResult: boolean) => void
   removeNwCard: () => void
+  isDeleteButtonDisabled: boolean
 }
 
-export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNwCard }) => {
+export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNwCard, isDeleteButtonDisabled }) => {
   const [form] = Form.useForm()
 
   return (
     <Card>
-      <TitleWithNoTopMargin level={2}>Add a network</TitleWithNoTopMargin>
       <Spacer $space={15} $samespace />
       <Form
         form={form}
@@ -52,7 +52,7 @@ export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNw
             <Input allowClear />
           </Styled.FormItem>
           <Styled.ButtonFormItem>
-            <Button type="dashed" onClick={removeNwCard}>
+            <Button type="dashed" onClick={removeNwCard} disabled={isDeleteButtonDisabled}>
               Delete
             </Button>
           </Styled.ButtonFormItem>
