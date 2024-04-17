@@ -83,6 +83,9 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
       if (newSgSgIeIcmpRules[index].logs !== values.logs) {
         modifiedFields.push('logs')
       }
+      if (newSgSgIeIcmpRules[index].trace !== values.trace) {
+        modifiedFields.push('trace')
+      }
       if (modifiedFields.length === 0) {
         newSgSgIeIcmpRules[index] = { ...values }
       } else {
