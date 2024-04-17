@@ -48,14 +48,6 @@ export const SelectMainSG: FC<TSelectMainSGProps> = ({ sgNames, onSelectMainSg, 
     }
   }, [centerSg])
 
-  useEffect(() => {
-    if (!centerSg) {
-      setCurValues([{ name: 'name', value: undefined }])
-    } else {
-      setCurValues([{ name: 'name', value: centerSg }])
-    }
-  }, [centerSg, curValues])
-
   return (
     <Styled.GroupRulesNode>
       <TitleWithNoTopMargin level={4}>Main SG</TitleWithNoTopMargin>

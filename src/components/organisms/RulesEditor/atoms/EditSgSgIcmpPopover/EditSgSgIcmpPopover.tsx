@@ -67,7 +67,17 @@ export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
         label="Types"
         name="types"
         tooltip="Separator: space / coma"
-        rules={[{ required: true, message: 'Please choose IPv' }]}
+        rules={[
+          { required: true, message: 'Please choose types' },
+          () => ({
+            validator(_, value: string[]) {
+              if (value.some(el => /^\b(?:1\d{2}|2[0-4]\d|[1-9]?\d|25[0-5])\b$/.test(el) === false)) {
+                return Promise.reject(new Error('Please enter valid type'))
+              }
+              return Promise.resolve()
+            },
+          }),
+        ]}
       >
         <Select
           mode="tags"
