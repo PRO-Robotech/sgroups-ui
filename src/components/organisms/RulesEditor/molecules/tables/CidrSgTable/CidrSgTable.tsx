@@ -23,6 +23,7 @@ type TCidrSgTableProps = {
   editOpen: boolean[]
   popoverPosition: TooltipPlacement
   isDisabled?: boolean
+  isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
 
@@ -36,6 +37,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
   editOpen,
   popoverPosition,
   isDisabled,
+  isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -128,6 +130,27 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
       setRules(newCidrSgRules)
       toggleEditPopover(index)
     }
+  }
+
+  const restoreRule = (oldValues: TFormCidrSgRule) => {
+    const newCidrSgRules = [...rulesAll]
+    const index = newCidrSgRules.findIndex(
+      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+        cidr === oldValues.cidr &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
+    newCidrSgRules[index] = {
+      ...newCidrSgRules[index],
+      traffic: defaultTraffic,
+      formChanges: { status: STATUSES.modified },
+      checked: false,
+    }
+    setRules(newCidrSgRules)
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -279,25 +302,30 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
       key: 'edit',
       width: 50,
       render: (_, oldValues, index) => (
-        <Popover
-          content={
-            <EditCidrSgPopover
-              values={oldValues}
-              remove={() => removeRule(oldValues)}
-              hide={() => toggleEditPopover(index)}
-              edit={values => editRule(oldValues, values)}
-              isDisabled={isDisabled}
-            />
-          }
-          title="CIDR-SG"
-          trigger="click"
-          open={editOpen[index]}
-          onOpenChange={() => toggleEditPopover(index)}
-          placement={popoverPosition}
-          className="no-scroll"
-        >
-          <Styled.EditButton>Edit</Styled.EditButton>
-        </Popover>
+        <>
+          {isRestoreButtonActive && (
+            <Styled.EditButton onClick={() => restoreRule(oldValues)}>Restore</Styled.EditButton>
+          )}
+          <Popover
+            content={
+              <EditCidrSgPopover
+                values={oldValues}
+                remove={() => removeRule(oldValues)}
+                hide={() => toggleEditPopover(index)}
+                edit={values => editRule(oldValues, values)}
+                isDisabled={isDisabled}
+              />
+            }
+            title="CIDR-SG"
+            trigger="click"
+            open={editOpen[index]}
+            onOpenChange={() => toggleEditPopover(index)}
+            placement={popoverPosition}
+            className="no-scroll"
+          >
+            <Styled.EditButton>Edit</Styled.EditButton>
+          </Popover>
+        </>
       ),
     },
   ]

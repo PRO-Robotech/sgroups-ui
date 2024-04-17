@@ -25,6 +25,7 @@ type TSGTableProps = {
   popoverPosition: TooltipPlacement
   centerSg?: string
   isDisabled?: boolean
+  isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
 
@@ -41,6 +42,7 @@ export const SGTable: FC<TSGTableProps> = ({
   popoverPosition,
   centerSg,
   isDisabled,
+  isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -154,6 +156,36 @@ export const SGTable: FC<TSGTableProps> = ({
       setRulesOtherside(newSgRulesOtherside)
       toggleEditPopover(index)
     }
+  }
+
+  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
+  const restoreRule = (oldValues: TFormSgRule) => {
+    const newSgRules = [...rulesAll]
+    const index = newSgRules.findIndex(
+      ({ sg, portsSource, portsDestination, transport, logs }) =>
+        sg === oldValues.sg &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs,
+    )
+    const newSgRulesOtherside = [...rulesOtherside]
+    const newSgRulesOthersideIndex = rulesOtherside.findIndex(
+      ({ sg, portsSource, portsDestination, transport, logs }) =>
+        sg === centerSg &&
+        portsSource === newSgRules[index].portsSource &&
+        portsDestination === newSgRules[index].portsDestination &&
+        transport === newSgRules[index].transport &&
+        logs === newSgRules[index].logs,
+    )
+    newSgRules[index] = { ...newSgRules[index], formChanges: { status: STATUSES.modified }, checked: false }
+    newSgRulesOtherside[newSgRulesOthersideIndex] = {
+      ...newSgRulesOtherside[newSgRulesOthersideIndex],
+      formChanges: { status: STATUSES.modified },
+      checked: false,
+    }
+    setRules(newSgRules)
+    setRulesOtherside(newSgRulesOtherside)
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -286,26 +318,31 @@ export const SGTable: FC<TSGTableProps> = ({
       key: 'edit',
       width: 50,
       render: (_, oldValues, index) => (
-        <Popover
-          content={
-            <EditSGPopover
-              sgNames={sgNames}
-              values={oldValues}
-              remove={() => removeRule(oldValues)}
-              hide={() => toggleEditPopover(index)}
-              edit={values => editRule(oldValues, values)}
-              isDisabled={isDisabled}
-            />
-          }
-          title="SG"
-          trigger="click"
-          open={editOpen[index]}
-          onOpenChange={() => toggleEditPopover(index)}
-          placement={popoverPosition}
-          className="no-scroll"
-        >
-          <Styled.EditButton>Edit</Styled.EditButton>
-        </Popover>
+        <>
+          {isRestoreButtonActive && (
+            <Styled.EditButton onClick={() => restoreRule(oldValues)}>Restore</Styled.EditButton>
+          )}
+          <Popover
+            content={
+              <EditSGPopover
+                sgNames={sgNames}
+                values={oldValues}
+                remove={() => removeRule(oldValues)}
+                hide={() => toggleEditPopover(index)}
+                edit={values => editRule(oldValues, values)}
+                isDisabled={isDisabled}
+              />
+            }
+            title="SG"
+            trigger="click"
+            open={editOpen[index]}
+            onOpenChange={() => toggleEditPopover(index)}
+            placement={popoverPosition}
+            className="no-scroll"
+          >
+            <Styled.EditButton>Edit</Styled.EditButton>
+          </Popover>
+        </>
       ),
     },
   ]

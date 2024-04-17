@@ -23,6 +23,7 @@ type TSgSgIeTableProps = {
   setEditOpen: Dispatch<SetStateAction<boolean[]>>
   editOpen: boolean[]
   isDisabled?: boolean
+  isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
 
@@ -37,6 +38,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   setEditOpen,
   editOpen,
   isDisabled,
+  isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -55,7 +57,6 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
     setEditOpen(newEditOpen)
   }
 
-  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const editRule = (oldValues: TFormSgSgIeRule, values: TFormSgSgIeRule) => {
     const newSgSgIeRules = [...rulesAll]
     const index = newSgSgIeRules.findIndex(
@@ -104,7 +105,6 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
     toggleEditPopover(index)
   }
 
-  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const removeRule = (oldValues: TFormSgSgIeRule) => {
     const newSgSgIeRules = [...rulesAll]
     const index = newSgSgIeRules.findIndex(
@@ -131,6 +131,27 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
       setRules(newSgSgIeRules)
       toggleEditPopover(index)
     }
+  }
+
+  const restoreRule = (oldValues: TFormSgSgIeRule) => {
+    const newSgSgIeRules = [...rulesAll]
+    const index = newSgSgIeRules.findIndex(
+      ({ sg, portsSource, portsDestination, logs, trace, traffic, transport }) =>
+        sg === oldValues.sg &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace &&
+        traffic === oldValues.traffic &&
+        transport === oldValues.transport,
+    )
+    newSgSgIeRules[index] = {
+      ...newSgSgIeRules[index],
+      traffic: defaultTraffic,
+      formChanges: { status: STATUSES.modified },
+      checked: false,
+    }
+    setRules(newSgSgIeRules)
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -282,26 +303,31 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
       key: 'edit',
       width: 50,
       render: (_, oldValues, index) => (
-        <Popover
-          content={
-            <EditSgSgIePopover
-              sgNames={sgNames}
-              values={oldValues}
-              remove={() => removeRule(oldValues)}
-              hide={() => toggleEditPopover(index)}
-              edit={values => editRule(oldValues, values)}
-              isDisabled={isDisabled}
-            />
-          }
-          title="SG-SG-IE"
-          trigger="click"
-          open={editOpen[index]}
-          onOpenChange={() => toggleEditPopover(index)}
-          placement={popoverPosition}
-          className="no-scroll"
-        >
-          <Styled.EditButton>Edit</Styled.EditButton>
-        </Popover>
+        <>
+          {isRestoreButtonActive && (
+            <Styled.EditButton onClick={() => restoreRule(oldValues)}>Restore</Styled.EditButton>
+          )}
+          <Popover
+            content={
+              <EditSgSgIePopover
+                sgNames={sgNames}
+                values={oldValues}
+                remove={() => removeRule(oldValues)}
+                hide={() => toggleEditPopover(index)}
+                edit={values => editRule(oldValues, values)}
+                isDisabled={isDisabled}
+              />
+            }
+            title="SG-SG-IE"
+            trigger="click"
+            open={editOpen[index]}
+            onOpenChange={() => toggleEditPopover(index)}
+            placement={popoverPosition}
+            className="no-scroll"
+          >
+            <Styled.EditButton>Edit</Styled.EditButton>
+          </Popover>
+        </>
       ),
     },
   ]

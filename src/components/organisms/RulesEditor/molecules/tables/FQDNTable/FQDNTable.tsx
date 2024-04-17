@@ -21,6 +21,7 @@ type TFQDNTableProps = {
   editOpen: boolean[]
   popoverPosition: TooltipPlacement
   isDisabled?: boolean
+  isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
 
@@ -33,6 +34,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
   editOpen,
   popoverPosition,
   isDisabled,
+  isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -110,6 +112,20 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       setRules(newFqdnRules)
       toggleEditPopover(index)
     }
+  }
+
+  const restoreRule = (oldValues: TFormFqdnRule) => {
+    const newFqdnRules = [...rulesAll]
+    const index = newFqdnRules.findIndex(
+      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+        fqdn === oldValues.fqdn &&
+        transport === oldValues.transport &&
+        logs === oldValues.logs &&
+        portsSource === oldValues.portsSource &&
+        portsDestination === oldValues.portsDestination,
+    )
+    newFqdnRules[index] = { ...newFqdnRules[index], formChanges: { status: STATUSES.modified }, checked: false }
+    setRules(newFqdnRules)
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -242,25 +258,30 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       key: 'edit',
       width: 50,
       render: (_, oldValues, index) => (
-        <Popover
-          content={
-            <EditFqdnPopover
-              values={oldValues}
-              remove={() => removeRule(oldValues)}
-              hide={() => toggleEditPopover(index)}
-              edit={values => editRule(oldValues, values)}
-              isDisabled={isDisabled}
-            />
-          }
-          title="FQDN"
-          trigger="click"
-          open={editOpen[index]}
-          onOpenChange={() => toggleEditPopover(index)}
-          placement={popoverPosition}
-          className="no-scroll"
-        >
-          <Styled.EditButton>Edit</Styled.EditButton>
-        </Popover>
+        <>
+          {isRestoreButtonActive && (
+            <Styled.EditButton onClick={() => restoreRule(oldValues)}>Restore</Styled.EditButton>
+          )}
+          <Popover
+            content={
+              <EditFqdnPopover
+                values={oldValues}
+                remove={() => removeRule(oldValues)}
+                hide={() => toggleEditPopover(index)}
+                edit={values => editRule(oldValues, values)}
+                isDisabled={isDisabled}
+              />
+            }
+            title="FQDN"
+            trigger="click"
+            open={editOpen[index]}
+            onOpenChange={() => toggleEditPopover(index)}
+            placement={popoverPosition}
+            className="no-scroll"
+          >
+            <Styled.EditButton>Edit</Styled.EditButton>
+          </Popover>
+        </>
       ),
     },
   ]

@@ -142,6 +142,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               editOpen={editOpenDeletedRules}
               popoverPosition={compareResult.popoverPosition}
               centerSg={compareResult.centerSg}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -192,6 +193,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               setEditOpen={setEditOpenDeletedRules}
               editOpen={editOpenDeletedRules}
               popoverPosition={compareResult.popoverPosition}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -245,6 +247,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               setEditOpen={setEditOpenDeletedRules}
               editOpen={editOpenDeletedRules}
               popoverPosition={compareResult.popoverPosition}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -307,6 +310,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               editOpen={editOpenDeletedRules}
               setEditOpen={setEditOpenDeletedRules}
               centerSg={compareResult.centerSg}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -363,6 +367,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               setRules={compareResult.setRules}
               setEditOpen={setEditOpenDeletedRules}
               editOpen={editOpenDeletedRules}
+              isRestoreButtonActive
             />
           </>
         )}
@@ -418,6 +423,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             setRules={compareResult.setRules}
             editOpen={editOpenDeletedRules}
             setEditOpen={setEditOpenDeletedRules}
+            isRestoreButtonActive
           />
         </>
       )}

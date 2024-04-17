@@ -25,6 +25,7 @@ type TSgSgIcmpTableProps = {
   setEditOpen: Dispatch<SetStateAction<boolean[]>>
   centerSg?: string
   isDisabled?: boolean
+  isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
 
@@ -41,6 +42,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   setEditOpen,
   centerSg,
   isDisabled,
+  isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -165,6 +167,36 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
       setRulesOtherside(newSgSgIcmpRulesOtherside)
       toggleEditPopover(index)
     }
+  }
+
+  /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
+  const restoreRule = (oldValues: TFormSgSgIcmpRule) => {
+    const newSgSgIcmpRules = [...rulesAll]
+    const index = newSgSgIcmpRules.findIndex(
+      ({ sg, IPv, types, logs, trace }) =>
+        sg === oldValues.sg &&
+        IPv === oldValues.IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
+        logs === oldValues.logs &&
+        trace === oldValues.trace,
+    )
+    const newSgSgIcmpRulesOtherside = [...rulesOtherside]
+    const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
+      ({ sg, IPv, types, logs, trace }) =>
+        sg === centerSg &&
+        IPv === newSgSgIcmpRules[index].IPv &&
+        JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
+        logs === newSgSgIcmpRules[index].logs &&
+        trace === newSgSgIcmpRules[index].trace,
+    )
+    newSgSgIcmpRules[index] = { ...newSgSgIcmpRules[index], formChanges: { status: STATUSES.modified }, checked: false }
+    newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
+      ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex],
+      formChanges: { status: STATUSES.modified },
+      checked: false,
+    }
+    setRules(newSgSgIcmpRules)
+    setRulesOtherside(newSgSgIcmpRulesOtherside)
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -308,26 +340,31 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
       key: 'edit',
       width: 50,
       render: (_, oldValues, index) => (
-        <Popover
-          content={
-            <EditSgSgIcmpPopover
-              sgNames={sgNames}
-              values={oldValues}
-              remove={() => removeRule(oldValues)}
-              hide={() => toggleEditPopover(index)}
-              edit={values => editRule(oldValues, values)}
-              isDisabled={isDisabled}
-            />
-          }
-          title="SG SG ICMP"
-          trigger="click"
-          open={editOpen[index]}
-          onOpenChange={() => toggleEditPopover(index)}
-          placement={popoverPosition}
-          className="no-scroll"
-        >
-          <Styled.EditButton>Edit</Styled.EditButton>
-        </Popover>
+        <>
+          {isRestoreButtonActive && (
+            <Styled.EditButton onClick={() => restoreRule(oldValues)}>Restore</Styled.EditButton>
+          )}
+          <Popover
+            content={
+              <EditSgSgIcmpPopover
+                sgNames={sgNames}
+                values={oldValues}
+                remove={() => removeRule(oldValues)}
+                hide={() => toggleEditPopover(index)}
+                edit={values => editRule(oldValues, values)}
+                isDisabled={isDisabled}
+              />
+            }
+            title="SG SG ICMP"
+            trigger="click"
+            open={editOpen[index]}
+            onOpenChange={() => toggleEditPopover(index)}
+            placement={popoverPosition}
+            className="no-scroll"
+          >
+            <Styled.EditButton>Edit</Styled.EditButton>
+          </Popover>
+        </>
       ),
     },
   ]
