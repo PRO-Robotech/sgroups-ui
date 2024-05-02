@@ -10,6 +10,10 @@ export const mainPageLeftList = [
   {
     key: '/rules',
     label: 'Rules',
+    children: [
+      { key: '/rules/sg-sg', label: 'SG-SG' },
+      { key: '/rules/fqdn', label: 'FQDN' },
+    ],
   },
   {
     key: '/graph',

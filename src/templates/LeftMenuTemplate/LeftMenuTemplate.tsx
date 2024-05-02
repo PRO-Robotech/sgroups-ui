@@ -27,6 +27,8 @@ export const LeftMenuTemplate: FC<TLeftMenuTemplateProps> = ({ children }) => {
               theme="dark"
               mode="inline"
               selectedKeys={[currentSection]}
+              defaultOpenKeys={['/rules']}
+              expandIcon={null}
               items={mainPageLeftList}
               onClick={({ key }) => {
                 history.push(key)
