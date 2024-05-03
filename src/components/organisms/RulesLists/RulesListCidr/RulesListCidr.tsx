@@ -2,15 +2,23 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, Button, Result, Spin, Empty, Modal } from 'antd'
+import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getCidrSgRules, removeCidrSgRule } from 'api/rules'
 import { ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TCidrRule } from 'localTypes/rules'
 import { Styled } from './styled'
+
+type TCidrRuleColumn = TCidrRule & {
+  key: string
+}
+
+type OnChange = NonNullable<TableProps<TCidrRuleColumn>['onChange']>
+
+type Filters = Parameters<OnChange>[1]
 
 export const RulesListCidr: FC = () => {
   const [cidrRules, setCidrRules] = useState<TCidrRule[]>([])
@@ -19,6 +27,8 @@ export const RulesListCidr: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpenCidr, setIsModalOpenCidr] = useState<boolean>(false)
   const [pendingToDeleteCidrRule, setPendingToDeleteCidrRule] = useState<{ sg: string; cidr: string }>()
+  const [searchText, setSearchText] = useState('')
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
 
   useEffect(() => {
@@ -69,12 +79,13 @@ export const RulesListCidr: FC = () => {
   if (error) {
     return <Result status="error" title={error.status} subTitle={error.data?.message} />
   }
+
   if (isLoading) {
     return <Spin />
   }
 
-  type TCidrRuleColumn = TCidrRule & {
-    key: string
+  const handleSearch = (searchText: string) => {
+    setFilteredInfo({ name: searchText ? [searchText] : null })
   }
 
   const columnsCidr: ColumnsType<TCidrRuleColumn> = [
@@ -83,6 +94,7 @@ export const RulesListCidr: FC = () => {
       dataIndex: 'SG',
       key: 'SG',
       width: 150,
+      filteredValue: filteredInfo.name || null,
     },
     {
       title: 'CIDR',
@@ -147,13 +159,27 @@ export const RulesListCidr: FC = () => {
   return (
     <>
       <Card>
-        <TitleWithNoTopMargin level={2}>Rules</TitleWithNoTopMargin>
+        <TitleWithNoTopMargin level={2}>Rules: SG-CIDR</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
-          Editor
-        </Button>
-        <Spacer $space={25} $samespace />
-        <TitleWithNoTopMargin level={4}>SG-to-CIDR Rules</TitleWithNoTopMargin>
+        <Styled.FiltersContainer>
+          <div>
+            <Input
+              allowClear
+              placeholder="Filter by SG name"
+              value={searchText}
+              onChange={e => setSearchText(e.target.value)}
+              onPressEnter={() => handleSearch(searchText)}
+            />
+          </div>
+          <div>
+            <Styled.ButtonWithMarginLeft
+              onClick={() => handleSearch(searchText)}
+              icon={<SearchOutlined />}
+              type="primary"
+            />
+          </div>
+        </Styled.FiltersContainer>
+        <Spacer $space={15} $samespace />
         {!cidrRules.length && !error && !isLoading && <Empty />}
         {cidrRules.length > 0 && (
           <Table
@@ -172,6 +198,10 @@ export const RulesListCidr: FC = () => {
             size="small"
           />
         )}
+        <Spacer $space={15} $samespace />
+        <Button type="primary" onClick={() => history.push('/rules/editor')}>
+          Add
+        </Button>
       </Card>
       <Modal
         title="Delete cidr rule"
