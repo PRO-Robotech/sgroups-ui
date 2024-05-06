@@ -9,9 +9,9 @@ type TContainerProps = {
 const Container = styled.div<TContainerProps>`
   position: absolute;
   bottom: 0;
-  left: 50px;
+  left: 250px;
   z-index: 2;
-  width: calc(100vw - 148px);
+  width: calc(100vw - 348px);
   height: ${({ $isOpen, $containerHeight }) => {
     if ($isOpen) {
       return '90vh'
