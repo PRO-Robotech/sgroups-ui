@@ -1,4 +1,4 @@
-export const mainPageLeftList = [
+const mainPageLeftListData = [
   {
     key: '/security-groups',
     label: 'Security Groups',
@@ -24,12 +24,19 @@ export const mainPageLeftList = [
       { key: '/rules-sg-sg-ie-icmp', label: 'SG-SG-IE-ICMP' },
     ],
   },
-  {
-    key: 'divider',
-    type: 'divider',
-  },
-  {
-    key: '/graph',
-    label: 'Graph',
-  },
 ]
+
+export const mainPageLeftList =
+  process.env.GRAPH_ENABLED === 'true'
+    ? [
+        ...mainPageLeftListData,
+        {
+          key: 'divider',
+          type: 'divider',
+        },
+        {
+          key: '/graph',
+          label: 'Graph',
+        },
+      ]
+    : [...mainPageLeftListData]
