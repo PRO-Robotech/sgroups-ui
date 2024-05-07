@@ -1,6 +1,5 @@
 import React, { FC, Dispatch, SetStateAction, useState, useEffect, useCallback } from 'react'
-import { Button, Breadcrumb } from 'antd'
-import { HomeOutlined } from '@ant-design/icons'
+import { Button } from 'antd'
 import { Spacer } from 'components'
 import {
   TFormSgRule,
@@ -10,7 +9,6 @@ import {
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
 } from 'localTypes/rules'
-import { BASEPREFIX } from 'constants/basePrefix'
 import { ChangesBlock } from '../../molecules'
 import { Styled } from './styled'
 
@@ -107,19 +105,6 @@ export const BottomBar: FC<TBottomBarProps> = ({
     <Styled.Container $isOpen={isOpen} $containerHeight={containerHeight}>
       {isOpen ? <Spacer $space={15} $samespace /> : <Styled.Resizer onMouseDown={() => handleResize()} />}
       <Styled.FlexContainer>
-        <Styled.FlexContainerItem>
-          <Breadcrumb
-            items={[
-              {
-                href: `${BASEPREFIX}/`,
-                title: <HomeOutlined />,
-              },
-              {
-                title: 'Editor',
-              },
-            ]}
-          />
-        </Styled.FlexContainerItem>
         <Styled.FlexContainerItem>
           {!isOpen && (
             <Button type="primary" htmlType="submit" disabled={!centerSg} onClick={() => setIsOpen(true)}>

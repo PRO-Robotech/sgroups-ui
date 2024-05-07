@@ -8,7 +8,7 @@ import {
   NetworksPage,
   NetworksAddPage,
   NetworksEditPage,
-  RulesPage,
+  RulesPageSpecific,
   RulesEditorPage,
   GraphPage,
 } from 'pages'
@@ -38,8 +38,23 @@ export const App: FC = () => (
       <Route path="/networks/edit/:networkId">
         <NetworksEditPage />
       </Route>
-      <Route exact path="/rules">
-        <RulesPage />
+      <Route exact path="/rules-sg-sg">
+        <RulesPageSpecific id="sgSg" />
+      </Route>
+      <Route exact path="/rules-fqdn">
+        <RulesPageSpecific id="fqdn" />
+      </Route>
+      <Route exact path="/rules-cidr">
+        <RulesPageSpecific id="cidr" />
+      </Route>
+      <Route exact path="/rules-sg-sg-icmp">
+        <RulesPageSpecific id="sgSgIcmp" />
+      </Route>
+      <Route exact path="/rules-sg-sg-ie">
+        <RulesPageSpecific id="sgSgIe" />
+      </Route>
+      <Route exact path="/rules-sg-sg-ie-icmp">
+        <RulesPageSpecific id="sgSgIeIcmp" />
       </Route>
       <Route exact path="/rules/editor/:securityGroupId?">
         <RulesEditorPage />
