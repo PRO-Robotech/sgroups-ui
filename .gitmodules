@@ -1,3 +1,4 @@
 [submodule "deploy"]
 	path = deploy
 	url = git@gitlab-internal.wildberries.ru:swarm/frontops/frontend-client-ui-deploy
+	branch = main
