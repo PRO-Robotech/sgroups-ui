@@ -8,6 +8,7 @@ import {
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
+  TFormCidrSgIcmpRule,
 } from 'localTypes/rules'
 import { ChangesBlock } from '../../molecules'
 import { Styled } from './styled'
@@ -37,6 +38,10 @@ type TBottomBarProps = {
   setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
   setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[]
+  setRulesCidrSgIcmpFrom: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
+  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[]
+  setRulesCidrSgIcmpTo: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
   centerSg?: string
 }
 
@@ -66,6 +71,10 @@ export const BottomBar: FC<TBottomBarProps> = ({
   setRulesSgSgIeIcmpFrom,
   rulesSgSgIeIcmpTo,
   setRulesSgSgIeIcmpTo,
+  rulesCidrSgIcmpFrom,
+  setRulesCidrSgIcmpFrom,
+  rulesCidrSgIcmpTo,
+  setRulesCidrSgIcmpTo,
 }) => {
   const [isOpen, setIsOpen] = useState(false)
 
@@ -139,6 +148,10 @@ export const BottomBar: FC<TBottomBarProps> = ({
           setRulesSgSgIeIcmpFrom={setRulesSgSgIeIcmpFrom}
           rulesSgSgIeIcmpTo={rulesSgSgIeIcmpTo}
           setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
+          rulesCidrSgIcmpFrom={rulesCidrSgIcmpFrom}
+          setRulesCidrSgIcmpFrom={setRulesCidrSgIcmpFrom}
+          rulesCidrSgIcmpTo={rulesCidrSgIcmpTo}
+          setRulesCidrSgIcmpTo={setRulesCidrSgIcmpTo}
           onClose={() => {
             setIsOpen(false)
           }}
