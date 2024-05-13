@@ -14,7 +14,7 @@ import {
 } from 'localTypes/rules'
 
 export const mapRulesSgFrom = (rules: TSgRule[]): TFormSgRule[] => {
-  return rules.flatMap(({ sgFrom, transport, ports, logs }) => {
+  return rules.flatMap(({ sgFrom, transport, ports, logs, action, priority }) => {
     if (ports.length > 0) {
       return ports.map(({ s, d }) => ({
         sg: sgFrom,
@@ -22,18 +22,22 @@ export const mapRulesSgFrom = (rules: TSgRule[]): TFormSgRule[] => {
         portsSource: s,
         portsDestination: d,
         logs,
+        action,
+        prioritySome: priority?.some,
       }))
     }
     return {
       sg: sgFrom,
       transport,
       logs,
+      action,
+      prioritySome: priority?.some,
     }
   })
 }
 
 export const mapRulesSgTo = (rules: TSgRule[]): TFormSgRule[] => {
-  return rules.flatMap(({ sgTo, transport, ports, logs }) => {
+  return rules.flatMap(({ sgTo, transport, ports, logs, action, priority }) => {
     if (ports.length > 0) {
       return ports.map(({ s, d }) => ({
         sg: sgTo,
@@ -41,18 +45,22 @@ export const mapRulesSgTo = (rules: TSgRule[]): TFormSgRule[] => {
         portsSource: s,
         portsDestination: d,
         logs,
+        action,
+        prioritySome: priority?.some,
       }))
     }
     return {
       sg: sgTo,
       transport,
       logs,
+      action,
+      prioritySome: priority?.some,
     }
   })
 }
 
 export const mapRulesFqdnTo = (rules: TFqdnRule[]): TFormFqdnRule[] => {
-  return rules.flatMap(({ FQDN, transport, ports, logs }) => {
+  return rules.flatMap(({ FQDN, transport, ports, logs, action, priority }) => {
     if (ports.length > 0) {
       return ports.map(({ s, d }) => ({
         fqdn: FQDN,
@@ -60,12 +68,16 @@ export const mapRulesFqdnTo = (rules: TFqdnRule[]): TFormFqdnRule[] => {
         portsSource: s,
         portsDestination: d,
         logs,
+        action,
+        prioritySome: priority?.some,
       }))
     }
     return {
       fqdn: FQDN,
       transport,
       logs,
+      action,
+      prioritySome: priority?.some,
     }
   })
 }
@@ -73,7 +85,7 @@ export const mapRulesFqdnTo = (rules: TFqdnRule[]): TFormFqdnRule[] => {
 export const mapRulesCidrSgFrom = (rules: TCidrRule[]): TFormCidrSgRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Ingress')
-    .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) => {
+    .flatMap(({ CIDR, ports, transport, logs, trace, traffic, action, priority }) => {
       if (ports.length > 0) {
         return ports.map(({ s, d }) => ({
           cidr: CIDR,
@@ -83,6 +95,8 @@ export const mapRulesCidrSgFrom = (rules: TCidrRule[]): TFormCidrSgRule[] => {
           logs,
           trace,
           traffic,
+          action,
+          prioritySome: priority?.some,
         }))
       }
       return {
@@ -91,6 +105,8 @@ export const mapRulesCidrSgFrom = (rules: TCidrRule[]): TFormCidrSgRule[] => {
         logs,
         trace,
         traffic,
+        action,
+        prioritySome: priority?.some,
       }
     })
 }
@@ -98,7 +114,7 @@ export const mapRulesCidrSgFrom = (rules: TCidrRule[]): TFormCidrSgRule[] => {
 export const mapRulesCidrSgTo = (rules: TCidrRule[]): TFormCidrSgRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Egress')
-    .flatMap(({ CIDR, ports, transport, logs, trace, traffic }) => {
+    .flatMap(({ CIDR, ports, transport, logs, trace, traffic, action, priority }) => {
       if (ports.length > 0) {
         return ports.map(({ s, d }) => ({
           cidr: CIDR,
@@ -108,6 +124,8 @@ export const mapRulesCidrSgTo = (rules: TCidrRule[]): TFormCidrSgRule[] => {
           logs,
           trace,
           traffic,
+          action,
+          prioritySome: priority?.some,
         }))
       }
       return {
@@ -116,34 +134,40 @@ export const mapRulesCidrSgTo = (rules: TCidrRule[]): TFormCidrSgRule[] => {
         logs,
         trace,
         traffic,
+        action,
+        prioritySome: priority?.some,
       }
     })
 }
 
 export const mapRulesSgSgIcmpFrom = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[] => {
-  return rules.map(({ SgFrom, logs, trace, ICMP }) => ({
+  return rules.map(({ SgFrom, logs, trace, ICMP, action, priority }) => ({
     sg: SgFrom,
     logs,
     trace,
     IPv: ICMP.IPv,
     types: ICMP.Types,
+    action,
+    prioritySome: priority?.some,
   }))
 }
 
 export const mapRulesSgSgIcmpTo = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[] => {
-  return rules.map(({ SgTo, logs, trace, ICMP }) => ({
+  return rules.map(({ SgTo, logs, trace, ICMP, action, priority }) => ({
     sg: SgTo,
     logs,
     trace,
     IPv: ICMP.IPv,
     types: ICMP.Types,
+    action,
+    prioritySome: priority?.some,
   }))
 }
 
 export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Ingress')
-    .flatMap(({ Sg, ports, transport, logs, trace, traffic }) => {
+    .flatMap(({ Sg, ports, transport, logs, trace, traffic, action, priority }) => {
       if (ports.length > 0) {
         return ports.map(({ s, d }) => ({
           sg: Sg,
@@ -153,6 +177,8 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
           logs,
           trace,
           traffic,
+          action,
+          prioritySome: priority?.some,
         }))
       }
       return {
@@ -161,6 +187,8 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         logs,
         trace,
         traffic,
+        action,
+        prioritySome: priority?.some,
       }
     })
 }
@@ -168,7 +196,7 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
 export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Egress')
-    .flatMap(({ Sg, ports, transport, logs, trace, traffic }) => {
+    .flatMap(({ Sg, ports, transport, logs, trace, traffic, action, priority }) => {
       if (ports.length > 0) {
         return ports.map(({ s, d }) => ({
           sg: Sg,
@@ -178,6 +206,8 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
           logs,
           trace,
           traffic,
+          action,
+          prioritySome: priority?.some,
         }))
       }
       return {
@@ -186,6 +216,8 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         logs,
         trace,
         traffic,
+        action,
+        prioritySome: priority?.some,
       }
     })
 }
@@ -193,7 +225,7 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
 export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Ingress')
-    .flatMap(({ Sg, ICMP, logs, trace, traffic }) => {
+    .flatMap(({ Sg, ICMP, logs, trace, traffic, action, priority }) => {
       return {
         sg: Sg,
         IPv: ICMP.IPv,
@@ -201,6 +233,8 @@ export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcm
         logs,
         trace,
         traffic,
+        action,
+        prioritySome: priority?.some,
       }
     })
 }
@@ -208,7 +242,7 @@ export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcm
 export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Egress')
-    .flatMap(({ Sg, ICMP, logs, trace, traffic }) => {
+    .flatMap(({ Sg, ICMP, logs, trace, traffic, action, priority }) => {
       return {
         sg: Sg,
         IPv: ICMP.IPv,
@@ -216,6 +250,8 @@ export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpR
         logs,
         trace,
         traffic,
+        action,
+        prioritySome: priority?.some,
       }
     })
 }

@@ -65,21 +65,25 @@ export const SGTable: FC<TSGTableProps> = ({
   const editRule = (oldValues: TFormSgRule, values: TFormSgRule) => {
     const newSgRules = [...rulesAll]
     const index = newSgRules.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
+      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === oldValues.sg &&
         portsSource === oldValues.portsSource &&
         portsDestination === oldValues.portsDestination &&
         transport === oldValues.transport &&
-        logs === oldValues.logs,
+        logs === oldValues.logs &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     const newSgRulesOtherside = [...rulesOtherside]
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
+      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === centerSg &&
         portsSource === newSgRules[index].portsSource &&
         portsDestination === newSgRules[index].portsDestination &&
         transport === newSgRules[index].transport &&
-        logs === newSgRules[index].logs,
+        logs === newSgRules[index].logs &&
+        action === newSgRules[index].action &&
+        prioritySome === newSgRules[index].prioritySome,
     )
     if (newSgRules[index].formChanges?.status === STATUSES.new) {
       newSgRules[index] = { ...values, formChanges: { status: STATUSES.new } }
@@ -101,6 +105,12 @@ export const SGTable: FC<TSGTableProps> = ({
       if (newSgRules[index].logs !== values.logs) {
         modifiedFields.push('logs')
       }
+      if (newSgRules[index].action !== values.action) {
+        modifiedFields.push('action')
+      }
+      if (newSgRules[index].prioritySome !== values.prioritySome) {
+        modifiedFields.push('prioritySome')
+      }
       if (modifiedFields.length === 0) {
         newSgRules[index] = { ...values }
         newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values }
@@ -121,21 +131,25 @@ export const SGTable: FC<TSGTableProps> = ({
   const removeRule = (oldValues: TFormSgRule) => {
     const newSgRules = [...rulesAll]
     const index = newSgRules.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
+      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === oldValues.sg &&
         portsSource === oldValues.portsSource &&
         portsDestination === oldValues.portsDestination &&
         transport === oldValues.transport &&
-        logs === oldValues.logs,
+        logs === oldValues.logs &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     const newSgRulesOtherside = [...rulesOtherside]
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
+      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === centerSg &&
         portsSource === newSgRules[index].portsSource &&
         portsDestination === newSgRules[index].portsDestination &&
         transport === newSgRules[index].transport &&
-        logs === newSgRules[index].logs,
+        logs === newSgRules[index].logs &&
+        action === newSgRules[index].action &&
+        prioritySome === newSgRules[index].prioritySome,
     )
     const newEditOpenRules = [...editOpen]
     if (newSgRules[index].formChanges?.status === STATUSES.new) {
@@ -162,21 +176,25 @@ export const SGTable: FC<TSGTableProps> = ({
   const restoreRule = (oldValues: TFormSgRule) => {
     const newSgRules = [...rulesAll]
     const index = newSgRules.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
+      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === oldValues.sg &&
         portsSource === oldValues.portsSource &&
         portsDestination === oldValues.portsDestination &&
         transport === oldValues.transport &&
-        logs === oldValues.logs,
+        logs === oldValues.logs &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     const newSgRulesOtherside = [...rulesOtherside]
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs }) =>
+      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === centerSg &&
         portsSource === newSgRules[index].portsSource &&
         portsDestination === newSgRules[index].portsDestination &&
         transport === newSgRules[index].transport &&
-        logs === newSgRules[index].logs,
+        logs === newSgRules[index].logs &&
+        action === newSgRules[index].action &&
+        prioritySome === newSgRules[index].prioritySome,
     )
     newSgRules[index] = { ...newSgRules[index], formChanges: { status: STATUSES.modified }, checked: false }
     newSgRulesOtherside[newSgRulesOthersideIndex] = {
@@ -314,6 +332,28 @@ export const SGTable: FC<TSGTableProps> = ({
       ),
     },
     {
+      title: 'Action',
+      key: 'action',
+      dataIndex: 'action',
+      width: 25,
+      render: (_, { action, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
+          {action}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Edit',
       key: 'edit',
       width: 50,
@@ -370,24 +410,28 @@ export const SGTable: FC<TSGTableProps> = ({
             .filter(({ key }) => newSelectedRowKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
-                ({ sg, portsSource, portsDestination, transport, logs }) =>
+                ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
                   sg === newRow.sg &&
                   portsSource === newRow.portsSource &&
                   portsDestination === newRow.portsDestination &&
                   transport === newRow.transport &&
-                  logs === newRow.logs,
+                  logs === newRow.logs &&
+                  action === newRow.action &&
+                  prioritySome === newRow.prioritySome,
               ),
             )
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
-                ({ sg, portsSource, portsDestination, transport, logs }) =>
+                ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
                   sg === newRow.sg &&
                   portsSource === newRow.portsSource &&
                   portsDestination === newRow.portsDestination &&
                   transport === newRow.transport &&
-                  logs === newRow.logs,
+                  logs === newRow.logs &&
+                  action === newRow.action &&
+                  prioritySome === newRow.prioritySome,
               ),
             )
           checkedIndexes.forEach(
@@ -404,12 +448,14 @@ export const SGTable: FC<TSGTableProps> = ({
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
           const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ sg, portsSource, portsDestination, transport, logs }) =>
+            ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
               sg === record.sg &&
               portsSource === record.portsSource &&
               portsDestination === record.portsDestination &&
               transport === record.transport &&
-              logs === record.logs,
+              logs === record.logs &&
+              record.action === action &&
+              record.prioritySome === prioritySome,
           )
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }

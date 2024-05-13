@@ -1,5 +1,5 @@
 import React, { FC, useEffect } from 'react'
-import { Button, Form, Input, Select, Switch } from 'antd'
+import { Button, Form, Input, InputNumber, Select, Switch } from 'antd'
 import { PlusCircleOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons'
 import { TFormFqdnRule } from 'localTypes/rules'
 import { Styled } from './styled'
@@ -61,6 +61,26 @@ export const EditFqdnPopover: FC<TEditFqdnPopoverProps> = ({ values, hide, remov
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
         <Switch disabled={isDisabled} />
+      </Styled.FormItem>
+      <Styled.FormItem
+        name="action"
+        label="Action"
+        hasFeedback
+        validateTrigger="onBlur"
+        rules={[{ required: true, message: 'Please choose action' }]}
+      >
+        <Select
+          allowClear
+          placeholder="Action"
+          options={[
+            { label: 'ACCEPT', value: 'ACCEPT' },
+            { label: 'DROP', value: 'DROP' },
+          ]}
+          getPopupContainer={node => node.parentNode}
+        />
+      </Styled.FormItem>
+      <Styled.FormItem name="prioritySome" label="Priority" hasFeedback validateTrigger="onBlur">
+        <InputNumber placeholder="priority.some" />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>
