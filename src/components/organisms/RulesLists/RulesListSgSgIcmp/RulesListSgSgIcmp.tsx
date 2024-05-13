@@ -95,6 +95,7 @@ export const RulesListSgSgIcmp: FC = () => {
       key: 'SgFrom',
       width: 150,
       filteredValue: filteredInfo.name || null,
+      onFilter: (value, { SgFrom }) => SgFrom.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'SG To',
