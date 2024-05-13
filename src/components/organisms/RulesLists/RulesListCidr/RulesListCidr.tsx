@@ -145,7 +145,20 @@ export const RulesListCidr: FC = () => {
     },
     {
       title: 'Action',
+      dataIndex: 'action',
       key: 'action',
+      width: 25,
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 25,
+      render: (_, { priority }) => <div>{priority?.some}</div>,
+    },
+    {
+      title: 'Controls',
+      key: 'controls',
       width: 150,
       render: (_, record: TCidrRule) => (
         <>

@@ -56,12 +56,14 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
   const editRule = (oldValues: TFormFqdnRule, values: TFormFqdnRule) => {
     const newFqdnRules = [...rulesAll]
     const index = newFqdnRules.findIndex(
-      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+      ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
         fqdn === oldValues.fqdn &&
         transport === oldValues.transport &&
         logs === oldValues.logs &&
         portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination,
+        portsDestination === oldValues.portsDestination &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
       newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
@@ -82,6 +84,12 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       if (newFqdnRules[index].logs !== values.logs) {
         modifiedFields.push('logs')
       }
+      if (newFqdnRules[index].action !== values.action) {
+        modifiedFields.push('action')
+      }
+      if (newFqdnRules[index].prioritySome !== values.prioritySome) {
+        modifiedFields.push('prioritySome')
+      }
       if (modifiedFields.length === 0) {
         newFqdnRules[index] = { ...values }
       } else {
@@ -95,12 +103,14 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
   const removeRule = (oldValues: TFormFqdnRule) => {
     const newFqdnRules = [...rulesAll]
     const index = newFqdnRules.findIndex(
-      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+      ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
         fqdn === oldValues.fqdn &&
         transport === oldValues.transport &&
         logs === oldValues.logs &&
         portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination,
+        portsDestination === oldValues.portsDestination &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     const newEditOpenRules = [...editOpen]
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
@@ -117,12 +127,14 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
   const restoreRule = (oldValues: TFormFqdnRule) => {
     const newFqdnRules = [...rulesAll]
     const index = newFqdnRules.findIndex(
-      ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+      ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
         fqdn === oldValues.fqdn &&
         transport === oldValues.transport &&
         logs === oldValues.logs &&
         portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination,
+        portsDestination === oldValues.portsDestination &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     newFqdnRules[index] = { ...newFqdnRules[index], formChanges: { status: STATUSES.modified }, checked: false }
     setRules(newFqdnRules)
@@ -254,6 +266,28 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       ),
     },
     {
+      title: 'Action',
+      key: 'action',
+      dataIndex: 'action',
+      width: 25,
+      render: (_, { action, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
+          {action}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Edit',
       key: 'edit',
       width: 50,
@@ -309,24 +343,28 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
             .filter(({ key }) => newSelectedRowKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
-                ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+                ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
                   fqdn === newRow.fqdn &&
                   transport === newRow.transport &&
                   logs === newRow.logs &&
                   portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination,
+                  portsDestination === newRow.portsDestination &&
+                  action === newRow.action &&
+                  prioritySome === newRow.prioritySome,
               ),
             )
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
-                ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+                ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
                   fqdn === newRow.fqdn &&
                   transport === newRow.transport &&
                   logs === newRow.logs &&
                   portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination,
+                  portsDestination === newRow.portsDestination &&
+                  action === newRow.action &&
+                  prioritySome === newRow.prioritySome,
               ),
             )
           checkedIndexes.forEach(
@@ -343,12 +381,14 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
           const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ fqdn, transport, logs, portsSource, portsDestination }) =>
+            ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
               fqdn === record.fqdn &&
               transport === record.transport &&
               logs === record.logs &&
               portsSource === record.portsSource &&
-              portsDestination === record.portsDestination,
+              portsDestination === record.portsDestination &&
+              record.action === action &&
+              record.prioritySome === prioritySome,
           )
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
