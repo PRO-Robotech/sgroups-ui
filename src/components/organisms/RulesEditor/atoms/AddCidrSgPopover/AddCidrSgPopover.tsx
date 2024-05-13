@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import { Button, Form, Input, Select, Switch } from 'antd'
+import { Button, Form, Input, InputNumber, Select, Switch } from 'antd'
 import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
 import { TFormCidrSgRule } from 'localTypes/rules'
 import { Styled } from './styled'
@@ -62,6 +62,26 @@ export const AddCidrSgPopover: FC<TAddCidrSgPopoverProps> = ({ hide, addNew }) =
       </Styled.FormItem>
       <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
         <Switch />
+      </Styled.FormItem>
+      <Styled.FormItem
+        name="action"
+        label="Action"
+        hasFeedback
+        validateTrigger="onBlur"
+        rules={[{ required: true, message: 'Please choose action' }]}
+      >
+        <Select
+          allowClear
+          placeholder="Action"
+          options={[
+            { label: 'ACCEPT', value: 'ACCEPT' },
+            { label: 'DROP', value: 'DROP' },
+          ]}
+          getPopupContainer={node => node.parentNode}
+        />
+      </Styled.FormItem>
+      <Styled.FormItem name="prioritySome" label="Priority" hasFeedback validateTrigger="onBlur">
+        <InputNumber placeholder="priority.some" />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>

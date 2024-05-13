@@ -59,14 +59,16 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
   const editRule = (oldValues: TFormCidrSgRule, values: TFormCidrSgRule) => {
     const newCidrSgRules = [...rulesAll]
     const index = newCidrSgRules.findIndex(
-      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
         cidr === oldValues.cidr &&
         transport === oldValues.transport &&
         logs === oldValues.logs &&
         trace === oldValues.trace &&
         traffic === oldValues.traffic &&
         portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination,
+        portsDestination === oldValues.portsDestination &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
       newCidrSgRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
@@ -90,6 +92,12 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
       if (newCidrSgRules[index].trace !== values.trace) {
         modifiedFields.push('trace')
       }
+      if (newCidrSgRules[index].action !== values.action) {
+        modifiedFields.push('action')
+      }
+      if (newCidrSgRules[index].prioritySome !== values.prioritySome) {
+        modifiedFields.push('prioritySome')
+      }
       if (modifiedFields.length === 0) {
         newCidrSgRules[index] = { ...values, traffic: defaultTraffic }
       } else {
@@ -107,14 +115,16 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
   const removeRule = (oldValues: TFormCidrSgRule) => {
     const newCidrSgRules = [...rulesAll]
     const index = newCidrSgRules.findIndex(
-      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
         cidr === oldValues.cidr &&
         transport === oldValues.transport &&
         logs === oldValues.logs &&
         trace === oldValues.trace &&
         traffic === oldValues.traffic &&
         portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination,
+        portsDestination === oldValues.portsDestination &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     const newEditOpenRules = [...editOpen]
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
@@ -135,14 +145,16 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
   const restoreRule = (oldValues: TFormCidrSgRule) => {
     const newCidrSgRules = [...rulesAll]
     const index = newCidrSgRules.findIndex(
-      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
         cidr === oldValues.cidr &&
         transport === oldValues.transport &&
         logs === oldValues.logs &&
         trace === oldValues.trace &&
         traffic === oldValues.traffic &&
         portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination,
+        portsDestination === oldValues.portsDestination &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     newCidrSgRules[index] = {
       ...newCidrSgRules[index],
@@ -298,6 +310,28 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
       ),
     },
     {
+      title: 'Action',
+      key: 'action',
+      dataIndex: 'action',
+      width: 25,
+      render: (_, { action, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
+          {action}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Edit',
       key: 'edit',
       width: 50,
@@ -353,28 +387,32 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
             .filter(({ key }) => newSelectedRowKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
-                ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+                ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
                   cidr === newRow.cidr &&
                   transport === newRow.transport &&
                   logs === newRow.logs &&
                   trace === newRow.trace &&
                   traffic === newRow.traffic &&
                   portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination,
+                  portsDestination === newRow.portsDestination &&
+                  action === newRow.action &&
+                  prioritySome === newRow.prioritySome,
               ),
             )
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
-                ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination }) =>
+                ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
                   cidr === newRow.cidr &&
                   transport === newRow.transport &&
                   logs === newRow.logs &&
                   trace === newRow.trace &&
                   traffic === newRow.traffic &&
                   portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination,
+                  portsDestination === newRow.portsDestination &&
+                  action === newRow.action &&
+                  prioritySome === newRow.prioritySome,
               ),
             )
           checkedIndexes.forEach(
@@ -391,14 +429,16 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
           const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ cidr, transport, logs, trace, traffic, portsDestination, portsSource }) =>
+            ({ cidr, transport, logs, trace, traffic, portsDestination, portsSource, action, prioritySome }) =>
               record.cidr === cidr &&
               record.transport === transport &&
               record.logs === logs &&
               record.trace === trace &&
               record.traffic === traffic &&
               record.portsDestination === portsDestination &&
-              record.portsSource === portsSource,
+              record.portsSource === portsSource &&
+              record.action === action &&
+              record.prioritySome === prioritySome,
           )
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }

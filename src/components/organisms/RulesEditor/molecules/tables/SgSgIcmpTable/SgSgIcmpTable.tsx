@@ -65,21 +65,25 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   const editRule = (oldValues: TFormSgSgIcmpRule, values: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rulesAll]
     const index = newSgSgIcmpRules.findIndex(
-      ({ sg, IPv, types, logs, trace }) =>
+      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === oldValues.sg &&
         IPv === oldValues.IPv &&
         JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
         logs === oldValues.logs &&
-        trace === oldValues.trace,
+        trace === oldValues.trace &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, IPv, types, logs, trace }) =>
+      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === centerSg &&
         IPv === newSgSgIcmpRules[index].IPv &&
         JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
         logs === newSgSgIcmpRules[index].logs &&
-        trace === newSgSgIcmpRules[index].trace,
+        trace === newSgSgIcmpRules[index].trace &&
+        action === newSgSgIcmpRules[index].action &&
+        prioritySome === newSgSgIcmpRules[index].prioritySome,
     )
     if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIcmpRules[index] = {
@@ -107,6 +111,12 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
       if (newSgSgIcmpRules[index].trace !== values.trace) {
         modifiedFields.push('trace')
       }
+      if (newSgSgIcmpRules[index].action !== values.action) {
+        modifiedFields.push('action')
+      }
+      if (newSgSgIcmpRules[index].prioritySome !== values.prioritySome) {
+        modifiedFields.push('prioritySome')
+      }
       if (modifiedFields.length === 0) {
         newSgSgIcmpRules[index] = { ...values }
         newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
@@ -132,21 +142,25 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   const removeRule = (oldValues: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rulesAll]
     const index = newSgSgIcmpRules.findIndex(
-      ({ sg, IPv, types, logs, trace }) =>
+      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === oldValues.sg &&
         IPv === oldValues.IPv &&
         JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
         logs === oldValues.logs &&
-        trace === oldValues.trace,
+        trace === oldValues.trace &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, IPv, types, logs, trace }) =>
+      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === centerSg &&
         IPv === newSgSgIcmpRules[index].IPv &&
         JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
         logs === newSgSgIcmpRules[index].logs &&
-        trace === newSgSgIcmpRules[index].trace,
+        trace === newSgSgIcmpRules[index].trace &&
+        action === newSgSgIcmpRules[index].action &&
+        prioritySome === newSgSgIcmpRules[index].prioritySome,
     )
     const newEditOpenRules = [...editOpen]
     if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
@@ -173,21 +187,25 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   const restoreRule = (oldValues: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rulesAll]
     const index = newSgSgIcmpRules.findIndex(
-      ({ sg, IPv, types, logs, trace }) =>
+      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === oldValues.sg &&
         IPv === oldValues.IPv &&
         JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
         logs === oldValues.logs &&
-        trace === oldValues.trace,
+        trace === oldValues.trace &&
+        action === oldValues.action &&
+        prioritySome === oldValues.prioritySome,
     )
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, IPv, types, logs, trace }) =>
+      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === centerSg &&
         IPv === newSgSgIcmpRules[index].IPv &&
         JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
         logs === newSgSgIcmpRules[index].logs &&
-        trace === newSgSgIcmpRules[index].trace,
+        trace === newSgSgIcmpRules[index].trace &&
+        action === newSgSgIcmpRules[index].action &&
+        prioritySome === newSgSgIcmpRules[index].prioritySome,
     )
     newSgSgIcmpRules[index] = { ...newSgSgIcmpRules[index], formChanges: { status: STATUSES.modified }, checked: false }
     newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
@@ -336,6 +354,28 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
       },
     },
     {
+      title: 'Action',
+      key: 'action',
+      dataIndex: 'action',
+      width: 25,
+      render: (_, { action, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
+          {action}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Edit',
       key: 'edit',
       width: 50,
@@ -392,24 +432,28 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
             .filter(({ key }) => newSelectedRowKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
-                ({ sg, IPv, types, logs, trace }) =>
+                ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
                   sg === newRow.sg &&
                   IPv === newRow.IPv &&
                   JSON.stringify(types.sort()) === JSON.stringify(newRow.types.sort()) &&
                   logs === newRow.logs &&
-                  trace === newRow.trace,
+                  trace === newRow.trace &&
+                  action === newRow.action &&
+                  prioritySome === newRow.prioritySome,
               ),
             )
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
             .map(newRow =>
               rulesAll.findIndex(
-                ({ sg, IPv, types, logs, trace }) =>
+                ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
                   sg === newRow.sg &&
                   IPv === newRow.IPv &&
                   JSON.stringify(types.sort()) === JSON.stringify(newRow.types.sort()) &&
                   logs === newRow.logs &&
-                  trace === newRow.trace,
+                  trace === newRow.trace &&
+                  action === newRow.action &&
+                  prioritySome === newRow.prioritySome,
               ),
             )
           checkedIndexes.forEach(
@@ -426,12 +470,14 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
           const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ sg, IPv, types, logs, trace }) =>
+            ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
               sg === record.sg &&
               IPv === record.IPv &&
               JSON.stringify(types.sort()) === JSON.stringify(record.types.sort()) &&
               logs === record.logs &&
-              trace === record.trace,
+              trace === record.trace &&
+              record.action === action &&
+              record.prioritySome === prioritySome,
           )
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }

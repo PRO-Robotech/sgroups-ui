@@ -7,13 +7,26 @@ export type TPortGroup = {
 
 export type TTraffic = 'Ingress' | 'Egress'
 
+export type TPriority = {
+  priority?: {
+    some?: number
+  }
+}
+
+export type TActionType = 'ACCEPT' | 'DROP'
+
+export type TAction = {
+  action: TActionType
+}
+
 export type TSgRule = {
   logs: boolean
   ports: TPortGroup[]
   sgFrom: string
   sgTo: string
   transport: TTransport
-}
+} & TPriority &
+  TAction
 
 export type TSgRulesResponse = {
   rules: TSgRule[]
@@ -25,7 +38,8 @@ export type TFqdnRule = {
   ports: TPortGroup[]
   sgFrom: string
   transport: TTransport
-}
+} & TPriority &
+  TAction
 
 export type TFqdnRulesResponse = {
   rules: TFqdnRule[]
@@ -39,7 +53,8 @@ export type TCidrRule = {
   trace: boolean
   traffic: TTraffic
   transport: TTransport
-}
+} & TPriority &
+  TAction
 
 export type TCidrRulesResponse = {
   rules: TCidrRule[]
@@ -58,7 +73,8 @@ export type TSgSgIcmpRule = {
   logs: boolean
   trace: boolean
   ICMP: TICMPDescription
-}
+} & TPriority &
+  TAction
 
 export type TSgSgIcmpRulesResponse = {
   rules: TSgSgIcmpRule[]
@@ -72,7 +88,8 @@ export type TSgSgIeRule = {
   trace: boolean
   traffic: TTraffic
   transport: TTransport
-}
+} & TPriority &
+  TAction
 
 export type TSgSgIeRulesResponse = {
   rules: TSgSgIeRule[]
@@ -85,7 +102,8 @@ export type TSgSgIeIcmpRule = {
   trace: boolean
   ICMP: TICMPDescription
   traffic: TTraffic
-}
+} & TPriority &
+  TAction
 
 export type TSgSgIeIcmpRulesResponse = {
   rules: TSgSgIeIcmpRule[]
@@ -106,8 +124,10 @@ export type TFormSgRule = {
   sg: string
   transport: TTransport
   logs: boolean
+  action: TActionType
   portsDestination?: string
   portsSource?: string
+  prioritySome?: number
   formChanges?: TFormChanges
 } & TCheckStatus
 
@@ -115,8 +135,10 @@ export type TFormFqdnRule = {
   fqdn: string
   transport: TTransport
   logs: boolean
+  action: TActionType
   portsSource?: string
   portsDestination?: string
+  prioritySome?: number
   formChanges?: TFormChanges
 } & TCheckStatus
 
@@ -126,8 +148,10 @@ export type TFormCidrSgRule = {
   logs: boolean
   trace: boolean
   traffic: TTraffic
+  action: TActionType
   portsSource?: string
   portsDestination?: string
+  prioritySome?: number
   formChanges?: TFormChanges
 } & TCheckStatus
 
@@ -137,6 +161,8 @@ export type TFormSgSgIcmpRule = {
   trace: boolean
   IPv: TIpVersion
   types: number[]
+  action: TActionType
+  prioritySome?: number
   formChanges?: TFormChanges
 } & TCheckStatus
 
@@ -148,6 +174,8 @@ export type TFormSgSgIeRule = {
   trace: boolean
   traffic: TTraffic
   transport: TTransport
+  action: TActionType
+  prioritySome?: number
   formChanges?: TFormChanges
 } & TCheckStatus
 
@@ -158,6 +186,8 @@ export type TFormSgSgIeIcmpRule = {
   IPv: TIpVersion
   types: number[]
   traffic: TTraffic
+  action: TActionType
+  prioritySome?: number
   formChanges?: TFormChanges
 } & TCheckStatus
 
