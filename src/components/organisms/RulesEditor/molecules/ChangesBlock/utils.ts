@@ -6,18 +6,21 @@ import {
   TSgSgIcmpRule,
   TSgSgIeRule,
   TSgSgIeIcmpRule,
+  TCidrSgIcmpRule,
   TFormSgRule,
   TFormFqdnRule,
   TFormCidrSgRule,
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
+  TFormCidrSgIcmpRule,
   TComposedForSubmitSgRules,
   TComposedForSubmitFqdnRules,
   TComposedForSubmitCidrRules,
   TComposedForSubmitSgSgIcmpRules,
   TComposedForSubmitSgSgIeRules,
   TComposedForSubmitSgSgIeIcmpRules,
+  TComposedForSubmitCidrSgIcmpRules,
 } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
 import {
@@ -27,6 +30,7 @@ import {
   TFormSgSgIcmpRuleChangesResult,
   TFormSgSgIeRuleChangesResult,
   TFormSgSgIeIcmpRuleChangesResult,
+  TFormCidrSgIcmpRuleChangesResult,
 } from './types'
 
 export const getChangesSgRules = (rules: TFormSgRule[]): TFormSgRuleChangesResult | null => {
@@ -101,6 +105,20 @@ export const getChangesSgSgIeRules = (rules: TFormSgSgIeRule[]): TFormSgSgIeRule
 
 export const getChangesSgSgIeIcmpRules = (rules: TFormSgSgIeIcmpRule[]): TFormSgSgIeIcmpRuleChangesResult | null => {
   const result: TFormSgSgIeIcmpRuleChangesResult = {
+    newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
+    diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
+    deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
+  }
+
+  if (result.newRules.length === 0 && result.diffRules.length === 0 && result.deletedRules.length === 0) {
+    return null
+  }
+
+  return result
+}
+
+export const getChangesCidrSgIcmpRules = (rules: TFormCidrSgIcmpRule[]): TFormCidrSgIcmpRuleChangesResult | null => {
+  const result: TFormCidrSgIcmpRuleChangesResult = {
     newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
     diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
     deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
@@ -714,6 +732,60 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
   return result
 }
 
+const findCidrSgIcmpRuleInResultArr = (rule: TCidrSgIcmpRule, rulesArr: TCidrSgIcmpRule[]) => {
+  return rulesArr.find(
+    ({ SG, CIDR, logs, trace, traffic, ICMP, action, priority }) =>
+      SG === rule.SG &&
+      CIDR === rule.CIDR &&
+      logs === rule.logs &&
+      trace === rule.trace &&
+      traffic === rule.traffic &&
+      ICMP.IPv === rule.ICMP.IPv &&
+      ICMP.IPv === rule.ICMP.IPv &&
+      JSON.stringify(ICMP.Types.sort()) === JSON.stringify(rule.ICMP.Types.sort()) &&
+      action === rule.action &&
+      priority?.some === rule.priority?.some,
+  )
+}
+
+export const composeAllTypesOfCidrSgIcmpRules = (
+  centerSg: string,
+  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[],
+  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[],
+): TComposedForSubmitCidrSgIcmpRules => {
+  const result: TComposedForSubmitCidrSgIcmpRules = {
+    rules: [],
+    rulesToDelete: [],
+  }
+
+  const cidrSgIcmpRules = [...rulesCidrSgIcmpFrom, ...rulesCidrSgIcmpTo]
+  cidrSgIcmpRules.forEach(({ cidr, IPv, types, logs, trace, traffic, formChanges, action, prioritySome }) => {
+    const rule = {
+      SG: centerSg,
+      CIDR: cidr,
+      ICMP: { IPv, Types: types },
+      logs: !!logs,
+      trace: !!trace,
+      traffic,
+      action,
+      priority: prioritySome ? { some: prioritySome } : undefined,
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      const ruleInRulesArr = findCidrSgIcmpRuleInResultArr(rule, result.rules)
+      if (!ruleInRulesArr) {
+        result.rules.push(rule)
+      }
+    } else {
+      const ruleInRulesArr = findCidrSgIcmpRuleInResultArr(rule, result.rulesToDelete)
+      if (!ruleInRulesArr) {
+        result.rulesToDelete.push(rule)
+      }
+    }
+  })
+
+  return result
+}
+
 export const checkIfSomeChangesMarked = (
   rulesSgFrom: TFormSgRule[],
   rulesSgTo: TFormSgRule[],
@@ -726,6 +798,8 @@ export const checkIfSomeChangesMarked = (
   rulesSgSgIeTo: TFormSgSgIeRule[],
   rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[],
   rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[],
+  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[],
+  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[],
 ): boolean => {
   return [
     rulesSgFrom.some(({ checked }) => checked === true),
@@ -739,5 +813,7 @@ export const checkIfSomeChangesMarked = (
     rulesSgSgIeTo.some(({ checked }) => checked === true),
     rulesSgSgIeIcmpFrom.some(({ checked }) => checked === true),
     rulesSgSgIeIcmpTo.some(({ checked }) => checked === true),
+    rulesCidrSgIcmpFrom.some(({ checked }) => checked === true),
+    rulesCidrSgIcmpTo.some(({ checked }) => checked === true),
   ].includes(true)
 }

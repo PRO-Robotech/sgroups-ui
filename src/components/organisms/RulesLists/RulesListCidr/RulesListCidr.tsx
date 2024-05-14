@@ -95,6 +95,7 @@ export const RulesListCidr: FC = () => {
       key: 'SG',
       width: 150,
       filteredValue: filteredInfo.name || null,
+      onFilter: (value, { SG }) => SG.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'CIDR',

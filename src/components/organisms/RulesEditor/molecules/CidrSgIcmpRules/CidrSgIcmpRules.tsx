@@ -4,28 +4,28 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { STATUSES } from 'constants/rules'
-import { TFormCidrSgRule, TTraffic } from 'localTypes/rules'
-import { CidrSgTable } from '../tables'
-import { AddCidrSgPopover } from '../../atoms'
+import { TFormCidrSgIcmpRule, TTraffic } from 'localTypes/rules'
+import { AddCidrSgIcmpPopover } from '../../atoms'
+import { CidrSgIcmpTable } from '../tables'
 import { Styled } from '../styled'
 
-type TCidrSGRulesProps = {
+type TCidrSgIcmpRulesProps = {
   forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
+  rules: TFormCidrSgIcmpRule[]
+  setRules: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
   defaultTraffic: TTraffic
-  rules: TFormCidrSgRule[]
-  setRules: Dispatch<SetStateAction<TFormCidrSgRule[]>>
   isDisabled?: boolean
 }
 
-export const CidrSGRules: FC<TCidrSGRulesProps> = ({
+export const CidrSgIcmpRules: FC<TCidrSgIcmpRulesProps> = ({
   forceArrowsUpdate,
   title,
   popoverPosition,
-  defaultTraffic,
   rules,
   setRules,
+  defaultTraffic,
   isDisabled,
 }) => {
   const [addOpen, setAddOpen] = useState(false)
@@ -35,7 +35,7 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
     setAddOpen(!addOpen)
   }
 
-  const addNew = (values: TFormCidrSgRule) => {
+  const addNew = (values: TFormCidrSgIcmpRule) => {
     setRules([
       ...rules,
       {
@@ -53,21 +53,21 @@ export const CidrSGRules: FC<TCidrSGRulesProps> = ({
   return (
     <>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <CidrSgTable
+      <CidrSgIcmpTable
         isChangesMode={false}
+        popoverPosition={popoverPosition}
+        defaultTraffic={defaultTraffic}
         rulesAll={rules}
         rulesData={rules}
         setRules={setRules}
-        editOpen={editOpen}
         setEditOpen={setEditOpen}
-        defaultTraffic={defaultTraffic}
-        popoverPosition={popoverPosition}
-        forceArrowsUpdate={forceArrowsUpdate}
+        editOpen={editOpen}
         isDisabled={isDisabled}
+        forceArrowsUpdate={forceArrowsUpdate}
       />
       <Popover
-        content={<AddCidrSgPopover hide={toggleAddPopover} addNew={addNew} />}
-        title="SG"
+        content={<AddCidrSgIcmpPopover hide={toggleAddPopover} addNew={addNew} />}
+        title="SG-SG-IE"
         trigger="click"
         open={addOpen}
         onOpenChange={toggleAddPopover}
