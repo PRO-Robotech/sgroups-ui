@@ -25,7 +25,6 @@ export const RulesEditorTemplate: FC<TRulesEditorTemplateProps> = ({ children })
           mode="inline"
           selectedKeys={[currentSection]}
           defaultOpenKeys={['/rules']}
-          expandIcon={null}
           items={mainPageLeftList}
           onClick={({ key }) => {
             history.push(key)

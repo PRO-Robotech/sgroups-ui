@@ -13,7 +13,7 @@ const SidebarContainer = styled.div`
   top: 64px;
   left: 0;
   z-index: 999;
-  width: 200px;
+  width: 170px;
   height: 100vh;
   background: #001529;
 `
