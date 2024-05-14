@@ -7,7 +7,7 @@ import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/inter
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
-import { ThWhiteSpaceNoWrap } from 'components/atoms'
+import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormCidrSgIcmpRule, TTraffic } from 'localTypes/rules'
 import { EditCidrSgIcmpPopover } from '../../../atoms'
@@ -196,7 +196,7 @@ export const CidrSgIcmpTable: FC<TCidrSgIcmpTableProps> = ({
       width: 150,
       render: (_, { cidr, formChanges }) => (
         <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('cidr')} className="no-scroll">
-          {cidr}
+          <ShortenedTextWithTooltip text={cidr} />
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (

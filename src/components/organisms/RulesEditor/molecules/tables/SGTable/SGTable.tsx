@@ -6,7 +6,7 @@ import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
-import { ThWhiteSpaceNoWrap } from 'components/atoms'
+import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormSgRule } from 'localTypes/rules'
 import { EditSGPopover } from '../../../atoms'
@@ -247,7 +247,7 @@ export const SGTable: FC<TSGTableProps> = ({
       width: 150,
       render: (_, { sg, formChanges }) => (
         <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('sg')} className="no-scroll">
-          {sg}
+          <ShortenedTextWithTooltip text={sg} />
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
