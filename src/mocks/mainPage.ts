@@ -1,11 +1,11 @@
 const mainPageLeftListData = [
   {
-    key: '/security-groups',
-    label: 'Security Groups',
-  },
-  {
     key: '/networks',
     label: 'Networks',
+  },
+  {
+    key: '/security-groups',
+    label: 'Security Groups',
   },
   {
     key: 'divider',
