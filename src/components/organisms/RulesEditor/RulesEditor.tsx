@@ -9,6 +9,7 @@ import {
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
+  TFormCidrSgIcmpRule,
 } from 'localTypes/rules'
 import { getSecurityGroups } from 'api/securityGroups'
 import {
@@ -20,6 +21,7 @@ import {
   getSgSgIcmpRulesBySgTo,
   getSgSgIeRulesBySgLocal,
   getSgSgIeIcmpRulesBySgLocal,
+  getCidrSgIcmpRulesBySg,
 } from 'api/rules'
 import { TransformBlock, BottomBar } from './organisms'
 import {
@@ -34,6 +36,8 @@ import {
   mapRulesSgSgIeTo,
   mapRulesSgSgIeIcmpFrom,
   mapRulesSgSgIeIcmpTo,
+  mapRulesCidrSgIcmpFrom,
+  mapRulesCidrSgIcmpTo,
   checkIfChangesExist,
 } from './utils'
 import { SelectMainSgModal } from './atoms'
@@ -57,6 +61,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const [rulesSgSgIeTo, setRulesSgSgIeTo] = useState<TFormSgSgIeRule[]>([])
   const [rulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpFrom] = useState<TFormSgSgIeIcmpRule[]>([])
   const [rulesSgSgIeIcmpTo, setRulesSgSgIeIcmpTo] = useState<TFormSgSgIeIcmpRule[]>([])
+  const [rulesCidrSgIcmpFrom, setRulesCidrSgIcmpFrom] = useState<TFormCidrSgIcmpRule[]>([])
+  const [rulesCidrSgIcmpTo, setRulesCidrSgIcmpTo] = useState<TFormCidrSgIcmpRule[]>([])
   const [isChangeMainSgModalVisible, setChangeMainSgModalVisible] = useState<boolean>(false)
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
@@ -97,6 +103,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       setRulesSgSgIeTo([])
       setRulesSgSgIeIcmpFrom([])
       setRulesSgSgIeIcmpTo([])
+      setRulesCidrSgIcmpFrom([])
+      setRulesCidrSgIcmpTo([])
       setError(undefined)
       Promise.all([
         getRulesBySGTo(centerSg),
@@ -107,6 +115,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
         getSgSgIcmpRulesBySgFrom(centerSg),
         getSgSgIeRulesBySgLocal(centerSg),
         getSgSgIeIcmpRulesBySgLocal(centerSg),
+        getCidrSgIcmpRulesBySg(centerSg),
       ])
         .then(
           ([
@@ -118,6 +127,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
             rulesSgSgIcmpTo,
             rulesSgSgIe,
             rulesSgSgIeIcmp,
+            rulesCidrSgIcmp,
           ]) => {
             setRulesSgFrom(mapRulesSgFrom(rulesSgFrom.data.rules))
             setRulesSgTo(mapRulesSgTo(rulesSgTo.data.rules))
@@ -130,6 +140,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
             setRulesSgSgIeTo(mapRulesSgSgIeTo(rulesSgSgIe.data.rules))
             setRulesSgSgIeIcmpFrom(mapRulesSgSgIeIcmpFrom(rulesSgSgIeIcmp.data.rules))
             setRulesSgSgIeIcmpTo(mapRulesSgSgIeIcmpTo(rulesSgSgIeIcmp.data.rules))
+            setRulesCidrSgIcmpFrom(mapRulesCidrSgIcmpFrom(rulesCidrSgIcmp.data.rules))
+            setRulesCidrSgIcmpTo(mapRulesCidrSgIcmpTo(rulesCidrSgIcmp.data.rules))
             setIsLoading(false)
           },
         )
@@ -155,6 +167,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       setRulesSgSgIeTo([])
       setRulesSgSgIeIcmpFrom([])
       setRulesSgSgIeIcmpTo([])
+      setRulesCidrSgIcmpFrom([])
+      setRulesCidrSgIcmpTo([])
       setError(undefined)
     }
   }
@@ -172,6 +186,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       rulesSgSgIeTo,
       rulesSgSgIeIcmpFrom,
       rulesSgSgIeIcmpTo,
+      rulesCidrSgIcmpFrom,
+      rulesCidrSgIcmpTo,
     )
     if (result) {
       setPendingSg(newSg)
@@ -227,6 +243,10 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
         setRulesSgSgIeIcmpFrom={setRulesSgSgIeIcmpFrom}
         rulesSgSgIeIcmpTo={rulesSgSgIeIcmpTo}
         setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
+        rulesCidrSgIcmpFrom={rulesCidrSgIcmpFrom}
+        setRulesCidrSgIcmpFrom={setRulesCidrSgIcmpFrom}
+        rulesCidrSgIcmpTo={rulesCidrSgIcmpTo}
+        setRulesCidrSgIcmpTo={setRulesCidrSgIcmpTo}
       />
       <BottomBar
         sgNames={sgNames}
@@ -254,6 +274,10 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
         setRulesSgSgIeIcmpFrom={setRulesSgSgIeIcmpFrom}
         rulesSgSgIeIcmpTo={rulesSgSgIeIcmpTo}
         setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
+        rulesCidrSgIcmpFrom={rulesCidrSgIcmpFrom}
+        setRulesCidrSgIcmpFrom={setRulesCidrSgIcmpFrom}
+        rulesCidrSgIcmpTo={rulesCidrSgIcmpTo}
+        setRulesCidrSgIcmpTo={setRulesCidrSgIcmpTo}
       />
       {isLoading && (
         <Styled.Loader>

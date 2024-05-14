@@ -8,8 +8,15 @@ import {
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
+  TFormCidrSgIcmpRule,
 } from 'localTypes/rules'
-import { FQDNRules, SelectMainSG, CidrSGRules, SgAndSgSgIcmpRules, SgSgIeAndSgSgIeIcmpRules } from '../../molecules'
+import {
+  FQDNRules,
+  SelectMainSG,
+  CidrSgAndCidrSgIcmpRules,
+  SgAndSgSgIcmpRules,
+  SgSgIeAndSgSgIeIcmpRules,
+} from '../../molecules'
 import { Arrows } from './molecules'
 import {
   CARDS_CONTAINER,
@@ -48,6 +55,10 @@ type TTransformBlockProps = {
   setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
   setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[]
+  setRulesCidrSgIcmpFrom: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
+  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[]
+  setRulesCidrSgIcmpTo: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
   onSelectMainSg: (value?: string) => void
   centerSg?: string
 }
@@ -77,6 +88,10 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
   setRulesSgSgIeIcmpFrom,
   rulesSgSgIeIcmpTo,
   setRulesSgSgIeIcmpTo,
+  rulesCidrSgIcmpFrom,
+  setRulesCidrSgIcmpFrom,
+  rulesCidrSgIcmpTo,
+  setRulesCidrSgIcmpTo,
   centerSg,
 }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
@@ -93,6 +108,8 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
     rulesSgSgIeTo.length,
     rulesSgSgIeIcmpFrom.length,
     rulesSgSgIeIcmpTo.length,
+    rulesCidrSgIcmpFrom.length,
+    rulesCidrSgIcmpTo.length,
   ])
 
   const forceArrowsUpdate = () => {
@@ -147,12 +164,14 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             </div>
             <Spacer $space={100} $samespace />
             <div id={CIDR_FROM_ID}>
-              <CidrSGRules
+              <CidrSgAndCidrSgIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 title={`CIDR From - ${centerSg || ''}`}
                 popoverPosition="left"
                 rules={rulesCidrSgFrom}
                 setRules={setRulesCidrSgFrom}
+                rulesIcmp={rulesCidrSgIcmpFrom}
+                setRulesIcmp={setRulesCidrSgIcmpFrom}
                 defaultTraffic="Ingress"
                 isDisabled={!centerSg}
               />
@@ -199,12 +218,14 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             </div>
             <Spacer $space={100} $samespace />
             <div id={CIDR_TO_ID}>
-              <CidrSGRules
+              <CidrSgAndCidrSgIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 title={`${centerSg || ''} - CIDR To`}
                 popoverPosition="right"
                 rules={rulesCidrSgTo}
                 setRules={setRulesCidrSgTo}
+                rulesIcmp={rulesCidrSgIcmpTo}
+                setRulesIcmp={setRulesCidrSgIcmpTo}
                 defaultTraffic="Egress"
                 isDisabled={!centerSg}
               />

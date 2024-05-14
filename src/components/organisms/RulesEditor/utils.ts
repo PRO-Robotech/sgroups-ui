@@ -11,6 +11,8 @@ import {
   TFormSgSgIeRule,
   TSgSgIeIcmpRule,
   TFormSgSgIeIcmpRule,
+  TCidrSgIcmpRule,
+  TFormCidrSgIcmpRule,
 } from 'localTypes/rules'
 
 export const mapRulesSgFrom = (rules: TSgRule[]): TFormSgRule[] => {
@@ -256,6 +258,40 @@ export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpR
     })
 }
 
+export const mapRulesCidrSgIcmpFrom = (rules: TCidrSgIcmpRule[]): TFormCidrSgIcmpRule[] => {
+  return rules
+    .filter(({ traffic }) => traffic === 'Ingress')
+    .flatMap(({ CIDR, ICMP, logs, trace, traffic, action, priority }) => {
+      return {
+        cidr: CIDR,
+        IPv: ICMP.IPv,
+        types: ICMP.Types,
+        logs,
+        trace,
+        traffic,
+        action,
+        prioritySome: priority?.some,
+      }
+    })
+}
+
+export const mapRulesCidrSgIcmpTo = (rules: TCidrSgIcmpRule[]): TFormCidrSgIcmpRule[] => {
+  return rules
+    .filter(({ traffic }) => traffic === 'Egress')
+    .flatMap(({ CIDR, ICMP, logs, trace, traffic, action, priority }) => {
+      return {
+        cidr: CIDR,
+        IPv: ICMP.IPv,
+        types: ICMP.Types,
+        logs,
+        trace,
+        traffic,
+        action,
+        prioritySome: priority?.some,
+      }
+    })
+}
+
 export const checkIfChangesExist = (
   rulesSgFrom: TFormSgRule[],
   rulesSgTo: TFormSgRule[],
@@ -268,6 +304,8 @@ export const checkIfChangesExist = (
   rulesSgSgIeTo: TFormSgSgIeRule[],
   rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[],
   rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[],
+  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[],
+  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[],
 ): boolean => {
   if (
     [
@@ -282,6 +320,8 @@ export const checkIfChangesExist = (
       ...rulesSgSgIeTo,
       ...rulesSgSgIeIcmpFrom,
       ...rulesSgSgIeIcmpTo,
+      ...rulesCidrSgIcmpFrom,
+      ...rulesCidrSgIcmpTo,
     ].some(
       ({ formChanges }) =>
         formChanges?.status === 'new' ||

@@ -11,6 +11,7 @@ import {
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
+  TFormCidrSgIcmpRule,
 } from 'localTypes/rules'
 import { upsertRules, deleteRules } from 'api/rules'
 import {
@@ -20,12 +21,14 @@ import {
   getChangesSgSgIcmpRules,
   getChangesSgSgIeRules,
   getChangesSgSgIeIcmpRules,
+  getChangesCidrSgIcmpRules,
   composeAllTypesOfSgRules,
   composeAllTypesOfFqdnRules,
   composeAllTypesOfCidrSgRules,
   composeAllTypesOfSgSgIcmpRules,
   composeAllTypesOfSgSgIeRules,
   composeAllTypesOfSgSgIeIcmpRules,
+  composeAllTypesOfCidrSgIcmpRules,
   checkIfSomeChangesMarked,
 } from './utils'
 import { RulesDiff } from './molecules'
@@ -56,6 +59,10 @@ type TChangesBlockProps = {
   setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
   rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
   setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[]
+  setRulesCidrSgIcmpFrom: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
+  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[]
+  setRulesCidrSgIcmpTo: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
   onClose: () => void
   onSubmit: () => void
 }
@@ -85,6 +92,10 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
   setRulesSgSgIeIcmpFrom,
   rulesSgSgIeIcmpTo,
   setRulesSgSgIeIcmpTo,
+  rulesCidrSgIcmpFrom,
+  setRulesCidrSgIcmpFrom,
+  rulesCidrSgIcmpTo,
+  setRulesCidrSgIcmpTo,
   onClose,
   onSubmit,
 }) => {
@@ -105,6 +116,8 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
       rulesSgSgIeTo,
       rulesSgSgIeIcmpFrom,
       rulesSgSgIeIcmpTo,
+      rulesCidrSgIcmpFrom,
+      rulesCidrSgIcmpTo,
     )
     if (isSomeChangesMarked) {
       setIsSubmitDisabled(false)
@@ -123,6 +136,8 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
     rulesSgSgIeTo,
     rulesSgSgIeIcmpFrom,
     rulesSgSgIeIcmpTo,
+    rulesCidrSgIcmpFrom,
+    rulesCidrSgIcmpTo,
   ])
 
   const changesResultSgFromResult = getChangesSgRules(rulesSgFrom)
@@ -136,6 +151,8 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
   const changesResultSgSgIeTo = getChangesSgSgIeRules(rulesSgSgIeTo)
   const changesResultSgSgIeIcmpFrom = getChangesSgSgIeIcmpRules(rulesSgSgIeIcmpFrom)
   const changesResultSgSgIeIcmpTo = getChangesSgSgIeIcmpRules(rulesSgSgIeIcmpTo)
+  const changesResultCidrSgIcmpFrom = getChangesCidrSgIcmpRules(rulesCidrSgIcmpFrom)
+  const changesResultCidrSgIcmpTo = getChangesCidrSgIcmpRules(rulesCidrSgIcmpTo)
 
   const handleOk = () => {
     const sgRules = composeAllTypesOfSgRules(
@@ -167,6 +184,11 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
       rulesSgSgIeIcmpFrom.filter(({ checked }) => checked),
       rulesSgSgIeIcmpTo.filter(({ checked }) => checked),
     )
+    const cidrSgIcmpRules = composeAllTypesOfCidrSgIcmpRules(
+      centerSg,
+      rulesCidrSgIcmpFrom.filter(({ checked }) => checked),
+      rulesCidrSgIcmpTo.filter(({ checked }) => checked),
+    )
 
     deleteRules(
       sgRules.rulesToDelete,
@@ -175,6 +197,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
       sgSgIcmpRules.rulesToDelete,
       sgSgIeRules.rulesToDelete,
       sgSgIeIcmpRules.rulesToDelete,
+      cidrSgIcmpRules.rulesToDelete,
     )
       .then(() => {
         // Do not touch: Seuquence is important. Promise.All wont work properly
@@ -185,6 +208,7 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
           sgSgIcmpRules.rules,
           sgSgIeRules.rules,
           sgSgIeIcmpRules.rules,
+          cidrSgIcmpRules.rules,
         )
           .then(() => {
             setIsLoading(false)
@@ -225,6 +249,8 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
     const uncheckedRulesSgSgIeTo = [...rulesSgSgIeTo].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgSgIeIcmpFrom = [...rulesSgSgIeIcmpFrom].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgSgIeIcmpTo = [...rulesSgSgIeIcmpTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesCidrSgIcmpFrom = [...rulesCidrSgIcmpFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesCidrSgIcmpTo = [...rulesCidrSgIcmpTo].map(el => ({ ...el, checked: false }))
     setRulesSgFrom(uncheckedRulesSgFrom)
     setRulesSgTo(uncheckedRulesSgTo)
     setRulesFqdnTo(uncheckedRulesFqdnTo)
@@ -236,6 +262,8 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
     setRulesSgSgIeTo(uncheckedRulesSgSgIeTo)
     setRulesSgSgIeIcmpFrom(uncheckedRulesSgSgIeIcmpFrom)
     setRulesSgSgIeIcmpTo(uncheckedRulesSgSgIeIcmpTo)
+    setRulesCidrSgIcmpFrom(uncheckedRulesCidrSgIcmpFrom)
+    setRulesCidrSgIcmpTo(uncheckedRulesCidrSgIcmpTo)
     onClose()
   }
 
@@ -401,6 +429,33 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             }}
           />
         )}
+
+        {changesResultCidrSgIcmpFrom && (
+          <RulesDiff
+            title="CIDR-ICMP From"
+            compareResult={{
+              type: 'cidrSgIcmp',
+              data: changesResultCidrSgIcmpFrom,
+              popoverPosition: 'left',
+              defaultTraffic: 'Ingress',
+              rules: rulesCidrSgIcmpFrom,
+              setRules: setRulesCidrSgIcmpFrom,
+            }}
+          />
+        )}
+        {changesResultCidrSgIcmpTo && (
+          <RulesDiff
+            title="CIDR-ICMP To"
+            compareResult={{
+              type: 'cidrSgIcmp',
+              data: changesResultCidrSgIcmpTo,
+              popoverPosition: 'left',
+              defaultTraffic: 'Egress',
+              rules: rulesCidrSgIcmpTo,
+              setRules: setRulesCidrSgIcmpTo,
+            }}
+          />
+        )}
         {!changesResultSgFromResult &&
           !changesResultSgToResult &&
           !changesResultFqdnTo &&
@@ -411,7 +466,9 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
           !changesResultSgSgIeFrom &&
           !changesResultSgSgIeTo &&
           !changesResultSgSgIeIcmpFrom &&
-          !changesResultSgSgIeIcmpTo && <div>No changes</div>}
+          !changesResultSgSgIeIcmpTo &&
+          !changesResultCidrSgIcmpFrom &&
+          !changesResultCidrSgIcmpTo && <div>No changes</div>}
       </Styled.ScrollContainer>
       <Spacer />
       <Styled.ButtonsContainer>
