@@ -8,11 +8,15 @@ const RadioGroup = styled.div`
 `
 
 const GroupRulesNode = styled.div`
-  width: 700px;
+  width: 1000px;
   padding: 15px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 0 24px rgba(23, 49, 65, 0.13);
+`
+
+const ContainerAfterSwitcher = styled.div`
+  margin-top: -35px;
 `
 
 const FormItem = styled(Form.Item)`
@@ -27,5 +31,6 @@ const FormItem = styled(Form.Item)`
 export const Styled = {
   RadioGroup,
   GroupRulesNode,
+  ContainerAfterSwitcher,
   FormItem,
 }
