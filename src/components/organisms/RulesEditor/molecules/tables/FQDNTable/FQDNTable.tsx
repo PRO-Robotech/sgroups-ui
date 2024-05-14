@@ -272,7 +272,11 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       width: 25,
       render: (_, { action, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
-          {action}
+          {action === 'ACCEPT' ? (
+            <CheckOutlined style={{ color: 'green' }} />
+          ) : (
+            <CloseOutlined style={{ color: 'red' }} />
+          )}
         </Styled.RulesEntryPorts>
       ),
     },

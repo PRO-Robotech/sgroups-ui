@@ -4,7 +4,7 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
+import { EditOutlined, DeleteOutlined, SearchOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getFqdnRules, removeFqdnRule } from 'api/rules'
 import { ITEMS_PER_PAGE } from 'constants/rules'
@@ -123,7 +123,9 @@ export const RulesListFqdn: FC = () => {
       dataIndex: 'logs',
       key: 'logs',
       width: 150,
-      render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
+      render: (_, { logs }) => {
+        return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
+      },
     },
     {
       title: 'Transport',
@@ -136,6 +138,13 @@ export const RulesListFqdn: FC = () => {
       dataIndex: 'action',
       key: 'action',
       width: 25,
+      render: (_, { action }) => {
+        return action === 'ACCEPT' ? (
+          <CheckOutlined style={{ color: 'green' }} />
+        ) : (
+          <CloseOutlined style={{ color: 'red' }} />
+        )
+      },
     },
     {
       title: 'Priority',
