@@ -57,30 +57,32 @@ export const SgSgIeAndSgSgIeIcmpRules: FC<TSgSgIeAndSgSgIeIcmpRulesProps> = ({
         />
       </Styled.RadioGroup>
       <Spacer $space={10} $samespace />
-      {tab === 'tcpudp' && (
-        <SgSgIeRules
-          forceArrowsUpdate={forceArrowsUpdate}
-          sgNames={sgNames}
-          title={title}
-          popoverPosition={popoverPosition}
-          rules={rules}
-          setRules={setRules}
-          defaultTraffic={defaultTraffic}
-          isDisabled={isDisabled}
-        />
-      )}
-      {tab === 'icmp' && (
-        <SgSgIeIcmpRules
-          forceArrowsUpdate={forceArrowsUpdate}
-          sgNames={sgNames}
-          title={title}
-          popoverPosition={popoverPosition}
-          rules={rulesIcmp}
-          setRules={setRulesIcmp}
-          defaultTraffic={defaultTraffic}
-          isDisabled={isDisabled}
-        />
-      )}
+      <Styled.ContainerAfterSwitcher>
+        {tab === 'tcpudp' && (
+          <SgSgIeRules
+            forceArrowsUpdate={forceArrowsUpdate}
+            sgNames={sgNames}
+            title={title}
+            popoverPosition={popoverPosition}
+            rules={rules}
+            setRules={setRules}
+            defaultTraffic={defaultTraffic}
+            isDisabled={isDisabled}
+          />
+        )}
+        {tab === 'icmp' && (
+          <SgSgIeIcmpRules
+            forceArrowsUpdate={forceArrowsUpdate}
+            sgNames={sgNames}
+            title={title}
+            popoverPosition={popoverPosition}
+            rules={rulesIcmp}
+            setRules={setRulesIcmp}
+            defaultTraffic={defaultTraffic}
+            isDisabled={isDisabled}
+          />
+        )}
+      </Styled.ContainerAfterSwitcher>
     </Styled.GroupRulesNode>
   )
 }
