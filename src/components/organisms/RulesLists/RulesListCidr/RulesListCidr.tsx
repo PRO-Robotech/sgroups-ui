@@ -101,7 +101,7 @@ export const RulesListCidr: FC = () => {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
-      width: 25,
+      width: 50,
       render: (_, { action }) => {
         return action === 'ACCEPT' ? (
           <LikeOutlined style={{ color: 'green' }} />
@@ -114,7 +114,7 @@ export const RulesListCidr: FC = () => {
       title: 'Transport',
       dataIndex: 'transport',
       key: 'transport',
-      width: 150,
+      width: 50,
     },
     {
       title: 'SG',
@@ -134,7 +134,7 @@ export const RulesListCidr: FC = () => {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 150,
+      width: 50,
       render: (_, { logs }) => {
         return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
       },
@@ -143,7 +143,7 @@ export const RulesListCidr: FC = () => {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
-      width: 150,
+      width: 50,
       render: (_, { trace }) => {
         return trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
       },
@@ -152,14 +152,14 @@ export const RulesListCidr: FC = () => {
       title: 'Priority',
       dataIndex: 'priority',
       key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some || DEFAULT_PRIORITIES.sgToCidrIe}</div>,
+      width: 50,
+      render: (_, { priority }) => priority?.some || DEFAULT_PRIORITIES.sgToCidrIe,
     },
     {
       title: 'Ports',
       dataIndex: 'ports',
       key: 'ports',
-      width: 70,
+      width: 50,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
           {ports.length === 0 ? (
@@ -174,7 +174,7 @@ export const RulesListCidr: FC = () => {
       title: 'Traffic',
       dataIndex: 'traffic',
       key: 'traffic',
-      width: 150,
+      width: 100,
     },
     {
       title: 'Controls',

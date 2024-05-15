@@ -101,7 +101,7 @@ export const RulesListCidrSgIcmp: FC = () => {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
-      width: 25,
+      width: 50,
       render: (_, { action }) => {
         return action === 'ACCEPT' ? (
           <LikeOutlined style={{ color: 'green' }} />
@@ -114,8 +114,8 @@ export const RulesListCidrSgIcmp: FC = () => {
       title: 'ICMP',
       dataIndex: 'ICMP',
       key: 'ICMP',
-      width: 70,
-      render: (_, { ICMP }) => <div>{ICMP.IPv}</div>,
+      width: 50,
+      render: (_, { ICMP }) => ICMP.IPv,
     },
     {
       title: 'SG',
@@ -132,17 +132,10 @@ export const RulesListCidrSgIcmp: FC = () => {
       width: 150,
     },
     {
-      title: 'Types',
-      dataIndex: 'ICMP',
-      key: 'Types',
-      width: 70,
-      render: (_, { ICMP }) => <div>{ICMP.Types.join(',')}</div>,
-    },
-    {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 150,
+      width: 50,
       render: (_, { logs }) => {
         return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
       },
@@ -151,7 +144,7 @@ export const RulesListCidrSgIcmp: FC = () => {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
-      width: 150,
+      width: 50,
       render: (_, { trace }) => {
         return trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
       },
@@ -160,14 +153,21 @@ export const RulesListCidrSgIcmp: FC = () => {
       title: 'Priority',
       dataIndex: 'priority',
       key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some || DEFAULT_PRIORITIES.sgToCidrIeIcmp}</div>,
+      width: 50,
+      render: (_, { priority }) => priority?.some || DEFAULT_PRIORITIES.sgToCidrIeIcmp,
+    },
+    {
+      title: 'Types',
+      dataIndex: 'ICMP',
+      key: 'Types',
+      width: 50,
+      render: (_, { ICMP }) => ICMP.Types.join(','),
     },
     {
       title: 'Traffic',
       dataIndex: 'traffic',
       key: 'traffic',
-      width: 150,
+      width: 100,
     },
     {
       title: 'Controls',

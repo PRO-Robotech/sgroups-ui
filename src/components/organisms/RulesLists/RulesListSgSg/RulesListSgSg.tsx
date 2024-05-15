@@ -101,7 +101,7 @@ export const RulesListSgSg: FC = () => {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
-      width: 25,
+      width: 50,
       render: (_, { action }) => {
         return action === 'ACCEPT' ? (
           <LikeOutlined style={{ color: 'green' }} />
@@ -114,7 +114,7 @@ export const RulesListSgSg: FC = () => {
       title: 'Transport',
       dataIndex: 'transport',
       key: 'transport',
-      width: 150,
+      width: 50,
     },
     {
       title: 'SG From',
@@ -134,7 +134,7 @@ export const RulesListSgSg: FC = () => {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 150,
+      width: 50,
       render: (_, { logs }) => {
         return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
       },
@@ -143,14 +143,14 @@ export const RulesListSgSg: FC = () => {
       title: 'Priority',
       dataIndex: 'priority',
       key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some || DEFAULT_PRIORITIES.sgToSg}</div>,
+      width: 50,
+      render: (_, { priority }) => priority?.some || DEFAULT_PRIORITIES.sgToSg,
     },
     {
       title: 'Ports',
       dataIndex: 'ports',
       key: 'ports',
-      width: 70,
+      width: 100,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
           {ports.length === 0 ? (

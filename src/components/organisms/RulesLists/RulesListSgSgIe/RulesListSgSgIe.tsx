@@ -101,7 +101,7 @@ export const RulesListSgSgIe: FC = () => {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
-      width: 25,
+      width: 50,
       render: (_, { action }) => {
         return action === 'ACCEPT' ? (
           <LikeOutlined style={{ color: 'green' }} />
@@ -114,7 +114,7 @@ export const RulesListSgSgIe: FC = () => {
       title: 'Transport',
       dataIndex: 'transport',
       key: 'transport',
-      width: 150,
+      width: 50,
     },
     {
       title: 'SG',
@@ -134,7 +134,7 @@ export const RulesListSgSgIe: FC = () => {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 150,
+      width: 50,
       render: (_, { logs }) => {
         return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
       },
@@ -143,7 +143,7 @@ export const RulesListSgSgIe: FC = () => {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
-      width: 150,
+      width: 50,
       render: (_, { trace }) => {
         return trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
       },
@@ -152,14 +152,14 @@ export const RulesListSgSgIe: FC = () => {
       title: 'Priority',
       dataIndex: 'priority',
       key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some || DEFAULT_PRIORITIES.sgToSgIe}</div>,
+      width: 50,
+      render: (_, { priority }) => priority?.some || DEFAULT_PRIORITIES.sgToSgIe,
     },
     {
       title: 'Ports',
       dataIndex: 'ports',
       key: 'ports',
-      width: 70,
+      width: 50,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
           {ports.length === 0 ? (
@@ -174,7 +174,7 @@ export const RulesListSgSgIe: FC = () => {
       title: 'Traffic',
       dataIndex: 'traffic',
       key: 'traffic',
-      width: 150,
+      width: 100,
     },
     {
       title: 'Controls',
