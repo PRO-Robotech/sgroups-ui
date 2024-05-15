@@ -263,7 +263,7 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
       width: 50,
       render: (_, { types, formChanges }) => (
         <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('types')} className="no-scroll">
-          {types.join(',')}
+          <ShortenedTextWithTooltip text={types.join(',')} />
         </Styled.RulesEntrySgs>
       ),
       sorter: (a, b) => {

@@ -273,7 +273,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       width: 50,
       render: (_, { portsSource, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : <ShortenedTextWithTooltip text={portsSource} />}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -287,7 +287,11 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
           $modified={formChanges?.modifiedFields?.includes('portsDestination')}
           className="no-scroll"
         >
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
+          {!portsDestination || portsDestination.length === 0 ? (
+            'any'
+          ) : (
+            <ShortenedTextWithTooltip text={portsDestination} />
+          )}
         </Styled.RulesEntryPorts>
       ),
     },
