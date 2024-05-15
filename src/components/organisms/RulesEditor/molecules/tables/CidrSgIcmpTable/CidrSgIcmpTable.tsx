@@ -8,7 +8,7 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormCidrSgIcmpRule, TTraffic } from 'localTypes/rules'
 import { EditCidrSgIcmpPopover } from '../../../atoms'
 import { Styled } from '../styled'
@@ -313,7 +313,7 @@ export const CidrSgIcmpTable: FC<TCidrSgIcmpTableProps> = ({
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome}
+          {prioritySome || DEFAULT_PRIORITIES.sgToCidrIeIcmp}
         </Styled.RulesEntryPorts>
       ),
     },

@@ -7,7 +7,7 @@ import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormFqdnRule } from 'localTypes/rules'
 import { EditFqdnPopover } from '../../../atoms'
 import { Styled } from '../styled'
@@ -262,7 +262,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome}
+          {prioritySome || DEFAULT_PRIORITIES.sgToFqdn}
         </Styled.RulesEntryPorts>
       ),
     },

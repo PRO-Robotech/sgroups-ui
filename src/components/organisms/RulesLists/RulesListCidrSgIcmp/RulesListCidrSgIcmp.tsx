@@ -15,7 +15,7 @@ import {
 } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getCidrSgIcmpRules, removeCidrSgIcmpRule } from 'api/rules'
-import { ITEMS_PER_PAGE } from 'constants/rules'
+import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TCidrSgIcmpRule } from 'localTypes/rules'
 import { Styled } from './styled'
@@ -161,7 +161,7 @@ export const RulesListCidrSgIcmp: FC = () => {
       dataIndex: 'priority',
       key: 'priority',
       width: 25,
-      render: (_, { priority }) => <div>{priority?.some}</div>,
+      render: (_, { priority }) => <div>{priority?.some || DEFAULT_PRIORITIES.sgToCidrIeIcmp}</div>,
     },
     {
       title: 'Traffic',

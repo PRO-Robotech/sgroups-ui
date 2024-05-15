@@ -8,3 +8,13 @@ export const STATUSES: { [k: string]: TFormChangesStatuses } = {
   modified: 'modified',
   deleted: 'deleted',
 }
+
+export const DEFAULT_PRIORITIES: { [k: string]: string } = {
+  sgToSgIcmp: '-300',
+  sgToSg: '-200',
+  sgToSgIeIcmp: '-100',
+  sgToSgIe: '0',
+  sgToFqdn: '100',
+  sgToCidrIeIcmp: '200',
+  sgToCidrIe: '300',
+}

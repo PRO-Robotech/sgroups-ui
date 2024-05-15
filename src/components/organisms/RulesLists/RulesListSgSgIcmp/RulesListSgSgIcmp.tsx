@@ -15,7 +15,7 @@ import {
 } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getSgSgIcmpRules, removeSgSgIcmpRule } from 'api/rules'
-import { ITEMS_PER_PAGE } from 'constants/rules'
+import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSgSgIcmpRule } from 'localTypes/rules'
 import { Styled } from './styled'
@@ -161,7 +161,7 @@ export const RulesListSgSgIcmp: FC = () => {
       dataIndex: 'priority',
       key: 'priority',
       width: 25,
-      render: (_, { priority }) => <div>{priority?.some}</div>,
+      render: (_, { priority }) => <div>{priority?.some || DEFAULT_PRIORITIES.sgToSgIcmp}</div>,
     },
     {
       title: 'Controls',
