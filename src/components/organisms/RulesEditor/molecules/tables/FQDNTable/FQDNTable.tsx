@@ -240,7 +240,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 50,
+      width: 100,
       render: (_, { logs, formChanges }) => (
         <Styled.RulesEntryMarks $modified={formChanges?.modifiedFields?.includes('logs')} className="no-scroll">
           <Tooltip title="Logs">
