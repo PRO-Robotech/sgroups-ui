@@ -4,7 +4,15 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined, SearchOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  LikeOutlined,
+  DislikeOutlined,
+} from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getSgSgIcmpRules, removeSgSgIcmpRule } from 'api/rules'
 import { ITEMS_PER_PAGE } from 'constants/rules'
@@ -90,6 +98,19 @@ export const RulesListSgSgIcmp: FC = () => {
 
   const columnsSgSgIcmp: ColumnsType<TSgSgIcmpRuleColumn> = [
     {
+      title: 'Action',
+      dataIndex: 'action',
+      key: 'action',
+      width: 25,
+      render: (_, { action }) => {
+        return action === 'ACCEPT' ? (
+          <LikeOutlined style={{ color: 'green' }} />
+        ) : (
+          <DislikeOutlined style={{ color: 'red' }} />
+        )
+      },
+    },
+    {
       title: 'ICMP',
       dataIndex: 'ICMP',
       key: 'ICMP',
@@ -141,19 +162,6 @@ export const RulesListSgSgIcmp: FC = () => {
       key: 'priority',
       width: 25,
       render: (_, { priority }) => <div>{priority?.some}</div>,
-    },
-    {
-      title: 'Action',
-      dataIndex: 'action',
-      key: 'action',
-      width: 25,
-      render: (_, { action }) => {
-        return action === 'ACCEPT' ? (
-          <CheckOutlined style={{ color: 'green' }} />
-        ) : (
-          <CloseOutlined style={{ color: 'red' }} />
-        )
-      },
     },
     {
       title: 'Controls',

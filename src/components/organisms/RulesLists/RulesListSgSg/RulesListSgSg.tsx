@@ -4,7 +4,15 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined, SearchOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  LikeOutlined,
+  DislikeOutlined,
+} from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getRules, removeRule } from 'api/rules'
 import { ITEMS_PER_PAGE } from 'constants/rules'
@@ -90,6 +98,19 @@ export const RulesListSgSg: FC = () => {
 
   const columns: ColumnsType<TSgRuleColumn> = [
     {
+      title: 'Action',
+      dataIndex: 'action',
+      key: 'action',
+      width: 25,
+      render: (_, { action }) => {
+        return action === 'ACCEPT' ? (
+          <LikeOutlined style={{ color: 'green' }} />
+        ) : (
+          <DislikeOutlined style={{ color: 'red' }} />
+        )
+      },
+    },
+    {
       title: 'Transport',
       dataIndex: 'transport',
       key: 'transport',
@@ -139,19 +160,6 @@ export const RulesListSgSg: FC = () => {
           )}
         </Styled.PortsContainer>
       ),
-    },
-    {
-      title: 'Action',
-      dataIndex: 'action',
-      key: 'action',
-      width: 25,
-      render: (_, { action }) => {
-        return action === 'ACCEPT' ? (
-          <CheckOutlined style={{ color: 'green' }} />
-        ) : (
-          <CloseOutlined style={{ color: 'red' }} />
-        )
-      },
     },
     {
       title: 'Controls',

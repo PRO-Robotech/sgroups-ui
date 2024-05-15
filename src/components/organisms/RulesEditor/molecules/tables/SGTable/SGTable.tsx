@@ -5,7 +5,7 @@ import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormSgRule } from 'localTypes/rules'
@@ -220,6 +220,21 @@ export const SGTable: FC<TSGTableProps> = ({
 
   const columns: ColumnsType<TColumn> = [
     {
+      title: 'Action',
+      key: 'action',
+      dataIndex: 'action',
+      width: 25,
+      render: (_, { action, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
+          {action === 'ACCEPT' ? (
+            <LikeOutlined style={{ color: 'green' }} />
+          ) : (
+            <DislikeOutlined style={{ color: 'red' }} />
+          )}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Transport',
       dataIndex: 'transport',
       key: 'transport',
@@ -339,21 +354,6 @@ export const SGTable: FC<TSGTableProps> = ({
           className="no-scroll"
         >
           {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      dataIndex: 'action',
-      width: 25,
-      render: (_, { action, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
-          {action === 'ACCEPT' ? (
-            <CheckOutlined style={{ color: 'green' }} />
-          ) : (
-            <CloseOutlined style={{ color: 'red' }} />
-          )}
         </Styled.RulesEntryPorts>
       ),
     },
