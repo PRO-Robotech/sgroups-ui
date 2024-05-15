@@ -286,6 +286,17 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
       },
     },
     {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Ports Src',
       key: 'portsSource',
       dataIndex: 'portsSource',
@@ -322,17 +333,6 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
           ) : (
             <CloseOutlined style={{ color: 'red' }} />
           )}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Priority',
-      key: 'prioritySome',
-      dataIndex: 'prioritySome',
-      width: 25,
-      render: (_, { prioritySome, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome}
         </Styled.RulesEntryPorts>
       ),
     },

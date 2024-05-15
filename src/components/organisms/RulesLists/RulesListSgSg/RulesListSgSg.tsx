@@ -90,6 +90,12 @@ export const RulesListSgSg: FC = () => {
 
   const columns: ColumnsType<TSgRuleColumn> = [
     {
+      title: 'Transport',
+      dataIndex: 'transport',
+      key: 'transport',
+      width: 150,
+    },
+    {
       title: 'SG From',
       dataIndex: 'sgFrom',
       key: 'sgFrom',
@@ -102,6 +108,22 @@ export const RulesListSgSg: FC = () => {
       dataIndex: 'sgTo',
       key: 'sgTo',
       width: 150,
+    },
+    {
+      title: 'Logs',
+      dataIndex: 'logs',
+      key: 'logs',
+      width: 150,
+      render: (_, { logs }) => {
+        return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
+      },
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 25,
+      render: (_, { priority }) => <div>{priority?.some}</div>,
     },
     {
       title: 'Ports',
@@ -119,21 +141,6 @@ export const RulesListSgSg: FC = () => {
       ),
     },
     {
-      title: 'Logs',
-      dataIndex: 'logs',
-      key: 'logs',
-      width: 150,
-      render: (_, { logs }) => {
-        return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
-      },
-    },
-    {
-      title: 'Transport',
-      dataIndex: 'transport',
-      key: 'transport',
-      width: 150,
-    },
-    {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
@@ -145,13 +152,6 @@ export const RulesListSgSg: FC = () => {
           <CloseOutlined style={{ color: 'red' }} />
         )
       },
-    },
-    {
-      title: 'Priority',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some}</div>,
     },
     {
       title: 'Controls',

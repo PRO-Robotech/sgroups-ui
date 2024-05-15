@@ -292,6 +292,17 @@ export const CidrSgIcmpTable: FC<TCidrSgIcmpTableProps> = ({
       },
     },
     {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Action',
       key: 'action',
       dataIndex: 'action',
@@ -303,17 +314,6 @@ export const CidrSgIcmpTable: FC<TCidrSgIcmpTableProps> = ({
           ) : (
             <CloseOutlined style={{ color: 'red' }} />
           )}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Priority',
-      key: 'prioritySome',
-      dataIndex: 'prioritySome',
-      width: 25,
-      render: (_, { prioritySome, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome}
         </Styled.RulesEntryPorts>
       ),
     },

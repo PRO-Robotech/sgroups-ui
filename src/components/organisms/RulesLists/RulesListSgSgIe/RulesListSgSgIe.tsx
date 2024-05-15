@@ -90,6 +90,12 @@ export const RulesListSgSgIe: FC = () => {
 
   const columnsSgSgIe: ColumnsType<TSgSgIeRuleColumn> = [
     {
+      title: 'Transport',
+      dataIndex: 'transport',
+      key: 'transport',
+      width: 150,
+    },
+    {
       title: 'SG',
       dataIndex: 'Sg',
       key: 'Sg',
@@ -102,21 +108,6 @@ export const RulesListSgSgIe: FC = () => {
       dataIndex: 'SgLocal',
       key: 'SgLocal',
       width: 150,
-    },
-    {
-      title: 'Ports',
-      dataIndex: 'ports',
-      key: 'ports',
-      width: 70,
-      render: (_, { ports }) => (
-        <Styled.PortsContainer>
-          {ports.length === 0 ? (
-            <div>any : any</div>
-          ) : (
-            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
-          )}
-        </Styled.PortsContainer>
-      ),
     },
     {
       title: 'Logs',
@@ -137,15 +128,31 @@ export const RulesListSgSgIe: FC = () => {
       },
     },
     {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 25,
+      render: (_, { priority }) => <div>{priority?.some}</div>,
+    },
+    {
+      title: 'Ports',
+      dataIndex: 'ports',
+      key: 'ports',
+      width: 70,
+      render: (_, { ports }) => (
+        <Styled.PortsContainer>
+          {ports.length === 0 ? (
+            <div>any : any</div>
+          ) : (
+            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
+          )}
+        </Styled.PortsContainer>
+      ),
+    },
+    {
       title: 'Traffic',
       dataIndex: 'traffic',
       key: 'traffic',
-      width: 150,
-    },
-    {
-      title: 'Transport',
-      dataIndex: 'transport',
-      key: 'transport',
       width: 150,
     },
     {
@@ -160,13 +167,6 @@ export const RulesListSgSgIe: FC = () => {
           <CloseOutlined style={{ color: 'red' }} />
         )
       },
-    },
-    {
-      title: 'Priority',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some}</div>,
     },
     {
       title: 'Controls',

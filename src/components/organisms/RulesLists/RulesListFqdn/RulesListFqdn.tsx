@@ -90,6 +90,12 @@ export const RulesListFqdn: FC = () => {
 
   const columnsFqdn: ColumnsType<TFqdnRuleColumn> = [
     {
+      title: 'Transport',
+      dataIndex: 'transport',
+      key: 'transport',
+      width: 150,
+    },
+    {
       title: 'SG From',
       dataIndex: 'sgFrom',
       key: 'sgFrom',
@@ -102,6 +108,22 @@ export const RulesListFqdn: FC = () => {
       dataIndex: 'FQDN',
       key: 'FQDN',
       width: 150,
+    },
+    {
+      title: 'Logs',
+      dataIndex: 'logs',
+      key: 'logs',
+      width: 150,
+      render: (_, { logs }) => {
+        return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
+      },
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 25,
+      render: (_, { priority }) => <div>{priority?.some}</div>,
     },
     {
       title: 'Ports',
@@ -119,21 +141,6 @@ export const RulesListFqdn: FC = () => {
       ),
     },
     {
-      title: 'Logs',
-      dataIndex: 'logs',
-      key: 'logs',
-      width: 150,
-      render: (_, { logs }) => {
-        return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
-      },
-    },
-    {
-      title: 'Transport',
-      dataIndex: 'transport',
-      key: 'transport',
-      width: 150,
-    },
-    {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
@@ -145,13 +152,6 @@ export const RulesListFqdn: FC = () => {
           <CloseOutlined style={{ color: 'red' }} />
         )
       },
-    },
-    {
-      title: 'Priority',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some}</div>,
     },
     {
       title: 'Controls',

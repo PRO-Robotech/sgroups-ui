@@ -90,6 +90,13 @@ export const RulesListSgSgIcmp: FC = () => {
 
   const columnsSgSgIcmp: ColumnsType<TSgSgIcmpRuleColumn> = [
     {
+      title: 'ICMP',
+      dataIndex: 'ICMP',
+      key: 'ICMP',
+      width: 70,
+      render: (_, { ICMP }) => <div>{ICMP.IPv}</div>,
+    },
+    {
       title: 'SG From',
       dataIndex: 'SgFrom',
       key: 'SgFrom',
@@ -102,13 +109,6 @@ export const RulesListSgSgIcmp: FC = () => {
       dataIndex: 'SgTo',
       key: 'SgTo',
       width: 150,
-    },
-    {
-      title: 'ICMP',
-      dataIndex: 'ICMP',
-      key: 'ICMP',
-      width: 70,
-      render: (_, { ICMP }) => <div>{ICMP.IPv}</div>,
     },
     {
       title: 'Types',
@@ -136,6 +136,13 @@ export const RulesListSgSgIcmp: FC = () => {
       },
     },
     {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 25,
+      render: (_, { priority }) => <div>{priority?.some}</div>,
+    },
+    {
       title: 'Action',
       dataIndex: 'action',
       key: 'action',
@@ -147,13 +154,6 @@ export const RulesListSgSgIcmp: FC = () => {
           <CloseOutlined style={{ color: 'red' }} />
         )
       },
-    },
-    {
-      title: 'Priority',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some}</div>,
     },
     {
       title: 'Controls',

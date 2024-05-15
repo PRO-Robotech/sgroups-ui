@@ -278,11 +278,22 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
         </Styled.RulesEntryMarks>
       ),
       sorter: (a, b) => {
-        if (a.logs === b.logs) {
+        if (a.trace === b.trace) {
           return 0
         }
-        return a.logs ? -1 : 1
+        return a.trace ? -1 : 1
       },
+    },
+    {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome}
+        </Styled.RulesEntryPorts>
+      ),
     },
     {
       title: 'Ports Src',
@@ -321,17 +332,6 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
           ) : (
             <CloseOutlined style={{ color: 'red' }} />
           )}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Priority',
-      key: 'prioritySome',
-      dataIndex: 'prioritySome',
-      width: 25,
-      render: (_, { prioritySome, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome}
         </Styled.RulesEntryPorts>
       ),
     },
