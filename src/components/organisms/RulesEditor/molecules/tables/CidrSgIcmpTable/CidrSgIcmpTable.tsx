@@ -5,10 +5,10 @@ import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
-import { ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
+import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormCidrSgIcmpRule, TTraffic } from 'localTypes/rules'
 import { EditCidrSgIcmpPopover } from '../../../atoms'
 import { Styled } from '../styled'
@@ -173,6 +173,21 @@ export const CidrSgIcmpTable: FC<TCidrSgIcmpTableProps> = ({
 
   const columns: ColumnsType<TColumn> = [
     {
+      title: 'Action',
+      key: 'action',
+      dataIndex: 'action',
+      width: 25,
+      render: (_, { action, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
+          {action === 'ACCEPT' ? (
+            <LikeOutlined style={{ color: 'green' }} />
+          ) : (
+            <DislikeOutlined style={{ color: 'red' }} />
+          )}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'ICMP',
       dataIndex: 'IPv',
       key: 'IPv',
@@ -196,7 +211,7 @@ export const CidrSgIcmpTable: FC<TCidrSgIcmpTableProps> = ({
       width: 150,
       render: (_, { cidr, formChanges }) => (
         <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('cidr')} className="no-scroll">
-          {cidr}
+          <ShortenedTextWithTooltip text={cidr} />
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -243,7 +258,7 @@ export const CidrSgIcmpTable: FC<TCidrSgIcmpTableProps> = ({
       width: 50,
       render: (_, { types, formChanges }) => (
         <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('types')} className="no-scroll">
-          {types.join(',')}
+          <ShortenedTextWithTooltip text={types.join(',')} />
         </Styled.RulesEntrySgs>
       ),
       sorter: (a, b) => {
@@ -292,24 +307,13 @@ export const CidrSgIcmpTable: FC<TCidrSgIcmpTableProps> = ({
       },
     },
     {
-      title: 'Action',
-      key: 'action',
-      dataIndex: 'action',
-      width: 25,
-      render: (_, { action, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
-          {action}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
       title: 'Priority',
       key: 'prioritySome',
       dataIndex: 'prioritySome',
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome}
+          {prioritySome || DEFAULT_PRIORITIES.sgToCidrIeIcmp}
         </Styled.RulesEntryPorts>
       ),
     },

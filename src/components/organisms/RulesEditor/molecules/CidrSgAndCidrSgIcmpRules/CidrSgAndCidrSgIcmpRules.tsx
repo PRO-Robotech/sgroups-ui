@@ -55,28 +55,30 @@ export const CidrSgAndCidrSgIcmpRules: FC<TCidrSgAndCidrSgIcmpRulesProps> = ({
         />
       </Styled.RadioGroup>
       <Spacer $space={10} $samespace />
-      {tab === 'tcpudp' && (
-        <CidrSGRules
-          forceArrowsUpdate={forceArrowsUpdate}
-          title={title}
-          popoverPosition={popoverPosition}
-          rules={rules}
-          setRules={setRules}
-          defaultTraffic={defaultTraffic}
-          isDisabled={isDisabled}
-        />
-      )}
-      {tab === 'icmp' && (
-        <CidrSgIcmpRules
-          forceArrowsUpdate={forceArrowsUpdate}
-          title={title}
-          popoverPosition={popoverPosition}
-          rules={rulesIcmp}
-          setRules={setRulesIcmp}
-          defaultTraffic={defaultTraffic}
-          isDisabled={isDisabled}
-        />
-      )}
+      <Styled.ContainerAfterSwitcher>
+        {tab === 'tcpudp' && (
+          <CidrSGRules
+            forceArrowsUpdate={forceArrowsUpdate}
+            title={title}
+            popoverPosition={popoverPosition}
+            rules={rules}
+            setRules={setRules}
+            defaultTraffic={defaultTraffic}
+            isDisabled={isDisabled}
+          />
+        )}
+        {tab === 'icmp' && (
+          <CidrSgIcmpRules
+            forceArrowsUpdate={forceArrowsUpdate}
+            title={title}
+            popoverPosition={popoverPosition}
+            rules={rulesIcmp}
+            setRules={setRulesIcmp}
+            defaultTraffic={defaultTraffic}
+            isDisabled={isDisabled}
+          />
+        )}
+      </Styled.ContainerAfterSwitcher>
     </Styled.GroupRulesNode>
   )
 }

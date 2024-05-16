@@ -5,9 +5,9 @@ import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
-import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormFqdnRule } from 'localTypes/rules'
 import { EditFqdnPopover } from '../../../atoms'
 import { Styled } from '../styled'
@@ -154,6 +154,21 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
 
   const columns: ColumnsType<TColumn> = [
     {
+      title: 'Action',
+      key: 'action',
+      dataIndex: 'action',
+      width: 25,
+      render: (_, { action, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
+          {action === 'ACCEPT' ? (
+            <LikeOutlined style={{ color: 'green' }} />
+          ) : (
+            <DislikeOutlined style={{ color: 'red' }} />
+          )}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Transport',
       dataIndex: 'transport',
       key: 'transport',
@@ -225,7 +240,7 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 50,
+      width: 100,
       render: (_, { logs, formChanges }) => (
         <Styled.RulesEntryMarks $modified={formChanges?.modifiedFields?.includes('logs')} className="no-scroll">
           <Tooltip title="Logs">
@@ -241,13 +256,24 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
       },
     },
     {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome || DEFAULT_PRIORITIES.sgToFqdn}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Ports Src',
       key: 'portsSource',
       dataIndex: 'portsSource',
       width: 50,
       render: (_, { portsSource, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : <ShortenedTextWithTooltip text={portsSource} />}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -261,29 +287,11 @@ export const FQDNTable: FC<TFQDNTableProps> = ({
           $modified={formChanges?.modifiedFields?.includes('portsDestination')}
           className="no-scroll"
         >
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      dataIndex: 'action',
-      width: 25,
-      render: (_, { action, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
-          {action}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Priority',
-      key: 'prioritySome',
-      dataIndex: 'prioritySome',
-      width: 25,
-      render: (_, { prioritySome, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome}
+          {!portsDestination || portsDestination.length === 0 ? (
+            'any'
+          ) : (
+            <ShortenedTextWithTooltip text={portsDestination} />
+          )}
         </Styled.RulesEntryPorts>
       ),
     },

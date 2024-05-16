@@ -133,7 +133,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
               <SgAndSgSgIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 sgNames={sgNames}
-                title={`SG From - ${centerSg || ''}`}
+                title="SG From"
                 popoverPosition="left"
                 rules={rulesSgFrom}
                 setRules={setRulesSgFrom}
@@ -152,7 +152,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
               <SgSgIeAndSgSgIeIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 sgNames={sgNames}
-                title={`SG-SG-IE From - ${centerSg || ''}`}
+                title="SG-SG-IE From"
                 popoverPosition="left"
                 rules={rulesSgSgIeFrom}
                 setRules={setRulesSgSgIeFrom}
@@ -166,7 +166,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={CIDR_FROM_ID}>
               <CidrSgAndCidrSgIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
-                title={`CIDR From - ${centerSg || ''}`}
+                title="CIDR From"
                 popoverPosition="left"
                 rules={rulesCidrSgFrom}
                 setRules={setRulesCidrSgFrom}
@@ -187,7 +187,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
               <SgAndSgSgIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 sgNames={sgNames}
-                title={`${centerSg || ''} - SG To`}
+                title="SG To"
                 popoverPosition="right"
                 rules={rulesSgTo}
                 setRules={setRulesSgTo}
@@ -206,7 +206,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
               <SgSgIeAndSgSgIeIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 sgNames={sgNames}
-                title={`${centerSg || ''} - SG-SG-IE To`}
+                title="SG-SG-IE To"
                 popoverPosition="right"
                 rules={rulesSgSgIeTo}
                 setRules={setRulesSgSgIeTo}
@@ -220,7 +220,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={CIDR_TO_ID}>
               <CidrSgAndCidrSgIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
-                title={`${centerSg || ''} - CIDR To`}
+                title="CIDR To"
                 popoverPosition="right"
                 rules={rulesCidrSgTo}
                 setRules={setRulesCidrSgTo}
@@ -234,7 +234,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={FQDN_TO_ID}>
               <FQDNRules
                 forceArrowsUpdate={forceArrowsUpdate}
-                title={`${centerSg || ''} - FQDN To`}
+                title="FQDN To"
                 popoverPosition="right"
                 rules={rulesFqdnTo}
                 setRules={setRulesFqdnTo}
