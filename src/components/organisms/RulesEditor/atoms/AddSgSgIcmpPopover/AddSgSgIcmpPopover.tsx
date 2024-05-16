@@ -17,8 +17,11 @@ export const AddSgSgIcmpPopover: FC<TAddSgSgIcmpPopoverProps> = ({ sgNames, hide
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormSgSgIcmpRule) => {
-        addNew({ ...values, prioritySome: Number(values.prioritySome) })
+      onFinish={(values: Omit<TFormSgSgIcmpRule, 'prioritySome'> & { prioritySome?: string }) => {
+        addNew({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
         addForm.resetFields()
       }}
     >

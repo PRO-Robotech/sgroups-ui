@@ -15,8 +15,11 @@ export const AddCidrSgIcmpPopover: FC<TAddCidrSgIcmpPopoverProps> = ({ hide, add
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormCidrSgIcmpRule) => {
-        addNew({ ...values, prioritySome: Number(values.prioritySome) })
+      onFinish={(values: Omit<TFormCidrSgIcmpRule, 'prioritySome'> & { prioritySome?: string }) => {
+        addNew({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
         addForm.resetFields()
       }}
     >

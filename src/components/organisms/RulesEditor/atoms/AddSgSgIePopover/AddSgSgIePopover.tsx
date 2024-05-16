@@ -17,8 +17,11 @@ export const AddSgSgIePopover: FC<TAddSgSgIePopoverProps> = ({ sgNames, hide, ad
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormSgSgIeRule) => {
-        addNew({ ...values, prioritySome: Number(values.prioritySome) })
+      onFinish={(values: Omit<TFormSgSgIeRule, 'prioritySome'> & { prioritySome?: string }) => {
+        addNew({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
         addForm.resetFields()
       }}
     >

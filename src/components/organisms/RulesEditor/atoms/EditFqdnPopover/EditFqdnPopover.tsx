@@ -22,7 +22,12 @@ export const EditFqdnPopover: FC<TEditFqdnPopoverProps> = ({ values, hide, remov
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormFqdnRule) => edit({ ...values, prioritySome: Number(values.prioritySome) })}
+      onFinish={(values: Omit<TFormFqdnRule, 'prioritySome'> & { prioritySome?: string }) =>
+        edit({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
+      }
     >
       <Styled.FormItem
         label="FQDN"

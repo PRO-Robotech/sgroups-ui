@@ -22,7 +22,12 @@ export const EditCidrSgIcmpPopover: FC<TEditCidrSgIcmpPopoverProps> = ({ values,
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormCidrSgIcmpRule) => edit({ ...values, prioritySome: Number(values.prioritySome) })}
+      onFinish={(values: Omit<TFormCidrSgIcmpRule, 'prioritySome'> & { prioritySome?: string }) =>
+        edit({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
+      }
     >
       <Styled.FormItem
         label="CIDR"

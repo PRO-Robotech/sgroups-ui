@@ -15,8 +15,11 @@ export const AddFqdnPopover: FC<TAddFqdnPopoverProps> = ({ hide, addNew }) => {
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormFqdnRule) => {
-        addNew({ ...values, prioritySome: Number(values.prioritySome) })
+      onFinish={(values: Omit<TFormFqdnRule, 'prioritySome'> & { prioritySome?: string }) => {
+        addNew({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
         addForm.resetFields()
       }}
     >

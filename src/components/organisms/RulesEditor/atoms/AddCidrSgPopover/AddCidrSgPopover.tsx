@@ -15,8 +15,11 @@ export const AddCidrSgPopover: FC<TAddCidrSgPopoverProps> = ({ hide, addNew }) =
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormCidrSgRule) => {
-        addNew({ ...values, prioritySome: Number(values.prioritySome) })
+      onFinish={(values: Omit<TFormCidrSgRule, 'prioritySome'> & { prioritySome?: string }) => {
+        addNew({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
         addForm.resetFields()
       }}
     >

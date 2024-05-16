@@ -24,7 +24,12 @@ export const EditSGPopover: FC<TEditSGPopoverProps> = ({ sgNames, values, hide, 
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormSgRule) => edit({ ...values, prioritySome: Number(values.prioritySome) })}
+      onFinish={(values: Omit<TFormSgRule, 'prioritySome'> & { prioritySome?: string }) =>
+        edit({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
+      }
     >
       <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Names' }]}>
         <Select

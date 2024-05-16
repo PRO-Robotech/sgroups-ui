@@ -31,7 +31,12 @@ export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormSgSgIcmpRule) => edit({ ...values, prioritySome: Number(values.prioritySome) })}
+      onFinish={(values: Omit<TFormSgSgIcmpRule, 'prioritySome'> & { prioritySome?: string }) =>
+        edit({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
+      }
     >
       <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Name' }]}>
         <Select
