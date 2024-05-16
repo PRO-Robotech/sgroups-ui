@@ -2,8 +2,9 @@ import React, { FC, ReactNode, useState, useEffect } from 'react'
 import { useLocation, useHistory } from 'react-router-dom'
 import { Layout, Menu } from 'antd'
 import { BaseTemplate } from 'templates'
-import { DefaultLayout, PositionSticky } from 'components'
+import { DefaultLayout } from 'components'
 import { mainPageLeftList } from 'mocks'
+import { Styled } from './styled'
 
 type TLeftMenuTemplateProps = {
   children?: ReactNode | undefined
@@ -22,7 +23,7 @@ export const LeftMenuTemplate: FC<TLeftMenuTemplateProps> = ({ children }) => {
     <BaseTemplate>
       <Layout>
         <Layout.Sider width={170} breakpoint="lg" collapsedWidth="0">
-          <PositionSticky>
+          <Styled.PositionStickyWithNoUserSelect>
             <Menu
               theme="dark"
               mode="inline"
@@ -34,7 +35,7 @@ export const LeftMenuTemplate: FC<TLeftMenuTemplateProps> = ({ children }) => {
                 setCurrentSection(key)
               }}
             />
-          </PositionSticky>
+          </Styled.PositionStickyWithNoUserSelect>
         </Layout.Sider>
         <DefaultLayout.LayoutWithPadding>
           <DefaultLayout.ContentContainer>{children}</DefaultLayout.ContentContainer>
