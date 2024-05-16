@@ -65,34 +65,36 @@ export const SgAndSgSgIcmpRules: FC<TSgAndSgSgIcmpRulesProps> = ({
         />
       </Styled.RadioGroup>
       <Spacer $space={10} $samespace />
-      {tab === 'tcpudp' && (
-        <SGRules
-          forceArrowsUpdate={forceArrowsUpdate}
-          sgNames={sgNames}
-          title={title}
-          popoverPosition={popoverPosition}
-          rules={rules}
-          setRules={setRules}
-          rulesOtherside={rulesOtherside}
-          setRulesOtherside={setRulesOtherside}
-          centerSg={centerSg}
-          isDisabled={isDisabled}
-        />
-      )}
-      {tab === 'icmp' && (
-        <SgSgIcmpRules
-          forceArrowsUpdate={forceArrowsUpdate}
-          sgNames={sgNames}
-          title={title}
-          popoverPosition={popoverPosition}
-          rules={rulesIcmp}
-          setRules={setRulesIcmp}
-          rulesOtherside={rulesOthersideIcmp}
-          setRulesOtherside={setRulesOthersideIcmp}
-          centerSg={centerSg}
-          isDisabled={isDisabled}
-        />
-      )}
+      <Styled.ContainerAfterSwitcher>
+        {tab === 'tcpudp' && (
+          <SGRules
+            forceArrowsUpdate={forceArrowsUpdate}
+            sgNames={sgNames}
+            title={title}
+            popoverPosition={popoverPosition}
+            rules={rules}
+            setRules={setRules}
+            rulesOtherside={rulesOtherside}
+            setRulesOtherside={setRulesOtherside}
+            centerSg={centerSg}
+            isDisabled={isDisabled}
+          />
+        )}
+        {tab === 'icmp' && (
+          <SgSgIcmpRules
+            forceArrowsUpdate={forceArrowsUpdate}
+            sgNames={sgNames}
+            title={title}
+            popoverPosition={popoverPosition}
+            rules={rulesIcmp}
+            setRules={setRulesIcmp}
+            rulesOtherside={rulesOthersideIcmp}
+            setRulesOtherside={setRulesOthersideIcmp}
+            centerSg={centerSg}
+            isDisabled={isDisabled}
+          />
+        )}
+      </Styled.ContainerAfterSwitcher>
     </Styled.GroupRulesNode>
   )
 }

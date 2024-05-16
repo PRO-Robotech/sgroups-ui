@@ -68,8 +68,6 @@ const RulesEntryPorts = styled.div<TRulesEntryPortsProps>`
   padding: 3px;
   text-align: center;
   background: ${({ $modified }) => ($modified ? '#f1c1c1d9' : 'initial')};
-  border-left: 1px solid #cbcbcb;
-  border-radius: 5px;
 `
 
 const EditButton = styled.div`

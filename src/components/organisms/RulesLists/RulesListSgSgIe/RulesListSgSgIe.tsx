@@ -4,10 +4,18 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
+import {
+  EditOutlined,
+  DeleteOutlined,
+  SearchOutlined,
+  CheckOutlined,
+  CloseOutlined,
+  LikeOutlined,
+  DislikeOutlined,
+} from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { getSgSgIeRules, removeSgSgIeRule } from 'api/rules'
-import { ITEMS_PER_PAGE } from 'constants/rules'
+import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSgSgIeRule } from 'localTypes/rules'
 import { Styled } from './styled'
@@ -90,6 +98,25 @@ export const RulesListSgSgIe: FC = () => {
 
   const columnsSgSgIe: ColumnsType<TSgSgIeRuleColumn> = [
     {
+      title: 'Action',
+      dataIndex: 'action',
+      key: 'action',
+      width: 50,
+      render: (_, { action }) => {
+        return action === 'ACCEPT' ? (
+          <LikeOutlined style={{ color: 'green' }} />
+        ) : (
+          <DislikeOutlined style={{ color: 'red' }} />
+        )
+      },
+    },
+    {
+      title: 'Transport',
+      dataIndex: 'transport',
+      key: 'transport',
+      width: 50,
+    },
+    {
       title: 'SG',
       dataIndex: 'Sg',
       key: 'Sg',
@@ -104,10 +131,35 @@ export const RulesListSgSgIe: FC = () => {
       width: 150,
     },
     {
+      title: 'Logs',
+      dataIndex: 'logs',
+      key: 'logs',
+      width: 50,
+      render: (_, { logs }) => {
+        return logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
+      },
+    },
+    {
+      title: 'Trace',
+      dataIndex: 'trace',
+      key: 'trace',
+      width: 50,
+      render: (_, { trace }) => {
+        return trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />
+      },
+    },
+    {
+      title: 'Priority',
+      dataIndex: 'priority',
+      key: 'priority',
+      width: 50,
+      render: (_, { priority }) => priority?.some || DEFAULT_PRIORITIES.sgToSgIe,
+    },
+    {
       title: 'Ports',
       dataIndex: 'ports',
       key: 'ports',
-      width: 70,
+      width: 50,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
           {ports.length === 0 ? (
@@ -119,43 +171,10 @@ export const RulesListSgSgIe: FC = () => {
       ),
     },
     {
-      title: 'Logs',
-      dataIndex: 'logs',
-      key: 'logs',
-      width: 150,
-      render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
-    },
-    {
-      title: 'Trace',
-      dataIndex: 'trace',
-      key: 'trace',
-      width: 150,
-      render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
-    },
-    {
       title: 'Traffic',
       dataIndex: 'traffic',
       key: 'traffic',
-      width: 150,
-    },
-    {
-      title: 'Transport',
-      dataIndex: 'transport',
-      key: 'transport',
-      width: 150,
-    },
-    {
-      title: 'Action',
-      dataIndex: 'action',
-      key: 'action',
-      width: 25,
-    },
-    {
-      title: 'Priority',
-      dataIndex: 'priority',
-      key: 'priority',
-      width: 25,
-      render: (_, { priority }) => <div>{priority?.some}</div>,
+      width: 100,
     },
     {
       title: 'Controls',

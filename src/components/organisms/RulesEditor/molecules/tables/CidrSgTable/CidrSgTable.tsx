@@ -5,10 +5,10 @@ import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { CheckOutlined, CloseOutlined, SearchOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
-import { ThWhiteSpaceNoWrap } from 'components/atoms'
-import { ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
+import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormCidrSgRule, TTraffic } from 'localTypes/rules'
 import { EditCidrSgPopover } from '../../../atoms'
 import { Styled } from '../styled'
@@ -179,6 +179,21 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
 
   const columns: ColumnsType<TColumn> = [
     {
+      title: 'Action',
+      key: 'action',
+      dataIndex: 'action',
+      width: 25,
+      render: (_, { action, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
+          {action === 'ACCEPT' ? (
+            <LikeOutlined style={{ color: 'green' }} />
+          ) : (
+            <DislikeOutlined style={{ color: 'red' }} />
+          )}
+        </Styled.RulesEntryPorts>
+      ),
+    },
+    {
       title: 'Transport',
       dataIndex: 'transport',
       key: 'transport',
@@ -206,7 +221,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
       width: 150,
       render: (_, { cidr, formChanges }) => (
         <Styled.RulesEntrySgs $modified={formChanges?.modifiedFields?.includes('cidr')} className="no-scroll">
-          {cidr}
+          <ShortenedTextWithTooltip text={cidr} />
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
@@ -278,11 +293,22 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
         </Styled.RulesEntryMarks>
       ),
       sorter: (a, b) => {
-        if (a.logs === b.logs) {
+        if (a.trace === b.trace) {
           return 0
         }
-        return a.logs ? -1 : 1
+        return a.trace ? -1 : 1
       },
+    },
+    {
+      title: 'Priority',
+      key: 'prioritySome',
+      dataIndex: 'prioritySome',
+      width: 25,
+      render: (_, { prioritySome, formChanges }) => (
+        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
+          {prioritySome || DEFAULT_PRIORITIES.sgToCidrIe}
+        </Styled.RulesEntryPorts>
+      ),
     },
     {
       title: 'Ports Src',
@@ -291,7 +317,7 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
       width: 50,
       render: (_, { portsSource, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : portsSource}
+          {!portsSource || portsSource.length === 0 ? 'any' : <ShortenedTextWithTooltip text={portsSource} />}
         </Styled.RulesEntryPorts>
       ),
     },
@@ -305,29 +331,11 @@ export const CidrSgTable: FC<TCidrSgTableProps> = ({
           $modified={formChanges?.modifiedFields?.includes('portsDestination')}
           className="no-scroll"
         >
-          {!portsDestination || portsDestination.length === 0 ? 'any' : portsDestination}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Action',
-      key: 'action',
-      dataIndex: 'action',
-      width: 25,
-      render: (_, { action, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
-          {action}
-        </Styled.RulesEntryPorts>
-      ),
-    },
-    {
-      title: 'Priority',
-      key: 'prioritySome',
-      dataIndex: 'prioritySome',
-      width: 25,
-      render: (_, { prioritySome, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome}
+          {!portsDestination || portsDestination.length === 0 ? (
+            'any'
+          ) : (
+            <ShortenedTextWithTooltip text={portsDestination} />
+          )}
         </Styled.RulesEntryPorts>
       ),
     },

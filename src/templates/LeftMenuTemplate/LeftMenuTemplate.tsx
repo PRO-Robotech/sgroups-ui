@@ -21,14 +21,13 @@ export const LeftMenuTemplate: FC<TLeftMenuTemplateProps> = ({ children }) => {
   return (
     <BaseTemplate>
       <Layout>
-        <Layout.Sider width={200} breakpoint="lg" collapsedWidth="0">
+        <Layout.Sider width={170} breakpoint="lg" collapsedWidth="0">
           <PositionSticky>
             <Menu
               theme="dark"
               mode="inline"
               selectedKeys={[currentSection]}
               defaultOpenKeys={['/rules']}
-              expandIcon={null}
               items={mainPageLeftList}
               onClick={({ key }) => {
                 history.push(key)
