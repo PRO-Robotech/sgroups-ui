@@ -24,12 +24,15 @@ export const SecurityGroupAdd: FC = () => {
     setIsLoading(true)
     setError(undefined)
     Promise.all([getNetworks(), getSecurityGroups()])
-      .then(([value1, value2]) => {
-        const allNetworksName = value1.data.networks.map(({ name }) => name)
-        const unavailableNetworksName = value2.data.groups.flatMap(({ networks }) => networks)
-        const availableNetworks = allNetworksName.filter(el => !unavailableNetworksName.includes(el))
-        setNetworkOptions(availableNetworks.map(name => ({ label: name, value: name })))
-        const unavailableSGName = value2.data.groups.map(({ name }) => name)
+      .then(([nwResponse, allSgsResponse]) => {
+        const allNetworksNameAndCidrs = nwResponse.data.networks.map(({ name, network }) => ({
+          name,
+          cidr: network.CIDR,
+        }))
+        const unavailableNetworksName = allSgsResponse.data.groups.flatMap(({ networks }) => networks)
+        const availableNetworks = allNetworksNameAndCidrs.filter(el => !unavailableNetworksName.includes(el.name))
+        setNetworkOptions(availableNetworks.map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name })))
+        const unavailableSGName = allSgsResponse.data.groups.map(({ name }) => name)
         setUnavailableSGNames(unavailableSGName)
         setIsLoading(false)
       })
