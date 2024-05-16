@@ -4,16 +4,8 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import {
-  EditOutlined,
-  DeleteOutlined,
-  SearchOutlined,
-  CheckOutlined,
-  CloseOutlined,
-  LikeOutlined,
-  DislikeOutlined,
-} from '@ant-design/icons'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
+import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getFqdnRules, removeFqdnRule } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -164,12 +156,12 @@ export const RulesListFqdn: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
-      width: 150,
+      width: 100,
       render: (_, record: TFqdnRule) => (
-        <>
-          <EditOutlined onClick={() => history.push(`/rules/editor/${record.sgFrom}`)} />
-          <DeleteOutlined onClick={() => openRemoveFqdnRuleModal(record.sgFrom, record.FQDN)} />
-        </>
+        <TextAlignContainer $align="center">
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.sgFrom}`)} />
+          <CustomIcons.DeleteIcon onClick={() => openRemoveFqdnRuleModal(record.sgFrom, record.FQDN)} />
+        </TextAlignContainer>
       ),
     },
   ]
