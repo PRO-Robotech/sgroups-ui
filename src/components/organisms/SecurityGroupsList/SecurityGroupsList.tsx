@@ -6,6 +6,7 @@ import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
+import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
@@ -42,10 +43,17 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
-    getSecurityGroups()
-      .then(({ data }) => {
+    Promise.all([getSecurityGroups(), getNetworks()])
+      .then(([sgsResponse, nwResponse]) => {
         setIsLoading(false)
-        setSecurityGroups(data.groups)
+        const enrichedWithCidrsSgData = sgsResponse.data.groups.map(el => ({
+          ...el,
+          networks: el.networks.map(nw => {
+            const nwData = nwResponse.data.networks.find(entry => entry.name === nw)
+            return nwData ? `${nwData.name}:${nwData.network.CIDR}` : `${nw}:null`
+          }),
+        }))
+        setSecurityGroups(enrichedWithCidrsSgData)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
