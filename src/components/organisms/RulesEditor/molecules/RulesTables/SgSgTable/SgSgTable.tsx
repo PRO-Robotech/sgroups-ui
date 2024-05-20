@@ -5,13 +5,14 @@ import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
+import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
 import { TFormSgSgRule } from 'localTypes/rules'
 import { EditSgSgPopover } from '../../../atoms'
+import { getRowSelection } from '../utils'
 import { Styled } from '../styled'
 
 type TSgSgTableProps = {
@@ -387,43 +388,15 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
           key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
         }))
 
-  const rowSelection: TableRowSelection<TColumn> | undefined = isChangesMode
-    ? {
-        selectedRowKeys,
-        type: 'checkbox',
-        onChange: (newSelectedRowKeys, newSelectedRows) => {
-          const newRules = [...rulesAll]
-          const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
-          const checkedIndexes = newSelectedRows
-            .filter(({ key }) => newSelectedRowKeys.includes(key))
-            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
-          const uncheckedIndexes = dataSource
-            .filter(({ key }) => uncheckedKeys.includes(key))
-            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
-          checkedIndexes.forEach(
-            // eslint-disable-next-line no-return-assign
-            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
-          )
-          uncheckedIndexes.forEach(
-            // eslint-disable-next-line no-return-assign
-            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
-          )
-          dispatch(setRules(newRules))
-          setSelectedRowKeys(newSelectedRowKeys)
-        },
-        onSelect: (record: TColumn, selected: boolean) => {
-          const newRules = [...rulesAll]
-          const pendingToCheckRuleIndex = newRules.findIndex(({ id }) => id === record.id)
-          if (selected) {
-            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
-          } else {
-            newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
-          }
-          dispatch(setRules(newRules))
-        },
-        columnWidth: 16,
-      }
-    : undefined
+  const rowSelection = getRowSelection<TFormSgSgRule, TColumn>(
+    dispatch,
+    isChangesMode,
+    selectedRowKeys,
+    dataSource,
+    setRules,
+    rulesAll,
+    setSelectedRowKeys,
+  )
 
   return (
     <ThWhiteSpaceNoWrap>
