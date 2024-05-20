@@ -4,28 +4,26 @@ import { useDispatch } from 'react-redux'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
-import { TitleWithNoTopMargin } from 'components/atoms'
+import { TitleWithNoTopMargin } from 'components'
 import { STATUSES } from 'constants/rules'
-import { TFormSgCidrRule, TTraffic } from 'localTypes/rules'
-import { SgCidrTable } from '../tables'
-import { AddSgCidrPopover } from '../../atoms'
+import { TFormSgFqdnRule } from 'localTypes/rules'
+import { SgFqdnTable } from '../../RulesTables'
+import { AddSgFqdnPopover } from '../../../atoms'
 import { Styled } from '../styled'
 
-type TSgCidrRulesProps = {
+type TSgFqdnRulesProps = {
   forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
-  defaultTraffic: TTraffic
-  rules: TFormSgCidrRule[]
-  setRules: ActionCreatorWithPayload<TFormSgCidrRule[]>
+  rules: TFormSgFqdnRule[]
+  setRules: ActionCreatorWithPayload<TFormSgFqdnRule[]>
   isDisabled?: boolean
 }
 
-export const SgCidrRules: FC<TSgCidrRulesProps> = ({
+export const SgFqdnRules: FC<TSgFqdnRulesProps> = ({
   forceArrowsUpdate,
   title,
   popoverPosition,
-  defaultTraffic,
   rules,
   setRules,
   isDisabled,
@@ -38,13 +36,12 @@ export const SgCidrRules: FC<TSgCidrRulesProps> = ({
     setAddOpen(!addOpen)
   }
 
-  const addNew = (values: TFormSgCidrRule) => {
+  const addNew = (values: TFormSgFqdnRule) => {
     dispatch(
       setRules([
         ...rules,
         {
           ...values,
-          traffic: defaultTraffic,
           formChanges: {
             status: STATUSES.new,
           },
@@ -56,23 +53,22 @@ export const SgCidrRules: FC<TSgCidrRulesProps> = ({
   }
 
   return (
-    <>
+    <Styled.GroupRulesNode>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <SgCidrTable
+      <SgFqdnTable
         isChangesMode={false}
         rulesAll={rules}
         rulesData={rules}
         setRules={setRules}
         editOpen={editOpen}
         setEditOpen={setEditOpen}
-        defaultTraffic={defaultTraffic}
         popoverPosition={popoverPosition}
         forceArrowsUpdate={forceArrowsUpdate}
         isDisabled={isDisabled}
       />
       <Popover
-        content={<AddSgCidrPopover hide={toggleAddPopover} addNew={addNew} />}
-        title="SG"
+        content={<AddSgFqdnPopover hide={toggleAddPopover} addNew={addNew} />}
+        title="FQDN"
         trigger="click"
         open={addOpen}
         onOpenChange={toggleAddPopover}
@@ -84,6 +80,6 @@ export const SgCidrRules: FC<TSgCidrRulesProps> = ({
           </Button>
         </Styled.FormItem>
       </Popover>
-    </>
+    </Styled.GroupRulesNode>
   )
 }

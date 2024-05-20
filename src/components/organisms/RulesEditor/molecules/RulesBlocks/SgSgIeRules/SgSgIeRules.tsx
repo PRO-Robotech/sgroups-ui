@@ -4,28 +4,30 @@ import { useDispatch } from 'react-redux'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
-import { TitleWithNoTopMargin } from 'components'
+import { TitleWithNoTopMargin } from 'components/atoms'
 import { STATUSES } from 'constants/rules'
-import { TFormSgFqdnRule } from 'localTypes/rules'
-import { AddSgFqdnPopover } from '../../atoms'
-import { SgFqdnTable } from '../tables'
+import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
+import { SgSgIeTable } from '../../RulesTables'
+import { AddSgSgIePopover } from '../../../atoms'
 import { Styled } from '../styled'
 
-type TSgFqdnRulesProps = {
+type TSgSgIeRulesProps = {
   forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgFqdnRule[]
-  setRules: ActionCreatorWithPayload<TFormSgFqdnRule[]>
+  rules: TFormSgSgIeRule[]
+  setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>
+  defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
-export const SgFqdnRules: FC<TSgFqdnRulesProps> = ({
+export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
   forceArrowsUpdate,
   title,
   popoverPosition,
   rules,
   setRules,
+  defaultTraffic,
   isDisabled,
 }) => {
   const [addOpen, setAddOpen] = useState(false)
@@ -36,12 +38,13 @@ export const SgFqdnRules: FC<TSgFqdnRulesProps> = ({
     setAddOpen(!addOpen)
   }
 
-  const addNew = (values: TFormSgFqdnRule) => {
+  const addNew = (values: TFormSgSgIeRule) => {
     dispatch(
       setRules([
         ...rules,
         {
           ...values,
+          traffic: defaultTraffic,
           formChanges: {
             status: STATUSES.new,
           },
@@ -53,22 +56,23 @@ export const SgFqdnRules: FC<TSgFqdnRulesProps> = ({
   }
 
   return (
-    <Styled.GroupRulesNode>
+    <>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <SgFqdnTable
+      <SgSgIeTable
         isChangesMode={false}
+        popoverPosition={popoverPosition}
+        defaultTraffic={defaultTraffic}
         rulesAll={rules}
         rulesData={rules}
         setRules={setRules}
-        editOpen={editOpen}
         setEditOpen={setEditOpen}
-        popoverPosition={popoverPosition}
-        forceArrowsUpdate={forceArrowsUpdate}
+        editOpen={editOpen}
         isDisabled={isDisabled}
+        forceArrowsUpdate={forceArrowsUpdate}
       />
       <Popover
-        content={<AddSgFqdnPopover hide={toggleAddPopover} addNew={addNew} />}
-        title="FQDN"
+        content={<AddSgSgIePopover hide={toggleAddPopover} addNew={addNew} />}
+        title="SG-SG-IE"
         trigger="click"
         open={addOpen}
         onOpenChange={toggleAddPopover}
@@ -80,6 +84,6 @@ export const SgFqdnRules: FC<TSgFqdnRulesProps> = ({
           </Button>
         </Styled.FormItem>
       </Popover>
-    </Styled.GroupRulesNode>
+    </>
   )
 }

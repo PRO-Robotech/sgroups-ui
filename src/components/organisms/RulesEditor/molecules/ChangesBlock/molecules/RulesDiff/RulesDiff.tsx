@@ -22,7 +22,7 @@ import {
   SgFqdnTable,
   SgCidrTable,
   SgCidrIcmpTable,
-} from '../../../tables'
+} from '../../../RulesTables'
 import {
   TFormSgSgRuleChangesResult,
   TFormSgSgIcmpRuleChangesResult,

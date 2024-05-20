@@ -2,7 +2,7 @@ import React, { FC, ReactNode, useState } from 'react'
 import { Radio } from 'antd'
 import type { RadioChangeEvent } from 'antd'
 import { Spacer } from 'components'
-import { Styled } from '../styled'
+import { Styled } from './styled'
 
 type TTcpUdpAndIcmpSwitcherProps = {
   forceArrowsUpdate: () => void

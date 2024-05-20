@@ -6,32 +6,28 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { STATUSES } from 'constants/rules'
-import { TFormSgSgRule } from 'localTypes/rules'
-import { AddSgSgPopover } from '../../atoms'
-import { SgSgTable } from '../tables'
+import { TFormSgCidrIcmpRule, TTraffic } from 'localTypes/rules'
+import { SgCidrIcmpTable } from '../../RulesTables'
+import { AddSgCidrIcmpPopover } from '../../../atoms'
 import { Styled } from '../styled'
 
-type TSgSgRulesProps = {
+type TSgCidrIcmpRulesProps = {
   forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgSgRule[]
-  setRules: ActionCreatorWithPayload<TFormSgSgRule[]>
-  rulesOtherside: TFormSgSgRule[]
-  setRulesOtherside: ActionCreatorWithPayload<TFormSgSgRule[]>
-  centerSg?: string
+  rules: TFormSgCidrIcmpRule[]
+  setRules: ActionCreatorWithPayload<TFormSgCidrIcmpRule[]>
+  defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
-export const SgSgRules: FC<TSgSgRulesProps> = ({
+export const SgCidrIcmpRules: FC<TSgCidrIcmpRulesProps> = ({
   forceArrowsUpdate,
   title,
   popoverPosition,
   rules,
   setRules,
-  rulesOtherside,
-  setRulesOtherside,
-  centerSg,
+  defaultTraffic,
   isDisabled,
 }) => {
   const [addOpen, setAddOpen] = useState(false)
@@ -42,33 +38,19 @@ export const SgSgRules: FC<TSgSgRulesProps> = ({
     setAddOpen(!addOpen)
   }
 
-  const addNew = (values: TFormSgSgRule) => {
+  const addNew = (values: TFormSgCidrIcmpRule) => {
     dispatch(
       setRules([
         ...rules,
         {
           ...values,
+          traffic: defaultTraffic,
           formChanges: {
             status: STATUSES.new,
           },
         },
       ]),
     )
-    /* remove as legacy after only ie-sg-sg will remain */
-    if (values.sg === centerSg) {
-      dispatch(
-        setRulesOtherside([
-          ...rulesOtherside,
-          {
-            ...values,
-            formChanges: {
-              status: STATUSES.new,
-            },
-          },
-        ]),
-      )
-    }
-    /* end of remove block */
     setEditOpen([...editOpen, false])
     toggleAddPopover()
   }
@@ -76,23 +58,21 @@ export const SgSgRules: FC<TSgSgRulesProps> = ({
   return (
     <>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <SgSgTable
+      <SgCidrIcmpTable
         isChangesMode={false}
+        popoverPosition={popoverPosition}
+        defaultTraffic={defaultTraffic}
         rulesAll={rules}
         rulesData={rules}
         setRules={setRules}
-        rulesOtherside={rulesOtherside}
-        setRulesOtherside={setRulesOtherside}
-        popoverPosition={popoverPosition}
         setEditOpen={setEditOpen}
         editOpen={editOpen}
-        centerSg={centerSg}
         isDisabled={isDisabled}
         forceArrowsUpdate={forceArrowsUpdate}
       />
       <Popover
-        content={<AddSgSgPopover hide={toggleAddPopover} addNew={addNew} />}
-        title="SG"
+        content={<AddSgCidrIcmpPopover hide={toggleAddPopover} addNew={addNew} />}
+        title="SG-SG-IE"
         trigger="click"
         open={addOpen}
         onOpenChange={toggleAddPopover}

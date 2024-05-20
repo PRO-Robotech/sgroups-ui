@@ -6,28 +6,28 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { STATUSES } from 'constants/rules'
-import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
-import { AddSgSgIePopover } from '../../atoms'
-import { SgSgIeTable } from '../tables'
+import { TFormSgCidrRule, TTraffic } from 'localTypes/rules'
+import { SgCidrTable } from '../../RulesTables'
+import { AddSgCidrPopover } from '../../../atoms'
 import { Styled } from '../styled'
 
-type TSgSgIeRulesProps = {
+type TSgCidrRulesProps = {
   forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgSgIeRule[]
-  setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>
   defaultTraffic: TTraffic
+  rules: TFormSgCidrRule[]
+  setRules: ActionCreatorWithPayload<TFormSgCidrRule[]>
   isDisabled?: boolean
 }
 
-export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
+export const SgCidrRules: FC<TSgCidrRulesProps> = ({
   forceArrowsUpdate,
   title,
   popoverPosition,
+  defaultTraffic,
   rules,
   setRules,
-  defaultTraffic,
   isDisabled,
 }) => {
   const [addOpen, setAddOpen] = useState(false)
@@ -38,7 +38,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
     setAddOpen(!addOpen)
   }
 
-  const addNew = (values: TFormSgSgIeRule) => {
+  const addNew = (values: TFormSgCidrRule) => {
     dispatch(
       setRules([
         ...rules,
@@ -58,21 +58,21 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
   return (
     <>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <SgSgIeTable
+      <SgCidrTable
         isChangesMode={false}
-        popoverPosition={popoverPosition}
-        defaultTraffic={defaultTraffic}
         rulesAll={rules}
         rulesData={rules}
         setRules={setRules}
-        setEditOpen={setEditOpen}
         editOpen={editOpen}
-        isDisabled={isDisabled}
+        setEditOpen={setEditOpen}
+        defaultTraffic={defaultTraffic}
+        popoverPosition={popoverPosition}
         forceArrowsUpdate={forceArrowsUpdate}
+        isDisabled={isDisabled}
       />
       <Popover
-        content={<AddSgSgIePopover hide={toggleAddPopover} addNew={addNew} />}
-        title="SG-SG-IE"
+        content={<AddSgCidrPopover hide={toggleAddPopover} addNew={addNew} />}
+        title="SG"
         trigger="click"
         open={addOpen}
         onOpenChange={toggleAddPopover}
