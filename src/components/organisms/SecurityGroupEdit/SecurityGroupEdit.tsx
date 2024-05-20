@@ -28,22 +28,29 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
     setIsLoading(true)
     setError(undefined)
     Promise.all([getSecurityGroupByName(id), getNetworks(), getSecurityGroups()])
-      .then(([value1, value2, value3]) => {
-        setSecurityGroup(value1.data.groups[0])
-        form.setFieldsValue({
-          defaultAction: value1.data.groups[0].defaultAction,
-          networks: value1.data.groups[0].networks,
-          logs: value1.data.groups[0].logs,
-          trace: value1.data.groups[0].trace,
-        })
-        const allNetworksName = value2.data.networks.map(({ name }) => name)
-        const unavailableNetworksName = value3.data.groups.flatMap(({ networks }) => networks)
+      .then(([sgResponse, nwResponse, allSgsResponse]) => {
+        setSecurityGroup(sgResponse.data.groups[0])
+        const allNetworksNameAndCidrs = nwResponse.data.networks.map(({ name, network }) => ({
+          name,
+          cidr: network.CIDR,
+        }))
+        const alreadyAddedNetworks = sgResponse.data.groups[0].networks.map(el => ({
+          name: el,
+          cidr: nwResponse.data.networks.find(nw => nw.name === el)?.network.CIDR || 'null',
+        }))
+        const unavailableNetworksName = allSgsResponse.data.groups.flatMap(({ networks }) => networks)
         const availableNetworks = [
-          ...value1.data.groups[0].networks,
-          ...allNetworksName.filter(el => !unavailableNetworksName.includes(el)),
+          ...alreadyAddedNetworks,
+          ...allNetworksNameAndCidrs.filter(el => !unavailableNetworksName.includes(el.name)),
         ]
-        setNetworkOptions(availableNetworks.map(name => ({ label: name, value: name })))
+        setNetworkOptions(availableNetworks.map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name })))
         setIsLoading(false)
+        form.setFieldsValue({
+          defaultAction: sgResponse.data.groups[0].defaultAction,
+          networks: alreadyAddedNetworks.map(({ name, cidr }) => `${name}:${cidr}`),
+          logs: sgResponse.data.groups[0].logs,
+          trace: sgResponse.data.groups[0].trace,
+        })
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)

@@ -1,5 +1,5 @@
 import React, { FC } from 'react'
-import { Button, Form, Input, InputNumber, Select, Switch } from 'antd'
+import { Button, Form, Input, Select, Switch } from 'antd'
 import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
 import { TFormSgRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
@@ -17,8 +17,11 @@ export const AddSGPopover: FC<TAddSGPopoverProps> = ({ sgNames, hide, addNew }) 
   return (
     <Form
       form={addForm}
-      onFinish={(values: TFormSgRule) => {
-        addNew(values)
+      onFinish={(values: Omit<TFormSgRule, 'prioritySome'> & { prioritySome?: string }) => {
+        addNew({
+          ...values,
+          prioritySome: values.prioritySome && values.prioritySome.length > 0 ? Number(values.prioritySome) : undefined,
+        })
         addForm.resetFields()
       }}
     >
@@ -79,8 +82,28 @@ export const AddSGPopover: FC<TAddSGPopoverProps> = ({ sgNames, hide, addNew }) 
           getPopupContainer={node => node.parentNode}
         />
       </Styled.FormItem>
-      <Styled.FormItem name="prioritySome" label="Priority" hasFeedback validateTrigger="onBlur">
-        <InputNumber placeholder="priority.some" />
+      <Styled.FormItem
+        name="prioritySome"
+        label="Priority"
+        hasFeedback
+        validateTrigger="onBlur"
+        rules={[
+          {
+            pattern: /^[-0-9]*$/,
+            message: 'Please enter a valid priority',
+          },
+          () => ({
+            validator(_, value: string) {
+              const numberedValue = Number(value)
+              if (numberedValue > 32767 || numberedValue < -32768) {
+                return Promise.reject(new Error('Not in valid range'))
+              }
+              return Promise.resolve()
+            },
+          }),
+        ]}
+      >
+        <Input placeholder="priority.some" />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>

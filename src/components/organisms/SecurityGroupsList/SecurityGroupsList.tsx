@@ -3,9 +3,10 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { SearchOutlined } from '@ant-design/icons'
+import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
+import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
@@ -42,10 +43,17 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
-    getSecurityGroups()
-      .then(({ data }) => {
+    Promise.all([getSecurityGroups(), getNetworks()])
+      .then(([sgsResponse, nwResponse]) => {
         setIsLoading(false)
-        setSecurityGroups(data.groups)
+        const enrichedWithCidrsSgData = sgsResponse.data.groups.map(el => ({
+          ...el,
+          networks: el.networks.map(nw => {
+            const nwData = nwResponse.data.networks.find(entry => entry.name === nw)
+            return nwData ? `${nwData.name}:${nwData.network.CIDR}` : `${nw}:null`
+          }),
+        }))
+        setSecurityGroups(enrichedWithCidrsSgData)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -106,21 +114,13 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      width: 150,
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
-    },
-    {
-      title: 'Default action',
-      dataIndex: 'defaultAction',
-      key: 'defaultAction',
-      width: 150,
     },
     {
       title: 'Networks',
       dataIndex: 'networks',
       key: 'networks',
-      width: 70,
       render: (_, { networks }) => (
         <Styled.NetworksContainer>
           {networks.map(name => (
@@ -130,28 +130,34 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       ),
     },
     {
+      title: 'Default action',
+      dataIndex: 'defaultAction',
+      key: 'defaultAction',
+      width: 150,
+    },
+    {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 150,
+      width: 50,
       render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
     },
     {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
-      width: 150,
+      width: 50,
       render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
     },
     {
-      title: 'Action',
-      key: 'action',
+      title: 'Controls',
+      key: 'controls',
       width: 150,
       render: (_, record: TSecurityGroup) => (
-        <>
-          <EditOutlined onClick={() => history.push(`/security-groups/edit/${record.name}`)} />{' '}
-          <DeleteOutlined onClick={() => openRemoveSGModal(record.name)} />
-        </>
+        <TextAlignContainer $align="center">
+          <CustomIcons.EditIcon onClick={() => history.push(`/security-groups/edit/${record.name}`)} />{' '}
+          <CustomIcons.DeleteIcon onClick={() => openRemoveSGModal(record.name)} />
+        </TextAlignContainer>
       ),
     },
   ]

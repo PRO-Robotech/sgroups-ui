@@ -362,13 +362,15 @@ export const SGTable: FC<TSGTableProps> = ({
       ),
     },
     {
-      title: 'Edit',
-      key: 'edit',
+      title: 'Controls',
+      key: 'controls',
       width: 50,
       render: (_, oldValues, index) => (
         <>
           {isRestoreButtonActive && (
-            <Styled.EditButton onClick={() => restoreRule(oldValues)}>Restore</Styled.EditButton>
+            <Button type="dashed" onClick={() => restoreRule(oldValues)}>
+              Restore
+            </Button>
           )}
           <Popover
             content={
@@ -388,7 +390,7 @@ export const SGTable: FC<TSGTableProps> = ({
             placement={popoverPosition}
             className="no-scroll"
           >
-            <Styled.EditButton>Edit</Styled.EditButton>
+            <Button type="primary">Edit</Button>
           </Popover>
         </>
       ),

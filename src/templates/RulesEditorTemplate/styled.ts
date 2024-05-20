@@ -16,6 +16,7 @@ const SidebarContainer = styled.div`
   width: 170px;
   height: 100vh;
   background: #001529;
+  user-select: none;
 `
 
 export const Styled = {
