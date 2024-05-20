@@ -10,10 +10,10 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgCidrRule, TTraffic } from 'localTypes/rules'
 import { EditSgCidrPopover } from '../../../atoms'
-import { getRowSelection } from '../utils'
+import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgCidrRule } from '../utils'
 import { Styled } from '../styled'
 
 type TSgCidrTableProps = {
@@ -66,31 +66,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
       newCidrSgRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
-      const modifiedFields = []
-      if (newCidrSgRules[index].cidr !== values.cidr) {
-        modifiedFields.push('cidr')
-      }
-      if (newCidrSgRules[index].portsSource !== values.portsSource) {
-        modifiedFields.push('portsSource')
-      }
-      if (newCidrSgRules[index].portsDestination !== values.portsDestination) {
-        modifiedFields.push('portsDestination')
-      }
-      if (newCidrSgRules[index].transport !== values.transport) {
-        modifiedFields.push('transport')
-      }
-      if (newCidrSgRules[index].logs !== values.logs) {
-        modifiedFields.push('logs')
-      }
-      if (newCidrSgRules[index].trace !== values.trace) {
-        modifiedFields.push('trace')
-      }
-      if (newCidrSgRules[index].action !== values.action) {
-        modifiedFields.push('action')
-      }
-      if (newCidrSgRules[index].prioritySome !== values.prioritySome) {
-        modifiedFields.push('prioritySome')
-      }
+      const modifiedFields = getModifiedFieldsInSgCidrRule(newCidrSgRules[index], values)
       if (modifiedFields.length === 0) {
         newCidrSgRules[index] = { ...values, traffic: defaultTraffic }
       } else {
@@ -366,23 +342,12 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
     rulesAll,
     setSelectedRowKeys,
   )
+
+  const defaultTableProps = getDefaultTableProps(forceArrowsUpdate)
+
   return (
     <ThWhiteSpaceNoWrap>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: false,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={dataSource}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-        rowSelection={rowSelection}
-      />
+      <Table dataSource={dataSource} columns={columns} rowSelection={rowSelection} {...defaultTableProps} />
     </ThWhiteSpaceNoWrap>
   )
 }

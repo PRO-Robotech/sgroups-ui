@@ -10,10 +10,10 @@ import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgCidrIcmpRule, TTraffic } from 'localTypes/rules'
 import { EditSgCidrIcmpPopover } from '../../../atoms'
-import { getRowSelection } from '../utils'
+import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgCidrIcmpRule } from '../utils'
 import { Styled } from '../styled'
 
 type TSgCidrIcmpTableProps = {
@@ -29,6 +29,8 @@ type TSgCidrIcmpTableProps = {
   isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
+
+type TColumn = TFormSgCidrIcmpRule & { key: string }
 
 export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
   isChangesMode,
@@ -66,28 +68,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
     if (newCidrSgIcmpRules[index].formChanges?.status === STATUSES.new) {
       newCidrSgIcmpRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
-      const modifiedFields = []
-      if (newCidrSgIcmpRules[index].cidr !== values.cidr) {
-        modifiedFields.push('cidr')
-      }
-      if (newCidrSgIcmpRules[index].IPv !== values.IPv) {
-        modifiedFields.push('ipv')
-      }
-      if (JSON.stringify(newCidrSgIcmpRules[index].types.sort()) !== JSON.stringify(values.types.sort())) {
-        modifiedFields.push('types')
-      }
-      if (newCidrSgIcmpRules[index].logs !== values.logs) {
-        modifiedFields.push('logs')
-      }
-      if (newCidrSgIcmpRules[index].trace !== values.trace) {
-        modifiedFields.push('trace')
-      }
-      if (newCidrSgIcmpRules[index].action !== values.action) {
-        modifiedFields.push('action')
-      }
-      if (newCidrSgIcmpRules[index].prioritySome !== values.prioritySome) {
-        modifiedFields.push('prioritySome')
-      }
+      const modifiedFields = getModifiedFieldsInSgCidrIcmpRule(newCidrSgIcmpRules[index], values)
       if (modifiedFields.length === 0) {
         newCidrSgIcmpRules[index] = { ...values }
       } else {
@@ -142,8 +123,6 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
     clearFilters()
     setSearchText('')
   }
-
-  type TColumn = TFormSgCidrIcmpRule & { key: string }
 
   const columns: ColumnsType<TColumn> = [
     {
@@ -348,24 +327,11 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
     setSelectedRowKeys,
   )
 
+  const defaultTableProps = getDefaultTableProps(forceArrowsUpdate)
+
   return (
     <ThWhiteSpaceNoWrap>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: false,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={dataSource}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-        size="small"
-        rowSelection={rowSelection}
-      />
+      <Table dataSource={dataSource} columns={columns} rowSelection={rowSelection} {...defaultTableProps} />
     </ThWhiteSpaceNoWrap>
   )
 }

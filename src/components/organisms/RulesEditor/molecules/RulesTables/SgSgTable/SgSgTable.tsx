@@ -9,11 +9,12 @@ import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgRule } from 'localTypes/rules'
 import { EditSgSgPopover } from '../../../atoms'
-import { getRowSelection } from '../utils'
+import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgSgRule } from '../utils'
 import { Styled } from '../styled'
+import { findSgSgPair } from '../utils/legacyFindPair'
 
 type TSgSgTableProps = {
   isChangesMode: boolean
@@ -69,42 +70,12 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
     const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
     const newSgRulesOtherside = [...rulesOtherside]
     /* legacy */
-    const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-        sg === centerSg &&
-        portsSource === newSgRules[index].portsSource &&
-        portsDestination === newSgRules[index].portsDestination &&
-        transport === newSgRules[index].transport &&
-        logs === newSgRules[index].logs &&
-        action === newSgRules[index].action &&
-        prioritySome === newSgRules[index].prioritySome,
-    )
+    const newSgRulesOthersideIndex = findSgSgPair(centerSg, newSgRules[index], rulesOtherside)
     if (newSgRules[index].formChanges?.status === STATUSES.new) {
       newSgRules[index] = { ...values, formChanges: { status: STATUSES.new } }
       newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
-      const modifiedFields = []
-      if (newSgRules[index].sg !== values.sg) {
-        modifiedFields.push('sg')
-      }
-      if (newSgRules[index].portsSource !== values.portsSource) {
-        modifiedFields.push('portsSource')
-      }
-      if (newSgRules[index].portsDestination !== values.portsDestination) {
-        modifiedFields.push('portsDestination')
-      }
-      if (newSgRules[index].transport !== values.transport) {
-        modifiedFields.push('transport')
-      }
-      if (newSgRules[index].logs !== values.logs) {
-        modifiedFields.push('logs')
-      }
-      if (newSgRules[index].action !== values.action) {
-        modifiedFields.push('action')
-      }
-      if (newSgRules[index].prioritySome !== values.prioritySome) {
-        modifiedFields.push('prioritySome')
-      }
+      const modifiedFields = getModifiedFieldsInSgSgRule(newSgRules[index], values)
       if (modifiedFields.length === 0) {
         newSgRules[index] = { ...values }
         newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values }
@@ -398,24 +369,11 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
     setSelectedRowKeys,
   )
 
+  const defaultTableProps = getDefaultTableProps(forceArrowsUpdate)
+
   return (
     <ThWhiteSpaceNoWrap>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: false,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={dataSource}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-        size="small"
-        rowSelection={rowSelection}
-      />
+      <Table dataSource={dataSource} columns={columns} rowSelection={rowSelection} {...defaultTableProps} />
     </ThWhiteSpaceNoWrap>
   )
 }

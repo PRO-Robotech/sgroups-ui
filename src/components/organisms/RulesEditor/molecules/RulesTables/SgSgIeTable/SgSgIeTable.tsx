@@ -9,10 +9,10 @@ import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
 import { EditSgSgIePopover } from '../../../atoms'
-import { getRowSelection } from '../utils'
+import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgSgIeRule } from '../utils'
 import { Styled } from '../styled'
 
 type TSgSgIeTableProps = {
@@ -65,31 +65,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
     if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
-      const modifiedFields = []
-      if (newSgSgIeRules[index].sg !== values.sg) {
-        modifiedFields.push('sg')
-      }
-      if (newSgSgIeRules[index].portsSource !== values.portsSource) {
-        modifiedFields.push('portsSource')
-      }
-      if (newSgSgIeRules[index].portsDestination !== values.portsDestination) {
-        modifiedFields.push('portsDestination')
-      }
-      if (newSgSgIeRules[index].transport !== values.transport) {
-        modifiedFields.push('transport')
-      }
-      if (newSgSgIeRules[index].logs !== values.logs) {
-        modifiedFields.push('logs')
-      }
-      if (newSgSgIeRules[index].trace !== values.trace) {
-        modifiedFields.push('trace')
-      }
-      if (newSgSgIeRules[index].action !== values.action) {
-        modifiedFields.push('action')
-      }
-      if (newSgSgIeRules[index].prioritySome !== values.prioritySome) {
-        modifiedFields.push('prioritySome')
-      }
+      const modifiedFields = getModifiedFieldsInSgSgIeRule(newSgSgIeRules[index], values)
       if (modifiedFields.length === 0) {
         newSgSgIeRules[index] = { ...values }
       } else {
@@ -366,24 +342,11 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
     setSelectedRowKeys,
   )
 
+  const defaultTableProps = getDefaultTableProps(forceArrowsUpdate)
+
   return (
     <ThWhiteSpaceNoWrap>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: false,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={dataSource}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-        size="small"
-        rowSelection={rowSelection}
-      />
+      <Table dataSource={dataSource} columns={columns} rowSelection={rowSelection} {...defaultTableProps} />
     </ThWhiteSpaceNoWrap>
   )
 }

@@ -9,11 +9,12 @@ import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { EditSgSgIcmpPopover } from '../../../atoms'
-import { getRowSelection } from '../utils'
+import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgSgIcmpRule } from '../utils'
 import { Styled } from '../styled'
+import { findSgSgIcmpPair } from '../utils/legacyFindPair'
 
 type TSgSgIcmpTableProps = {
   isChangesMode: boolean
@@ -69,16 +70,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
     const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
     /* legacy */
-    const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
-      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-        sg === centerSg &&
-        IPv === newSgSgIcmpRules[index].IPv &&
-        JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
-        logs === newSgSgIcmpRules[index].logs &&
-        trace === newSgSgIcmpRules[index].trace &&
-        action === newSgSgIcmpRules[index].action &&
-        prioritySome === newSgSgIcmpRules[index].prioritySome,
-    )
+    const newSgSgSgIcmpRulesOthersideIndex = findSgSgIcmpPair(centerSg, newSgSgIcmpRules[index], rulesOtherside)
     if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIcmpRules[index] = {
         ...values,
@@ -89,28 +81,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
         formChanges: { status: STATUSES.new },
       }
     } else {
-      const modifiedFields = []
-      if (newSgSgIcmpRules[index].sg !== values.sg) {
-        modifiedFields.push('sg')
-      }
-      if (newSgSgIcmpRules[index].IPv !== values.IPv) {
-        modifiedFields.push('ipv')
-      }
-      if (JSON.stringify(newSgSgIcmpRules[index].types.sort()) !== JSON.stringify(values.types.sort())) {
-        modifiedFields.push('types')
-      }
-      if (newSgSgIcmpRules[index].logs !== values.logs) {
-        modifiedFields.push('logs')
-      }
-      if (newSgSgIcmpRules[index].trace !== values.trace) {
-        modifiedFields.push('trace')
-      }
-      if (newSgSgIcmpRules[index].action !== values.action) {
-        modifiedFields.push('action')
-      }
-      if (newSgSgIcmpRules[index].prioritySome !== values.prioritySome) {
-        modifiedFields.push('prioritySome')
-      }
+      const modifiedFields = getModifiedFieldsInSgSgIcmpRule(newSgSgIcmpRules[index], values)
       if (modifiedFields.length === 0) {
         newSgSgIcmpRules[index] = { ...values }
         newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
@@ -416,24 +387,11 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
     setSelectedRowKeys,
   )
 
+  const defaultTableProps = getDefaultTableProps(forceArrowsUpdate)
+
   return (
     <ThWhiteSpaceNoWrap>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: false,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={dataSource}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-        size="small"
-        rowSelection={rowSelection}
-      />
+      <Table dataSource={dataSource} columns={columns} rowSelection={rowSelection} {...defaultTableProps} />
     </ThWhiteSpaceNoWrap>
   )
 }

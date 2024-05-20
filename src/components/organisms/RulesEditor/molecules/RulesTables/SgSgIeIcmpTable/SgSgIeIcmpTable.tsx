@@ -9,10 +9,10 @@ import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
 import { EditSgSgIeIcmpPopover } from '../../../atoms'
-import { getRowSelection } from '../utils'
+import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgSgIeIcmpRule } from '../utils'
 import { Styled } from '../styled'
 
 type TSgSgIeIcmpTableProps = {
@@ -65,28 +65,7 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
     if (newSgSgIeIcmpRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIeIcmpRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
-      const modifiedFields = []
-      if (newSgSgIeIcmpRules[index].sg !== values.sg) {
-        modifiedFields.push('sg')
-      }
-      if (newSgSgIeIcmpRules[index].IPv !== values.IPv) {
-        modifiedFields.push('ipv')
-      }
-      if (JSON.stringify(newSgSgIeIcmpRules[index].types.sort()) !== JSON.stringify(values.types.sort())) {
-        modifiedFields.push('types')
-      }
-      if (newSgSgIeIcmpRules[index].logs !== values.logs) {
-        modifiedFields.push('logs')
-      }
-      if (newSgSgIeIcmpRules[index].trace !== values.trace) {
-        modifiedFields.push('trace')
-      }
-      if (newSgSgIeIcmpRules[index].action !== values.action) {
-        modifiedFields.push('action')
-      }
-      if (newSgSgIeIcmpRules[index].prioritySome !== values.prioritySome) {
-        modifiedFields.push('prioritySome')
-      }
+      const modifiedFields = getModifiedFieldsInSgSgIeIcmpRule(newSgSgIeIcmpRules[index], values)
       if (modifiedFields.length === 0) {
         newSgSgIeIcmpRules[index] = { ...values }
       } else {
@@ -351,24 +330,11 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
     setSelectedRowKeys,
   )
 
+  const defaultTableProps = getDefaultTableProps(forceArrowsUpdate)
+
   return (
     <ThWhiteSpaceNoWrap>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: false,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={dataSource}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-        size="small"
-        rowSelection={rowSelection}
-      />
+      <Table dataSource={dataSource} columns={columns} rowSelection={rowSelection} {...defaultTableProps} />
     </ThWhiteSpaceNoWrap>
   )
 }

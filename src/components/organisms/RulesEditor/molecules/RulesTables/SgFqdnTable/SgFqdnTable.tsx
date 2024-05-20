@@ -9,10 +9,10 @@ import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
-import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE_EDITOR, STATUSES } from 'constants/rules'
+import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgFqdnRule } from 'localTypes/rules'
 import { EditSgFqdnPopover } from '../../../atoms'
-import { getRowSelection } from '../utils'
+import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgFqdnRule } from '../utils'
 import { Styled } from '../styled'
 
 type TSgFqdnTableProps = {
@@ -63,28 +63,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
       newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
-      const modifiedFields = []
-      if (newFqdnRules[index].fqdn !== values.fqdn) {
-        modifiedFields.push('fqdn')
-      }
-      if (newFqdnRules[index].portsSource !== values.portsSource) {
-        modifiedFields.push('portsSource')
-      }
-      if (newFqdnRules[index].portsDestination !== values.portsDestination) {
-        modifiedFields.push('portsDestination')
-      }
-      if (newFqdnRules[index].transport !== values.transport) {
-        modifiedFields.push('transport')
-      }
-      if (newFqdnRules[index].logs !== values.logs) {
-        modifiedFields.push('logs')
-      }
-      if (newFqdnRules[index].action !== values.action) {
-        modifiedFields.push('action')
-      }
-      if (newFqdnRules[index].prioritySome !== values.prioritySome) {
-        modifiedFields.push('prioritySome')
-      }
+      const modifiedFields = getModifiedFieldsInSgFqdnRule(newFqdnRules[index], values)
       if (modifiedFields.length === 0) {
         newFqdnRules[index] = { ...values }
       } else {
@@ -329,23 +308,11 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
     setSelectedRowKeys,
   )
 
+  const defaultTableProps = getDefaultTableProps(forceArrowsUpdate)
+
   return (
     <ThWhiteSpaceNoWrap>
-      <Table
-        pagination={{
-          position: ['bottomCenter'],
-          showQuickJumper: false,
-          showSizeChanger: false,
-          defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-          onChange: forceArrowsUpdate,
-          hideOnSinglePage: true,
-        }}
-        dataSource={dataSource}
-        columns={columns}
-        virtual
-        scroll={{ x: 'max-content' }}
-        rowSelection={rowSelection}
-      />
+      <Table dataSource={dataSource} columns={columns} rowSelection={rowSelection} {...defaultTableProps} />
     </ThWhiteSpaceNoWrap>
   )
 }
