@@ -4,16 +4,8 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import {
-  EditOutlined,
-  DeleteOutlined,
-  SearchOutlined,
-  CheckOutlined,
-  CloseOutlined,
-  LikeOutlined,
-  DislikeOutlined,
-} from '@ant-design/icons'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
+import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getCidrSgRules, removeCidrSgRule } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -179,12 +171,12 @@ export const RulesListCidr: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
-      width: 150,
+      width: 100,
       render: (_, record: TCidrRule) => (
-        <>
-          <EditOutlined onClick={() => history.push(`/rules/editor/${record.SG}`)} />
-          <DeleteOutlined onClick={() => openRemoveCidrRuleModal(record.SG, record.CIDR)} />
-        </>
+        <TextAlignContainer $align="center">
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SG}`)} />
+          <CustomIcons.DeleteIcon onClick={() => openRemoveCidrRuleModal(record.SG, record.CIDR)} />
+        </TextAlignContainer>
       ),
     },
   ]

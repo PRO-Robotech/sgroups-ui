@@ -3,8 +3,8 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { EditOutlined, DeleteOutlined, SearchOutlined } from '@ant-design/icons'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { SearchOutlined } from '@ant-design/icons'
+import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getNetworks, removeNetwork } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -99,7 +99,6 @@ export const NetworksList: FC = () => {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
-      width: 150,
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
     },
@@ -107,17 +106,16 @@ export const NetworksList: FC = () => {
       title: 'CIDR',
       dataIndex: 'cidr',
       key: 'cidr',
-      width: 150,
     },
     {
-      title: 'Action',
-      key: 'action',
-      width: 150,
+      title: 'Controls',
+      key: 'controls',
+      width: 100,
       render: (_, record: { name: string; cidr: string }) => (
-        <>
-          <EditOutlined onClick={() => history.push(`/networks/edit/${record.name}`)} />{' '}
-          <DeleteOutlined onClick={() => openRemoveNetworkModal(record.name)} />
-        </>
+        <TextAlignContainer $align="center">
+          <CustomIcons.EditIcon onClick={() => history.push(`/networks/edit/${record.name}`)} />{' '}
+          <CustomIcons.DeleteIcon onClick={() => openRemoveNetworkModal(record.name)} />
+        </TextAlignContainer>
       ),
     },
   ]
