@@ -12,9 +12,9 @@ import { Spacer } from 'components'
 import {
   SelectMainSg,
   SgFqdnRules,
-  SgAndSgSgIcmpRules,
-  SgSgIeAndSgSgIeIcmpRules,
-  SgCidrAndSgCidrIcmpRules,
+  GroupSgAndSgSgIcmpRules,
+  GroupSgSgIeAndSgSgIeIcmpRules,
+  GroupSgCidrAndSgCidrIcmpRules,
 } from '../../../../molecules'
 import { Arrows } from '../../molecules'
 import {
@@ -75,7 +75,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
     <Styled.CardsContainer id={CARDS_CONTAINER}>
       <Styled.CardsCol>
         <div id={SG_AND_SG_SG_ICMP_FROM_ID}>
-          <SgAndSgSgIcmpRules
+          <GroupSgAndSgSgIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
             title="SG From"
             popoverPosition="left"
@@ -93,7 +93,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
         </div>
         <Spacer $space={100} $samespace />
         <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID}>
-          <SgSgIeAndSgSgIeIcmpRules
+          <GroupSgSgIeAndSgSgIeIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
             title="SG-SG-IE From"
             popoverPosition="left"
@@ -107,7 +107,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
         </div>
         <Spacer $space={100} $samespace />
         <div id={CIDR_FROM_ID}>
-          <SgCidrAndSgCidrIcmpRules
+          <GroupSgCidrAndSgCidrIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
             title="CIDR From"
             popoverPosition="left"
@@ -127,7 +127,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
       </Styled.CardsCol>
       <Styled.CardsCol>
         <div id={SG_AND_SG_SG_ICMP_TO_ID}>
-          <SgAndSgSgIcmpRules
+          <GroupSgAndSgSgIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
             title="SG To"
             popoverPosition="right"
@@ -145,7 +145,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
         </div>
         <Spacer $space={100} $samespace />
         <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID}>
-          <SgSgIeAndSgSgIeIcmpRules
+          <GroupSgSgIeAndSgSgIeIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
             title="SG-SG-IE To"
             popoverPosition="right"
@@ -159,7 +159,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
         </div>
         <Spacer $space={100} $samespace />
         <div id={CIDR_TO_ID}>
-          <SgCidrAndSgCidrIcmpRules
+          <GroupSgCidrAndSgCidrIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
             title="CIDR To"
             popoverPosition="right"
