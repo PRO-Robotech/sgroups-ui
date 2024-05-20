@@ -1,5 +1,4 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState, useEffect, useCallback } from 'react'
 import { AxiosError } from 'axios'
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from 'store/store'
@@ -55,6 +54,21 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
+  const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
+  const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
+  const rulesSgSgIcmpTo = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesTo)
+  const rulesSgSgIeFrom = useSelector((state: RootState) => state.rulesSgSgIe.rulesFrom)
+  const rulesSgSgIeTo = useSelector((state: RootState) => state.rulesSgSgIe.rulesTo)
+  const rulesSgSgIeIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesFrom)
+  const rulesSgSgIeIcmpTo = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesTo)
+  const rulesSgFqdnTo = useSelector((state: RootState) => state.rulesSgFqdn.rulesTo)
+  const rulesSgCidrFrom = useSelector((state: RootState) => state.rulesSgCidr.rulesFrom)
+  const rulesSgCidrTo = useSelector((state: RootState) => state.rulesSgCidr.rulesTo)
+  const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
+  const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
+
   const dispatch = useDispatch()
 
   useEffect(() => {
@@ -82,7 +96,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       })
   }, [dispatch])
 
-  const fetchData = (centerSg?: string) => {
+  const fetchData = useCallback(() => {
     if (centerSg) {
       setIsLoading(true)
       setError(undefined)
@@ -151,27 +165,13 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       dispatch(setRulesSgCidrIcmpTo([]))
       setError(undefined)
     }
-  }
+  }, [dispatch, centerSg])
 
   useEffect(() => {
-    fetchData(centerSg)
-  }, [centerSg])
+    fetchData()
+  }, [centerSg, fetchData])
 
-  const useSelectMainSg = (newSg?: string) => {
-    const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
-    const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
-    const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
-    const rulesSgSgIcmpTo = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesTo)
-    const rulesSgSgIeFrom = useSelector((state: RootState) => state.rulesSgSgIe.rulesFrom)
-    const rulesSgSgIeTo = useSelector((state: RootState) => state.rulesSgSgIe.rulesTo)
-    const rulesSgSgIeIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesFrom)
-    const rulesSgSgIeIcmpTo = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesTo)
-    const rulesSgFqdnTo = useSelector((state: RootState) => state.rulesSgFqdn.rulesTo)
-    const rulesSgCidrFrom = useSelector((state: RootState) => state.rulesSgCidr.rulesFrom)
-    const rulesSgCidrTo = useSelector((state: RootState) => state.rulesSgCidr.rulesTo)
-    const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
-    const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
-
+  const onSelectMainSg = (newSg?: string) => {
     const result = checkIfChangesExist({
       rulesSgSgFrom,
       rulesSgSgTo,
@@ -207,8 +207,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      <TransformBlock centerSg={centerSg} onSelectMainSg={useSelectMainSg} />
-      <BottomBar centerSg={centerSg} onSubmit={() => fetchData(centerSg)} />
+      <TransformBlock centerSg={centerSg} onSelectMainSg={onSelectMainSg} />
+      <BottomBar centerSg={centerSg} onSubmit={() => fetchData()} />
       {isLoading && (
         <Styled.Loader>
           <Spin size="large" />

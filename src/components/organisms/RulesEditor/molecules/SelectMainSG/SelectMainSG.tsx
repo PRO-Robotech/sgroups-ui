@@ -1,5 +1,5 @@
 import React, { FC, useState, useEffect } from 'react'
-import { useSelector, useDispatch } from 'react-redux'
+import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { AxiosError } from 'axios'
 import { Typography, Form, Select, Result, Spin } from 'antd'
