@@ -3,9 +3,8 @@
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
-import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
+import { Button, Popover, Tooltip, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
@@ -13,7 +12,9 @@ import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgCidrIcmpRule, TTraffic } from 'localTypes/rules'
 import { EditSgCidrIcmpPopover } from '../../../atoms'
-import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgCidrIcmpRule } from '../utils'
+import { getRowSelection, getDefaultTableProps } from '../utils'
+import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgCidrIcmp'
+import { FilterDropdown } from '../atoms'
 import { Styled } from '../styled'
 
 type TSgCidrIcmpTableProps = {
@@ -63,65 +64,15 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
   }
 
   const editRule = (oldValues: TFormSgCidrIcmpRule, values: TFormSgCidrIcmpRule) => {
-    const newCidrSgIcmpRules = [...rulesAll]
-    const index = newCidrSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
-    if (newCidrSgIcmpRules[index].formChanges?.status === STATUSES.new) {
-      newCidrSgIcmpRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
-    } else {
-      const modifiedFields = getModifiedFieldsInSgCidrIcmpRule(newCidrSgIcmpRules[index], values)
-      if (modifiedFields.length === 0) {
-        newCidrSgIcmpRules[index] = { ...values }
-      } else {
-        newCidrSgIcmpRules[index] = {
-          ...values,
-          traffic: defaultTraffic,
-          formChanges: { status: STATUSES.modified, modifiedFields },
-        }
-      }
-    }
-    dispatch(setRules(newCidrSgIcmpRules))
-    toggleEditPopover(index)
+    edit(dispatch, rulesAll, setRules, defaultTraffic, oldValues, values, toggleEditPopover)
   }
 
   const removeRule = (oldValues: TFormSgCidrIcmpRule) => {
-    const newCidrSgIcmpRules = [...rulesAll]
-    const newEditOpenRules = [...editOpen]
-    const index = newCidrSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
-    if (newCidrSgIcmpRules[index].formChanges?.status === STATUSES.new) {
-      dispatch(setRules([...newCidrSgIcmpRules.slice(0, index), ...newCidrSgIcmpRules.slice(index + 1)]))
-      toggleEditPopover(index)
-      setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
-    } else {
-      newCidrSgIcmpRules[index] = {
-        ...newCidrSgIcmpRules[index],
-        traffic: defaultTraffic,
-        formChanges: { status: STATUSES.deleted },
-      }
-      dispatch(setRules(newCidrSgIcmpRules))
-      toggleEditPopover(index)
-    }
+    remove(dispatch, rulesAll, setRules, defaultTraffic, oldValues, editOpen, setEditOpen, toggleEditPopover)
   }
 
   const restoreRule = (oldValues: TFormSgCidrIcmpRule) => {
-    const newCidrSgIcmpRules = [...rulesAll]
-    const index = newCidrSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
-    newCidrSgIcmpRules[index] = {
-      ...newCidrSgIcmpRules[index],
-      traffic: defaultTraffic,
-      formChanges: { status: STATUSES.modified },
-      checked: false,
-    }
-    dispatch(setRules(newCidrSgIcmpRules))
-  }
-
-  const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
-    confirm()
-    setSearchText(searchText[0])
-  }
-
-  const handleReset = (clearFilters: () => void) => {
-    clearFilters()
-    setSearchText('')
+    restore(dispatch, rulesAll, setRules, defaultTraffic, oldValues)
   }
 
   const columns: ColumnsType<TColumn> = [
@@ -168,38 +119,14 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-        <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
-          <Input
-            placeholder="search"
-            value={selectedKeys[0]}
-            onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-            onPressEnter={() => handleSearch(selectedKeys as string[], confirm)}
-            style={{ marginBottom: 8, display: 'block' }}
-          />
-          <Space>
-            <Button
-              type="primary"
-              onClick={() => handleSearch(selectedKeys as string[], confirm)}
-              icon={<SearchOutlined />}
-              size="small"
-              style={{ width: 90 }}
-            >
-              Search
-            </Button>
-            <Button onClick={() => clearFilters && handleReset(clearFilters)} size="small" style={{ width: 90 }}>
-              Reset
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                close()
-              }}
-            >
-              close
-            </Button>
-          </Space>
-        </div>
+        <FilterDropdown
+          setSelectedKeys={setSelectedKeys}
+          selectedKeys={selectedKeys}
+          confirm={confirm}
+          clearFilters={clearFilters}
+          close={close}
+          setSearchText={setSearchText}
+        />
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
       onFilter: (value, { cidr }) => ipRangeCheck(value as string, cidr),

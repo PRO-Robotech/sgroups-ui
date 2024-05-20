@@ -3,16 +3,17 @@
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
-import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
+import { Button, Popover, Tooltip, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import type { FilterDropdownProps } from 'antd/es/table/interface'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
 import { EditSgSgIePopover } from '../../../atoms'
-import { getRowSelection, getDefaultTableProps, getModifiedFieldsInSgSgIeRule } from '../utils'
+import { getRowSelection, getDefaultTableProps } from '../utils'
+import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSgIe'
+import { FilterDropdown } from '../atoms'
 import { Styled } from '../styled'
 
 type TSgSgIeTableProps = {
@@ -28,6 +29,8 @@ type TSgSgIeTableProps = {
   isRestoreButtonActive?: boolean
   forceArrowsUpdate?: () => void
 }
+
+type TColumn = TFormSgSgIeRule & { key: string }
 
 export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   isChangesMode,
@@ -60,68 +63,16 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   }
 
   const editRule = (oldValues: TFormSgSgIeRule, values: TFormSgSgIeRule) => {
-    const newSgSgIeRules = [...rulesAll]
-    const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
-    if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
-      newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
-    } else {
-      const modifiedFields = getModifiedFieldsInSgSgIeRule(newSgSgIeRules[index], values)
-      if (modifiedFields.length === 0) {
-        newSgSgIeRules[index] = { ...values }
-      } else {
-        newSgSgIeRules[index] = {
-          ...values,
-          traffic: defaultTraffic,
-          formChanges: { status: STATUSES.modified, modifiedFields },
-        }
-      }
-    }
-    dispatch(setRules(newSgSgIeRules))
-    toggleEditPopover(index)
+    edit(dispatch, rulesAll, setRules, defaultTraffic, oldValues, values, toggleEditPopover)
   }
 
   const removeRule = (oldValues: TFormSgSgIeRule) => {
-    const newSgSgIeRules = [...rulesAll]
-    const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
-    const newEditOpenRules = [...editOpen]
-    if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
-      dispatch(setRules([...newSgSgIeRules.slice(0, index), ...newSgSgIeRules.slice(index + 1)]))
-      toggleEditPopover(index)
-      setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
-    } else {
-      newSgSgIeRules[index] = {
-        ...newSgSgIeRules[index],
-        traffic: defaultTraffic,
-        formChanges: { status: STATUSES.deleted },
-      }
-      dispatch(setRules(newSgSgIeRules))
-      toggleEditPopover(index)
-    }
+    remove(dispatch, rulesAll, setRules, defaultTraffic, oldValues, editOpen, setEditOpen, toggleEditPopover)
   }
 
   const restoreRule = (oldValues: TFormSgSgIeRule) => {
-    const newSgSgIeRules = [...rulesAll]
-    const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
-    newSgSgIeRules[index] = {
-      ...newSgSgIeRules[index],
-      traffic: defaultTraffic,
-      formChanges: { status: STATUSES.modified },
-      checked: false,
-    }
-    dispatch(setRules(newSgSgIeRules))
+    restore(dispatch, rulesAll, setRules, defaultTraffic, oldValues)
   }
-
-  const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
-    confirm()
-    setSearchText(searchText[0])
-  }
-
-  const handleReset = (clearFilters: () => void) => {
-    clearFilters()
-    setSearchText('')
-  }
-
-  type TColumn = TFormSgSgIeRule & { key: string }
 
   const columns: ColumnsType<TColumn> = [
     {
@@ -171,38 +122,14 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
         </Styled.RulesEntrySgs>
       ),
       filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-        <div style={{ padding: 8 }} onKeyDown={e => e.stopPropagation()}>
-          <Input
-            placeholder="search"
-            value={selectedKeys[0]}
-            onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
-            onPressEnter={() => handleSearch(selectedKeys as string[], confirm)}
-            style={{ marginBottom: 8, display: 'block' }}
-          />
-          <Space>
-            <Button
-              type="primary"
-              onClick={() => handleSearch(selectedKeys as string[], confirm)}
-              icon={<SearchOutlined />}
-              size="small"
-              style={{ width: 90 }}
-            >
-              Search
-            </Button>
-            <Button onClick={() => clearFilters && handleReset(clearFilters)} size="small" style={{ width: 90 }}>
-              Reset
-            </Button>
-            <Button
-              type="link"
-              size="small"
-              onClick={() => {
-                close()
-              }}
-            >
-              close
-            </Button>
-          </Space>
-        </div>
+        <FilterDropdown
+          setSelectedKeys={setSelectedKeys}
+          selectedKeys={selectedKeys}
+          confirm={confirm}
+          clearFilters={clearFilters}
+          close={close}
+          setSearchText={setSearchText}
+        />
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
       onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
