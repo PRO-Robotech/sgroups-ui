@@ -1,5 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit'
 import { sgNamesSlice } from './editor/sgNames/sgNames'
+import { centerSgSlice } from './editor/centerSg/centerSg'
 import { rulesSgSgSlice } from './editor/rulesSgSg/rulesSgSg'
 import { rulesSgSgIcmpSlice } from './editor/rulesSgSgIcmp/rulesSgSgIcmp'
 import { rulesSgSgIeSlice } from './editor/rulesSgSgIe/rulesSgSgIe'
@@ -11,6 +12,7 @@ import { rulesSgCidrIcmpSlice } from './editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 export const store = configureStore({
   reducer: {
     sgNames: sgNamesSlice.reducer,
+    centerSg: centerSgSlice.reducer,
     rulesSgSg: rulesSgSgSlice.reducer,
     rulesSgSgIcmp: rulesSgSgIcmpSlice.reducer,
     rulesSgSgIe: rulesSgSgIeSlice.reducer,

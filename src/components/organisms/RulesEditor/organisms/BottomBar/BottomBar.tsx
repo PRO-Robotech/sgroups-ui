@@ -1,16 +1,18 @@
 import React, { FC, useState, useEffect, useCallback } from 'react'
 import { Button } from 'antd'
+import { useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
 import { Spacer } from 'components'
 import { ChangesBlock } from '../../molecules'
 import { Styled } from './styled'
 
 type TBottomBarProps = {
   onSubmit: () => void
-  centerSg?: string
 }
 
-export const BottomBar: FC<TBottomBarProps> = ({ centerSg, onSubmit }) => {
+export const BottomBar: FC<TBottomBarProps> = ({ onSubmit }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
 
   const [isResizable, setIsResizable] = useState(false)
   const [containerHeight, setContainerHeight] = useState<number>()

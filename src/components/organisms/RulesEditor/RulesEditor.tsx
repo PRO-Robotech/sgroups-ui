@@ -207,8 +207,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      <TransformBlock centerSg={centerSg} onSelectMainSg={onSelectMainSg} />
-      <BottomBar centerSg={centerSg} onSubmit={() => fetchData()} />
+      <TransformBlock onSelectMainSg={onSelectMainSg} />
+      <BottomBar onSubmit={() => fetchData()} />
       {isLoading && (
         <Styled.Loader>
           <Spin size="large" />

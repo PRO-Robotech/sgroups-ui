@@ -1,5 +1,6 @@
 import React, { FC, useState } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
@@ -31,22 +32,25 @@ export const SgCidrRules: FC<TSgCidrRulesProps> = ({
 }) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
+  const dispatch = useDispatch()
 
   const toggleAddPopover = () => {
     setAddOpen(!addOpen)
   }
 
   const addNew = (values: TFormSgCidrRule) => {
-    setRules([
-      ...rules,
-      {
-        ...values,
-        traffic: defaultTraffic,
-        formChanges: {
-          status: STATUSES.new,
+    dispatch(
+      setRules([
+        ...rules,
+        {
+          ...values,
+          traffic: defaultTraffic,
+          formChanges: {
+            status: STATUSES.new,
+          },
         },
-      },
-    ])
+      ]),
+    )
     setEditOpen([...editOpen, false])
     toggleAddPopover()
   }

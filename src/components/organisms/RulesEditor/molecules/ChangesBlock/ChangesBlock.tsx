@@ -13,7 +13,6 @@ import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/r
 import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { Spacer, TitleWithNoTopMargin } from 'components'
-
 import { upsertRules, deleteRules } from 'api/rules'
 import {
   getChangesSgSgRules,

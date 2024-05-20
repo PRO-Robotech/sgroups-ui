@@ -1,5 +1,6 @@
 import React, { FC, useState } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
@@ -35,32 +36,37 @@ export const SgSgRules: FC<TSgSgRulesProps> = ({
 }) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
+  const dispatch = useDispatch()
 
   const toggleAddPopover = () => {
     setAddOpen(!addOpen)
   }
 
   const addNew = (values: TFormSgSgRule) => {
-    setRules([
-      ...rules,
-      {
-        ...values,
-        formChanges: {
-          status: STATUSES.new,
-        },
-      },
-    ])
-    /* remove as legacy after only ie-sg-sg will remain */
-    if (values.sg === centerSg) {
-      setRulesOtherside([
-        ...rulesOtherside,
+    dispatch(
+      setRules([
+        ...rules,
         {
           ...values,
           formChanges: {
             status: STATUSES.new,
           },
         },
-      ])
+      ]),
+    )
+    /* remove as legacy after only ie-sg-sg will remain */
+    if (values.sg === centerSg) {
+      dispatch(
+        setRulesOtherside([
+          ...rulesOtherside,
+          {
+            ...values,
+            formChanges: {
+              status: STATUSES.new,
+            },
+          },
+        ]),
+      )
     }
     /* end of remove block */
     setEditOpen([...editOpen, false])
