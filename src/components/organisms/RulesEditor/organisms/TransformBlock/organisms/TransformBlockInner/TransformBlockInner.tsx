@@ -11,10 +11,14 @@ import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rules
 import { Spacer } from 'components'
 import {
   SelectMainSg,
+  SgSgRules,
+  SgSgIcmpRules,
+  SgSgIeRules,
+  SgSgIeIcmpRules,
   SgFqdnRules,
-  GroupSgAndSgSgIcmpRules,
-  GroupSgSgIeAndSgSgIeIcmpRules,
-  GroupSgCidrAndSgCidrIcmpRules,
+  SgCidrRules,
+  SgCidrIcmpRules,
+  TcpUdpAndIcmpSwitcher,
 } from '../../../../molecules'
 import { Arrows } from '../../molecules'
 import {
@@ -75,48 +79,89 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
     <Styled.CardsContainer id={CARDS_CONTAINER}>
       <Styled.CardsCol>
         <div id={SG_AND_SG_SG_ICMP_FROM_ID}>
-          <GroupSgAndSgSgIcmpRules
+          <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
-            title="SG From"
-            popoverPosition="left"
-            rules={rulesSgSgFrom}
-            setRules={setRulesSgSgFrom}
-            rulesOtherside={rulesSgSgTo}
-            setRulesOtherside={setRulesSgSgTo}
-            rulesIcmp={rulesSgSgIcmpFrom}
-            setRulesIcmp={setRulesSgSgIcmpFrom}
-            rulesOthersideIcmp={rulesSgSgIcmpTo}
-            setRulesOthersideIcmp={setRulesSgSgIcmpTo}
-            centerSg={centerSg}
-            isDisabled
+            tcpUdpComponent={
+              <SgSgRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="SG From"
+                popoverPosition="left"
+                rules={rulesSgSgFrom}
+                setRules={setRulesSgSgFrom}
+                rulesOtherside={rulesSgSgTo}
+                setRulesOtherside={setRulesSgSgTo}
+                centerSg={centerSg}
+                isDisabled
+              />
+            }
+            icmpComponent={
+              <SgSgIcmpRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="SG From"
+                popoverPosition="left"
+                rules={rulesSgSgIcmpFrom}
+                setRules={setRulesSgSgIcmpFrom}
+                rulesOtherside={rulesSgSgIcmpTo}
+                setRulesOtherside={setRulesSgSgIcmpTo}
+                centerSg={centerSg}
+              />
+            }
           />
         </div>
         <Spacer $space={100} $samespace />
         <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID}>
-          <GroupSgSgIeAndSgSgIeIcmpRules
+          <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
-            title="SG-SG-IE From"
-            popoverPosition="left"
-            rules={rulesSgSgIeFrom}
-            setRules={setRulesSgSgIeFrom}
-            rulesIcmp={rulesSgSgIeIcmpFrom}
-            setRulesIcmp={setRulesSgSgIeIcmpFrom}
-            defaultTraffic="Ingress"
-            isDisabled={!centerSg}
+            tcpUdpComponent={
+              <SgSgIeRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="SG-SG-IE From"
+                popoverPosition="left"
+                rules={rulesSgSgIeFrom}
+                setRules={setRulesSgSgIeFrom}
+                defaultTraffic="Ingress"
+                isDisabled={!centerSg}
+              />
+            }
+            icmpComponent={
+              <SgSgIeIcmpRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="SG-SG-IE From"
+                popoverPosition="left"
+                rules={rulesSgSgIeIcmpFrom}
+                setRules={setRulesSgSgIeIcmpFrom}
+                defaultTraffic="Ingress"
+                isDisabled={!centerSg}
+              />
+            }
           />
         </div>
         <Spacer $space={100} $samespace />
         <div id={CIDR_FROM_ID}>
-          <GroupSgCidrAndSgCidrIcmpRules
+          <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
-            title="CIDR From"
-            popoverPosition="left"
-            rules={rulesSgCidrFrom}
-            setRules={setRulesSgCidrFrom}
-            rulesIcmp={rulesSgCidrIcmpFrom}
-            setRulesIcmp={setRulesSgCidrIcmpFrom}
-            defaultTraffic="Ingress"
-            isDisabled={!centerSg}
+            tcpUdpComponent={
+              <SgCidrRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="CIDR From"
+                popoverPosition="left"
+                rules={rulesSgCidrFrom}
+                setRules={setRulesSgCidrFrom}
+                defaultTraffic="Ingress"
+                isDisabled={!centerSg}
+              />
+            }
+            icmpComponent={
+              <SgCidrIcmpRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="CIDR From"
+                popoverPosition="left"
+                rules={rulesSgCidrIcmpFrom}
+                setRules={setRulesSgCidrIcmpFrom}
+                defaultTraffic="Ingress"
+                isDisabled={!centerSg}
+              />
+            }
           />
         </div>
       </Styled.CardsCol>
@@ -127,48 +172,90 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
       </Styled.CardsCol>
       <Styled.CardsCol>
         <div id={SG_AND_SG_SG_ICMP_TO_ID}>
-          <GroupSgAndSgSgIcmpRules
+          <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
-            title="SG To"
-            popoverPosition="right"
-            rules={rulesSgSgTo}
-            setRules={setRulesSgSgTo}
-            rulesOtherside={rulesSgSgFrom}
-            setRulesOtherside={setRulesSgSgFrom}
-            rulesIcmp={rulesSgSgIcmpTo}
-            setRulesIcmp={setRulesSgSgIcmpTo}
-            rulesOthersideIcmp={rulesSgSgIcmpFrom}
-            setRulesOthersideIcmp={setRulesSgSgIcmpFrom}
-            centerSg={centerSg}
-            isDisabled={!centerSg}
+            tcpUdpComponent={
+              <SgSgRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="SG To"
+                popoverPosition="right"
+                rules={rulesSgSgTo}
+                setRules={setRulesSgSgTo}
+                rulesOtherside={rulesSgSgFrom}
+                setRulesOtherside={setRulesSgSgFrom}
+                centerSg={centerSg}
+                isDisabled={!centerSg}
+              />
+            }
+            icmpComponent={
+              <SgSgIcmpRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="SG To"
+                popoverPosition="right"
+                rules={rulesSgSgIcmpTo}
+                setRules={setRulesSgSgIcmpTo}
+                rulesOtherside={rulesSgSgIcmpFrom}
+                setRulesOtherside={setRulesSgSgIcmpFrom}
+                centerSg={centerSg}
+                isDisabled={!centerSg}
+              />
+            }
           />
         </div>
         <Spacer $space={100} $samespace />
         <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID}>
-          <GroupSgSgIeAndSgSgIeIcmpRules
+          <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
-            title="SG-SG-IE To"
-            popoverPosition="right"
-            rules={rulesSgSgIeTo}
-            setRules={setRulesSgSgIeTo}
-            rulesIcmp={rulesSgSgIeIcmpTo}
-            setRulesIcmp={setRulesSgSgIeIcmpTo}
-            defaultTraffic="Egress"
-            isDisabled={!centerSg}
+            tcpUdpComponent={
+              <SgSgIeRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="SG-SG-IE To"
+                popoverPosition="right"
+                rules={rulesSgSgIeTo}
+                setRules={setRulesSgSgIeTo}
+                defaultTraffic="Egress"
+                isDisabled={!centerSg}
+              />
+            }
+            icmpComponent={
+              <SgSgIeIcmpRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="SG-SG-IE To"
+                popoverPosition="right"
+                rules={rulesSgSgIeIcmpTo}
+                setRules={setRulesSgSgIeIcmpTo}
+                defaultTraffic="Egress"
+                isDisabled={!centerSg}
+              />
+            }
           />
         </div>
         <Spacer $space={100} $samespace />
         <div id={CIDR_TO_ID}>
-          <GroupSgCidrAndSgCidrIcmpRules
+          <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
-            title="CIDR To"
-            popoverPosition="right"
-            rules={rulesSgCidrTo}
-            setRules={setRulesSgCidrTo}
-            rulesIcmp={rulesSgCidrIcmpTo}
-            setRulesIcmp={setRulesSgCidrIcmpTo}
-            defaultTraffic="Egress"
-            isDisabled={!centerSg}
+            tcpUdpComponent={
+              <SgCidrRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="CIDR To"
+                popoverPosition="right"
+                rules={rulesSgCidrTo}
+                setRules={setRulesSgCidrTo}
+                defaultTraffic="Egress"
+                isDisabled={!centerSg}
+              />
+            }
+            icmpComponent={
+              <SgCidrIcmpRules
+                forceArrowsUpdate={forceArrowsUpdate}
+                title="CIDR To"
+                popoverPosition="right"
+                rules={rulesSgCidrIcmpTo}
+                setRules={setRulesSgCidrIcmpTo}
+                defaultTraffic="Egress"
+                isDisabled={!centerSg}
+              />
+            }
           />
         </div>
         <Spacer $space={100} $samespace />
