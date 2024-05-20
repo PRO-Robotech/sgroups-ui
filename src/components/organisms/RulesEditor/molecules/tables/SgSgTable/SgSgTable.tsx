@@ -454,7 +454,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
           )
-          dispatch(newRules)
+          dispatch(setRules(newRules))
           setSelectedRowKeys(newSelectedRowKeys)
         },
         onSelect: (record: TColumn, selected: boolean) => {
