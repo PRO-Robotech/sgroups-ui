@@ -13,7 +13,7 @@ import { TFormSgCidrRule, TTraffic } from 'localTypes/rules'
 import { EditSgCidrPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgCidr'
-import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
+import { FilterDropdown, ActionCell, LogsCell, TraceCell, TransportCell, PortsCell } from '../atoms'
 import { Styled } from '../styled'
 
 type TSgCidrTableProps = {
@@ -87,15 +87,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
       dataIndex: 'transport',
       key: 'transport',
       width: 50,
-      render: (_, { transport, formChanges }) => (
-        <Styled.RulesEntryTransport
-          $transport={transport}
-          $modified={formChanges?.modifiedFields?.includes('transport')}
-          className="no-scroll"
-        >
-          {transport}
-        </Styled.RulesEntryTransport>
-      ),
+      render: (_, { transport, formChanges }) => <TransportCell transport={transport} formChanges={formChanges} />,
       sorter: (a, b) => {
         if (a.transport === b.transport) {
           return 0
@@ -170,9 +162,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
       dataIndex: 'portsSource',
       width: 50,
       render: (_, { portsSource, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : <ShortenedTextWithTooltip text={portsSource} />}
-        </Styled.RulesEntryPorts>
+        <PortsCell port={portsSource} changesMarker="portsSource" formChanges={formChanges} />
       ),
     },
     {

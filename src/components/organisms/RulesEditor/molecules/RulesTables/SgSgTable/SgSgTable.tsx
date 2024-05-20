@@ -13,7 +13,7 @@ import { TFormSgSgRule } from 'localTypes/rules'
 import { EditSgSgPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSg'
-import { FilterDropdown, ActionCell, LogsCell } from '../atoms'
+import { FilterDropdown, ActionCell, LogsCell, TransportCell, PortsCell } from '../atoms'
 import { Styled } from '../styled'
 
 type TSgSgTableProps = {
@@ -112,15 +112,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
       dataIndex: 'transport',
       key: 'transport',
       width: 50,
-      render: (_, { transport, formChanges }) => (
-        <Styled.RulesEntryTransport
-          $transport={transport}
-          $modified={formChanges?.modifiedFields?.includes('transport')}
-          className="no-scroll"
-        >
-          {transport}
-        </Styled.RulesEntryTransport>
-      ),
+      render: (_, { transport, formChanges }) => <TransportCell transport={transport} formChanges={formChanges} />,
       sorter: (a, b) => {
         if (a.transport === b.transport) {
           return 0
@@ -181,9 +173,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
       dataIndex: 'portsSource',
       width: 50,
       render: (_, { portsSource, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('portsSource')} className="no-scroll">
-          {!portsSource || portsSource.length === 0 ? 'any' : <ShortenedTextWithTooltip text={portsSource} />}
-        </Styled.RulesEntryPorts>
+        <PortsCell port={portsSource} changesMarker="portsSource" formChanges={formChanges} />
       ),
     },
     {
@@ -192,16 +182,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
       dataIndex: 'portsDestination',
       width: 50,
       render: (_, { portsDestination, formChanges }) => (
-        <Styled.RulesEntryPorts
-          $modified={formChanges?.modifiedFields?.includes('portsDestination')}
-          className="no-scroll"
-        >
-          {!portsDestination || portsDestination.length === 0 ? (
-            'any'
-          ) : (
-            <ShortenedTextWithTooltip text={portsDestination} />
-          )}
-        </Styled.RulesEntryPorts>
+        <PortsCell port={portsDestination} changesMarker="portsDestination" formChanges={formChanges} />
       ),
     },
     {
