@@ -9,7 +9,7 @@ import { SgSgIeRules } from '../SgSgIeRules'
 import { SgSgIeIcmpRules } from '../SgSgIeIcmpRules'
 import { Styled } from '../styled'
 
-type TSgSgIeAndSgSgIeIcmpRulesProps = {
+type TGroupSgSgIeAndSgSgIeIcmpRulesProps = {
   forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
@@ -21,7 +21,7 @@ type TSgSgIeAndSgSgIeIcmpRulesProps = {
   isDisabled?: boolean
 }
 
-export const SgSgIeAndSgSgIeIcmpRules: FC<TSgSgIeAndSgSgIeIcmpRulesProps> = ({
+export const GroupSgSgIeAndSgSgIeIcmpRules: FC<TGroupSgSgIeAndSgSgIeIcmpRulesProps> = ({
   forceArrowsUpdate,
   title,
   popoverPosition,

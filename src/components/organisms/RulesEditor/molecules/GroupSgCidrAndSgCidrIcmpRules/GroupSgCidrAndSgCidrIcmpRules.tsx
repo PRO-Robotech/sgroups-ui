@@ -3,41 +3,33 @@ import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Radio } from 'antd'
 import type { RadioChangeEvent } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { TFormSgSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
+import { TFormSgCidrRule, TFormSgCidrIcmpRule, TTraffic } from 'localTypes/rules'
 import { Spacer } from 'components'
-import { SgSgRules } from '../SgSgRules'
-import { SgSgIcmpRules } from '../SgSgIcmpRules'
+import { SgCidrRules } from '../SgCidrRules'
+import { SgCidrIcmpRules } from '../SgCidrIcmpRules'
 import { Styled } from '../styled'
 
-type TSgAndSgSgIcmpRulesProps = {
+type TGroupSgCidrAndSgCidrIcmpRulesProps = {
   forceArrowsUpdate: () => void
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgSgRule[]
-  setRules: ActionCreatorWithPayload<TFormSgSgRule[]>
-  rulesOtherside: TFormSgSgRule[]
-  setRulesOtherside: ActionCreatorWithPayload<TFormSgSgRule[]>
-  rulesIcmp: TFormSgSgIcmpRule[]
-  setRulesIcmp: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
-  rulesOthersideIcmp: TFormSgSgIcmpRule[]
-  setRulesOthersideIcmp: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
-  centerSg?: string
+  rules: TFormSgCidrRule[]
+  setRules: ActionCreatorWithPayload<TFormSgCidrRule[]>
+  rulesIcmp: TFormSgCidrIcmpRule[]
+  setRulesIcmp: ActionCreatorWithPayload<TFormSgCidrIcmpRule[]>
+  defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
-export const SgAndSgSgIcmpRules: FC<TSgAndSgSgIcmpRulesProps> = ({
+export const GroupSgCidrAndSgCidrIcmpRules: FC<TGroupSgCidrAndSgCidrIcmpRulesProps> = ({
   forceArrowsUpdate,
   title,
   popoverPosition,
   rules,
   setRules,
-  rulesOtherside,
-  setRulesOtherside,
   rulesIcmp,
   setRulesIcmp,
-  rulesOthersideIcmp,
-  setRulesOthersideIcmp,
-  centerSg,
+  defaultTraffic,
   isDisabled,
 }) => {
   const [tab, setTab] = useState('tcpudp')
@@ -66,28 +58,24 @@ export const SgAndSgSgIcmpRules: FC<TSgAndSgSgIcmpRulesProps> = ({
       <Spacer $space={10} $samespace />
       <Styled.ContainerAfterSwitcher>
         {tab === 'tcpudp' && (
-          <SgSgRules
+          <SgCidrRules
             forceArrowsUpdate={forceArrowsUpdate}
             title={title}
             popoverPosition={popoverPosition}
             rules={rules}
             setRules={setRules}
-            rulesOtherside={rulesOtherside}
-            setRulesOtherside={setRulesOtherside}
-            centerSg={centerSg}
+            defaultTraffic={defaultTraffic}
             isDisabled={isDisabled}
           />
         )}
         {tab === 'icmp' && (
-          <SgSgIcmpRules
+          <SgCidrIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
             title={title}
             popoverPosition={popoverPosition}
             rules={rulesIcmp}
             setRules={setRulesIcmp}
-            rulesOtherside={rulesOthersideIcmp}
-            setRulesOtherside={setRulesOthersideIcmp}
-            centerSg={centerSg}
+            defaultTraffic={defaultTraffic}
             isDisabled={isDisabled}
           />
         )}

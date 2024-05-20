@@ -1,1 +1,1 @@
-export * from './SgAndSgSgIcmpRules'
+export * from './GroupSgAndSgSgIcmpRules'
