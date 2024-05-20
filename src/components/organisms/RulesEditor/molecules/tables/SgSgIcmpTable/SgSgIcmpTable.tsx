@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
@@ -47,6 +48,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
+  const dispatch = useDispatch()
 
   useEffect(() => {
     setEditOpen(
@@ -132,8 +134,8 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
         }
       }
     }
-    setRules(newSgSgIcmpRules)
-    setRulesOtherside(newSgSgIcmpRulesOtherside)
+    dispatch(setRules(newSgSgIcmpRules))
+    dispatch(setRulesOtherside(newSgSgIcmpRulesOtherside))
     toggleEditPopover(index)
   }
 
@@ -163,11 +165,13 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
     )
     const newEditOpenRules = [...editOpen]
     if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
-      setRules([...newSgSgIcmpRules.slice(0, index), ...newSgSgIcmpRules.slice(index + 1)])
-      setRulesOtherside([
-        ...newSgSgIcmpRulesOtherside.slice(0, newSgSgSgIcmpRulesOthersideIndex),
-        ...newSgSgIcmpRulesOtherside.slice(newSgSgSgIcmpRulesOthersideIndex + 1),
-      ])
+      dispatch(setRules([...newSgSgIcmpRules.slice(0, index), ...newSgSgIcmpRules.slice(index + 1)]))
+      dispatch(
+        setRulesOtherside([
+          ...newSgSgIcmpRulesOtherside.slice(0, newSgSgSgIcmpRulesOthersideIndex),
+          ...newSgSgIcmpRulesOtherside.slice(newSgSgSgIcmpRulesOthersideIndex + 1),
+        ]),
+      )
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
@@ -176,8 +180,8 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
         ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex],
         formChanges: { status: STATUSES.deleted },
       }
-      setRules(newSgSgIcmpRules)
-      setRulesOtherside(newSgSgIcmpRulesOtherside)
+      dispatch(setRules(newSgSgIcmpRules))
+      dispatch(setRulesOtherside(newSgSgIcmpRulesOtherside))
       toggleEditPopover(index)
     }
   }
@@ -212,8 +216,8 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
       formChanges: { status: STATUSES.modified },
       checked: false,
     }
-    setRules(newSgSgIcmpRules)
-    setRulesOtherside(newSgSgIcmpRulesOtherside)
+    dispatch(setRules(newSgSgIcmpRules))
+    dispatch(setRulesOtherside(newSgSgIcmpRulesOtherside))
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -468,7 +472,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
           )
-          setRules(newRules)
+          dispatch(setRules(newRules))
           setSelectedRowKeys(newSelectedRowKeys)
         },
         onSelect: (record: TColumn, selected: boolean) => {
@@ -488,7 +492,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
           } else {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
           }
-          setRules(newRules)
+          dispatch(setRules(newRules))
         },
         columnWidth: 16,
       }

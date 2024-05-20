@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
@@ -47,6 +48,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
+  const dispatch = useDispatch()
 
   useEffect(() => {
     setEditOpen(
@@ -121,8 +123,8 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
         }
       }
     }
-    setRules(newSgRules)
-    setRulesOtherside(newSgRulesOtherside)
+    dispatch(setRules(newSgRules))
+    dispatch(setRulesOtherside(newSgRulesOtherside))
     toggleEditPopover(index)
   }
 
@@ -152,11 +154,13 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
     )
     const newEditOpenRules = [...editOpen]
     if (newSgRules[index].formChanges?.status === STATUSES.new) {
-      setRules([...newSgRules.slice(0, index), ...newSgRules.slice(index + 1)])
-      setRulesOtherside([
-        ...newSgRulesOtherside.slice(0, newSgRulesOthersideIndex),
-        ...newSgRulesOtherside.slice(newSgRulesOthersideIndex + 1),
-      ])
+      dispatch(setRules([...newSgRules.slice(0, index), ...newSgRules.slice(index + 1)]))
+      dispatch(
+        setRulesOtherside([
+          ...newSgRulesOtherside.slice(0, newSgRulesOthersideIndex),
+          ...newSgRulesOtherside.slice(newSgRulesOthersideIndex + 1),
+        ]),
+      )
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
@@ -165,8 +169,8 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
         ...newSgRulesOtherside[newSgRulesOthersideIndex],
         formChanges: { status: STATUSES.deleted },
       }
-      setRules(newSgRules)
-      setRulesOtherside(newSgRulesOtherside)
+      dispatch(setRules(newSgRules))
+      dispatch(setRulesOtherside(newSgRulesOtherside))
       toggleEditPopover(index)
     }
   }
@@ -201,8 +205,8 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
       formChanges: { status: STATUSES.modified },
       checked: false,
     }
-    setRules(newSgRules)
-    setRulesOtherside(newSgRulesOtherside)
+    dispatch(setRules(newSgRules))
+    dispatch(setRulesOtherside(newSgRulesOtherside))
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -450,7 +454,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
           )
-          setRules(newRules)
+          dispatch(newRules)
           setSelectedRowKeys(newSelectedRowKeys)
         },
         onSelect: (record: TColumn, selected: boolean) => {
@@ -470,7 +474,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
           } else {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
           }
-          setRules(newRules)
+          dispatch(setRules(newRules))
         },
         columnWidth: 16,
       }

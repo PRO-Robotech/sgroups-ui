@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
@@ -44,6 +45,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
+  const dispatch = useDispatch()
 
   useEffect(() => {
     setEditOpen(
@@ -105,7 +107,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
         }
       }
     }
-    setRules(newCidrSgIcmpRules)
+    dispatch(setRules(newCidrSgIcmpRules))
     toggleEditPopover(index)
   }
 
@@ -124,7 +126,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
         prioritySome === oldValues.prioritySome,
     )
     if (newCidrSgIcmpRules[index].formChanges?.status === STATUSES.new) {
-      setRules([...newCidrSgIcmpRules.slice(0, index), ...newCidrSgIcmpRules.slice(index + 1)])
+      dispatch(setRules([...newCidrSgIcmpRules.slice(0, index), ...newCidrSgIcmpRules.slice(index + 1)]))
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
@@ -133,7 +135,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
         traffic: defaultTraffic,
         formChanges: { status: STATUSES.deleted },
       }
-      setRules(newCidrSgIcmpRules)
+      dispatch(setRules(newCidrSgIcmpRules))
       toggleEditPopover(index)
     }
   }
@@ -157,7 +159,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
       formChanges: { status: STATUSES.modified },
       checked: false,
     }
-    setRules(newCidrSgIcmpRules)
+    dispatch(setRules(newCidrSgIcmpRules))
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -410,7 +412,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
           )
-          setRules(newRules)
+          dispatch(setRules(newRules))
           setSelectedRowKeys(newSelectedRowKeys)
         },
         onSelect: (record: TColumn, selected: boolean) => {
@@ -431,7 +433,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
           } else {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
           }
-          setRules(newRules)
+          dispatch(setRules(newRules))
         },
         columnWidth: 16,
       }

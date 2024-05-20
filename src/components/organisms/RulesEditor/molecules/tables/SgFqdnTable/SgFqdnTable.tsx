@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
+import { useDispatch } from 'react-redux'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import type { ColumnsType } from 'antd/es/table'
@@ -41,6 +42,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
+  const dispatch = useDispatch()
 
   useEffect(() => {
     setEditOpen(
@@ -97,7 +99,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
         newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.modified, modifiedFields } }
       }
     }
-    setRules(newFqdnRules)
+    dispatch(setRules(newFqdnRules))
     toggleEditPopover(index)
   }
 
@@ -115,12 +117,12 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
     )
     const newEditOpenRules = [...editOpen]
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
-      setRules([...newFqdnRules.slice(0, index), ...newFqdnRules.slice(index + 1)])
+      dispatch(setRules([...newFqdnRules.slice(0, index), ...newFqdnRules.slice(index + 1)]))
       toggleEditPopover(index)
       setEditOpen([...newEditOpenRules.slice(0, index), ...newEditOpenRules.slice(index + 1)])
     } else {
       newFqdnRules[index] = { ...newFqdnRules[index], formChanges: { status: STATUSES.deleted } }
-      setRules(newFqdnRules)
+      dispatch(setRules(newFqdnRules))
       toggleEditPopover(index)
     }
   }
@@ -138,7 +140,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
         prioritySome === oldValues.prioritySome,
     )
     newFqdnRules[index] = { ...newFqdnRules[index], formChanges: { status: STATUSES.modified }, checked: false }
-    setRules(newFqdnRules)
+    dispatch(setRules(newFqdnRules))
   }
 
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
@@ -386,7 +388,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
           )
-          setRules(newRules)
+          dispatch(setRules(newRules))
           setSelectedRowKeys(newSelectedRowKeys)
         },
         onSelect: (record: TColumn, selected: boolean) => {
@@ -406,7 +408,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
           } else {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: false }
           }
-          setRules(newRules)
+          dispatch(setRules(newRules))
         },
         columnWidth: 16,
       }
