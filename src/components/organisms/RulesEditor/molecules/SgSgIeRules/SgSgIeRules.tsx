@@ -1,4 +1,5 @@
-import React, { FC, useState, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState } from 'react'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
@@ -11,18 +12,16 @@ import { Styled } from '../styled'
 
 type TSgSgIeRulesProps = {
   forceArrowsUpdate: () => void
-  sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
   rules: TFormSgSgIeRule[]
-  setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+  setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>
   defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
 export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
   forceArrowsUpdate,
-  sgNames,
   title,
   popoverPosition,
   rules,
@@ -57,7 +56,6 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
       <SgSgIeTable
         isChangesMode={false}
-        sgNames={sgNames}
         popoverPosition={popoverPosition}
         defaultTraffic={defaultTraffic}
         rulesAll={rules}
@@ -69,7 +67,7 @@ export const SgSgIeRules: FC<TSgSgIeRulesProps> = ({
         forceArrowsUpdate={forceArrowsUpdate}
       />
       <Popover
-        content={<AddSgSgIePopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
+        content={<AddSgSgIePopover hide={toggleAddPopover} addNew={addNew} />}
         title="SG-SG-IE"
         trigger="click"
         open={addOpen}

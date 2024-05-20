@@ -1,21 +1,21 @@
-import React, { FC, Dispatch, SetStateAction, useState, useEffect } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
+import { useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
+import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
+import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
+import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
+import { setRulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpTo } from 'store/editor/rulesSgSgIeIcmp/rulesSgSgIeIcmp'
+import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
+import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/rulesSgCidr'
+import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 import { Spacer } from 'components'
 import {
-  TFormSgRule,
-  TFormFqdnRule,
-  TFormCidrSgRule,
-  TFormSgSgIcmpRule,
-  TFormSgSgIeRule,
-  TFormSgSgIeIcmpRule,
-  TFormCidrSgIcmpRule,
-} from 'localTypes/rules'
-import {
-  FQDNRules,
-  SelectMainSG,
-  CidrSgAndCidrSgIcmpRules,
+  SelectMainSg,
+  SgFqdnRules,
   SgAndSgSgIcmpRules,
   SgSgIeAndSgSgIeIcmpRules,
+  SgCidrAndSgCidrIcmpRules,
 } from '../../molecules'
 import { Arrows } from './molecules'
 import {
@@ -32,84 +32,40 @@ import {
 import { Styled } from './styled'
 
 type TTransformBlockProps = {
-  sgNames: string[]
-  rulesSgFrom: TFormSgRule[]
-  setRulesSgFrom: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesSgTo: TFormSgRule[]
-  setRulesSgTo: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesFqdnTo: TFormFqdnRule[]
-  setRulesFqdnTo: Dispatch<SetStateAction<TFormFqdnRule[]>>
-  rulesCidrSgFrom: TFormCidrSgRule[]
-  setRulesCidrSgFrom: Dispatch<SetStateAction<TFormCidrSgRule[]>>
-  rulesCidrSgTo: TFormCidrSgRule[]
-  setRulesCidrSgTo: Dispatch<SetStateAction<TFormCidrSgRule[]>>
-  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
-  setRulesSgSgIcmpFrom: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
-  rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
-  setRulesSgSgIcmpTo: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
-  rulesSgSgIeFrom: TFormSgSgIeRule[]
-  setRulesSgSgIeFrom: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
-  rulesSgSgIeTo: TFormSgSgIeRule[]
-  setRulesSgSgIeTo: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
-  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[]
-  setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
-  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
-  setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
-  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[]
-  setRulesCidrSgIcmpFrom: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
-  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[]
-  setRulesCidrSgIcmpTo: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
   onSelectMainSg: (value?: string) => void
   centerSg?: string
 }
 
-export const TransformBlock: FC<TTransformBlockProps> = ({
-  sgNames,
-  onSelectMainSg,
-  rulesSgFrom,
-  setRulesSgFrom,
-  rulesSgTo,
-  setRulesSgTo,
-  rulesFqdnTo,
-  setRulesFqdnTo,
-  rulesCidrSgFrom,
-  setRulesCidrSgFrom,
-  rulesCidrSgTo,
-  setRulesCidrSgTo,
-  rulesSgSgIcmpFrom,
-  setRulesSgSgIcmpFrom,
-  rulesSgSgIcmpTo,
-  setRulesSgSgIcmpTo,
-  rulesSgSgIeFrom,
-  setRulesSgSgIeFrom,
-  rulesSgSgIeTo,
-  setRulesSgSgIeTo,
-  rulesSgSgIeIcmpFrom,
-  setRulesSgSgIeIcmpFrom,
-  rulesSgSgIeIcmpTo,
-  setRulesSgSgIeIcmpTo,
-  rulesCidrSgIcmpFrom,
-  setRulesCidrSgIcmpFrom,
-  rulesCidrSgIcmpTo,
-  setRulesCidrSgIcmpTo,
-  centerSg,
-}) => {
+export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectMainSg, centerSg }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
+  const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
+  const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
+  const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
+  const rulesSgSgIcmpTo = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesTo)
+  const rulesSgSgIeFrom = useSelector((state: RootState) => state.rulesSgSgIe.rulesFrom)
+  const rulesSgSgIeTo = useSelector((state: RootState) => state.rulesSgSgIe.rulesTo)
+  const rulesSgSgIeIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesFrom)
+  const rulesSgSgIeIcmpTo = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesTo)
+  const rulesSgFqdnTo = useSelector((state: RootState) => state.rulesSgFqdn.rulesTo)
+  const rulesSgCidrFrom = useSelector((state: RootState) => state.rulesSgCidr.rulesFrom)
+  const rulesSgCidrTo = useSelector((state: RootState) => state.rulesSgCidr.rulesTo)
+  const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
+  const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
 
   useEffect(() => {
     setArrowsKey(Math.random())
   }, [
-    rulesSgFrom.length,
-    rulesSgTo.length,
-    rulesFqdnTo.length,
-    rulesCidrSgFrom.length,
-    rulesCidrSgTo.length,
+    rulesSgSgFrom.length,
+    rulesSgSgTo.length,
     rulesSgSgIeFrom.length,
     rulesSgSgIeTo.length,
     rulesSgSgIeIcmpFrom.length,
     rulesSgSgIeIcmpTo.length,
-    rulesCidrSgIcmpFrom.length,
-    rulesCidrSgIcmpTo.length,
+    rulesSgFqdnTo.length,
+    rulesSgCidrFrom.length,
+    rulesSgCidrTo.length,
+    rulesSgCidrIcmpFrom.length,
+    rulesSgCidrIcmpTo.length,
   ])
 
   const forceArrowsUpdate = () => {
@@ -132,13 +88,12 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={SG_AND_SG_SG_ICMP_FROM_ID}>
               <SgAndSgSgIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
-                sgNames={sgNames}
                 title="SG From"
                 popoverPosition="left"
-                rules={rulesSgFrom}
-                setRules={setRulesSgFrom}
-                rulesOtherside={rulesSgTo}
-                setRulesOtherside={setRulesSgTo}
+                rules={rulesSgSgFrom}
+                setRules={setRulesSgSgFrom}
+                rulesOtherside={rulesSgSgTo}
+                setRulesOtherside={setRulesSgSgTo}
                 rulesIcmp={rulesSgSgIcmpFrom}
                 setRulesIcmp={setRulesSgSgIcmpFrom}
                 rulesOthersideIcmp={rulesSgSgIcmpTo}
@@ -151,7 +106,6 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID}>
               <SgSgIeAndSgSgIeIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
-                sgNames={sgNames}
                 title="SG-SG-IE From"
                 popoverPosition="left"
                 rules={rulesSgSgIeFrom}
@@ -164,14 +118,14 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             </div>
             <Spacer $space={100} $samespace />
             <div id={CIDR_FROM_ID}>
-              <CidrSgAndCidrSgIcmpRules
+              <SgCidrAndSgCidrIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 title="CIDR From"
                 popoverPosition="left"
-                rules={rulesCidrSgFrom}
-                setRules={setRulesCidrSgFrom}
-                rulesIcmp={rulesCidrSgIcmpFrom}
-                setRulesIcmp={setRulesCidrSgIcmpFrom}
+                rules={rulesSgCidrFrom}
+                setRules={setRulesSgCidrFrom}
+                rulesIcmp={rulesSgCidrIcmpFrom}
+                setRulesIcmp={setRulesSgCidrIcmpFrom}
                 defaultTraffic="Ingress"
                 isDisabled={!centerSg}
               />
@@ -179,20 +133,19 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
           </Styled.CardsCol>
           <Styled.CardsCol>
             <Styled.CenterColWithMarginAuto id={CENTRAL_ID}>
-              <SelectMainSG sgNames={sgNames} centerSg={centerSg} onSelectMainSg={onSelectMainSg} />
+              <SelectMainSg centerSg={centerSg} onSelectMainSg={onSelectMainSg} />
             </Styled.CenterColWithMarginAuto>
           </Styled.CardsCol>
           <Styled.CardsCol>
             <div id={SG_AND_SG_SG_ICMP_TO_ID}>
               <SgAndSgSgIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
-                sgNames={sgNames}
                 title="SG To"
                 popoverPosition="right"
-                rules={rulesSgTo}
-                setRules={setRulesSgTo}
-                rulesOtherside={rulesSgFrom}
-                setRulesOtherside={setRulesSgFrom}
+                rules={rulesSgSgTo}
+                setRules={setRulesSgSgTo}
+                rulesOtherside={rulesSgSgFrom}
+                setRulesOtherside={setRulesSgSgFrom}
                 rulesIcmp={rulesSgSgIcmpTo}
                 setRulesIcmp={setRulesSgSgIcmpTo}
                 rulesOthersideIcmp={rulesSgSgIcmpFrom}
@@ -205,7 +158,6 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID}>
               <SgSgIeAndSgSgIeIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
-                sgNames={sgNames}
                 title="SG-SG-IE To"
                 popoverPosition="right"
                 rules={rulesSgSgIeTo}
@@ -218,26 +170,26 @@ export const TransformBlock: FC<TTransformBlockProps> = ({
             </div>
             <Spacer $space={100} $samespace />
             <div id={CIDR_TO_ID}>
-              <CidrSgAndCidrSgIcmpRules
+              <SgCidrAndSgCidrIcmpRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 title="CIDR To"
                 popoverPosition="right"
-                rules={rulesCidrSgTo}
-                setRules={setRulesCidrSgTo}
-                rulesIcmp={rulesCidrSgIcmpTo}
-                setRulesIcmp={setRulesCidrSgIcmpTo}
+                rules={rulesSgCidrTo}
+                setRules={setRulesSgCidrTo}
+                rulesIcmp={rulesSgCidrIcmpTo}
+                setRulesIcmp={setRulesSgCidrIcmpTo}
                 defaultTraffic="Egress"
                 isDisabled={!centerSg}
               />
             </div>
             <Spacer $space={100} $samespace />
             <div id={FQDN_TO_ID}>
-              <FQDNRules
+              <SgFqdnRules
                 forceArrowsUpdate={forceArrowsUpdate}
                 title="FQDN To"
                 popoverPosition="right"
-                rules={rulesFqdnTo}
-                setRules={setRulesFqdnTo}
+                rules={rulesSgFqdnTo}
+                setRules={setRulesSgFqdnTo}
                 isDisabled={!centerSg}
               />
             </div>

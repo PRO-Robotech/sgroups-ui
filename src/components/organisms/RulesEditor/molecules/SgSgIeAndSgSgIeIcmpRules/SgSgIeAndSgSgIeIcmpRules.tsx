@@ -1,4 +1,5 @@
-import React, { FC, useState, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState } from 'react'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Radio } from 'antd'
 import type { RadioChangeEvent } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
@@ -10,20 +11,18 @@ import { Styled } from '../styled'
 
 type TSgSgIeAndSgSgIeIcmpRulesProps = {
   forceArrowsUpdate: () => void
-  sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
   rules: TFormSgSgIeRule[]
-  setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+  setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>
   rulesIcmp: TFormSgSgIeIcmpRule[]
-  setRulesIcmp: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+  setRulesIcmp: ActionCreatorWithPayload<TFormSgSgIeIcmpRule[]>
   defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
 export const SgSgIeAndSgSgIeIcmpRules: FC<TSgSgIeAndSgSgIeIcmpRulesProps> = ({
   forceArrowsUpdate,
-  sgNames,
   title,
   popoverPosition,
   rules,
@@ -61,7 +60,6 @@ export const SgSgIeAndSgSgIeIcmpRules: FC<TSgSgIeAndSgSgIeIcmpRulesProps> = ({
         {tab === 'tcpudp' && (
           <SgSgIeRules
             forceArrowsUpdate={forceArrowsUpdate}
-            sgNames={sgNames}
             title={title}
             popoverPosition={popoverPosition}
             rules={rules}
@@ -73,7 +71,6 @@ export const SgSgIeAndSgSgIeIcmpRules: FC<TSgSgIeAndSgSgIeIcmpRulesProps> = ({
         {tab === 'icmp' && (
           <SgSgIeIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
-            sgNames={sgNames}
             title={title}
             popoverPosition={popoverPosition}
             rules={rulesIcmp}

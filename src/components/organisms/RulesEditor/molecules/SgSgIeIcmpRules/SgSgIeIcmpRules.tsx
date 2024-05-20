@@ -1,4 +1,5 @@
-import React, { FC, useState, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState } from 'react'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
@@ -11,18 +12,16 @@ import { Styled } from '../styled'
 
 type TSgSgIeIcmpRulesProps = {
   forceArrowsUpdate: () => void
-  sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
   rules: TFormSgSgIeIcmpRule[]
-  setRules: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+  setRules: ActionCreatorWithPayload<TFormSgSgIeIcmpRule[]>
   defaultTraffic: TTraffic
   isDisabled?: boolean
 }
 
 export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
   forceArrowsUpdate,
-  sgNames,
   title,
   popoverPosition,
   rules,
@@ -57,7 +56,6 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
       <SgSgIeIcmpTable
         isChangesMode={false}
-        sgNames={sgNames}
         popoverPosition={popoverPosition}
         defaultTraffic={defaultTraffic}
         rulesAll={rules}
@@ -69,7 +67,7 @@ export const SgSgIeIcmpRules: FC<TSgSgIeIcmpRulesProps> = ({
         forceArrowsUpdate={forceArrowsUpdate}
       />
       <Popover
-        content={<AddSgSgIeIcmpPopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
+        content={<AddSgSgIeIcmpPopover hide={toggleAddPopover} addNew={addNew} />}
         title="SG-SG-IE"
         trigger="click"
         open={addOpen}

@@ -1,6 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
@@ -14,12 +15,11 @@ import { Styled } from '../styled'
 
 type TSgSgIeTableProps = {
   isChangesMode: boolean
-  sgNames: string[]
   popoverPosition: TooltipPlacement
   defaultTraffic: TTraffic
   rulesData: TFormSgSgIeRule[]
   rulesAll: TFormSgSgIeRule[]
-  setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+  setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>
   setEditOpen: Dispatch<SetStateAction<boolean[]>>
   editOpen: boolean[]
   isDisabled?: boolean
@@ -29,7 +29,6 @@ type TSgSgIeTableProps = {
 
 export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   isChangesMode,
-  sgNames,
   popoverPosition,
   defaultTraffic,
   rulesData,
@@ -354,7 +353,6 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
           <Popover
             content={
               <EditSgSgIePopover
-                sgNames={sgNames}
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}

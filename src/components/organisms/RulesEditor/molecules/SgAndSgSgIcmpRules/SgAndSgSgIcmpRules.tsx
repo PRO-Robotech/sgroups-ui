@@ -1,33 +1,32 @@
-import React, { FC, useState, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState } from 'react'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Radio } from 'antd'
 import type { RadioChangeEvent } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { TFormSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
+import { TFormSgSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
 import { Spacer } from 'components'
-import { SGRules } from '../SGRules'
+import { SgSgRules } from '../SgSgRules'
 import { SgSgIcmpRules } from '../SgSgIcmpRules'
 import { Styled } from '../styled'
 
 type TSgAndSgSgIcmpRulesProps = {
   forceArrowsUpdate: () => void
-  sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
-  rules: TFormSgRule[]
-  setRules: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesOtherside: TFormSgRule[]
-  setRulesOtherside: Dispatch<SetStateAction<TFormSgRule[]>>
+  rules: TFormSgSgRule[]
+  setRules: ActionCreatorWithPayload<TFormSgSgRule[]>
+  rulesOtherside: TFormSgSgRule[]
+  setRulesOtherside: ActionCreatorWithPayload<TFormSgSgRule[]>
   rulesIcmp: TFormSgSgIcmpRule[]
-  setRulesIcmp: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+  setRulesIcmp: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
   rulesOthersideIcmp: TFormSgSgIcmpRule[]
-  setRulesOthersideIcmp: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+  setRulesOthersideIcmp: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
   centerSg?: string
   isDisabled?: boolean
 }
 
 export const SgAndSgSgIcmpRules: FC<TSgAndSgSgIcmpRulesProps> = ({
   forceArrowsUpdate,
-  sgNames,
   title,
   popoverPosition,
   rules,
@@ -67,9 +66,8 @@ export const SgAndSgSgIcmpRules: FC<TSgAndSgSgIcmpRulesProps> = ({
       <Spacer $space={10} $samespace />
       <Styled.ContainerAfterSwitcher>
         {tab === 'tcpudp' && (
-          <SGRules
+          <SgSgRules
             forceArrowsUpdate={forceArrowsUpdate}
-            sgNames={sgNames}
             title={title}
             popoverPosition={popoverPosition}
             rules={rules}
@@ -83,7 +81,6 @@ export const SgAndSgSgIcmpRules: FC<TSgAndSgSgIcmpRulesProps> = ({
         {tab === 'icmp' && (
           <SgSgIcmpRules
             forceArrowsUpdate={forceArrowsUpdate}
-            sgNames={sgNames}
             title={title}
             popoverPosition={popoverPosition}
             rules={rulesIcmp}

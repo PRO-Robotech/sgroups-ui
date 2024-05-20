@@ -1,13 +1,13 @@
-export type TSGDefaultAction = 'ACCEPT' | 'DROP'
+export type TSgDefaultAction = 'ACCEPT' | 'DROP'
 
 export type TSecurityGroup = {
-  defaultAction: TSGDefaultAction
+  defaultAction: TSgDefaultAction
   logs: boolean
   name: string
   networks: string[]
   trace: boolean
 }
 
-export type TSGResponse = {
+export type TSgResponse = {
   groups: TSecurityGroup[]
 }

@@ -5,7 +5,7 @@ export type TNetwork = {
   }
 }
 
-export type TNWResponse = {
+export type TNwResponse = {
   networks: TNetwork[]
 }
 

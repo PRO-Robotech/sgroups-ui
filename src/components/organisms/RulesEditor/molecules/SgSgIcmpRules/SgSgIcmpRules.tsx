@@ -1,4 +1,5 @@
-import React, { FC, useState, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState } from 'react'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { PlusOutlined } from '@ant-design/icons'
@@ -11,20 +12,18 @@ import { Styled } from '../styled'
 
 type TSgSgIcmpRulesProps = {
   forceArrowsUpdate: () => void
-  sgNames: string[]
   title: string
   popoverPosition: TooltipPlacement
   rules: TFormSgSgIcmpRule[]
-  setRules: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+  setRules: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
   rulesOtherside: TFormSgSgIcmpRule[]
-  setRulesOtherside: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+  setRulesOtherside: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
   centerSg?: string
   isDisabled?: boolean
 }
 
 export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
   forceArrowsUpdate,
-  sgNames,
   title,
   popoverPosition,
   rules,
@@ -73,7 +72,6 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
       <SgSgIcmpTable
         isChangesMode={false}
-        sgNames={sgNames}
         popoverPosition={popoverPosition}
         rulesAll={rules}
         rulesData={rules}
@@ -87,7 +85,7 @@ export const SgSgIcmpRules: FC<TSgSgIcmpRulesProps> = ({
         forceArrowsUpdate={forceArrowsUpdate}
       />
       <Popover
-        content={<AddSgSgIcmpPopover sgNames={sgNames} hide={toggleAddPopover} addNew={addNew} />}
+        content={<AddSgSgIcmpPopover hide={toggleAddPopover} addNew={addNew} />}
         title="SG SG ICMP"
         trigger="click"
         open={addOpen}

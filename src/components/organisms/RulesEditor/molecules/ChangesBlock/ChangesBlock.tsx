@@ -1,34 +1,35 @@
 /* eslint-disable max-lines-per-function */
-import React, { FC, useEffect, Dispatch, SetStateAction, useState } from 'react'
+import React, { FC, useEffect, useState } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Result, Spin } from 'antd'
+import { useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
+import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
+import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
+import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
+import { setRulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpTo } from 'store/editor/rulesSgSgIeIcmp/rulesSgSgIeIcmp'
+import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
+import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/rulesSgCidr'
+import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { Spacer, TitleWithNoTopMargin } from 'components'
-import {
-  TFormSgRule,
-  TFormFqdnRule,
-  TFormCidrSgRule,
-  TFormSgSgIcmpRule,
-  TFormSgSgIeRule,
-  TFormSgSgIeIcmpRule,
-  TFormCidrSgIcmpRule,
-} from 'localTypes/rules'
+
 import { upsertRules, deleteRules } from 'api/rules'
 import {
-  getChangesSgRules,
-  getChangesFqdnRules,
-  getChangesCidrSgRules,
+  getChangesSgSgRules,
   getChangesSgSgIcmpRules,
   getChangesSgSgIeRules,
   getChangesSgSgIeIcmpRules,
-  getChangesCidrSgIcmpRules,
-  composeAllTypesOfSgRules,
-  composeAllTypesOfFqdnRules,
-  composeAllTypesOfCidrSgRules,
+  getChangesSgFqdnRules,
+  getChangesSgCidrIcmpRules,
+  getChangesSgCidrRules,
+  composeAllTypesOfSgSgRules,
   composeAllTypesOfSgSgIcmpRules,
   composeAllTypesOfSgSgIeRules,
   composeAllTypesOfSgSgIeIcmpRules,
-  composeAllTypesOfCidrSgIcmpRules,
+  composeAllTypesOfSgFqdnRules,
+  composeAllTypesOfSgCidrRules,
+  composeAllTypesOfSgCidrIcmpRules,
   checkIfSomeChangesMarked,
 } from './utils'
 import { RulesDiff } from './molecules'
@@ -36,138 +37,85 @@ import { Styled } from './styled'
 
 type TChangesBlockProps = {
   centerSg: string
-  sgNames: string[]
-  rulesSgFrom: TFormSgRule[]
-  setRulesSgFrom: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesSgTo: TFormSgRule[]
-  setRulesSgTo: Dispatch<SetStateAction<TFormSgRule[]>>
-  rulesFqdnTo: TFormFqdnRule[]
-  setRulesFqdnTo: Dispatch<SetStateAction<TFormFqdnRule[]>>
-  rulesCidrSgFrom: TFormCidrSgRule[]
-  setRulesCidrSgFrom: Dispatch<SetStateAction<TFormCidrSgRule[]>>
-  rulesCidrSgTo: TFormCidrSgRule[]
-  setRulesCidrSgTo: Dispatch<SetStateAction<TFormCidrSgRule[]>>
-  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
-  setRulesSgSgIcmpFrom: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
-  rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
-  setRulesSgSgIcmpTo: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
-  rulesSgSgIeFrom: TFormSgSgIeRule[]
-  setRulesSgSgIeFrom: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
-  rulesSgSgIeTo: TFormSgSgIeRule[]
-  setRulesSgSgIeTo: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
-  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[]
-  setRulesSgSgIeIcmpFrom: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
-  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
-  setRulesSgSgIeIcmpTo: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
-  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[]
-  setRulesCidrSgIcmpFrom: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
-  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[]
-  setRulesCidrSgIcmpTo: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
   onClose: () => void
   onSubmit: () => void
 }
 
-export const ChangesBlock: FC<TChangesBlockProps> = ({
-  centerSg,
-  sgNames,
-  rulesSgFrom,
-  setRulesSgFrom,
-  rulesSgTo,
-  setRulesSgTo,
-  rulesFqdnTo,
-  setRulesFqdnTo,
-  rulesCidrSgFrom,
-  setRulesCidrSgFrom,
-  rulesCidrSgTo,
-  setRulesCidrSgTo,
-  rulesSgSgIcmpFrom,
-  setRulesSgSgIcmpFrom,
-  rulesSgSgIcmpTo,
-  setRulesSgSgIcmpTo,
-  rulesSgSgIeFrom,
-  setRulesSgSgIeFrom,
-  rulesSgSgIeTo,
-  setRulesSgSgIeTo,
-  rulesSgSgIeIcmpFrom,
-  setRulesSgSgIeIcmpFrom,
-  rulesSgSgIeIcmpTo,
-  setRulesSgSgIeIcmpTo,
-  rulesCidrSgIcmpFrom,
-  setRulesCidrSgIcmpFrom,
-  rulesCidrSgIcmpTo,
-  setRulesCidrSgIcmpTo,
-  onClose,
-  onSubmit,
-}) => {
+export const ChangesBlock: FC<TChangesBlockProps> = ({ centerSg, onClose, onSubmit }) => {
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSubmitDisabled, setIsSubmitDisabled] = useState<boolean>(true)
 
+  const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
+  const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
+  const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
+  const rulesSgSgIcmpTo = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesTo)
+  const rulesSgSgIeFrom = useSelector((state: RootState) => state.rulesSgSgIe.rulesFrom)
+  const rulesSgSgIeTo = useSelector((state: RootState) => state.rulesSgSgIe.rulesTo)
+  const rulesSgSgIeIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesFrom)
+  const rulesSgSgIeIcmpTo = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesTo)
+  const rulesSgFqdnTo = useSelector((state: RootState) => state.rulesSgFqdn.rulesTo)
+  const rulesSgCidrFrom = useSelector((state: RootState) => state.rulesSgCidr.rulesFrom)
+  const rulesSgCidrTo = useSelector((state: RootState) => state.rulesSgCidr.rulesTo)
+  const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
+  const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
+
   useEffect(() => {
-    const isSomeChangesMarked = checkIfSomeChangesMarked(
-      rulesSgFrom,
-      rulesSgTo,
-      rulesFqdnTo,
-      rulesCidrSgFrom,
-      rulesCidrSgTo,
+    const isSomeChangesMarked = checkIfSomeChangesMarked({
+      rulesSgSgFrom,
+      rulesSgSgTo,
+      rulesSgFqdnTo,
+      rulesSgCidrFrom,
+      rulesSgCidrTo,
       rulesSgSgIcmpFrom,
       rulesSgSgIcmpTo,
       rulesSgSgIeFrom,
       rulesSgSgIeTo,
       rulesSgSgIeIcmpFrom,
       rulesSgSgIeIcmpTo,
-      rulesCidrSgIcmpFrom,
-      rulesCidrSgIcmpTo,
-    )
+      rulesSgCidrIcmpFrom,
+      rulesSgCidrIcmpTo,
+    })
     if (isSomeChangesMarked) {
       setIsSubmitDisabled(false)
     } else {
       setIsSubmitDisabled(true)
     }
   }, [
-    rulesSgFrom,
-    rulesSgTo,
-    rulesFqdnTo,
-    rulesCidrSgFrom,
-    rulesCidrSgTo,
+    rulesSgSgFrom,
+    rulesSgSgTo,
+    rulesSgFqdnTo,
+    rulesSgCidrFrom,
+    rulesSgCidrTo,
     rulesSgSgIcmpFrom,
     rulesSgSgIcmpTo,
     rulesSgSgIeFrom,
     rulesSgSgIeTo,
     rulesSgSgIeIcmpFrom,
     rulesSgSgIeIcmpTo,
-    rulesCidrSgIcmpFrom,
-    rulesCidrSgIcmpTo,
+    rulesSgCidrIcmpFrom,
+    rulesSgCidrIcmpTo,
   ])
 
-  const changesResultSgFromResult = getChangesSgRules(rulesSgFrom)
-  const changesResultSgToResult = getChangesSgRules(rulesSgTo)
-  const changesResultFqdnTo = getChangesFqdnRules(rulesFqdnTo)
-  const changesResultCidrSgFrom = getChangesCidrSgRules(rulesCidrSgFrom)
-  const changesResultCidrSgTo = getChangesCidrSgRules(rulesCidrSgTo)
+  const changesResultSgSgFromResult = getChangesSgSgRules(rulesSgSgFrom)
+  const changesResultSgSgToResult = getChangesSgSgRules(rulesSgSgTo)
   const changesResultSgSgIcmpFrom = getChangesSgSgIcmpRules(rulesSgSgIcmpFrom)
   const changesResultSgSgIcmpTo = getChangesSgSgIcmpRules(rulesSgSgIcmpTo)
   const changesResultSgSgIeFrom = getChangesSgSgIeRules(rulesSgSgIeFrom)
   const changesResultSgSgIeTo = getChangesSgSgIeRules(rulesSgSgIeTo)
   const changesResultSgSgIeIcmpFrom = getChangesSgSgIeIcmpRules(rulesSgSgIeIcmpFrom)
   const changesResultSgSgIeIcmpTo = getChangesSgSgIeIcmpRules(rulesSgSgIeIcmpTo)
-  const changesResultCidrSgIcmpFrom = getChangesCidrSgIcmpRules(rulesCidrSgIcmpFrom)
-  const changesResultCidrSgIcmpTo = getChangesCidrSgIcmpRules(rulesCidrSgIcmpTo)
+  const changesResultSgFqdnTo = getChangesSgFqdnRules(rulesSgFqdnTo)
+  const changesResultSgCidrFrom = getChangesSgCidrRules(rulesSgCidrFrom)
+  const changesResultSgCidrTo = getChangesSgCidrRules(rulesSgCidrTo)
+  const changesResultSgCidrIcmpFrom = getChangesSgCidrIcmpRules(rulesSgCidrIcmpFrom)
+  const changesResultSgCidrIcmpTo = getChangesSgCidrIcmpRules(rulesSgCidrIcmpTo)
 
   const handleOk = () => {
-    const sgRules = composeAllTypesOfSgRules(
+    const sgSgRules = composeAllTypesOfSgSgRules(
       centerSg,
-      rulesSgFrom.filter(({ checked }) => checked),
-      rulesSgTo.filter(({ checked }) => checked),
-    )
-    const fqdnRules = composeAllTypesOfFqdnRules(
-      centerSg,
-      rulesFqdnTo.filter(({ checked }) => checked),
-    )
-    const cidrRules = composeAllTypesOfCidrSgRules(
-      centerSg,
-      rulesCidrSgFrom.filter(({ checked }) => checked),
-      rulesCidrSgTo.filter(({ checked }) => checked),
+      rulesSgSgFrom.filter(({ checked }) => checked),
+      rulesSgSgTo.filter(({ checked }) => checked),
     )
     const sgSgIcmpRules = composeAllTypesOfSgSgIcmpRules(
       centerSg,
@@ -184,31 +132,40 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
       rulesSgSgIeIcmpFrom.filter(({ checked }) => checked),
       rulesSgSgIeIcmpTo.filter(({ checked }) => checked),
     )
-    const cidrSgIcmpRules = composeAllTypesOfCidrSgIcmpRules(
+    const sgFqdnRules = composeAllTypesOfSgFqdnRules(
       centerSg,
-      rulesCidrSgIcmpFrom.filter(({ checked }) => checked),
-      rulesCidrSgIcmpTo.filter(({ checked }) => checked),
+      rulesSgFqdnTo.filter(({ checked }) => checked),
+    )
+    const sgCidrRules = composeAllTypesOfSgCidrRules(
+      centerSg,
+      rulesSgCidrFrom.filter(({ checked }) => checked),
+      rulesSgCidrTo.filter(({ checked }) => checked),
+    )
+    const sgCidrIcmpRules = composeAllTypesOfSgCidrIcmpRules(
+      centerSg,
+      rulesSgCidrIcmpFrom.filter(({ checked }) => checked),
+      rulesSgCidrIcmpTo.filter(({ checked }) => checked),
     )
 
     deleteRules(
-      sgRules.rulesToDelete,
-      fqdnRules.rulesToDelete,
-      cidrRules.rulesToDelete,
+      sgSgRules.rulesToDelete,
       sgSgIcmpRules.rulesToDelete,
       sgSgIeRules.rulesToDelete,
       sgSgIeIcmpRules.rulesToDelete,
-      cidrSgIcmpRules.rulesToDelete,
+      sgFqdnRules.rulesToDelete,
+      sgCidrRules.rulesToDelete,
+      sgCidrIcmpRules.rulesToDelete,
     )
       .then(() => {
         // Do not touch: Seuquence is important. Promise.All wont work properly
         upsertRules(
-          sgRules.rules,
-          fqdnRules.rules,
-          cidrRules.rules,
+          sgSgRules.rules,
           sgSgIcmpRules.rules,
           sgSgIeRules.rules,
           sgSgIeIcmpRules.rules,
-          cidrSgIcmpRules.rules,
+          sgFqdnRules.rules,
+          sgCidrRules.rules,
+          sgCidrIcmpRules.rules,
         )
           .then(() => {
             setIsLoading(false)
@@ -238,32 +195,32 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
   }
 
   const handleClose = () => {
-    const uncheckedRulesSgFrom = [...rulesSgFrom].map(el => ({ ...el, checked: false }))
-    const uncheckedRulesSgTo = [...rulesSgTo].map(el => ({ ...el, checked: false }))
-    const uncheckedRulesFqdnTo = [...rulesFqdnTo].map(el => ({ ...el, checked: false }))
-    const uncheckedRulesCidrSgFrom = [...rulesCidrSgFrom].map(el => ({ ...el, checked: false }))
-    const uncheckedRulesCidrSgTo = [...rulesCidrSgTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgSgFrom = [...rulesSgSgFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgSgTo = [...rulesSgSgTo].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgSgIcmpFrom = [...rulesSgSgIcmpFrom].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgSgIcmpTo = [...rulesSgSgIcmpTo].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgSgIeFrom = [...rulesSgSgIeFrom].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgSgIeTo = [...rulesSgSgIeTo].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgSgIeIcmpFrom = [...rulesSgSgIeIcmpFrom].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgSgIeIcmpTo = [...rulesSgSgIeIcmpTo].map(el => ({ ...el, checked: false }))
-    const uncheckedRulesCidrSgIcmpFrom = [...rulesCidrSgIcmpFrom].map(el => ({ ...el, checked: false }))
-    const uncheckedRulesCidrSgIcmpTo = [...rulesCidrSgIcmpTo].map(el => ({ ...el, checked: false }))
-    setRulesSgFrom(uncheckedRulesSgFrom)
-    setRulesSgTo(uncheckedRulesSgTo)
-    setRulesFqdnTo(uncheckedRulesFqdnTo)
-    setRulesCidrSgFrom(uncheckedRulesCidrSgFrom)
-    setRulesCidrSgTo(uncheckedRulesCidrSgTo)
+    const uncheckedRulesSgFqdnTo = [...rulesSgFqdnTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgCidrFrom = [...rulesSgCidrFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgCidrTo = [...rulesSgCidrTo].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgCidrIcmpFrom = [...rulesSgCidrIcmpFrom].map(el => ({ ...el, checked: false }))
+    const uncheckedRulesSgCidrIcmpTo = [...rulesSgCidrIcmpTo].map(el => ({ ...el, checked: false }))
+    setRulesSgSgFrom(uncheckedRulesSgSgFrom)
+    setRulesSgSgTo(uncheckedRulesSgSgTo)
     setRulesSgSgIcmpFrom(uncheckedRulesSgSgIcmpFrom)
     setRulesSgSgIcmpTo(uncheckedRulesSgSgIcmpTo)
     setRulesSgSgIeFrom(uncheckedRulesSgSgIeFrom)
     setRulesSgSgIeTo(uncheckedRulesSgSgIeTo)
     setRulesSgSgIeIcmpFrom(uncheckedRulesSgSgIeIcmpFrom)
     setRulesSgSgIeIcmpTo(uncheckedRulesSgSgIeIcmpTo)
-    setRulesCidrSgIcmpFrom(uncheckedRulesCidrSgIcmpFrom)
-    setRulesCidrSgIcmpTo(uncheckedRulesCidrSgIcmpTo)
+    setRulesSgFqdnTo(uncheckedRulesSgFqdnTo)
+    setRulesSgCidrFrom(uncheckedRulesSgCidrFrom)
+    setRulesSgCidrTo(uncheckedRulesSgCidrTo)
+    setRulesSgCidrIcmpFrom(uncheckedRulesSgCidrIcmpFrom)
+    setRulesSgCidrIcmpTo(uncheckedRulesSgCidrIcmpTo)
     onClose()
   }
 
@@ -271,73 +228,33 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
     <>
       <TitleWithNoTopMargin level={3}>Changes for: {centerSg}</TitleWithNoTopMargin>
       <Styled.ScrollContainer>
-        {changesResultSgFromResult && (
+        {changesResultSgSgFromResult && (
           <RulesDiff
             title="SG From"
             compareResult={{
-              type: 'sg',
-              data: changesResultSgFromResult,
-              sgNames,
-              rules: rulesSgFrom,
-              setRules: setRulesSgFrom,
-              rulesOtherside: rulesSgTo,
-              setRulesOtherside: setRulesSgTo,
+              type: 'sgSg',
+              data: changesResultSgSgFromResult,
+              rules: rulesSgSgFrom,
+              setRules: setRulesSgSgFrom,
+              rulesOtherside: rulesSgSgTo,
+              setRulesOtherside: setRulesSgSgTo,
               popoverPosition: 'right',
               centerSg,
             }}
           />
         )}
-        {changesResultSgToResult && (
+        {changesResultSgSgToResult && (
           <RulesDiff
             title="SG To"
             compareResult={{
-              type: 'sg',
-              data: changesResultSgToResult,
-              sgNames,
-              rules: rulesSgTo,
-              setRules: setRulesSgTo,
-              rulesOtherside: rulesSgFrom,
-              setRulesOtherside: setRulesSgFrom,
+              type: 'sgSg',
+              data: changesResultSgSgToResult,
+              rules: rulesSgSgTo,
+              setRules: setRulesSgSgTo,
+              rulesOtherside: rulesSgSgFrom,
+              setRulesOtherside: setRulesSgSgFrom,
               popoverPosition: 'right',
               centerSg,
-            }}
-          />
-        )}
-        {changesResultFqdnTo && (
-          <RulesDiff
-            title="FQDN To"
-            compareResult={{
-              type: 'fqdn',
-              data: changesResultFqdnTo,
-              rules: rulesFqdnTo,
-              setRules: setRulesFqdnTo,
-              popoverPosition: 'left',
-            }}
-          />
-        )}
-        {changesResultCidrSgFrom && (
-          <RulesDiff
-            title="CIDR-SG From"
-            compareResult={{
-              type: 'cidr',
-              data: changesResultCidrSgFrom,
-              defaultTraffic: 'Ingress',
-              rules: rulesCidrSgFrom,
-              setRules: setRulesCidrSgFrom,
-              popoverPosition: 'left',
-            }}
-          />
-        )}
-        {changesResultCidrSgTo && (
-          <RulesDiff
-            title="CIDR-SG To"
-            compareResult={{
-              type: 'cidr',
-              data: changesResultCidrSgTo,
-              defaultTraffic: 'Egress',
-              rules: rulesCidrSgTo,
-              setRules: setRulesCidrSgTo,
-              popoverPosition: 'left',
             }}
           />
         )}
@@ -347,7 +264,6 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             compareResult={{
               type: 'sgSgIcmp',
               data: changesResultSgSgIcmpFrom,
-              sgNames,
               popoverPosition: 'left',
               rules: rulesSgSgIcmpFrom,
               setRules: setRulesSgSgIcmpFrom,
@@ -363,7 +279,6 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             compareResult={{
               type: 'sgSgIcmp',
               data: changesResultSgSgIcmpTo,
-              sgNames,
               popoverPosition: 'left',
               rules: rulesSgSgIcmpTo,
               setRules: setRulesSgSgIcmpTo,
@@ -379,7 +294,6 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             compareResult={{
               type: 'sgSgIe',
               data: changesResultSgSgIeFrom,
-              sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Ingress',
               rules: rulesSgSgIeFrom,
@@ -393,7 +307,6 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             compareResult={{
               type: 'sgSgIe',
               data: changesResultSgSgIeTo,
-              sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Egress',
               rules: rulesSgSgIeTo,
@@ -407,7 +320,6 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             compareResult={{
               type: 'sgSgIeIcmp',
               data: changesResultSgSgIeIcmpFrom,
-              sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Ingress',
               rules: rulesSgSgIeIcmpFrom,
@@ -421,7 +333,6 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             compareResult={{
               type: 'sgSgIeIcmp',
               data: changesResultSgSgIeIcmpTo,
-              sgNames,
               popoverPosition: 'left',
               defaultTraffic: 'Egress',
               rules: rulesSgSgIeIcmpTo,
@@ -429,46 +340,83 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({
             }}
           />
         )}
-
-        {changesResultCidrSgIcmpFrom && (
+        {changesResultSgFqdnTo && (
+          <RulesDiff
+            title="FQDN To"
+            compareResult={{
+              type: 'sgFqdn',
+              data: changesResultSgFqdnTo,
+              rules: rulesSgFqdnTo,
+              setRules: setRulesSgFqdnTo,
+              popoverPosition: 'left',
+            }}
+          />
+        )}
+        {changesResultSgCidrFrom && (
+          <RulesDiff
+            title="CIDR-SG From"
+            compareResult={{
+              type: 'sgCidr',
+              data: changesResultSgCidrFrom,
+              defaultTraffic: 'Ingress',
+              rules: rulesSgCidrFrom,
+              setRules: setRulesSgCidrFrom,
+              popoverPosition: 'left',
+            }}
+          />
+        )}
+        {changesResultSgCidrTo && (
+          <RulesDiff
+            title="CIDR-SG To"
+            compareResult={{
+              type: 'sgCidr',
+              data: changesResultSgCidrTo,
+              defaultTraffic: 'Egress',
+              rules: rulesSgCidrTo,
+              setRules: setRulesSgCidrTo,
+              popoverPosition: 'left',
+            }}
+          />
+        )}
+        {changesResultSgCidrIcmpFrom && (
           <RulesDiff
             title="CIDR-ICMP From"
             compareResult={{
-              type: 'cidrSgIcmp',
-              data: changesResultCidrSgIcmpFrom,
+              type: 'sgCidrIcmp',
+              data: changesResultSgCidrIcmpFrom,
               popoverPosition: 'left',
               defaultTraffic: 'Ingress',
-              rules: rulesCidrSgIcmpFrom,
-              setRules: setRulesCidrSgIcmpFrom,
+              rules: rulesSgCidrIcmpFrom,
+              setRules: setRulesSgCidrIcmpFrom,
             }}
           />
         )}
-        {changesResultCidrSgIcmpTo && (
+        {changesResultSgCidrIcmpTo && (
           <RulesDiff
             title="CIDR-ICMP To"
             compareResult={{
-              type: 'cidrSgIcmp',
-              data: changesResultCidrSgIcmpTo,
+              type: 'sgCidrIcmp',
+              data: changesResultSgCidrIcmpTo,
               popoverPosition: 'left',
               defaultTraffic: 'Egress',
-              rules: rulesCidrSgIcmpTo,
-              setRules: setRulesCidrSgIcmpTo,
+              rules: rulesSgCidrIcmpTo,
+              setRules: setRulesSgCidrIcmpTo,
             }}
           />
         )}
-        {!changesResultSgFromResult &&
-          !changesResultSgToResult &&
-          !changesResultFqdnTo &&
-          !changesResultCidrSgFrom &&
-          !changesResultCidrSgTo &&
+        {!changesResultSgSgFromResult &&
+          !changesResultSgSgToResult &&
           !changesResultSgSgIcmpFrom &&
           !changesResultSgSgIcmpTo &&
           !changesResultSgSgIeFrom &&
           !changesResultSgSgIeTo &&
           !changesResultSgSgIeIcmpFrom &&
           !changesResultSgSgIeIcmpTo &&
-          !changesResultCidrSgIcmpFrom &&
-          !changesResultCidrSgIcmpTo && <div>No changes</div>}
+          !changesResultSgFqdnTo &&
+          !changesResultSgCidrFrom &&
+          !changesResultSgCidrTo &&
+          !changesResultSgCidrIcmpFrom &&
+          !changesResultSgCidrIcmpTo && <div>No changes</div>}
       </Styled.ScrollContainer>
       <Spacer />
       <Styled.ButtonsContainer>

@@ -1,18 +1,20 @@
 import React, { FC } from 'react'
 import { Button, Form, Input, Select, Switch } from 'antd'
+import { useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
 import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
 import { TFormSgSgIeRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
 type TAddSgSgIePopoverProps = {
-  sgNames: string[]
   hide: () => void
   addNew: (values: TFormSgSgIeRule) => void
 }
 
-export const AddSgSgIePopover: FC<TAddSgSgIePopoverProps> = ({ sgNames, hide, addNew }) => {
+export const AddSgSgIePopover: FC<TAddSgSgIePopoverProps> = ({ hide, addNew }) => {
   const [addForm] = Form.useForm()
+  const sgNames = useSelector((state: RootState) => state.sgNames.sgNames)
 
   return (
     <Form

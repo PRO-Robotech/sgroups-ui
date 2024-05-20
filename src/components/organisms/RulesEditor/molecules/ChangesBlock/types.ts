@@ -1,29 +1,17 @@
 import {
-  TFormSgRule,
-  TFormFqdnRule,
-  TFormCidrSgRule,
+  TFormSgSgRule,
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
-  TFormCidrSgIcmpRule,
+  TFormSgFqdnRule,
+  TFormSgCidrRule,
+  TFormSgCidrIcmpRule,
 } from 'localTypes/rules'
 
-export type TFormSgRuleChangesResult = {
-  newRules: TFormSgRule[]
-  diffRules: TFormSgRule[]
-  deletedRules: TFormSgRule[]
-}
-
-export type TFormFqdnRuleChangesResult = {
-  newRules: TFormFqdnRule[]
-  diffRules: TFormFqdnRule[]
-  deletedRules: TFormFqdnRule[]
-}
-
-export type TFormCidrSgRuleChangesResult = {
-  newRules: TFormCidrSgRule[]
-  diffRules: TFormCidrSgRule[]
-  deletedRules: TFormCidrSgRule[]
+export type TFormSgSgRuleChangesResult = {
+  newRules: TFormSgSgRule[]
+  diffRules: TFormSgSgRule[]
+  deletedRules: TFormSgSgRule[]
 }
 
 export type TFormSgSgIcmpRuleChangesResult = {
@@ -44,8 +32,20 @@ export type TFormSgSgIeIcmpRuleChangesResult = {
   deletedRules: TFormSgSgIeIcmpRule[]
 }
 
-export type TFormCidrSgIcmpRuleChangesResult = {
-  newRules: TFormCidrSgIcmpRule[]
-  diffRules: TFormCidrSgIcmpRule[]
-  deletedRules: TFormCidrSgIcmpRule[]
+export type TFormSgFqdnRuleChangesResult = {
+  newRules: TFormSgFqdnRule[]
+  diffRules: TFormSgFqdnRule[]
+  deletedRules: TFormSgFqdnRule[]
+}
+
+export type TFormSgCidrRuleChangesResult = {
+  newRules: TFormSgCidrRule[]
+  diffRules: TFormSgCidrRule[]
+  deletedRules: TFormSgCidrRule[]
+}
+
+export type TFormSgCidrIcmpRuleChangesResult = {
+  newRules: TFormSgCidrIcmpRule[]
+  diffRules: TFormSgCidrIcmpRule[]
+  deletedRules: TFormSgCidrIcmpRule[]
 }

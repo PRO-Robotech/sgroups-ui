@@ -1,6 +1,7 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Button, Popover, Tooltip, Table, Input, Space } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import type { FilterDropdownProps, TableRowSelection } from 'antd/es/table/interface'
@@ -14,13 +15,12 @@ import { Styled } from '../styled'
 
 type TSgSgIcmpTableProps = {
   isChangesMode: boolean
-  sgNames: string[]
   popoverPosition: TooltipPlacement
   rulesData: TFormSgSgIcmpRule[]
   rulesAll: TFormSgSgIcmpRule[]
-  setRules: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+  setRules: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
   rulesOtherside: TFormSgSgIcmpRule[]
-  setRulesOtherside: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+  setRulesOtherside: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
   editOpen: boolean[]
   setEditOpen: Dispatch<SetStateAction<boolean[]>>
   centerSg?: string
@@ -31,7 +31,6 @@ type TSgSgIcmpTableProps = {
 
 export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   isChangesMode,
-  sgNames,
   popoverPosition,
   rulesData,
   rulesAll,
@@ -393,7 +392,6 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
           <Popover
             content={
               <EditSgSgIcmpPopover
-                sgNames={sgNames}
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}

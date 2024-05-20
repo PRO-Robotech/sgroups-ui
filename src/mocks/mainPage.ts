@@ -17,11 +17,11 @@ const mainPageLeftListData = [
     children: [
       { key: '/rules-sg-sg', label: 'sg-sg' },
       { key: '/rules-sg-sg-icmp', label: 'sg-sg-icmp' },
-      { key: '/rules-cidr', label: 'cidr' },
-      { key: '/rules-cidr-icmp', label: 'cidr-icmp' },
       { key: '/rules-sg-sg-ie', label: 'sg-sg-ie' },
       { key: '/rules-sg-sg-ie-icmp', label: 'sg-sg-ie-icmp' },
-      { key: '/rules-fqdn', label: 'fqdn' },
+      { key: '/rules-sg-fqdn', label: 'fqdn' },
+      { key: '/rules-sg-cidr', label: 'cidr' },
+      { key: '/rules-sg-cidr-icmp', label: 'cidr-icmp' },
     ],
   },
 ]
