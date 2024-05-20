@@ -73,8 +73,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    setCenterSg(id)
-  }, [id])
+    dispatch(setCenterSg(id))
+  }, [id, dispatch])
 
   useEffect(() => {
     setIsLoading(true)
