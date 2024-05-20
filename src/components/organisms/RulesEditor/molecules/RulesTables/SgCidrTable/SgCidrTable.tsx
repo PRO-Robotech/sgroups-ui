@@ -1,12 +1,11 @@
-/* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
-import { Button, Popover, Tooltip, Table } from 'antd'
+import { Button, Popover, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
+import { SearchOutlined } from '@ant-design/icons'
 import ipRangeCheck from 'ip-range-check'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
@@ -14,7 +13,7 @@ import { TFormSgCidrRule, TTraffic } from 'localTypes/rules'
 import { EditSgCidrPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgCidr'
-import { FilterDropdown } from '../atoms'
+import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
 import { Styled } from '../styled'
 
 type TSgCidrTableProps = {
@@ -81,15 +80,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
       key: 'action',
       dataIndex: 'action',
       width: 25,
-      render: (_, { action, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
-          {action === 'ACCEPT' ? (
-            <LikeOutlined style={{ color: 'green' }} />
-          ) : (
-            <DislikeOutlined style={{ color: 'red' }} />
-          )}
-        </Styled.RulesEntryPorts>
-      ),
+      render: (_, { action, formChanges }) => <ActionCell action={action} formChanges={formChanges} />,
     },
     {
       title: 'Transport',
@@ -135,18 +126,13 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
       onFilter: (value, { cidr }) => ipRangeCheck(value as string, cidr),
     },
+
     {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
       width: 50,
-      render: (_, { logs, formChanges }) => (
-        <Styled.RulesEntryMarks $modified={formChanges?.modifiedFields?.includes('logs')} className="no-scroll">
-          <Tooltip title="Logs">
-            {logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
-          </Tooltip>
-        </Styled.RulesEntryMarks>
-      ),
+      render: (_, { logs, formChanges }) => <LogsCell logs={logs} formChanges={formChanges} />,
       sorter: (a, b) => {
         if (a.logs === b.logs) {
           return 0
@@ -159,13 +145,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
       dataIndex: 'trace',
       key: 'trace',
       width: 50,
-      render: (_, { trace, formChanges }) => (
-        <Styled.RulesEntryMarks $modified={formChanges?.modifiedFields?.includes('trace')} className="no-scroll">
-          <Tooltip title="Trace">
-            {trace ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
-          </Tooltip>
-        </Styled.RulesEntryMarks>
-      ),
+      render: (_, { trace, formChanges }) => <TraceCell trace={trace} formChanges={formChanges} />,
       sorter: (a, b) => {
         if (a.trace === b.trace) {
           return 0

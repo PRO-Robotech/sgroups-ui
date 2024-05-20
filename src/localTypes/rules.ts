@@ -125,7 +125,7 @@ export type TSgCidrIcmpRulesResponse = {
 
 export type TFormChangesStatuses = 'modified' | 'deleted' | 'new'
 
-type TFormChanges = {
+export type TFormChanges = {
   status: TFormChangesStatuses
   modifiedFields?: string[]
 }

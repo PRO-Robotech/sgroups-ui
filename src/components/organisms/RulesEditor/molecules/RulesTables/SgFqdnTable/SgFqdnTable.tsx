@@ -1,19 +1,18 @@
-/* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
-import { Button, Popover, Tooltip, Table } from 'antd'
+import { Button, Popover, Table } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import type { ColumnsType } from 'antd/es/table'
-import { CheckOutlined, CloseOutlined, SearchOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
+import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgFqdnRule } from 'localTypes/rules'
 import { EditSgFqdnPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgFqdn'
-import { FilterDropdown } from '../atoms'
+import { FilterDropdown, ActionCell, LogsCell } from '../atoms'
 import { Styled } from '../styled'
 
 type TSgFqdnTableProps = {
@@ -78,15 +77,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
       key: 'action',
       dataIndex: 'action',
       width: 25,
-      render: (_, { action, formChanges }) => (
-        <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('action')} className="no-scroll">
-          {action === 'ACCEPT' ? (
-            <LikeOutlined style={{ color: 'green' }} />
-          ) : (
-            <DislikeOutlined style={{ color: 'red' }} />
-          )}
-        </Styled.RulesEntryPorts>
-      ),
+      render: (_, { action, formChanges }) => <ActionCell action={action} formChanges={formChanges} />,
     },
     {
       title: 'Transport',
@@ -137,13 +128,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
       dataIndex: 'logs',
       key: 'logs',
       width: 100,
-      render: (_, { logs, formChanges }) => (
-        <Styled.RulesEntryMarks $modified={formChanges?.modifiedFields?.includes('logs')} className="no-scroll">
-          <Tooltip title="Logs">
-            {logs ? <CheckOutlined style={{ color: 'green' }} /> : <CloseOutlined style={{ color: 'red' }} />}
-          </Tooltip>
-        </Styled.RulesEntryMarks>
-      ),
+      render: (_, { logs, formChanges }) => <LogsCell logs={logs} formChanges={formChanges} />,
       sorter: (a, b) => {
         if (a.logs === b.logs) {
           return 0
