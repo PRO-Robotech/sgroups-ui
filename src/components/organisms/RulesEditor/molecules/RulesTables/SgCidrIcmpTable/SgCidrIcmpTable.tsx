@@ -61,17 +61,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
 
   const editRule = (oldValues: TFormSgCidrIcmpRule, values: TFormSgCidrIcmpRule) => {
     const newCidrSgIcmpRules = [...rulesAll]
-    const index = newCidrSgIcmpRules.findIndex(
-      ({ cidr, IPv, types, logs, trace, traffic, action, prioritySome }) =>
-        cidr === oldValues.cidr &&
-        IPv === oldValues.IPv &&
-        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newCidrSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
     if (newCidrSgIcmpRules[index].formChanges?.status === STATUSES.new) {
       newCidrSgIcmpRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
@@ -114,17 +104,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
   const removeRule = (oldValues: TFormSgCidrIcmpRule) => {
     const newCidrSgIcmpRules = [...rulesAll]
     const newEditOpenRules = [...editOpen]
-    const index = newCidrSgIcmpRules.findIndex(
-      ({ cidr, IPv, types, logs, trace, traffic, action, prioritySome }) =>
-        cidr === oldValues.cidr &&
-        IPv === oldValues.IPv &&
-        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newCidrSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
     if (newCidrSgIcmpRules[index].formChanges?.status === STATUSES.new) {
       dispatch(setRules([...newCidrSgIcmpRules.slice(0, index), ...newCidrSgIcmpRules.slice(index + 1)]))
       toggleEditPopover(index)
@@ -142,17 +122,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
 
   const restoreRule = (oldValues: TFormSgCidrIcmpRule) => {
     const newCidrSgIcmpRules = [...rulesAll]
-    const index = newCidrSgIcmpRules.findIndex(
-      ({ cidr, IPv, types, logs, trace, traffic, action, prioritySome }) =>
-        cidr === oldValues.cidr &&
-        IPv === oldValues.IPv &&
-        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newCidrSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
     newCidrSgIcmpRules[index] = {
       ...newCidrSgIcmpRules[index],
       traffic: defaultTraffic,
@@ -376,34 +346,10 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
           const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
           const checkedIndexes = newSelectedRows
             .filter(({ key }) => newSelectedRowKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ cidr, IPv, types, logs, trace, traffic, action, prioritySome }) =>
-                  cidr === newRow.cidr &&
-                  IPv === newRow.IPv &&
-                  JSON.stringify(types.sort()) === JSON.stringify(newRow.types.sort()) &&
-                  logs === newRow.logs &&
-                  trace === newRow.trace &&
-                  traffic === newRow.traffic &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ cidr, IPv, types, logs, trace, traffic, action, prioritySome }) =>
-                  cidr === newRow.cidr &&
-                  IPv === newRow.IPv &&
-                  JSON.stringify(types.sort()) === JSON.stringify(newRow.types.sort()) &&
-                  logs === newRow.logs &&
-                  trace === newRow.trace &&
-                  traffic === newRow.traffic &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           checkedIndexes.forEach(
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
@@ -417,17 +363,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
         },
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
-          const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ cidr, IPv, types, logs, trace, traffic, action, prioritySome }) =>
-              cidr === record.cidr &&
-              IPv === record.IPv &&
-              JSON.stringify(types.sort()) === JSON.stringify(record.types.sort()) &&
-              logs === record.logs &&
-              trace === record.trace &&
-              traffic === record.traffic &&
-              record.action === action &&
-              record.prioritySome === prioritySome,
-          )
+          const pendingToCheckRuleIndex = newRules.findIndex(({ id }) => id === record.id)
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
           } else {

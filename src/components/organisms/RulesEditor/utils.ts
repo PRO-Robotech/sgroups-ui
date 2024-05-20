@@ -1,3 +1,4 @@
+import { nanoid } from 'nanoid'
 import {
   TSgSgRule,
   TFormSgSgRule,
@@ -26,6 +27,7 @@ export const mapRulesSgSgFrom = (rules: TSgSgRule[]): TFormSgSgRule[] => {
         logs,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }))
     }
     return {
@@ -34,6 +36,7 @@ export const mapRulesSgSgFrom = (rules: TSgSgRule[]): TFormSgSgRule[] => {
       logs,
       action,
       prioritySome: priority?.some,
+      id: nanoid(),
     }
   })
 }
@@ -49,6 +52,7 @@ export const mapRulesSgSgTo = (rules: TSgSgRule[]): TFormSgSgRule[] => {
         logs,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }))
     }
     return {
@@ -57,6 +61,7 @@ export const mapRulesSgSgTo = (rules: TSgSgRule[]): TFormSgSgRule[] => {
       logs,
       action,
       prioritySome: priority?.some,
+      id: nanoid(),
     }
   })
 }
@@ -70,6 +75,7 @@ export const mapRulesSgSgIcmpFrom = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[
     types: ICMP.Types,
     action,
     prioritySome: priority?.some,
+    id: nanoid(),
   }))
 }
 
@@ -82,6 +88,7 @@ export const mapRulesSgSgIcmpTo = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[] 
     types: ICMP.Types,
     action,
     prioritySome: priority?.some,
+    id: nanoid(),
   }))
 }
 
@@ -100,6 +107,7 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          id: nanoid(),
         }))
       }
       return {
@@ -110,6 +118,7 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -129,6 +138,7 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          id: nanoid(),
         }))
       }
       return {
@@ -139,6 +149,7 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -156,6 +167,7 @@ export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcm
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -173,6 +185,7 @@ export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpR
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -188,6 +201,7 @@ export const mapRulesSgFqdnTo = (rules: TSgFqdnRule[]): TFormSgFqdnRule[] => {
         logs,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }))
     }
     return {
@@ -196,6 +210,7 @@ export const mapRulesSgFqdnTo = (rules: TSgFqdnRule[]): TFormSgFqdnRule[] => {
       logs,
       action,
       prioritySome: priority?.some,
+      id: nanoid(),
     }
   })
 }
@@ -215,6 +230,7 @@ export const mapRulesSgCidrFrom = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          id: nanoid(),
         }))
       }
       return {
@@ -225,6 +241,7 @@ export const mapRulesSgCidrFrom = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -244,6 +261,7 @@ export const mapRulesSgCidrTo = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          id: nanoid(),
         }))
       }
       return {
@@ -254,6 +272,7 @@ export const mapRulesSgCidrTo = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -271,6 +290,7 @@ export const mapRulesSgCidrIcmpFrom = (rules: TSgCidrIcmpRule[]): TFormSgCidrIcm
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -288,6 +308,7 @@ export const mapRulesSgCidrIcmpTo = (rules: TSgCidrIcmpRule[]): TFormSgCidrIcmpR
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }

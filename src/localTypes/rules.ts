@@ -134,6 +134,10 @@ type TCheckStatus = {
   checked?: boolean
 }
 
+type TId = {
+  id: string
+}
+
 export type TFormSgSgRule = {
   sg: string
   transport: TTransport
@@ -143,7 +147,8 @@ export type TFormSgSgRule = {
   portsSource?: string
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgSgIcmpRule = {
   sg: string
@@ -154,7 +159,8 @@ export type TFormSgSgIcmpRule = {
   action: TActionType
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgSgIeRule = {
   sg: string
@@ -167,7 +173,8 @@ export type TFormSgSgIeRule = {
   action: TActionType
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgSgIeIcmpRule = {
   sg: string
@@ -179,7 +186,8 @@ export type TFormSgSgIeIcmpRule = {
   action: TActionType
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgFqdnRule = {
   fqdn: string
@@ -190,7 +198,8 @@ export type TFormSgFqdnRule = {
   portsDestination?: string
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgCidrRule = {
   cidr: string
@@ -203,7 +212,8 @@ export type TFormSgCidrRule = {
   portsDestination?: string
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgCidrIcmpRule = {
   cidr: string
@@ -215,7 +225,8 @@ export type TFormSgCidrIcmpRule = {
   action: TActionType
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TComposedForSubmitSgSgRules = {
   rules: TSgSgRule[]

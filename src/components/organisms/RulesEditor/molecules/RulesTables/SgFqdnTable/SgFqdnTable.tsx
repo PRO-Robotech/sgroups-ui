@@ -58,16 +58,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
 
   const editRule = (oldValues: TFormSgFqdnRule, values: TFormSgFqdnRule) => {
     const newFqdnRules = [...rulesAll]
-    const index = newFqdnRules.findIndex(
-      ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
-        fqdn === oldValues.fqdn &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newFqdnRules.findIndex(({ id }) => id === oldValues.id)
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
       newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
     } else {
@@ -105,16 +96,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
 
   const removeRule = (oldValues: TFormSgFqdnRule) => {
     const newFqdnRules = [...rulesAll]
-    const index = newFqdnRules.findIndex(
-      ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
-        fqdn === oldValues.fqdn &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newFqdnRules.findIndex(({ id }) => id === oldValues.id)
     const newEditOpenRules = [...editOpen]
     if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
       dispatch(setRules([...newFqdnRules.slice(0, index), ...newFqdnRules.slice(index + 1)]))
@@ -129,16 +111,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
 
   const restoreRule = (oldValues: TFormSgFqdnRule) => {
     const newFqdnRules = [...rulesAll]
-    const index = newFqdnRules.findIndex(
-      ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
-        fqdn === oldValues.fqdn &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newFqdnRules.findIndex(({ id }) => id === oldValues.id)
     newFqdnRules[index] = { ...newFqdnRules[index], formChanges: { status: STATUSES.modified }, checked: false }
     dispatch(setRules(newFqdnRules))
   }
@@ -354,32 +327,10 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
           const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
           const checkedIndexes = newSelectedRows
             .filter(({ key }) => newSelectedRowKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
-                  fqdn === newRow.fqdn &&
-                  transport === newRow.transport &&
-                  logs === newRow.logs &&
-                  portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
-                  fqdn === newRow.fqdn &&
-                  transport === newRow.transport &&
-                  logs === newRow.logs &&
-                  portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           checkedIndexes.forEach(
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
@@ -393,16 +344,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
         },
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
-          const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ fqdn, transport, logs, portsSource, portsDestination, action, prioritySome }) =>
-              fqdn === record.fqdn &&
-              transport === record.transport &&
-              logs === record.logs &&
-              portsSource === record.portsSource &&
-              portsDestination === record.portsDestination &&
-              record.action === action &&
-              record.prioritySome === prioritySome,
-          )
+          const pendingToCheckRuleIndex = newRules.findIndex(({ id }) => id === record.id)
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
           } else {

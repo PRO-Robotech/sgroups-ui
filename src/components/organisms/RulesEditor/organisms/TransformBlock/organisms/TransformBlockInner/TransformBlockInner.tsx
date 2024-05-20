@@ -163,6 +163,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
               />
             }
           />
+          {centerSg}
         </div>
       </Styled.CardsCol>
       <Styled.CardsCol>

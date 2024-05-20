@@ -61,18 +61,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
 
   const editRule = (oldValues: TFormSgCidrRule, values: TFormSgCidrRule) => {
     const newCidrSgRules = [...rulesAll]
-    const index = newCidrSgRules.findIndex(
-      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
-        cidr === oldValues.cidr &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newCidrSgRules.findIndex(({ id }) => id === oldValues.id)
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
       newCidrSgRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
@@ -117,18 +106,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
 
   const removeRule = (oldValues: TFormSgCidrRule) => {
     const newCidrSgRules = [...rulesAll]
-    const index = newCidrSgRules.findIndex(
-      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
-        cidr === oldValues.cidr &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newCidrSgRules.findIndex(({ id }) => id === oldValues.id)
     const newEditOpenRules = [...editOpen]
     if (newCidrSgRules[index].formChanges?.status === STATUSES.new) {
       dispatch(setRules([...newCidrSgRules.slice(0, index), ...newCidrSgRules.slice(index + 1)]))
@@ -147,18 +125,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
 
   const restoreRule = (oldValues: TFormSgCidrRule) => {
     const newCidrSgRules = [...rulesAll]
-    const index = newCidrSgRules.findIndex(
-      ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
-        cidr === oldValues.cidr &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newCidrSgRules.findIndex(({ id }) => id === oldValues.id)
     newCidrSgRules[index] = {
       ...newCidrSgRules[index],
       traffic: defaultTraffic,
@@ -398,36 +365,10 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
           const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
           const checkedIndexes = newSelectedRows
             .filter(({ key }) => newSelectedRowKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
-                  cidr === newRow.cidr &&
-                  transport === newRow.transport &&
-                  logs === newRow.logs &&
-                  trace === newRow.trace &&
-                  traffic === newRow.traffic &&
-                  portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ cidr, transport, logs, trace, traffic, portsSource, portsDestination, action, prioritySome }) =>
-                  cidr === newRow.cidr &&
-                  transport === newRow.transport &&
-                  logs === newRow.logs &&
-                  trace === newRow.trace &&
-                  traffic === newRow.traffic &&
-                  portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           checkedIndexes.forEach(
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
@@ -441,18 +382,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
         },
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
-          const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ cidr, transport, logs, trace, traffic, portsDestination, portsSource, action, prioritySome }) =>
-              record.cidr === cidr &&
-              record.transport === transport &&
-              record.logs === logs &&
-              record.trace === trace &&
-              record.traffic === traffic &&
-              record.portsDestination === portsDestination &&
-              record.portsSource === portsSource &&
-              record.action === action &&
-              record.prioritySome === prioritySome,
-          )
+          const pendingToCheckRuleIndex = newRules.findIndex(({ id }) => id === record.id)
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
           } else {

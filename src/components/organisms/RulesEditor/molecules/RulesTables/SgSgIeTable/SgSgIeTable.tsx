@@ -60,18 +60,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
 
   const editRule = (oldValues: TFormSgSgIeRule, values: TFormSgSgIeRule) => {
     const newSgSgIeRules = [...rulesAll]
-    const index = newSgSgIeRules.findIndex(
-      ({ sg, portsSource, portsDestination, logs, trace, traffic, transport, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        transport === oldValues.transport &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
     if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
       newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
     } else {
@@ -116,18 +105,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
 
   const removeRule = (oldValues: TFormSgSgIeRule) => {
     const newSgSgIeRules = [...rulesAll]
-    const index = newSgSgIeRules.findIndex(
-      ({ sg, portsSource, portsDestination, logs, trace, traffic, transport, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        transport === oldValues.transport &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
     const newEditOpenRules = [...editOpen]
     if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
       dispatch(setRules([...newSgSgIeRules.slice(0, index), ...newSgSgIeRules.slice(index + 1)]))
@@ -146,18 +124,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
 
   const restoreRule = (oldValues: TFormSgSgIeRule) => {
     const newSgSgIeRules = [...rulesAll]
-    const index = newSgSgIeRules.findIndex(
-      ({ sg, portsSource, portsDestination, logs, trace, traffic, transport, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        traffic === oldValues.traffic &&
-        transport === oldValues.transport &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
     newSgSgIeRules[index] = {
       ...newSgSgIeRules[index],
       traffic: defaultTraffic,
@@ -397,36 +364,10 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
           const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
           const checkedIndexes = newSelectedRows
             .filter(({ key }) => newSelectedRowKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ sg, portsSource, portsDestination, logs, trace, traffic, transport, action, prioritySome }) =>
-                  sg === newRow.sg &&
-                  portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination &&
-                  logs === newRow.logs &&
-                  trace === newRow.trace &&
-                  traffic === newRow.traffic &&
-                  transport === newRow.transport &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ sg, portsSource, portsDestination, logs, trace, traffic, transport, action, prioritySome }) =>
-                  sg === newRow.sg &&
-                  portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination &&
-                  logs === newRow.logs &&
-                  trace === newRow.trace &&
-                  traffic === newRow.traffic &&
-                  transport === newRow.transport &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           checkedIndexes.forEach(
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
@@ -440,18 +381,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
         },
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
-          const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ sg, portsSource, portsDestination, logs, trace, traffic, transport, action, prioritySome }) =>
-              sg === record.sg &&
-              portsSource === record.portsSource &&
-              portsDestination === record.portsDestination &&
-              logs === record.logs &&
-              trace === record.trace &&
-              traffic === record.traffic &&
-              transport === record.transport &&
-              record.action === action &&
-              record.prioritySome === prioritySome,
-          )
+          const pendingToCheckRuleIndex = newRules.findIndex(({ id }) => id === record.id)
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
           } else {

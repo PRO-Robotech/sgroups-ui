@@ -4,6 +4,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from 'store/store'
 import { Result, Spin } from 'antd'
 import { setSgNames } from 'store/editor/sgNames/sgNames'
+import { setCenterSg } from 'store/editor/centerSg/centerSg'
 import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
 import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
 import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
@@ -49,12 +50,12 @@ type TRulesEditorProps = {
 }
 
 export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
-  const [centerSg, setCenterSg] = useState<string>()
   const [isChangeMainSgModalVisible, setChangeMainSgModalVisible] = useState<boolean>(false)
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
+  const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
   const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
@@ -191,7 +192,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       setPendingSg(newSg)
       setChangeMainSgModalVisible(true)
     } else {
-      setCenterSg(newSg)
+      dispatch(setCenterSg(newSg))
     }
   }
 
@@ -217,7 +218,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       <SelectMainSgModal
         isOpen={isChangeMainSgModalVisible}
         handleOk={() => {
-          setCenterSg(pendingSg)
+          dispatch(setCenterSg(pendingSg))
           setChangeMainSgModalVisible(false)
           setPendingSg(undefined)
         }}

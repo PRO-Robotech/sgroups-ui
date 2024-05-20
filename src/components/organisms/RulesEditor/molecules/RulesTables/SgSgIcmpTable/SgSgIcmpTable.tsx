@@ -65,17 +65,9 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const editRule = (oldValues: TFormSgSgIcmpRule, values: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rulesAll]
-    const index = newSgSgIcmpRules.findIndex(
-      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        IPv === oldValues.IPv &&
-        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
+    /* legacy */
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === centerSg &&
@@ -142,17 +134,9 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const removeRule = (oldValues: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rulesAll]
-    const index = newSgSgIcmpRules.findIndex(
-      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        IPv === oldValues.IPv &&
-        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
+    /* legacy */
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === centerSg &&
@@ -189,17 +173,9 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const restoreRule = (oldValues: TFormSgSgIcmpRule) => {
     const newSgSgIcmpRules = [...rulesAll]
-    const index = newSgSgIcmpRules.findIndex(
-      ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        IPv === oldValues.IPv &&
-        JSON.stringify(types.sort()) === JSON.stringify(oldValues.types.sort()) &&
-        logs === oldValues.logs &&
-        trace === oldValues.trace &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
     const newSgSgIcmpRulesOtherside = [...rulesOtherside]
+    /* legacy */
     const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
         sg === centerSg &&
@@ -438,32 +414,10 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
           const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
           const checkedIndexes = newSelectedRows
             .filter(({ key }) => newSelectedRowKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-                  sg === newRow.sg &&
-                  IPv === newRow.IPv &&
-                  JSON.stringify(types.sort()) === JSON.stringify(newRow.types.sort()) &&
-                  logs === newRow.logs &&
-                  trace === newRow.trace &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-                  sg === newRow.sg &&
-                  IPv === newRow.IPv &&
-                  JSON.stringify(types.sort()) === JSON.stringify(newRow.types.sort()) &&
-                  logs === newRow.logs &&
-                  trace === newRow.trace &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           checkedIndexes.forEach(
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
@@ -477,16 +431,7 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
         },
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
-          const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-              sg === record.sg &&
-              IPv === record.IPv &&
-              JSON.stringify(types.sort()) === JSON.stringify(record.types.sort()) &&
-              logs === record.logs &&
-              trace === record.trace &&
-              record.action === action &&
-              record.prioritySome === prioritySome,
-          )
+          const pendingToCheckRuleIndex = newRules.findIndex(({ id }) => id === record.id)
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
           } else {

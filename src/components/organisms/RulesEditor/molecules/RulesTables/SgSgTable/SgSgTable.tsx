@@ -65,17 +65,9 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const editRule = (oldValues: TFormSgSgRule, values: TFormSgSgRule) => {
     const newSgRules = [...rulesAll]
-    const index = newSgRules.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
     const newSgRulesOtherside = [...rulesOtherside]
+    /* legacy */
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === centerSg &&
@@ -131,17 +123,9 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const removeRule = (oldValues: TFormSgSgRule) => {
     const newSgRules = [...rulesAll]
-    const index = newSgRules.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
     const newSgRulesOtherside = [...rulesOtherside]
+    /* legacy */
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === centerSg &&
@@ -178,17 +162,9 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
   /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
   const restoreRule = (oldValues: TFormSgSgRule) => {
     const newSgRules = [...rulesAll]
-    const index = newSgRules.findIndex(
-      ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-        sg === oldValues.sg &&
-        portsSource === oldValues.portsSource &&
-        portsDestination === oldValues.portsDestination &&
-        transport === oldValues.transport &&
-        logs === oldValues.logs &&
-        action === oldValues.action &&
-        prioritySome === oldValues.prioritySome,
-    )
+    const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
     const newSgRulesOtherside = [...rulesOtherside]
+    /* legacy */
     const newSgRulesOthersideIndex = rulesOtherside.findIndex(
       ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
         sg === centerSg &&
@@ -420,32 +396,10 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
           const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
           const checkedIndexes = newSelectedRows
             .filter(({ key }) => newSelectedRowKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-                  sg === newRow.sg &&
-                  portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination &&
-                  transport === newRow.transport &&
-                  logs === newRow.logs &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           const uncheckedIndexes = dataSource
             .filter(({ key }) => uncheckedKeys.includes(key))
-            .map(newRow =>
-              rulesAll.findIndex(
-                ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-                  sg === newRow.sg &&
-                  portsSource === newRow.portsSource &&
-                  portsDestination === newRow.portsDestination &&
-                  transport === newRow.transport &&
-                  logs === newRow.logs &&
-                  action === newRow.action &&
-                  prioritySome === newRow.prioritySome,
-              ),
-            )
+            .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           checkedIndexes.forEach(
             // eslint-disable-next-line no-return-assign
             checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: true }),
@@ -459,16 +413,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
         },
         onSelect: (record: TColumn, selected: boolean) => {
           const newRules = [...rulesAll]
-          const pendingToCheckRuleIndex = newRules.findIndex(
-            ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-              sg === record.sg &&
-              portsSource === record.portsSource &&
-              portsDestination === record.portsDestination &&
-              transport === record.transport &&
-              logs === record.logs &&
-              record.action === action &&
-              record.prioritySome === prioritySome,
-          )
+          const pendingToCheckRuleIndex = newRules.findIndex(({ id }) => id === record.id)
           if (selected) {
             newRules[pendingToCheckRuleIndex] = { ...newRules[pendingToCheckRuleIndex], checked: true }
           } else {
