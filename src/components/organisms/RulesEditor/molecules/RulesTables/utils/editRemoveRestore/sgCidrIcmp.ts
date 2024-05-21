@@ -38,6 +38,13 @@ export const edit = (
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
+    } else {
+      newRules[index] = {
+        ...newRules[index].initialValues,
+        initialValues: { ...newRules[index].initialValues },
+        formChanges: undefined,
+        id: values.id,
+      }
     }
   }
   dispatch(setRules(newRules))

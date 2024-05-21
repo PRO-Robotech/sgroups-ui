@@ -62,7 +62,6 @@ export const getModifiedFieldsInSgSgIcmpRule = (rule: TFormSgSgIcmpRule, values:
 
 export const getModifiedFieldsInSgSgIeRule = (rule: TFormSgSgIeRule, values: TFormSgSgIeRule): string[] => {
   const modifiedFields = []
-  console.log(rule.initialValues)
   if (rule.initialValues.sg !== values.sg) {
     modifiedFields.push('sg')
   }

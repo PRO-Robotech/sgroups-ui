@@ -55,6 +55,19 @@ export const edit = (
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
+    } else {
+      newSgRules[index] = {
+        ...newSgRules[index].initialValues,
+        initialValues: { ...newSgRules[index].initialValues },
+        formChanges: undefined,
+        id: values.id,
+      }
+      newSgRulesOtherside[newSgRulesOthersideIndex] = {
+        ...newSgRulesOtherside[newSgRulesOthersideIndex].initialValues,
+        initialValues: { ...newSgRulesOtherside[newSgRulesOthersideIndex].initialValues },
+        formChanges: undefined,
+        id: newSgRulesOtherside[newSgRulesOthersideIndex].id,
+      }
     }
   }
   dispatch(setRules(newSgRules))

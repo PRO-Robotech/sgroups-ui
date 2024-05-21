@@ -38,6 +38,13 @@ export const edit = (
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
+    } else {
+      newSgSgIeIcmpRules[index] = {
+        ...newSgSgIeIcmpRules[index].initialValues,
+        initialValues: { ...newSgSgIeIcmpRules[index].initialValues },
+        formChanges: undefined,
+        id: values.id,
+      }
     }
   }
   dispatch(setRules(newSgSgIeIcmpRules))

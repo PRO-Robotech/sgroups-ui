@@ -38,6 +38,13 @@ export const edit = (
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
+    } else {
+      newCidrSgRules[index] = {
+        ...newCidrSgRules[index].initialValues,
+        initialValues: { ...newCidrSgRules[index].initialValues },
+        formChanges: undefined,
+        id: values.id,
+      }
     }
   }
   dispatch(setRules(newCidrSgRules))

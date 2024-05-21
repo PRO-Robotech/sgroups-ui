@@ -35,6 +35,13 @@ export const edit = (
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
+    } else {
+      newFqdnRules[index] = {
+        ...newFqdnRules[index].initialValues,
+        initialValues: { ...newFqdnRules[index].initialValues },
+        formChanges: undefined,
+        id: values.id,
+      }
     }
   }
   dispatch(setRules(newFqdnRules))
