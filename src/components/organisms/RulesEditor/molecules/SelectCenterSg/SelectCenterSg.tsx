@@ -1,8 +1,8 @@
 import React, { FC, useState, useEffect } from 'react'
+import { Typography, Form, Select, Result, Spin } from 'antd'
+import { AxiosError } from 'axios'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
-import { AxiosError } from 'axios'
-import { Typography, Form, Select, Result, Spin } from 'antd'
 import { Spacer, TitleWithNoTopMargin } from 'components'
 import { getSecurityGroupByName } from 'api/securityGroups'
 import { TSecurityGroup } from 'localTypes/securityGroups'
@@ -13,15 +13,15 @@ import { Styled } from './styled'
 
 type TSelectCenterSgProps = {
   onSelectCenterSg: (value?: string) => void
-  centerSg?: string
 }
 
-export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg, centerSg }) => {
+export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg }) => {
   const [curValues, setCurValues] = useState<TFieldData[]>([{ name: 'name', value: undefined }])
   const [securityGroup, setSecurityGroup] = useState<TSecurityGroup>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const sgNames = useSelector((state: RootState) => state.sgNames.sgNames)
+  const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
 
   useEffect(() => {
     if (!centerSg) {

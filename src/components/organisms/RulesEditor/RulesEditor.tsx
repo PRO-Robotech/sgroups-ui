@@ -1,8 +1,8 @@
 import React, { FC, useState, useEffect, useCallback } from 'react'
+import { Result, Spin } from 'antd'
 import { AxiosError } from 'axios'
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from 'store/store'
-import { Result, Spin } from 'antd'
 import { setSgNames } from 'store/editor/sgNames/sgNames'
 import { setCenterSg } from 'store/editor/centerSg/centerSg'
 import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
@@ -25,7 +25,6 @@ import {
   getSgCidrRulesBySg,
   getSgCidrIcmpRulesBySg,
 } from 'api/rules'
-import { TransformBlock, BottomBar } from './organisms'
 import {
   mapRulesSgSgFrom,
   mapRulesSgSgTo,
@@ -43,6 +42,7 @@ import {
   checkIfChangesExist,
 } from './utils'
 import { SelectCenterSgModal } from './atoms'
+import { TransformBlock, BottomBar } from './organisms'
 import { Styled } from './styled'
 
 type TRulesEditorProps = {

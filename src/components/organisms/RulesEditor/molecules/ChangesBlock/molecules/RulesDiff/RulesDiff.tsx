@@ -1,8 +1,8 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState } from 'react'
-import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Typography } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { TitleWithNoTopMargin } from 'components'
 import {
   TFormSgSgRule,
@@ -23,22 +23,15 @@ import {
   SgCidrTable,
   SgCidrIcmpTable,
 } from '../../../RulesTables'
-import {
-  TFormSgSgRuleChangesResult,
-  TFormSgSgIcmpRuleChangesResult,
-  TFormSgSgIeRuleChangesResult,
-  TFormSgSgIeIcmpRuleChangesResult,
-  TFormSgFqdnRuleChangesResult,
-  TFormSgCidrRuleChangesResult,
-  TFormSgCidrIcmpRuleChangesResult,
-} from '../../types'
+
+type TFormRuleChangesResult<T> = { newRules: T[]; diffRules: T[]; deletedRules: T[] }
 
 type TRulesDiffProps = {
   title: string
   compareResult:
     | {
         type: 'sgSg'
-        data: TFormSgSgRuleChangesResult
+        data: TFormRuleChangesResult<TFormSgSgRule>
         rules: TFormSgSgRule[]
         setRules: ActionCreatorWithPayload<TFormSgSgRule[]>
         rulesOtherside: TFormSgSgRule[]
@@ -48,7 +41,7 @@ type TRulesDiffProps = {
       }
     | {
         type: 'sgSgIcmp'
-        data: TFormSgSgIcmpRuleChangesResult
+        data: TFormRuleChangesResult<TFormSgSgIcmpRule>
         popoverPosition: TooltipPlacement
         rules: TFormSgSgIcmpRule[]
         setRules: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
@@ -58,7 +51,7 @@ type TRulesDiffProps = {
       }
     | {
         type: 'sgSgIe'
-        data: TFormSgSgIeRuleChangesResult
+        data: TFormRuleChangesResult<TFormSgSgIeRule>
         popoverPosition: TooltipPlacement
         defaultTraffic: TTraffic
         rules: TFormSgSgIeRule[]
@@ -66,7 +59,7 @@ type TRulesDiffProps = {
       }
     | {
         type: 'sgSgIeIcmp'
-        data: TFormSgSgIeIcmpRuleChangesResult
+        data: TFormRuleChangesResult<TFormSgSgIeIcmpRule>
         popoverPosition: TooltipPlacement
         defaultTraffic: TTraffic
         rules: TFormSgSgIeIcmpRule[]
@@ -74,14 +67,14 @@ type TRulesDiffProps = {
       }
     | {
         type: 'sgFqdn'
-        data: TFormSgFqdnRuleChangesResult
+        data: TFormRuleChangesResult<TFormSgFqdnRule>
         rules: TFormSgFqdnRule[]
         setRules: ActionCreatorWithPayload<TFormSgFqdnRule[]>
         popoverPosition: TooltipPlacement
       }
     | {
         type: 'sgCidr'
-        data: TFormSgCidrRuleChangesResult
+        data: TFormRuleChangesResult<TFormSgCidrRule>
         defaultTraffic: TTraffic
         rules: TFormSgCidrRule[]
         setRules: ActionCreatorWithPayload<TFormSgCidrRule[]>
@@ -89,7 +82,7 @@ type TRulesDiffProps = {
       }
     | {
         type: 'sgCidrIcmp'
-        data: TFormSgCidrIcmpRuleChangesResult
+        data: TFormRuleChangesResult<TFormSgCidrIcmpRule>
         popoverPosition: TooltipPlacement
         defaultTraffic: TTraffic
         rules: TFormSgCidrIcmpRule[]

@@ -1,8 +1,8 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useEffect, useState } from 'react'
-import { AxiosError } from 'axios'
 import { Button, Result, Spin } from 'antd'
-import { useSelector } from 'react-redux'
+import { AxiosError } from 'axios'
+import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from 'store/store'
 import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
 import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
@@ -12,16 +12,19 @@ import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
 import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/rulesSgCidr'
 import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { Spacer, TitleWithNoTopMargin } from 'components'
-import { upsertRules, deleteRules } from 'api/rules'
 import {
-  getChangesSgSgRules,
-  getChangesSgSgIcmpRules,
-  getChangesSgSgIeRules,
-  getChangesSgSgIeIcmpRules,
-  getChangesSgFqdnRules,
-  getChangesSgCidrIcmpRules,
-  getChangesSgCidrRules,
+  TFormSgSgRule,
+  TFormSgSgIcmpRule,
+  TFormSgSgIeRule,
+  TFormSgSgIeIcmpRule,
+  TFormSgFqdnRule,
+  TFormSgCidrRule,
+  TFormSgCidrIcmpRule,
+} from 'localTypes/rules'
+import { upsertRules, deleteRules } from 'api/rules'
+import { Spacer, TitleWithNoTopMargin } from 'components'
+import {
+  getChanges,
   composeAllTypesOfSgSgRules,
   composeAllTypesOfSgSgIcmpRules,
   composeAllTypesOfSgSgIeRules,
@@ -58,6 +61,8 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({ centerSg, onClose, onSubm
   const rulesSgCidrTo = useSelector((state: RootState) => state.rulesSgCidr.rulesTo)
   const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
   const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
+
+  const dispatch = useDispatch()
 
   useEffect(() => {
     const isSomeChangesMarked = checkIfSomeChangesMarked({
@@ -96,19 +101,19 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({ centerSg, onClose, onSubm
     rulesSgCidrIcmpTo,
   ])
 
-  const changesResultSgSgFromResult = getChangesSgSgRules(rulesSgSgFrom)
-  const changesResultSgSgToResult = getChangesSgSgRules(rulesSgSgTo)
-  const changesResultSgSgIcmpFrom = getChangesSgSgIcmpRules(rulesSgSgIcmpFrom)
-  const changesResultSgSgIcmpTo = getChangesSgSgIcmpRules(rulesSgSgIcmpTo)
-  const changesResultSgSgIeFrom = getChangesSgSgIeRules(rulesSgSgIeFrom)
-  const changesResultSgSgIeTo = getChangesSgSgIeRules(rulesSgSgIeTo)
-  const changesResultSgSgIeIcmpFrom = getChangesSgSgIeIcmpRules(rulesSgSgIeIcmpFrom)
-  const changesResultSgSgIeIcmpTo = getChangesSgSgIeIcmpRules(rulesSgSgIeIcmpTo)
-  const changesResultSgFqdnTo = getChangesSgFqdnRules(rulesSgFqdnTo)
-  const changesResultSgCidrFrom = getChangesSgCidrRules(rulesSgCidrFrom)
-  const changesResultSgCidrTo = getChangesSgCidrRules(rulesSgCidrTo)
-  const changesResultSgCidrIcmpFrom = getChangesSgCidrIcmpRules(rulesSgCidrIcmpFrom)
-  const changesResultSgCidrIcmpTo = getChangesSgCidrIcmpRules(rulesSgCidrIcmpTo)
+  const changesResultSgSgFromResult = getChanges<TFormSgSgRule>(rulesSgSgFrom)
+  const changesResultSgSgToResult = getChanges<TFormSgSgRule>(rulesSgSgTo)
+  const changesResultSgSgIcmpFrom = getChanges<TFormSgSgIcmpRule>(rulesSgSgIcmpFrom)
+  const changesResultSgSgIcmpTo = getChanges<TFormSgSgIcmpRule>(rulesSgSgIcmpTo)
+  const changesResultSgSgIeFrom = getChanges<TFormSgSgIeRule>(rulesSgSgIeFrom)
+  const changesResultSgSgIeTo = getChanges<TFormSgSgIeRule>(rulesSgSgIeTo)
+  const changesResultSgSgIeIcmpFrom = getChanges<TFormSgSgIeIcmpRule>(rulesSgSgIeIcmpFrom)
+  const changesResultSgSgIeIcmpTo = getChanges<TFormSgSgIeIcmpRule>(rulesSgSgIeIcmpTo)
+  const changesResultSgFqdnTo = getChanges<TFormSgFqdnRule>(rulesSgFqdnTo)
+  const changesResultSgCidrFrom = getChanges<TFormSgCidrRule>(rulesSgCidrFrom)
+  const changesResultSgCidrTo = getChanges<TFormSgCidrRule>(rulesSgCidrTo)
+  const changesResultSgCidrIcmpFrom = getChanges<TFormSgCidrIcmpRule>(rulesSgCidrIcmpFrom)
+  const changesResultSgCidrIcmpTo = getChanges<TFormSgCidrIcmpRule>(rulesSgCidrIcmpTo)
 
   const handleOk = () => {
     const sgSgRules = composeAllTypesOfSgSgRules(
@@ -207,19 +212,19 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({ centerSg, onClose, onSubm
     const uncheckedRulesSgCidrTo = [...rulesSgCidrTo].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgCidrIcmpFrom = [...rulesSgCidrIcmpFrom].map(el => ({ ...el, checked: false }))
     const uncheckedRulesSgCidrIcmpTo = [...rulesSgCidrIcmpTo].map(el => ({ ...el, checked: false }))
-    setRulesSgSgFrom(uncheckedRulesSgSgFrom)
-    setRulesSgSgTo(uncheckedRulesSgSgTo)
-    setRulesSgSgIcmpFrom(uncheckedRulesSgSgIcmpFrom)
-    setRulesSgSgIcmpTo(uncheckedRulesSgSgIcmpTo)
-    setRulesSgSgIeFrom(uncheckedRulesSgSgIeFrom)
-    setRulesSgSgIeTo(uncheckedRulesSgSgIeTo)
-    setRulesSgSgIeIcmpFrom(uncheckedRulesSgSgIeIcmpFrom)
-    setRulesSgSgIeIcmpTo(uncheckedRulesSgSgIeIcmpTo)
-    setRulesSgFqdnTo(uncheckedRulesSgFqdnTo)
-    setRulesSgCidrFrom(uncheckedRulesSgCidrFrom)
-    setRulesSgCidrTo(uncheckedRulesSgCidrTo)
-    setRulesSgCidrIcmpFrom(uncheckedRulesSgCidrIcmpFrom)
-    setRulesSgCidrIcmpTo(uncheckedRulesSgCidrIcmpTo)
+    dispatch(setRulesSgSgFrom(uncheckedRulesSgSgFrom))
+    dispatch(setRulesSgSgTo(uncheckedRulesSgSgTo))
+    dispatch(setRulesSgSgIcmpFrom(uncheckedRulesSgSgIcmpFrom))
+    dispatch(setRulesSgSgIcmpTo(uncheckedRulesSgSgIcmpTo))
+    dispatch(setRulesSgSgIeFrom(uncheckedRulesSgSgIeFrom))
+    dispatch(setRulesSgSgIeTo(uncheckedRulesSgSgIeTo))
+    dispatch(setRulesSgSgIeIcmpFrom(uncheckedRulesSgSgIeIcmpFrom))
+    dispatch(setRulesSgSgIeIcmpTo(uncheckedRulesSgSgIeIcmpTo))
+    dispatch(setRulesSgFqdnTo(uncheckedRulesSgFqdnTo))
+    dispatch(setRulesSgCidrFrom(uncheckedRulesSgCidrFrom))
+    dispatch(setRulesSgCidrTo(uncheckedRulesSgCidrTo))
+    dispatch(setRulesSgCidrIcmpFrom(uncheckedRulesSgCidrIcmpFrom))
+    dispatch(setRulesSgCidrIcmpTo(uncheckedRulesSgCidrIcmpTo))
     onClose()
   }
 

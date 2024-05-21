@@ -1,5 +1,4 @@
 import styled from 'styled-components'
-import { Form } from 'antd'
 
 type TContainerProps = {
   $isOpen: boolean
@@ -44,30 +43,9 @@ const FlexContainerItem = styled.div`
   margin-right: 15px;
 `
 
-const ButtonFormItem = styled(Form.Item)`
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 15px;
-
-  @media (min-width: 1440px) {
-    justify-content: flex-start;
-    margin-top: 0;
-  }
-
-  button {
-    margin-right: 15px;
-
-    &:last-child {
-      margin-right: 0;
-    }
-  }
-`
-
 export const Styled = {
   Container,
   FlexContainer,
   FlexContainerItem,
   Resizer,
-  ButtonFormItem,
 }
