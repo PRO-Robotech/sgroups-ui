@@ -11,12 +11,12 @@ import { filterSgName } from 'utils/filterSgName'
 import { TFieldData } from './types'
 import { Styled } from './styled'
 
-type TSelectMainSgProps = {
-  onSelectMainSg: (value?: string) => void
+type TSelectCenterSgProps = {
+  onSelectCenterSg: (value?: string) => void
   centerSg?: string
 }
 
-export const SelectMainSg: FC<TSelectMainSgProps> = ({ onSelectMainSg, centerSg }) => {
+export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg, centerSg }) => {
   const [curValues, setCurValues] = useState<TFieldData[]>([{ name: 'name', value: undefined }])
   const [securityGroup, setSecurityGroup] = useState<TSecurityGroup>()
   const [error, setError] = useState<TRequestError | undefined>()
@@ -68,8 +68,8 @@ export const SelectMainSg: FC<TSelectMainSgProps> = ({ onSelectMainSg, centerSg 
           <Select
             showSearch
             allowClear
-            onSelect={onSelectMainSg}
-            onClear={() => onSelectMainSg(undefined)}
+            onSelect={onSelectCenterSg}
+            onClear={() => onSelectCenterSg(undefined)}
             placeholder="Select sg"
             optionFilterProp="children"
             filterOption={filterSgName}

@@ -42,7 +42,7 @@ import {
   mapRulesSgCidrIcmpTo,
   checkIfChangesExist,
 } from './utils'
-import { SelectMainSgModal } from './atoms'
+import { SelectCenterSgModal } from './atoms'
 import { Styled } from './styled'
 
 type TRulesEditorProps = {
@@ -50,7 +50,7 @@ type TRulesEditorProps = {
 }
 
 export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
-  const [isChangeMainSgModalVisible, setChangeMainSgModalVisible] = useState<boolean>(false)
+  const [isChangeCenterSgModalVisible, setChangeCenterSgModalVisible] = useState<boolean>(false)
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
@@ -172,7 +172,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
     fetchData()
   }, [centerSg, fetchData])
 
-  const onSelectMainSg = (newSg?: string) => {
+  const onSelectCenterSg = (newSg?: string) => {
     const result = checkIfChangesExist({
       rulesSgSgFrom,
       rulesSgSgTo,
@@ -190,7 +190,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
     })
     if (result) {
       setPendingSg(newSg)
-      setChangeMainSgModalVisible(true)
+      setChangeCenterSgModalVisible(true)
     } else {
       dispatch(setCenterSg(newSg))
     }
@@ -208,21 +208,21 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      <TransformBlock onSelectMainSg={onSelectMainSg} />
+      <TransformBlock onSelectCenterSg={onSelectCenterSg} />
       <BottomBar onSubmit={() => fetchData()} />
       {isLoading && (
         <Styled.Loader>
           <Spin size="large" />
         </Styled.Loader>
       )}
-      <SelectMainSgModal
-        isOpen={isChangeMainSgModalVisible}
+      <SelectCenterSgModal
+        isOpen={isChangeCenterSgModalVisible}
         handleOk={() => {
           dispatch(setCenterSg(pendingSg))
-          setChangeMainSgModalVisible(false)
+          setChangeCenterSgModalVisible(false)
           setPendingSg(undefined)
         }}
-        handleCancel={() => setChangeMainSgModalVisible(false)}
+        handleCancel={() => setChangeCenterSgModalVisible(false)}
       />
     </Styled.Container>
   )

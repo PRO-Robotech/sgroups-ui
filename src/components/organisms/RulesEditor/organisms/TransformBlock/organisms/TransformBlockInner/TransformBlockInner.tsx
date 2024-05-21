@@ -10,7 +10,7 @@ import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/r
 import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 import { Spacer } from 'components'
 import {
-  SelectMainSg,
+  SelectCenterSg,
   SgSgRules,
   SgSgIcmpRules,
   SgSgIeRules,
@@ -35,10 +35,10 @@ import {
 import { Styled } from './styled'
 
 type TTransformBlockInnerProps = {
-  onSelectMainSg: (value?: string) => void
+  onSelectCenterSg: (value?: string) => void
 }
 
-export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMainSg }) => {
+export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCenterSg }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
@@ -168,7 +168,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectMai
       </Styled.CardsCol>
       <Styled.CardsCol>
         <Styled.CenterColWithMarginAuto id={CENTRAL_ID}>
-          <SelectMainSg centerSg={centerSg} onSelectMainSg={onSelectMainSg} />
+          <SelectCenterSg centerSg={centerSg} onSelectCenterSg={onSelectCenterSg} />
         </Styled.CenterColWithMarginAuto>
       </Styled.CardsCol>
       <Styled.CardsCol>
