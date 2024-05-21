@@ -3,10 +3,10 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { TransformBlockInner } from './organisms'
 
 type TTransformBlockProps = {
-  onSelectMainSg: (value?: string) => void
+  onSelectCenterSg: (value?: string) => void
 }
 
-export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectMainSg }) => {
+export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectCenterSg }) => {
   return (
     <TransformWrapper
       minScale={0.05}
@@ -18,7 +18,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectMainSg }) => 
       wheel={{ excluded: ['no-scroll'] }}
     >
       <TransformComponent wrapperStyle={{ width: '100%', height: '100vh' }}>
-        <TransformBlockInner onSelectMainSg={onSelectMainSg} />
+        <TransformBlockInner onSelectCenterSg={onSelectCenterSg} />
       </TransformComponent>
     </TransformWrapper>
   )
