@@ -11,7 +11,7 @@ import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
 import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSgIeIcmp'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIeIcmp'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
 import { Styled } from '../styled'
 

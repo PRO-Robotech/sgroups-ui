@@ -12,7 +12,7 @@ import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgCidrRule, TTraffic } from 'localTypes/rules'
 import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgCidr'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgCidr'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell, TransportCell, PortsCell } from '../atoms'
 import { Styled } from '../styled'
 

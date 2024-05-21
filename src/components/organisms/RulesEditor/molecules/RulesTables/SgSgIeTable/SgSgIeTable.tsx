@@ -11,7 +11,7 @@ import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
 import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSgIe'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIe'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell, TransportCell, PortsCell } from '../atoms'
 import { Styled } from '../styled'
 

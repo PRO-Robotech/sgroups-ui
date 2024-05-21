@@ -11,7 +11,7 @@ import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgFqdnRule } from 'localTypes/rules'
 import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgFqdn'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgFqdn'
 import { FilterDropdown, ActionCell, LogsCell, TransportCell, PortsCell } from '../atoms'
 import { Styled } from '../styled'
 

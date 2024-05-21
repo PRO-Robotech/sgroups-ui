@@ -20,8 +20,8 @@ import {
   SgCidrTable,
   SgCidrIcmpTable,
 } from '../../molecules/RulesTables'
+import { RULES_CONFIGS } from '../../constants'
 import { RulesBlock } from './molecules'
-import { RULES_CONFIGS } from './constants'
 
 type TRulesBlockFactoryProps = {
   forceArrowsUpdate: () => void

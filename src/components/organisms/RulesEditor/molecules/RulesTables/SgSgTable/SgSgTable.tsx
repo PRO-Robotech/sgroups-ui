@@ -12,7 +12,7 @@ import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgRule } from 'localTypes/rules'
 import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSg'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgSg'
 import { FilterDropdown, ActionCell, LogsCell, TransportCell, PortsCell } from '../atoms'
 import { Styled } from '../styled'
 
