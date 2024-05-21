@@ -1,14 +1,16 @@
-import React, { ReactElement } from 'react'
-import { Button, Form, Input, Select, Switch } from 'antd'
-import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
+import React, { ReactElement, useEffect } from 'react'
+import { Button, Form, Select, Input, Switch } from 'antd'
+import { PlusCircleOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
-type TAddPopoverProps<T> = {
+type TEditPopoverProps<T> = {
+  values: T
   hide: () => void
-  addNew: (values: T) => void
+  remove: () => void
+  edit: (values: T) => void
   isSg?: boolean
   isFqdn?: boolean
   isCidr?: boolean
@@ -16,11 +18,14 @@ type TAddPopoverProps<T> = {
   isTransport?: boolean
   isIcmp?: boolean
   isTrace?: boolean
+  isDisabled?: boolean
 }
 
-export const AddPopover = <T,>({
+export const EditPopover = <T,>({
+  values,
   hide,
-  addNew,
+  remove,
+  edit,
   isSg,
   isFqdn,
   isCidr,
@@ -28,34 +33,17 @@ export const AddPopover = <T,>({
   isTransport,
   isIcmp,
   isTrace,
-}: TAddPopoverProps<T>): ReactElement | null => {
+  isDisabled,
+}: TEditPopoverProps<T>): ReactElement => {
   const [addForm] = Form.useForm()
   const sgNames = useSelector((state: RootState) => state.sgNames.sgNames)
 
+  useEffect(() => {
+    addForm.setFieldsValue(values)
+  }, [values, addForm])
+
   return (
-    <Form
-      form={addForm}
-      onFinish={(values: T) => {
-        addNew(values)
-        addForm.resetFields()
-      }}
-    >
-      {isSg && (
-        <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Names' }]}>
-          <Select
-            showSearch
-            placeholder="Select SG"
-            optionFilterProp="children"
-            allowClear
-            filterOption={filterSgName}
-            options={sgNames.map(el => ({
-              value: el,
-              label: el,
-            }))}
-            getPopupContainer={node => node.parentNode}
-          />
-        </Styled.FormItem>
-      )}
+    <Form form={addForm} onFinish={(values: T) => edit(values)}>
       {isFqdn && (
         <Styled.FormItem
           label="FQDN"
@@ -69,7 +57,7 @@ export const AddPopover = <T,>({
             },
           ]}
         >
-          <Input placeholder="FQDN" />
+          <Input placeholder="FQDN" disabled={isDisabled} />
         </Styled.FormItem>
       )}
       {isCidr && (
@@ -85,16 +73,33 @@ export const AddPopover = <T,>({
             },
           ]}
         >
-          <Input placeholder="CIDR" />
+          <Input placeholder="CIDR" disabled={isDisabled} />
+        </Styled.FormItem>
+      )}
+      {isSg && (
+        <Styled.FormItem label="Groups" name={['sg']} rules={[{ required: true, message: 'Missing SG Name' }]}>
+          <Select
+            showSearch
+            placeholder="Select SG"
+            optionFilterProp="children"
+            allowClear
+            filterOption={filterSgName}
+            options={sgNames.map(el => ({
+              value: el,
+              label: el,
+            }))}
+            getPopupContainer={node => node.parentNode}
+            disabled={isDisabled}
+          />
         </Styled.FormItem>
       )}
       {isPorts && (
         <>
           <Styled.FormItem label="Ports Source" name="portsSource">
-            <Input placeholder="Ports Source" />
+            <Input placeholder="Ports Source" disabled={isDisabled} />
           </Styled.FormItem>
           <Styled.FormItem label="Ports Destination" name="portsDestination">
-            <Input placeholder="Ports Destination" />
+            <Input placeholder="Ports Destination" disabled={isDisabled} />
           </Styled.FormItem>
         </>
       )}
@@ -114,6 +119,7 @@ export const AddPopover = <T,>({
               { label: 'UDP', value: 'UDP' },
             ]}
             getPopupContainer={node => node.parentNode}
+            disabled={isDisabled}
           />
         </Styled.FormItem>
       )}
@@ -134,6 +140,7 @@ export const AddPopover = <T,>({
                 { label: 'IPv4', value: 'IPv4' },
               ]}
               getPopupContainer={node => node.parentNode}
+              disabled={isDisabled}
             />
           </Styled.FormItem>
           <Styled.FormItem
@@ -160,6 +167,7 @@ export const AddPopover = <T,>({
               allowClear
               tokenSeparators={[',', ' ']}
               getPopupContainer={node => node.parentNode}
+              disabled={isDisabled}
               dropdownStyle={{ display: 'none' }}
               suffixIcon={null}
             />
@@ -167,11 +175,11 @@ export const AddPopover = <T,>({
         </>
       )}
       <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
-        <Switch />
+        <Switch disabled={isDisabled} />
       </Styled.FormItem>
       {isTrace && (
         <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
-          <Switch />
+          <Switch disabled={isDisabled} />
         </Styled.FormItem>
       )}
       <Styled.FormItem
@@ -216,20 +224,26 @@ export const AddPopover = <T,>({
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>
-          <Button
-            type="dashed"
-            block
-            icon={<CloseOutlined />}
-            onClick={() => {
-              hide()
-              addForm.resetFields()
-            }}
-          >
+          <Button type="dashed" block icon={<CloseOutlined />} onClick={hide}>
             Cancel
           </Button>
         </Styled.ButtonWithRightMargin>
-        <Button type="primary" block icon={<PlusCircleOutlined />} htmlType="submit">
-          Add
+        <Styled.ButtonWithRightMargin>
+          <Button
+            type="default"
+            block
+            icon={<MinusCircleOutlined />}
+            onClick={() => {
+              remove()
+              hide()
+            }}
+            disabled={isDisabled}
+          >
+            Remove
+          </Button>
+        </Styled.ButtonWithRightMargin>
+        <Button type="primary" block icon={<PlusCircleOutlined />} htmlType="submit" disabled={isDisabled}>
+          Save
         </Button>
       </Styled.ButtonsContainer>
     </Form>
