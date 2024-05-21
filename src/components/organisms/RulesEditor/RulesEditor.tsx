@@ -42,7 +42,7 @@ import {
   checkIfChangesExist,
 } from './utils'
 import { SelectCenterSgModal } from './atoms'
-import { TransformBlock, BottomBar } from './organisms'
+import { TransformBlock, BottomBar } from './populations'
 import { Styled } from './styled'
 
 type TRulesEditorProps = {

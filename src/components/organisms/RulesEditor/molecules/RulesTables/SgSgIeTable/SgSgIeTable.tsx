@@ -13,6 +13,7 @@ import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIe'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell, TransportCell, PortsCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgSgIeTableProps = {
@@ -186,11 +187,12 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgSgIePopover
+              <EditPopover<TFormSgSgIeRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgSgIe}
                 isDisabled={isDisabled}
               />
             }

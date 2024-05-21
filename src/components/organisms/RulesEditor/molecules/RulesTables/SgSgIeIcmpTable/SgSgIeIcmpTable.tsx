@@ -13,6 +13,7 @@ import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIeIcmp'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgSgIeIcmpTableProps = {
@@ -193,11 +194,12 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgSgIeIcmpPopover
+              <EditPopover<TFormSgSgIeIcmpRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgSgIeIcmp}
                 isDisabled={isDisabled}
               />
             }

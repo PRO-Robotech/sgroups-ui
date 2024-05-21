@@ -13,6 +13,7 @@ import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgFqdn'
 import { FilterDropdown, ActionCell, LogsCell, TransportCell, PortsCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgFqdnTableProps = {
@@ -170,11 +171,12 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgFqdnPopover
+              <EditPopover<TFormSgFqdnRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgFqdn}
                 isDisabled={isDisabled}
               />
             }

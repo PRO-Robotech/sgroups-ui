@@ -14,6 +14,7 @@ import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgCidrIcmp'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgCidrIcmpTableProps = {
@@ -189,11 +190,12 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgCidrIcmpPopover
+              <EditPopover<TFormSgCidrIcmpRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgCidrIcmp}
                 isDisabled={isDisabled}
               />
             }

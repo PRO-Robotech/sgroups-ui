@@ -14,6 +14,7 @@ import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgCidr'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell, TransportCell, PortsCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgCidrTableProps = {
@@ -196,11 +197,12 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgCidrPopover
+              <EditPopover<TFormSgCidrRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgCidr}
                 isDisabled={isDisabled}
               />
             }
