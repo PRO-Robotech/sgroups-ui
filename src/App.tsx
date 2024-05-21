@@ -41,15 +41,6 @@ export const App: FC = () => (
       <Route exact path="/rules-sg-sg">
         <RulesPageSpecific id="sgSg" />
       </Route>
-      <Route exact path="/rules-fqdn">
-        <RulesPageSpecific id="fqdn" />
-      </Route>
-      <Route exact path="/rules-cidr">
-        <RulesPageSpecific id="cidr" />
-      </Route>
-      <Route exact path="/rules-cidr-icmp">
-        <RulesPageSpecific id="cidrIcmp" />
-      </Route>
       <Route exact path="/rules-sg-sg-icmp">
         <RulesPageSpecific id="sgSgIcmp" />
       </Route>
@@ -58,6 +49,15 @@ export const App: FC = () => (
       </Route>
       <Route exact path="/rules-sg-sg-ie-icmp">
         <RulesPageSpecific id="sgSgIeIcmp" />
+      </Route>
+      <Route exact path="/rules-sg-fqdn">
+        <RulesPageSpecific id="sgFqdn" />
+      </Route>
+      <Route exact path="/rules-sg-cidr">
+        <RulesPageSpecific id="sgCidr" />
+      </Route>
+      <Route exact path="/rules-sg-cidr-icmp">
+        <RulesPageSpecific id="sgCidrIcmp" />
       </Route>
       <Route exact path="/rules/editor/:securityGroupId?">
         <RulesEditorPage />

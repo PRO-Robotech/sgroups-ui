@@ -1,12 +1,12 @@
 import axios, { AxiosResponse } from 'axios'
-import { TNWResponse, TNetworkForm } from 'localTypes/networks'
+import { TNwResponse, TNetworkForm } from 'localTypes/networks'
 import { getBaseEndpoint } from './env'
 
-export const getNetworks = (): Promise<AxiosResponse<TNWResponse>> =>
-  axios.post<TNWResponse>(`${getBaseEndpoint()}/v1/list/networks`)
+export const getNetworks = (): Promise<AxiosResponse<TNwResponse>> =>
+  axios.post<TNwResponse>(`${getBaseEndpoint()}/v1/list/networks`)
 
-export const getNetworkByName = (name: string): Promise<AxiosResponse<TNWResponse>> =>
-  axios.post<TNWResponse>(
+export const getNetworkByName = (name: string): Promise<AxiosResponse<TNwResponse>> =>
+  axios.post<TNwResponse>(
     `${getBaseEndpoint()}/v1/list/networks`,
     {
       neteworkNames: [name],

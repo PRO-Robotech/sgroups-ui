@@ -1,102 +1,99 @@
 /* eslint-disable max-lines-per-function */
-import React, { FC, Dispatch, SetStateAction, useState } from 'react'
+import React, { FC, useState } from 'react'
+import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { Typography } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { TitleWithNoTopMargin } from 'components'
 import {
-  TFormSgRule,
-  TFormFqdnRule,
-  TFormCidrSgRule,
+  TFormSgSgRule,
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
-  TFormCidrSgIcmpRule,
+  TFormSgFqdnRule,
+  TFormSgCidrRule,
+  TFormSgCidrIcmpRule,
   TTraffic,
 } from 'localTypes/rules'
 import {
-  SGTable,
-  FQDNTable,
-  CidrSgTable,
+  SgSgTable,
   SgSgIcmpTable,
   SgSgIeTable,
   SgSgIeIcmpTable,
-  CidrSgIcmpTable,
-} from '../../../tables'
+  SgFqdnTable,
+  SgCidrTable,
+  SgCidrIcmpTable,
+} from '../../../RulesTables'
 import {
-  TFormSgRuleChangesResult,
-  TFormFqdnRuleChangesResult,
-  TFormCidrSgRuleChangesResult,
+  TFormSgSgRuleChangesResult,
   TFormSgSgIcmpRuleChangesResult,
   TFormSgSgIeRuleChangesResult,
   TFormSgSgIeIcmpRuleChangesResult,
-  TFormCidrSgIcmpRuleChangesResult,
+  TFormSgFqdnRuleChangesResult,
+  TFormSgCidrRuleChangesResult,
+  TFormSgCidrIcmpRuleChangesResult,
 } from '../../types'
 
 type TRulesDiffProps = {
   title: string
   compareResult:
     | {
-        type: 'sg'
-        data: TFormSgRuleChangesResult
-        sgNames: string[]
-        rules: TFormSgRule[]
-        setRules: Dispatch<SetStateAction<TFormSgRule[]>>
-        rulesOtherside: TFormSgRule[]
-        setRulesOtherside: Dispatch<SetStateAction<TFormSgRule[]>>
+        type: 'sgSg'
+        data: TFormSgSgRuleChangesResult
+        rules: TFormSgSgRule[]
+        setRules: ActionCreatorWithPayload<TFormSgSgRule[]>
+        rulesOtherside: TFormSgSgRule[]
+        setRulesOtherside: ActionCreatorWithPayload<TFormSgSgRule[]>
         popoverPosition: TooltipPlacement
         centerSg?: string
       }
     | {
-        type: 'fqdn'
-        data: TFormFqdnRuleChangesResult
-        rules: TFormFqdnRule[]
-        setRules: Dispatch<SetStateAction<TFormFqdnRule[]>>
-        popoverPosition: TooltipPlacement
-      }
-    | {
-        type: 'cidr'
-        data: TFormCidrSgRuleChangesResult
-        defaultTraffic: TTraffic
-        rules: TFormCidrSgRule[]
-        setRules: Dispatch<SetStateAction<TFormCidrSgRule[]>>
-        popoverPosition: TooltipPlacement
-      }
-    | {
         type: 'sgSgIcmp'
         data: TFormSgSgIcmpRuleChangesResult
-        sgNames: string[]
         popoverPosition: TooltipPlacement
         rules: TFormSgSgIcmpRule[]
-        setRules: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+        setRules: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
         rulesOtherside: TFormSgSgIcmpRule[]
-        setRulesOtherside: Dispatch<SetStateAction<TFormSgSgIcmpRule[]>>
+        setRulesOtherside: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
         centerSg?: string
       }
     | {
         type: 'sgSgIe'
         data: TFormSgSgIeRuleChangesResult
-        sgNames: string[]
         popoverPosition: TooltipPlacement
         defaultTraffic: TTraffic
         rules: TFormSgSgIeRule[]
-        setRules: Dispatch<SetStateAction<TFormSgSgIeRule[]>>
+        setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>
       }
     | {
         type: 'sgSgIeIcmp'
         data: TFormSgSgIeIcmpRuleChangesResult
-        sgNames: string[]
         popoverPosition: TooltipPlacement
         defaultTraffic: TTraffic
         rules: TFormSgSgIeIcmpRule[]
-        setRules: Dispatch<SetStateAction<TFormSgSgIeIcmpRule[]>>
+        setRules: ActionCreatorWithPayload<TFormSgSgIeIcmpRule[]>
       }
     | {
-        type: 'cidrSgIcmp'
-        data: TFormCidrSgIcmpRuleChangesResult
+        type: 'sgFqdn'
+        data: TFormSgFqdnRuleChangesResult
+        rules: TFormSgFqdnRule[]
+        setRules: ActionCreatorWithPayload<TFormSgFqdnRule[]>
+        popoverPosition: TooltipPlacement
+      }
+    | {
+        type: 'sgCidr'
+        data: TFormSgCidrRuleChangesResult
+        defaultTraffic: TTraffic
+        rules: TFormSgCidrRule[]
+        setRules: ActionCreatorWithPayload<TFormSgCidrRule[]>
+        popoverPosition: TooltipPlacement
+      }
+    | {
+        type: 'sgCidrIcmp'
+        data: TFormSgCidrIcmpRuleChangesResult
         popoverPosition: TooltipPlacement
         defaultTraffic: TTraffic
-        rules: TFormCidrSgIcmpRule[]
-        setRules: Dispatch<SetStateAction<TFormCidrSgIcmpRule[]>>
+        rules: TFormSgCidrIcmpRule[]
+        setRules: ActionCreatorWithPayload<TFormSgCidrIcmpRule[]>
       }
 }
 
@@ -105,16 +102,15 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
   const [editOpenModifiedRules, setEditOpenModifiedRules] = useState<boolean[]>([])
   const [editOpenDeletedRules, setEditOpenDeletedRules] = useState<boolean[]>([])
 
-  if (compareResult.type === 'sg') {
+  if (compareResult.type === 'sgSg') {
     return (
       <>
         <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
         {compareResult.data.newRules.length > 0 && (
           <>
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
-            <SGTable
+            <SgSgTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               rulesData={compareResult.data.newRules}
               rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
@@ -130,9 +126,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
         {compareResult.data.diffRules.length > 0 && (
           <>
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-            <SGTable
+            <SgSgTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               rulesData={compareResult.data.diffRules}
               rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
@@ -148,9 +143,8 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
         {compareResult.data.deletedRules.length > 0 && (
           <>
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-            <SGTable
+            <SgSgTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               rulesData={compareResult.data.deletedRules}
               rulesAll={compareResult.rules}
               setRules={compareResult.setRules}
@@ -160,111 +154,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
               editOpen={editOpenDeletedRules}
               popoverPosition={compareResult.popoverPosition}
               centerSg={compareResult.centerSg}
-              isRestoreButtonActive
-            />
-          </>
-        )}
-      </>
-    )
-  }
-
-  if (compareResult.type === 'fqdn') {
-    return (
-      <>
-        <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
-        {compareResult.data.newRules.length > 0 && (
-          <>
-            <Typography.Paragraph>New Rules:</Typography.Paragraph>
-            <FQDNTable
-              isChangesMode
-              rulesData={compareResult.data.newRules}
-              rulesAll={compareResult.rules}
-              setRules={compareResult.setRules}
-              setEditOpen={setEditOpenNewRules}
-              editOpen={editOpenNewRules}
-              popoverPosition={compareResult.popoverPosition}
-            />
-          </>
-        )}
-        {compareResult.data.diffRules.length > 0 && (
-          <>
-            <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-            <FQDNTable
-              isChangesMode
-              rulesData={compareResult.data.diffRules}
-              rulesAll={compareResult.rules}
-              setRules={compareResult.setRules}
-              setEditOpen={setEditOpenModifiedRules}
-              editOpen={editOpenModifiedRules}
-              popoverPosition={compareResult.popoverPosition}
-            />
-          </>
-        )}
-        {compareResult.data.deletedRules.length > 0 && (
-          <>
-            <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-            <FQDNTable
-              isChangesMode
-              rulesData={compareResult.data.deletedRules}
-              rulesAll={compareResult.rules}
-              setRules={compareResult.setRules}
-              setEditOpen={setEditOpenDeletedRules}
-              editOpen={editOpenDeletedRules}
-              popoverPosition={compareResult.popoverPosition}
-              isRestoreButtonActive
-            />
-          </>
-        )}
-      </>
-    )
-  }
-
-  if (compareResult.type === 'cidr') {
-    return (
-      <>
-        <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
-        {compareResult.data.newRules.length > 0 && (
-          <>
-            <Typography.Paragraph>New Rules:</Typography.Paragraph>
-            <CidrSgTable
-              isChangesMode
-              defaultTraffic={compareResult.defaultTraffic}
-              rulesData={compareResult.data.newRules}
-              rulesAll={compareResult.rules}
-              setRules={compareResult.setRules}
-              setEditOpen={setEditOpenNewRules}
-              editOpen={editOpenNewRules}
-              popoverPosition={compareResult.popoverPosition}
-            />
-          </>
-        )}
-        {compareResult.data.diffRules.length > 0 && (
-          <>
-            <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-            <CidrSgTable
-              isChangesMode
-              defaultTraffic={compareResult.defaultTraffic}
-              rulesData={compareResult.data.diffRules}
-              rulesAll={compareResult.rules}
-              setRules={compareResult.setRules}
-              setEditOpen={setEditOpenModifiedRules}
-              editOpen={editOpenModifiedRules}
-              popoverPosition={compareResult.popoverPosition}
-            />
-          </>
-        )}
-        {compareResult.data.deletedRules.length > 0 && (
-          <>
-            <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-            <CidrSgTable
-              isChangesMode
-              defaultTraffic={compareResult.defaultTraffic}
-              rulesData={compareResult.data.deletedRules}
-              rulesAll={compareResult.rules}
-              setRules={compareResult.setRules}
-              setEditOpen={setEditOpenDeletedRules}
-              editOpen={editOpenDeletedRules}
-              popoverPosition={compareResult.popoverPosition}
               isRestoreButtonActive
             />
           </>
@@ -282,7 +171,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
             <SgSgIcmpTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               rulesData={compareResult.data.newRules}
               rulesAll={compareResult.rules}
@@ -300,7 +188,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
             <SgSgIcmpTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               rulesData={compareResult.data.diffRules}
               rulesAll={compareResult.rules}
@@ -318,7 +205,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
             <SgSgIcmpTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               rulesData={compareResult.data.deletedRules}
               rulesAll={compareResult.rules}
@@ -345,7 +231,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
             <SgSgIeTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
               rulesData={compareResult.data.newRules}
@@ -361,7 +246,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
             <SgSgIeTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
               rulesData={compareResult.data.diffRules}
@@ -377,7 +261,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
             <SgSgIeTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
               rulesData={compareResult.data.deletedRules}
@@ -402,7 +285,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>New Rules:</Typography.Paragraph>
             <SgSgIeIcmpTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
               rulesData={compareResult.data.newRules}
@@ -418,7 +300,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
             <SgSgIeIcmpTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
               rulesData={compareResult.data.diffRules}
@@ -434,7 +315,6 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
             <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
             <SgSgIeIcmpTable
               isChangesMode
-              sgNames={compareResult.sgNames}
               popoverPosition={compareResult.popoverPosition}
               defaultTraffic={compareResult.defaultTraffic}
               rulesData={compareResult.data.deletedRules}
@@ -450,13 +330,118 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
     )
   }
 
+  if (compareResult.type === 'sgFqdn') {
+    return (
+      <>
+        <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
+        {compareResult.data.newRules.length > 0 && (
+          <>
+            <Typography.Paragraph>New Rules:</Typography.Paragraph>
+            <SgFqdnTable
+              isChangesMode
+              rulesData={compareResult.data.newRules}
+              rulesAll={compareResult.rules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenNewRules}
+              editOpen={editOpenNewRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
+          </>
+        )}
+        {compareResult.data.diffRules.length > 0 && (
+          <>
+            <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
+            <SgFqdnTable
+              isChangesMode
+              rulesData={compareResult.data.diffRules}
+              rulesAll={compareResult.rules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenModifiedRules}
+              editOpen={editOpenModifiedRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
+          </>
+        )}
+        {compareResult.data.deletedRules.length > 0 && (
+          <>
+            <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
+            <SgFqdnTable
+              isChangesMode
+              rulesData={compareResult.data.deletedRules}
+              rulesAll={compareResult.rules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenDeletedRules}
+              editOpen={editOpenDeletedRules}
+              popoverPosition={compareResult.popoverPosition}
+              isRestoreButtonActive
+            />
+          </>
+        )}
+      </>
+    )
+  }
+
+  if (compareResult.type === 'sgCidr') {
+    return (
+      <>
+        <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
+        {compareResult.data.newRules.length > 0 && (
+          <>
+            <Typography.Paragraph>New Rules:</Typography.Paragraph>
+            <SgCidrTable
+              isChangesMode
+              defaultTraffic={compareResult.defaultTraffic}
+              rulesData={compareResult.data.newRules}
+              rulesAll={compareResult.rules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenNewRules}
+              editOpen={editOpenNewRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
+          </>
+        )}
+        {compareResult.data.diffRules.length > 0 && (
+          <>
+            <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
+            <SgCidrTable
+              isChangesMode
+              defaultTraffic={compareResult.defaultTraffic}
+              rulesData={compareResult.data.diffRules}
+              rulesAll={compareResult.rules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenModifiedRules}
+              editOpen={editOpenModifiedRules}
+              popoverPosition={compareResult.popoverPosition}
+            />
+          </>
+        )}
+        {compareResult.data.deletedRules.length > 0 && (
+          <>
+            <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
+            <SgCidrTable
+              isChangesMode
+              defaultTraffic={compareResult.defaultTraffic}
+              rulesData={compareResult.data.deletedRules}
+              rulesAll={compareResult.rules}
+              setRules={compareResult.setRules}
+              setEditOpen={setEditOpenDeletedRules}
+              editOpen={editOpenDeletedRules}
+              popoverPosition={compareResult.popoverPosition}
+              isRestoreButtonActive
+            />
+          </>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
       <TitleWithNoTopMargin level={5}>{title}</TitleWithNoTopMargin>
       {compareResult.data.newRules.length > 0 && (
         <>
           <Typography.Paragraph>New Rules:</Typography.Paragraph>
-          <CidrSgIcmpTable
+          <SgCidrIcmpTable
             isChangesMode
             popoverPosition={compareResult.popoverPosition}
             defaultTraffic={compareResult.defaultTraffic}
@@ -471,7 +456,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
       {compareResult.data.diffRules.length > 0 && (
         <>
           <Typography.Paragraph>Diff Rules:</Typography.Paragraph>
-          <CidrSgIcmpTable
+          <SgCidrIcmpTable
             isChangesMode
             popoverPosition={compareResult.popoverPosition}
             defaultTraffic={compareResult.defaultTraffic}
@@ -486,7 +471,7 @@ export const RulesDiff: FC<TRulesDiffProps> = ({ title, compareResult }) => {
       {compareResult.data.deletedRules.length > 0 && (
         <>
           <Typography.Paragraph>Deleted Rules:</Typography.Paragraph>
-          <CidrSgIcmpTable
+          <SgCidrIcmpTable
             isChangesMode
             popoverPosition={compareResult.popoverPosition}
             defaultTraffic={compareResult.defaultTraffic}

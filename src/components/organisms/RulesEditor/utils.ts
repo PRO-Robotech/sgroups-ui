@@ -1,21 +1,22 @@
+import { nanoid } from 'nanoid'
 import {
-  TSgRule,
-  TFormSgRule,
-  TFqdnRule,
-  TFormFqdnRule,
-  TCidrRule,
-  TFormCidrSgRule,
+  TSgSgRule,
+  TFormSgSgRule,
   TSgSgIcmpRule,
   TFormSgSgIcmpRule,
   TSgSgIeRule,
   TFormSgSgIeRule,
   TSgSgIeIcmpRule,
   TFormSgSgIeIcmpRule,
-  TCidrSgIcmpRule,
-  TFormCidrSgIcmpRule,
+  TSgFqdnRule,
+  TFormSgFqdnRule,
+  TSgCidrRule,
+  TFormSgCidrRule,
+  TSgCidrIcmpRule,
+  TFormSgCidrIcmpRule,
 } from 'localTypes/rules'
 
-export const mapRulesSgFrom = (rules: TSgRule[]): TFormSgRule[] => {
+export const mapRulesSgSgFrom = (rules: TSgSgRule[]): TFormSgSgRule[] => {
   return rules.flatMap(({ sgFrom, transport, ports, logs, action, priority }) => {
     if (ports.length > 0) {
       return ports.map(({ s, d }) => ({
@@ -26,6 +27,7 @@ export const mapRulesSgFrom = (rules: TSgRule[]): TFormSgRule[] => {
         logs,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }))
     }
     return {
@@ -34,11 +36,12 @@ export const mapRulesSgFrom = (rules: TSgRule[]): TFormSgRule[] => {
       logs,
       action,
       prioritySome: priority?.some,
+      id: nanoid(),
     }
   })
 }
 
-export const mapRulesSgTo = (rules: TSgRule[]): TFormSgRule[] => {
+export const mapRulesSgSgTo = (rules: TSgSgRule[]): TFormSgSgRule[] => {
   return rules.flatMap(({ sgTo, transport, ports, logs, action, priority }) => {
     if (ports.length > 0) {
       return ports.map(({ s, d }) => ({
@@ -49,6 +52,7 @@ export const mapRulesSgTo = (rules: TSgRule[]): TFormSgRule[] => {
         logs,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }))
     }
     return {
@@ -57,89 +61,9 @@ export const mapRulesSgTo = (rules: TSgRule[]): TFormSgRule[] => {
       logs,
       action,
       prioritySome: priority?.some,
+      id: nanoid(),
     }
   })
-}
-
-export const mapRulesFqdnTo = (rules: TFqdnRule[]): TFormFqdnRule[] => {
-  return rules.flatMap(({ FQDN, transport, ports, logs, action, priority }) => {
-    if (ports.length > 0) {
-      return ports.map(({ s, d }) => ({
-        fqdn: FQDN,
-        transport,
-        portsSource: s,
-        portsDestination: d,
-        logs,
-        action,
-        prioritySome: priority?.some,
-      }))
-    }
-    return {
-      fqdn: FQDN,
-      transport,
-      logs,
-      action,
-      prioritySome: priority?.some,
-    }
-  })
-}
-
-export const mapRulesCidrSgFrom = (rules: TCidrRule[]): TFormCidrSgRule[] => {
-  return rules
-    .filter(({ traffic }) => traffic === 'Ingress')
-    .flatMap(({ CIDR, ports, transport, logs, trace, traffic, action, priority }) => {
-      if (ports.length > 0) {
-        return ports.map(({ s, d }) => ({
-          cidr: CIDR,
-          portsSource: s,
-          portsDestination: d,
-          transport,
-          logs,
-          trace,
-          traffic,
-          action,
-          prioritySome: priority?.some,
-        }))
-      }
-      return {
-        cidr: CIDR,
-        transport,
-        logs,
-        trace,
-        traffic,
-        action,
-        prioritySome: priority?.some,
-      }
-    })
-}
-
-export const mapRulesCidrSgTo = (rules: TCidrRule[]): TFormCidrSgRule[] => {
-  return rules
-    .filter(({ traffic }) => traffic === 'Egress')
-    .flatMap(({ CIDR, ports, transport, logs, trace, traffic, action, priority }) => {
-      if (ports.length > 0) {
-        return ports.map(({ s, d }) => ({
-          cidr: CIDR,
-          portsSource: s,
-          portsDestination: d,
-          transport,
-          logs,
-          trace,
-          traffic,
-          action,
-          prioritySome: priority?.some,
-        }))
-      }
-      return {
-        cidr: CIDR,
-        transport,
-        logs,
-        trace,
-        traffic,
-        action,
-        prioritySome: priority?.some,
-      }
-    })
 }
 
 export const mapRulesSgSgIcmpFrom = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[] => {
@@ -151,6 +75,7 @@ export const mapRulesSgSgIcmpFrom = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[
     types: ICMP.Types,
     action,
     prioritySome: priority?.some,
+    id: nanoid(),
   }))
 }
 
@@ -163,6 +88,7 @@ export const mapRulesSgSgIcmpTo = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[] 
     types: ICMP.Types,
     action,
     prioritySome: priority?.some,
+    id: nanoid(),
   }))
 }
 
@@ -181,6 +107,7 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          id: nanoid(),
         }))
       }
       return {
@@ -191,6 +118,7 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -210,6 +138,7 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          id: nanoid(),
         }))
       }
       return {
@@ -220,6 +149,7 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -237,6 +167,7 @@ export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcm
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
@@ -254,11 +185,99 @@ export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpR
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
 
-export const mapRulesCidrSgIcmpFrom = (rules: TCidrSgIcmpRule[]): TFormCidrSgIcmpRule[] => {
+export const mapRulesSgFqdnTo = (rules: TSgFqdnRule[]): TFormSgFqdnRule[] => {
+  return rules.flatMap(({ FQDN, transport, ports, logs, action, priority }) => {
+    if (ports.length > 0) {
+      return ports.map(({ s, d }) => ({
+        fqdn: FQDN,
+        transport,
+        portsSource: s,
+        portsDestination: d,
+        logs,
+        action,
+        prioritySome: priority?.some,
+        id: nanoid(),
+      }))
+    }
+    return {
+      fqdn: FQDN,
+      transport,
+      logs,
+      action,
+      prioritySome: priority?.some,
+      id: nanoid(),
+    }
+  })
+}
+
+export const mapRulesSgCidrFrom = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
+  return rules
+    .filter(({ traffic }) => traffic === 'Ingress')
+    .flatMap(({ CIDR, ports, transport, logs, trace, traffic, action, priority }) => {
+      if (ports.length > 0) {
+        return ports.map(({ s, d }) => ({
+          cidr: CIDR,
+          portsSource: s,
+          portsDestination: d,
+          transport,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+          id: nanoid(),
+        }))
+      }
+      return {
+        cidr: CIDR,
+        transport,
+        logs,
+        trace,
+        traffic,
+        action,
+        prioritySome: priority?.some,
+        id: nanoid(),
+      }
+    })
+}
+
+export const mapRulesSgCidrTo = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
+  return rules
+    .filter(({ traffic }) => traffic === 'Egress')
+    .flatMap(({ CIDR, ports, transport, logs, trace, traffic, action, priority }) => {
+      if (ports.length > 0) {
+        return ports.map(({ s, d }) => ({
+          cidr: CIDR,
+          portsSource: s,
+          portsDestination: d,
+          transport,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+          id: nanoid(),
+        }))
+      }
+      return {
+        cidr: CIDR,
+        transport,
+        logs,
+        trace,
+        traffic,
+        action,
+        prioritySome: priority?.some,
+        id: nanoid(),
+      }
+    })
+}
+
+export const mapRulesSgCidrIcmpFrom = (rules: TSgCidrIcmpRule[]): TFormSgCidrIcmpRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Ingress')
     .flatMap(({ CIDR, ICMP, logs, trace, traffic, action, priority }) => {
@@ -271,11 +290,12 @@ export const mapRulesCidrSgIcmpFrom = (rules: TCidrSgIcmpRule[]): TFormCidrSgIcm
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
 
-export const mapRulesCidrSgIcmpTo = (rules: TCidrSgIcmpRule[]): TFormCidrSgIcmpRule[] => {
+export const mapRulesSgCidrIcmpTo = (rules: TSgCidrIcmpRule[]): TFormSgCidrIcmpRule[] => {
   return rules
     .filter(({ traffic }) => traffic === 'Egress')
     .flatMap(({ CIDR, ICMP, logs, trace, traffic, action, priority }) => {
@@ -288,40 +308,58 @@ export const mapRulesCidrSgIcmpTo = (rules: TCidrSgIcmpRule[]): TFormCidrSgIcmpR
         traffic,
         action,
         prioritySome: priority?.some,
+        id: nanoid(),
       }
     })
 }
 
-export const checkIfChangesExist = (
-  rulesSgFrom: TFormSgRule[],
-  rulesSgTo: TFormSgRule[],
-  rulesFqdnTo: TFormFqdnRule[],
-  rulesCidrSgFrom: TFormCidrSgRule[],
-  rulesCidrSgTo: TFormCidrSgRule[],
-  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[],
-  rulesSgSgIcmpTo: TFormSgSgIcmpRule[],
-  rulesSgSgIeFrom: TFormSgSgIeRule[],
-  rulesSgSgIeTo: TFormSgSgIeRule[],
-  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[],
-  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[],
-  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[],
-  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[],
-): boolean => {
+type TCheckIfChangesExistProps = {
+  rulesSgSgFrom: TFormSgSgRule[]
+  rulesSgSgTo: TFormSgSgRule[]
+  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
+  rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
+  rulesSgSgIeFrom: TFormSgSgIeRule[]
+  rulesSgSgIeTo: TFormSgSgIeRule[]
+  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[]
+  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
+  rulesSgFqdnTo: TFormSgFqdnRule[]
+  rulesSgCidrFrom: TFormSgCidrRule[]
+  rulesSgCidrTo: TFormSgCidrRule[]
+  rulesSgCidrIcmpFrom: TFormSgCidrIcmpRule[]
+  rulesSgCidrIcmpTo: TFormSgCidrIcmpRule[]
+}
+
+export const checkIfChangesExist = (data: TCheckIfChangesExistProps): boolean => {
+  const {
+    rulesSgSgFrom,
+    rulesSgSgTo,
+    rulesSgSgIcmpFrom,
+    rulesSgSgIcmpTo,
+    rulesSgSgIeFrom,
+    rulesSgSgIeTo,
+    rulesSgSgIeIcmpFrom,
+    rulesSgSgIeIcmpTo,
+    rulesSgFqdnTo,
+    rulesSgCidrFrom,
+    rulesSgCidrTo,
+    rulesSgCidrIcmpFrom,
+    rulesSgCidrIcmpTo,
+  } = data
   if (
     [
-      ...rulesSgFrom,
-      ...rulesSgTo,
-      ...rulesFqdnTo,
-      ...rulesCidrSgFrom,
-      ...rulesCidrSgTo,
+      ...rulesSgSgFrom,
+      ...rulesSgSgTo,
       ...rulesSgSgIcmpFrom,
       ...rulesSgSgIcmpTo,
       ...rulesSgSgIeFrom,
       ...rulesSgSgIeTo,
       ...rulesSgSgIeIcmpFrom,
       ...rulesSgSgIeIcmpTo,
-      ...rulesCidrSgIcmpFrom,
-      ...rulesCidrSgIcmpTo,
+      ...rulesSgFqdnTo,
+      ...rulesSgCidrFrom,
+      ...rulesSgCidrTo,
+      ...rulesSgCidrIcmpFrom,
+      ...rulesSgCidrIcmpTo,
     ].some(
       ({ formChanges }) =>
         formChanges?.status === 'new' ||

@@ -19,7 +19,7 @@ export type TAction = {
   action: TActionType
 }
 
-export type TSgRule = {
+export type TSgSgRule = {
   logs: boolean
   ports: TPortGroup[]
   sgFrom: string
@@ -28,36 +28,8 @@ export type TSgRule = {
 } & TPriority &
   TAction
 
-export type TSgRulesResponse = {
-  rules: TSgRule[]
-}
-
-export type TFqdnRule = {
-  FQDN: string
-  logs: boolean
-  ports: TPortGroup[]
-  sgFrom: string
-  transport: TTransport
-} & TPriority &
-  TAction
-
-export type TFqdnRulesResponse = {
-  rules: TFqdnRule[]
-}
-
-export type TCidrRule = {
-  CIDR: string
-  SG: string
-  logs: boolean
-  ports: TPortGroup[]
-  trace: boolean
-  traffic: TTraffic
-  transport: TTransport
-} & TPriority &
-  TAction
-
-export type TCidrRulesResponse = {
-  rules: TCidrRule[]
+export type TSgSgRulesResponse = {
+  rules: TSgSgRule[]
 }
 
 export type TIpVersion = 'IPv4' | 'IPv6'
@@ -109,7 +81,35 @@ export type TSgSgIeIcmpRulesResponse = {
   rules: TSgSgIeIcmpRule[]
 }
 
-export type TCidrSgIcmpRule = {
+export type TSgFqdnRule = {
+  FQDN: string
+  logs: boolean
+  ports: TPortGroup[]
+  sgFrom: string
+  transport: TTransport
+} & TPriority &
+  TAction
+
+export type TSgFqdnRulesResponse = {
+  rules: TSgFqdnRule[]
+}
+
+export type TSgCidrRule = {
+  CIDR: string
+  SG: string
+  logs: boolean
+  ports: TPortGroup[]
+  trace: boolean
+  traffic: TTraffic
+  transport: TTransport
+} & TPriority &
+  TAction
+
+export type TSgCidrRulesResponse = {
+  rules: TSgCidrRule[]
+}
+
+export type TSgCidrIcmpRule = {
   SG: string
   CIDR: string
   logs: boolean
@@ -119,13 +119,13 @@ export type TCidrSgIcmpRule = {
 } & TPriority &
   TAction
 
-export type TCidrSgIcmpRulesResponse = {
-  rules: TCidrSgIcmpRule[]
+export type TSgCidrIcmpRulesResponse = {
+  rules: TSgCidrIcmpRule[]
 }
 
 export type TFormChangesStatuses = 'modified' | 'deleted' | 'new'
 
-type TFormChanges = {
+export type TFormChanges = {
   status: TFormChangesStatuses
   modifiedFields?: string[]
 }
@@ -134,7 +134,11 @@ type TCheckStatus = {
   checked?: boolean
 }
 
-export type TFormSgRule = {
+type TId = {
+  id: string
+}
+
+export type TFormSgSgRule = {
   sg: string
   transport: TTransport
   logs: boolean
@@ -143,31 +147,8 @@ export type TFormSgRule = {
   portsSource?: string
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
-
-export type TFormFqdnRule = {
-  fqdn: string
-  transport: TTransport
-  logs: boolean
-  action: TActionType
-  portsSource?: string
-  portsDestination?: string
-  prioritySome?: number
-  formChanges?: TFormChanges
-} & TCheckStatus
-
-export type TFormCidrSgRule = {
-  cidr: string
-  transport: TTransport
-  logs: boolean
-  trace: boolean
-  traffic: TTraffic
-  action: TActionType
-  portsSource?: string
-  portsDestination?: string
-  prioritySome?: number
-  formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgSgIcmpRule = {
   sg: string
@@ -178,7 +159,8 @@ export type TFormSgSgIcmpRule = {
   action: TActionType
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgSgIeRule = {
   sg: string
@@ -191,7 +173,8 @@ export type TFormSgSgIeRule = {
   action: TActionType
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
 export type TFormSgSgIeIcmpRule = {
   sg: string
@@ -203,9 +186,36 @@ export type TFormSgSgIeIcmpRule = {
   action: TActionType
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
-export type TFormCidrSgIcmpRule = {
+export type TFormSgFqdnRule = {
+  fqdn: string
+  transport: TTransport
+  logs: boolean
+  action: TActionType
+  portsSource?: string
+  portsDestination?: string
+  prioritySome?: number
+  formChanges?: TFormChanges
+} & TCheckStatus &
+  TId
+
+export type TFormSgCidrRule = {
+  cidr: string
+  transport: TTransport
+  logs: boolean
+  trace: boolean
+  traffic: TTraffic
+  action: TActionType
+  portsSource?: string
+  portsDestination?: string
+  prioritySome?: number
+  formChanges?: TFormChanges
+} & TCheckStatus &
+  TId
+
+export type TFormSgCidrIcmpRule = {
   cidr: string
   logs: boolean
   trace: boolean
@@ -215,21 +225,12 @@ export type TFormCidrSgIcmpRule = {
   action: TActionType
   prioritySome?: number
   formChanges?: TFormChanges
-} & TCheckStatus
+} & TCheckStatus &
+  TId
 
-export type TComposedForSubmitSgRules = {
-  rules: TSgRule[]
-  rulesToDelete: TSgRule[]
-}
-
-export type TComposedForSubmitFqdnRules = {
-  rules: TFqdnRule[]
-  rulesToDelete: TFqdnRule[]
-}
-
-export type TComposedForSubmitCidrRules = {
-  rules: TCidrRule[]
-  rulesToDelete: TCidrRule[]
+export type TComposedForSubmitSgSgRules = {
+  rules: TSgSgRule[]
+  rulesToDelete: TSgSgRule[]
 }
 
 export type TComposedForSubmitSgSgIcmpRules = {
@@ -247,7 +248,17 @@ export type TComposedForSubmitSgSgIeIcmpRules = {
   rulesToDelete: TSgSgIeIcmpRule[]
 }
 
-export type TComposedForSubmitCidrSgIcmpRules = {
-  rules: TCidrSgIcmpRule[]
-  rulesToDelete: TCidrSgIcmpRule[]
+export type TComposedForSubmitSgFqdnRules = {
+  rules: TSgFqdnRule[]
+  rulesToDelete: TSgFqdnRule[]
+}
+
+export type TComposedForSubmitSgCidrRules = {
+  rules: TSgCidrRule[]
+  rulesToDelete: TSgCidrRule[]
+}
+
+export type TComposedForSubmitSgCidrIcmpRules = {
+  rules: TSgCidrIcmpRule[]
+  rulesToDelete: TSgCidrIcmpRule[]
 }

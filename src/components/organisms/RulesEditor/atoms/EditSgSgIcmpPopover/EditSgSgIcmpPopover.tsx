@@ -1,12 +1,13 @@
 import React, { FC, useEffect } from 'react'
 import { Button, Form, Input, Select, Switch } from 'antd'
+import { useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
 import { PlusCircleOutlined, MinusCircleOutlined, CloseOutlined } from '@ant-design/icons'
 import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { filterSgName } from 'utils/filterSgName'
 import { Styled } from './styled'
 
 type TEditSgSgIcmpPopoverProps = {
-  sgNames: string[]
   values: TFormSgSgIcmpRule
   hide: () => void
   remove: () => void
@@ -14,15 +15,9 @@ type TEditSgSgIcmpPopoverProps = {
   isDisabled?: boolean
 }
 
-export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({
-  sgNames,
-  values,
-  hide,
-  remove,
-  edit,
-  isDisabled,
-}) => {
+export const EditSgSgIcmpPopover: FC<TEditSgSgIcmpPopoverProps> = ({ values, hide, remove, edit, isDisabled }) => {
   const [addForm] = Form.useForm()
+  const sgNames = useSelector((state: RootState) => state.sgNames.sgNames)
 
   useEffect(() => {
     addForm.setFieldsValue(values)

@@ -1,43 +1,45 @@
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState, useEffect, useCallback } from 'react'
 import { AxiosError } from 'axios'
+import { useSelector, useDispatch } from 'react-redux'
+import type { RootState } from 'store/store'
 import { Result, Spin } from 'antd'
+import { setSgNames } from 'store/editor/sgNames/sgNames'
+import { setCenterSg } from 'store/editor/centerSg/centerSg'
+import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
+import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
+import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
+import { setRulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpTo } from 'store/editor/rulesSgSgIeIcmp/rulesSgSgIeIcmp'
+import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
+import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/rulesSgCidr'
+import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import {
-  TFormSgRule,
-  TFormFqdnRule,
-  TFormCidrSgRule,
-  TFormSgSgIcmpRule,
-  TFormSgSgIeRule,
-  TFormSgSgIeIcmpRule,
-  TFormCidrSgIcmpRule,
-} from 'localTypes/rules'
 import { getSecurityGroups } from 'api/securityGroups'
 import {
-  getRulesBySGFrom,
-  getRulesBySGTo,
-  getFqdnRulesBySGFrom,
-  getCidrSgRulesBySG,
+  getSgSgRulesBySgFrom,
+  getSgSgRulesBySgTo,
   getSgSgIcmpRulesBySgFrom,
   getSgSgIcmpRulesBySgTo,
   getSgSgIeRulesBySgLocal,
   getSgSgIeIcmpRulesBySgLocal,
-  getCidrSgIcmpRulesBySg,
+  getSgFqdnRulesBySgFrom,
+  getSgCidrRulesBySg,
+  getSgCidrIcmpRulesBySg,
 } from 'api/rules'
 import { TransformBlock, BottomBar } from './organisms'
 import {
-  mapRulesSgFrom,
-  mapRulesSgTo,
-  mapRulesFqdnTo,
-  mapRulesCidrSgFrom,
-  mapRulesCidrSgTo,
+  mapRulesSgSgFrom,
+  mapRulesSgSgTo,
   mapRulesSgSgIcmpFrom,
   mapRulesSgSgIcmpTo,
   mapRulesSgSgIeFrom,
   mapRulesSgSgIeTo,
   mapRulesSgSgIeIcmpFrom,
   mapRulesSgSgIeIcmpTo,
-  mapRulesCidrSgIcmpFrom,
-  mapRulesCidrSgIcmpTo,
+  mapRulesSgFqdnTo,
+  mapRulesSgCidrFrom,
+  mapRulesSgCidrTo,
+  mapRulesSgCidrIcmpFrom,
+  mapRulesSgCidrIcmpTo,
   checkIfChangesExist,
 } from './utils'
 import { SelectMainSgModal } from './atoms'
@@ -48,25 +50,31 @@ type TRulesEditorProps = {
 }
 
 export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
-  const [sgNames, setSgNames] = useState<string[]>([])
-  const [centerSg, setCenterSg] = useState<string>()
-  const [rulesSgFrom, setRulesSgFrom] = useState<TFormSgRule[]>([])
-  const [rulesSgTo, setRulesSgTo] = useState<TFormSgRule[]>([])
-  const [rulesFqdnTo, setRulesFqdnTo] = useState<TFormFqdnRule[]>([])
-  const [rulesCidrSgFrom, setRulesCidrSgFrom] = useState<TFormCidrSgRule[]>([])
-  const [rulesCidrSgTo, setRulesCidrSgTo] = useState<TFormCidrSgRule[]>([])
-  const [rulesSgSgIcmpFrom, setRulesSgSgIcmpFrom] = useState<TFormSgSgIcmpRule[]>([])
-  const [rulesSgSgIcmpTo, setRulesSgSgIcmpTo] = useState<TFormSgSgIcmpRule[]>([])
-  const [rulesSgSgIeFrom, setRulesSgSgIeFrom] = useState<TFormSgSgIeRule[]>([])
-  const [rulesSgSgIeTo, setRulesSgSgIeTo] = useState<TFormSgSgIeRule[]>([])
-  const [rulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpFrom] = useState<TFormSgSgIeIcmpRule[]>([])
-  const [rulesSgSgIeIcmpTo, setRulesSgSgIeIcmpTo] = useState<TFormSgSgIeIcmpRule[]>([])
-  const [rulesCidrSgIcmpFrom, setRulesCidrSgIcmpFrom] = useState<TFormCidrSgIcmpRule[]>([])
-  const [rulesCidrSgIcmpTo, setRulesCidrSgIcmpTo] = useState<TFormCidrSgIcmpRule[]>([])
   const [isChangeMainSgModalVisible, setChangeMainSgModalVisible] = useState<boolean>(false)
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
+  const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
+  const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
+  const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
+  const rulesSgSgIcmpTo = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesTo)
+  const rulesSgSgIeFrom = useSelector((state: RootState) => state.rulesSgSgIe.rulesFrom)
+  const rulesSgSgIeTo = useSelector((state: RootState) => state.rulesSgSgIe.rulesTo)
+  const rulesSgSgIeIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesFrom)
+  const rulesSgSgIeIcmpTo = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesTo)
+  const rulesSgFqdnTo = useSelector((state: RootState) => state.rulesSgFqdn.rulesTo)
+  const rulesSgCidrFrom = useSelector((state: RootState) => state.rulesSgCidr.rulesFrom)
+  const rulesSgCidrTo = useSelector((state: RootState) => state.rulesSgCidr.rulesTo)
+  const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
+  const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
+
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(setCenterSg(id))
+  }, [id, dispatch])
 
   useEffect(() => {
     setIsLoading(true)
@@ -74,7 +82,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
     getSecurityGroups()
       .then(({ data }) => {
         const sgNames = data.groups.map(({ name }) => name)
-        setSgNames(sgNames)
+        dispatch(setSgNames(sgNames))
         setIsLoading(false)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
@@ -87,61 +95,48 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
           setError({ status: 'Error while fetching' })
         }
       })
-  }, [])
+  }, [dispatch])
 
-  const fetchData = (centerSg?: string) => {
+  const fetchData = useCallback(() => {
     if (centerSg) {
       setIsLoading(true)
-      setRulesSgFrom([])
-      setRulesSgTo([])
-      setRulesFqdnTo([])
-      setRulesCidrSgFrom([])
-      setRulesCidrSgTo([])
-      setRulesSgSgIcmpFrom([])
-      setRulesSgSgIcmpTo([])
-      setRulesSgSgIeFrom([])
-      setRulesSgSgIeTo([])
-      setRulesSgSgIeIcmpFrom([])
-      setRulesSgSgIeIcmpTo([])
-      setRulesCidrSgIcmpFrom([])
-      setRulesCidrSgIcmpTo([])
       setError(undefined)
       Promise.all([
-        getRulesBySGTo(centerSg),
-        getRulesBySGFrom(centerSg),
-        getFqdnRulesBySGFrom(centerSg),
-        getCidrSgRulesBySG(centerSg),
+        getSgSgRulesBySgFrom(centerSg),
+        getSgSgRulesBySgTo(centerSg),
         getSgSgIcmpRulesBySgTo(centerSg),
         getSgSgIcmpRulesBySgFrom(centerSg),
         getSgSgIeRulesBySgLocal(centerSg),
         getSgSgIeIcmpRulesBySgLocal(centerSg),
-        getCidrSgIcmpRulesBySg(centerSg),
+        getSgFqdnRulesBySgFrom(centerSg),
+        getSgCidrRulesBySg(centerSg),
+        getSgCidrIcmpRulesBySg(centerSg),
       ])
         .then(
           ([
             rulesSgFrom,
             rulesSgTo,
-            rulesFqdnTo,
-            rulesCidrSg,
             rulesSgSgIcmpFrom,
             rulesSgSgIcmpTo,
             rulesSgSgIe,
             rulesSgSgIeIcmp,
+            rulesFqdnTo,
+            rulesCidrSg,
             rulesCidrSgIcmp,
           ]) => {
-            setRulesSgFrom(mapRulesSgFrom(rulesSgFrom.data.rules))
-            setRulesSgTo(mapRulesSgTo(rulesSgTo.data.rules))
-            setRulesFqdnTo(mapRulesFqdnTo(rulesFqdnTo.data.rules))
-            setRulesCidrSgFrom(mapRulesCidrSgFrom(rulesCidrSg.data.rules))
-            setRulesCidrSgTo(mapRulesCidrSgTo(rulesCidrSg.data.rules))
-            setRulesSgSgIcmpFrom(mapRulesSgSgIcmpFrom(rulesSgSgIcmpFrom.data.rules))
-            setRulesSgSgIcmpTo(mapRulesSgSgIcmpTo(rulesSgSgIcmpTo.data.rules))
-            setRulesSgSgIeFrom(mapRulesSgSgIeFrom(rulesSgSgIe.data.rules))
-            setRulesSgSgIeTo(mapRulesSgSgIeTo(rulesSgSgIe.data.rules))
-            setRulesSgSgIeIcmpFrom(mapRulesSgSgIeIcmpFrom(rulesSgSgIeIcmp.data.rules))
-            setRulesSgSgIeIcmpTo(mapRulesSgSgIeIcmpTo(rulesSgSgIeIcmp.data.rules))
-            setRulesCidrSgIcmpFrom(mapRulesCidrSgIcmpFrom(rulesCidrSgIcmp.data.rules))
-            setRulesCidrSgIcmpTo(mapRulesCidrSgIcmpTo(rulesCidrSgIcmp.data.rules))
+            dispatch(setRulesSgSgFrom(mapRulesSgSgFrom(rulesSgFrom.data.rules)))
+            dispatch(setRulesSgSgTo(mapRulesSgSgTo(rulesSgTo.data.rules)))
+            dispatch(setRulesSgSgIcmpFrom(mapRulesSgSgIcmpFrom(rulesSgSgIcmpFrom.data.rules)))
+            dispatch(setRulesSgSgIcmpTo(mapRulesSgSgIcmpTo(rulesSgSgIcmpTo.data.rules)))
+            dispatch(setRulesSgSgIeFrom(mapRulesSgSgIeFrom(rulesSgSgIe.data.rules)))
+            dispatch(setRulesSgSgIeTo(mapRulesSgSgIeTo(rulesSgSgIe.data.rules)))
+            dispatch(setRulesSgSgIeIcmpFrom(mapRulesSgSgIeIcmpFrom(rulesSgSgIeIcmp.data.rules)))
+            dispatch(setRulesSgSgIeIcmpTo(mapRulesSgSgIeIcmpTo(rulesSgSgIeIcmp.data.rules)))
+            dispatch(setRulesSgFqdnTo(mapRulesSgFqdnTo(rulesFqdnTo.data.rules)))
+            dispatch(setRulesSgCidrFrom(mapRulesSgCidrFrom(rulesCidrSg.data.rules)))
+            dispatch(setRulesSgCidrTo(mapRulesSgCidrTo(rulesCidrSg.data.rules)))
+            dispatch(setRulesSgCidrIcmpFrom(mapRulesSgCidrIcmpFrom(rulesCidrSgIcmp.data.rules)))
+            dispatch(setRulesSgCidrIcmpTo(mapRulesSgCidrIcmpTo(rulesCidrSgIcmp.data.rules)))
             setIsLoading(false)
           },
         )
@@ -156,54 +151,50 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
           }
         })
     } else {
-      setRulesSgFrom([])
-      setRulesSgTo([])
-      setRulesFqdnTo([])
-      setRulesCidrSgFrom([])
-      setRulesCidrSgTo([])
-      setRulesSgSgIcmpFrom([])
-      setRulesSgSgIcmpTo([])
-      setRulesSgSgIeFrom([])
-      setRulesSgSgIeTo([])
-      setRulesSgSgIeIcmpFrom([])
-      setRulesSgSgIeIcmpTo([])
-      setRulesCidrSgIcmpFrom([])
-      setRulesCidrSgIcmpTo([])
+      dispatch(setRulesSgSgFrom([]))
+      dispatch(setRulesSgSgTo([]))
+      dispatch(setRulesSgFqdnTo([]))
+      dispatch(setRulesSgCidrFrom([]))
+      dispatch(setRulesSgCidrTo([]))
+      dispatch(setRulesSgSgIcmpFrom([]))
+      dispatch(setRulesSgSgIcmpTo([]))
+      dispatch(setRulesSgSgIeFrom([]))
+      dispatch(setRulesSgSgIeTo([]))
+      dispatch(setRulesSgSgIeIcmpFrom([]))
+      dispatch(setRulesSgSgIeIcmpTo([]))
+      dispatch(setRulesSgCidrIcmpFrom([]))
+      dispatch(setRulesSgCidrIcmpTo([]))
       setError(undefined)
     }
-  }
+  }, [dispatch, centerSg])
+
+  useEffect(() => {
+    fetchData()
+  }, [centerSg, fetchData])
 
   const onSelectMainSg = (newSg?: string) => {
-    const result = checkIfChangesExist(
-      rulesSgFrom,
-      rulesSgTo,
-      rulesFqdnTo,
-      rulesCidrSgFrom,
-      rulesCidrSgTo,
+    const result = checkIfChangesExist({
+      rulesSgSgFrom,
+      rulesSgSgTo,
       rulesSgSgIcmpFrom,
       rulesSgSgIcmpTo,
       rulesSgSgIeFrom,
       rulesSgSgIeTo,
       rulesSgSgIeIcmpFrom,
       rulesSgSgIeIcmpTo,
-      rulesCidrSgIcmpFrom,
-      rulesCidrSgIcmpTo,
-    )
+      rulesSgFqdnTo,
+      rulesSgCidrFrom,
+      rulesSgCidrTo,
+      rulesSgCidrIcmpFrom,
+      rulesSgCidrIcmpTo,
+    })
     if (result) {
       setPendingSg(newSg)
       setChangeMainSgModalVisible(true)
     } else {
-      setCenterSg(newSg)
+      dispatch(setCenterSg(newSg))
     }
   }
-
-  useEffect(() => {
-    fetchData(centerSg)
-  }, [centerSg])
-
-  useEffect(() => {
-    setCenterSg(id)
-  }, [id])
 
   if (error) {
     return (
@@ -217,68 +208,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      <TransformBlock
-        sgNames={sgNames}
-        centerSg={centerSg}
-        onSelectMainSg={onSelectMainSg}
-        rulesSgFrom={rulesSgFrom}
-        setRulesSgFrom={setRulesSgFrom}
-        rulesSgTo={rulesSgTo}
-        setRulesSgTo={setRulesSgTo}
-        rulesFqdnTo={rulesFqdnTo}
-        setRulesFqdnTo={setRulesFqdnTo}
-        rulesCidrSgFrom={rulesCidrSgFrom}
-        setRulesCidrSgFrom={setRulesCidrSgFrom}
-        rulesCidrSgTo={rulesCidrSgTo}
-        setRulesCidrSgTo={setRulesCidrSgTo}
-        rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
-        setRulesSgSgIcmpFrom={setRulesSgSgIcmpFrom}
-        rulesSgSgIcmpTo={rulesSgSgIcmpTo}
-        setRulesSgSgIcmpTo={setRulesSgSgIcmpTo}
-        rulesSgSgIeFrom={rulesSgSgIeFrom}
-        setRulesSgSgIeFrom={setRulesSgSgIeFrom}
-        rulesSgSgIeTo={rulesSgSgIeTo}
-        setRulesSgSgIeTo={setRulesSgSgIeTo}
-        rulesSgSgIeIcmpFrom={rulesSgSgIeIcmpFrom}
-        setRulesSgSgIeIcmpFrom={setRulesSgSgIeIcmpFrom}
-        rulesSgSgIeIcmpTo={rulesSgSgIeIcmpTo}
-        setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
-        rulesCidrSgIcmpFrom={rulesCidrSgIcmpFrom}
-        setRulesCidrSgIcmpFrom={setRulesCidrSgIcmpFrom}
-        rulesCidrSgIcmpTo={rulesCidrSgIcmpTo}
-        setRulesCidrSgIcmpTo={setRulesCidrSgIcmpTo}
-      />
-      <BottomBar
-        sgNames={sgNames}
-        centerSg={centerSg}
-        onSubmit={() => fetchData(centerSg)}
-        rulesSgFrom={rulesSgFrom}
-        setRulesSgFrom={setRulesSgFrom}
-        rulesSgTo={rulesSgTo}
-        setRulesSgTo={setRulesSgTo}
-        rulesFqdnTo={rulesFqdnTo}
-        setRulesFqdnTo={setRulesFqdnTo}
-        rulesCidrSgFrom={rulesCidrSgFrom}
-        setRulesCidrSgFrom={setRulesCidrSgFrom}
-        rulesCidrSgTo={rulesCidrSgTo}
-        setRulesCidrSgTo={setRulesCidrSgTo}
-        rulesSgSgIcmpFrom={rulesSgSgIcmpFrom}
-        setRulesSgSgIcmpFrom={setRulesSgSgIcmpFrom}
-        rulesSgSgIcmpTo={rulesSgSgIcmpTo}
-        setRulesSgSgIcmpTo={setRulesSgSgIcmpTo}
-        rulesSgSgIeFrom={rulesSgSgIeFrom}
-        setRulesSgSgIeFrom={setRulesSgSgIeFrom}
-        rulesSgSgIeTo={rulesSgSgIeTo}
-        setRulesSgSgIeTo={setRulesSgSgIeTo}
-        rulesSgSgIeIcmpFrom={rulesSgSgIeIcmpFrom}
-        setRulesSgSgIeIcmpFrom={setRulesSgSgIeIcmpFrom}
-        rulesSgSgIeIcmpTo={rulesSgSgIeIcmpTo}
-        setRulesSgSgIeIcmpTo={setRulesSgSgIeIcmpTo}
-        rulesCidrSgIcmpFrom={rulesCidrSgIcmpFrom}
-        setRulesCidrSgIcmpFrom={setRulesCidrSgIcmpFrom}
-        rulesCidrSgIcmpTo={rulesCidrSgIcmpTo}
-        setRulesCidrSgIcmpTo={setRulesCidrSgIcmpTo}
-      />
+      <TransformBlock onSelectMainSg={onSelectMainSg} />
+      <BottomBar onSubmit={() => fetchData()} />
       {isLoading && (
         <Styled.Loader>
           <Spin size="large" />
@@ -287,7 +218,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       <SelectMainSgModal
         isOpen={isChangeMainSgModalVisible}
         handleOk={() => {
-          setCenterSg(pendingSg)
+          dispatch(setCenterSg(pendingSg))
           setChangeMainSgModalVisible(false)
           setPendingSg(undefined)
         }}
