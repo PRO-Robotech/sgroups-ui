@@ -6,13 +6,13 @@ import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } fr
 import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getRules, removeRule } from 'api/rules'
+import { getSgSgRules, removeSgSgRule } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TSgRule } from 'localTypes/rules'
+import { TSgSgRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
-type TSgRuleColumn = TSgRule & {
+type TSgRuleColumn = TSgSgRule & {
   key: string
 }
 
@@ -21,7 +21,7 @@ type OnChange = NonNullable<TableProps<TSgRuleColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const RulesListSgSg: FC = () => {
-  const [rules, setRules] = useState<TSgRule[]>([])
+  const [rules, setRules] = useState<TSgSgRule[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
@@ -34,7 +34,7 @@ export const RulesListSgSg: FC = () => {
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
-    getRules()
+    getSgSgRules()
       .then(({ data }) => {
         setIsLoading(false)
         setRules(data.rules)
@@ -52,7 +52,7 @@ export const RulesListSgSg: FC = () => {
   }, [])
 
   const removeRuleFromList = (sgFrom: string, sgTo: string) => {
-    removeRule(sgFrom, sgTo)
+    removeSgSgRule(sgFrom, sgTo)
       .then(() => {
         setRules([...rules].filter(el => el.sgFrom !== sgFrom || el.sgTo !== sgTo))
         setIsModalOpen(false)
@@ -157,7 +157,7 @@ export const RulesListSgSg: FC = () => {
       title: 'Controls',
       key: 'controls',
       width: 100,
-      render: (_, record: TSgRule) => (
+      render: (_, record: TSgSgRule) => (
         <TextAlignContainer $align="center">
           <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.sgFrom}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveRuleModal(record.sgFrom, record.sgTo)} />

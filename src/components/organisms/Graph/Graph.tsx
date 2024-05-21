@@ -4,7 +4,7 @@ import { Empty, Result, Spin } from 'antd'
 import { Spacer } from 'components'
 import { TEntry, TFilter, THistoryAction } from 'localTypes/graph'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { getRules } from 'api/rules'
+import { getSgSgRules } from 'api/rules'
 import { getSecurityGroups } from 'api/securityGroups'
 import { GraphControls, GraphView, SgNwControls, FiltersBlock, TableView } from './molecules'
 import { mapRulesAndSgToEntries, filterData, filterForSelected } from './utils'
@@ -28,7 +28,7 @@ export const Graph: FC = () => {
     setIsLoading(true)
     setError(undefined)
     setData([])
-    Promise.all([getRules(), getSecurityGroups()])
+    Promise.all([getSgSgRules(), getSecurityGroups()])
       .then(([rules, sg]) => {
         setIsLoading(false)
         setData(mapRulesAndSgToEntries(rules.data.rules, sg.data.groups))

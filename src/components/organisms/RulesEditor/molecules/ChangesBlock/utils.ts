@@ -1,68 +1,40 @@
 import {
   TPortGroup,
-  TSgRule,
-  TFqdnRule,
-  TCidrRule,
+  TSgSgRule,
   TSgSgIcmpRule,
   TSgSgIeRule,
   TSgSgIeIcmpRule,
-  TCidrSgIcmpRule,
-  TFormSgRule,
-  TFormFqdnRule,
-  TFormCidrSgRule,
+  TSgFqdnRule,
+  TSgCidrRule,
+  TSgCidrIcmpRule,
+  TFormSgSgRule,
   TFormSgSgIcmpRule,
   TFormSgSgIeRule,
   TFormSgSgIeIcmpRule,
-  TFormCidrSgIcmpRule,
-  TComposedForSubmitSgRules,
-  TComposedForSubmitFqdnRules,
-  TComposedForSubmitCidrRules,
+  TFormSgFqdnRule,
+  TFormSgCidrRule,
+  TFormSgCidrIcmpRule,
+  TComposedForSubmitSgSgRules,
   TComposedForSubmitSgSgIcmpRules,
   TComposedForSubmitSgSgIeRules,
   TComposedForSubmitSgSgIeIcmpRules,
-  TComposedForSubmitCidrSgIcmpRules,
+  TComposedForSubmitSgFqdnRules,
+  TComposedForSubmitSgCidrRules,
+  TComposedForSubmitSgCidrIcmpRules,
 } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
 import {
-  TFormSgRuleChangesResult,
-  TFormFqdnRuleChangesResult,
-  TFormCidrSgRuleChangesResult,
+  TFormSgSgRuleChangesResult,
   TFormSgSgIcmpRuleChangesResult,
   TFormSgSgIeRuleChangesResult,
   TFormSgSgIeIcmpRuleChangesResult,
-  TFormCidrSgIcmpRuleChangesResult,
+  TFormSgFqdnRuleChangesResult,
+  TFormSgCidrRuleChangesResult,
+  TFormSgCidrIcmpRuleChangesResult,
 } from './types'
 
-export const getChangesSgRules = (rules: TFormSgRule[]): TFormSgRuleChangesResult | null => {
-  const result: TFormSgRuleChangesResult = {
-    newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
-    diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
-    deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
-  }
-
-  if (result.newRules.length === 0 && result.diffRules.length === 0 && result.deletedRules.length === 0) {
-    return null
-  }
-
-  return result
-}
-
-export const getChangesFqdnRules = (rules: TFormFqdnRule[]): TFormFqdnRuleChangesResult | null => {
-  const result: TFormFqdnRuleChangesResult = {
-    newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
-    diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
-    deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
-  }
-
-  if (result.newRules.length === 0 && result.diffRules.length === 0 && result.deletedRules.length === 0) {
-    return null
-  }
-
-  return result
-}
-
-export const getChangesCidrSgRules = (rules: TFormCidrSgRule[]): TFormCidrSgRuleChangesResult | null => {
-  const result: TFormCidrSgRuleChangesResult = {
+export const getChangesSgSgRules = (rules: TFormSgSgRule[]): TFormSgSgRuleChangesResult | null => {
+  const result: TFormSgSgRuleChangesResult = {
     newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
     diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
     deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
@@ -117,8 +89,36 @@ export const getChangesSgSgIeIcmpRules = (rules: TFormSgSgIeIcmpRule[]): TFormSg
   return result
 }
 
-export const getChangesCidrSgIcmpRules = (rules: TFormCidrSgIcmpRule[]): TFormCidrSgIcmpRuleChangesResult | null => {
-  const result: TFormCidrSgIcmpRuleChangesResult = {
+export const getChangesSgFqdnRules = (rules: TFormSgFqdnRule[]): TFormSgFqdnRuleChangesResult | null => {
+  const result: TFormSgFqdnRuleChangesResult = {
+    newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
+    diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
+    deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
+  }
+
+  if (result.newRules.length === 0 && result.diffRules.length === 0 && result.deletedRules.length === 0) {
+    return null
+  }
+
+  return result
+}
+
+export const getChangesSgCidrRules = (rules: TFormSgCidrRule[]): TFormSgCidrRuleChangesResult | null => {
+  const result: TFormSgCidrRuleChangesResult = {
+    newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
+    diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
+    deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
+  }
+
+  if (result.newRules.length === 0 && result.diffRules.length === 0 && result.deletedRules.length === 0) {
+    return null
+  }
+
+  return result
+}
+
+export const getChangesSgCidrIcmpRules = (rules: TFormSgCidrIcmpRule[]): TFormSgCidrIcmpRuleChangesResult | null => {
+  const result: TFormSgCidrIcmpRuleChangesResult = {
     newRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.new),
     diffRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.modified),
     deletedRules: rules.filter(({ formChanges }) => formChanges?.status === STATUSES.deleted),
@@ -290,7 +290,7 @@ const findPortsInPortsArr = (ports: TPortGroup, portsArr: TPortGroup[]) => {
   return portsArr.some(({ s, d }) => s === ports.s && d === ports.d)
 }
 
-const findSgRuleInResultArr = (rule: TSgRule, rulesArr: TSgRule[]) => {
+const findSgSgRuleInResultArr = (rule: TSgSgRule, rulesArr: TSgSgRule[]) => {
   return rulesArr.find(
     ({ sgFrom, sgTo, logs, transport, action, priority }) =>
       sgFrom === rule.sgFrom &&
@@ -302,12 +302,12 @@ const findSgRuleInResultArr = (rule: TSgRule, rulesArr: TSgRule[]) => {
   )
 }
 
-export const composeAllTypesOfSgRules = (
+export const composeAllTypesOfSgSgRules = (
   centerSg: string,
-  rulesSgFrom: TFormSgRule[],
-  rulesSgTo: TFormSgRule[],
-): TComposedForSubmitSgRules => {
-  const result: TComposedForSubmitSgRules = {
+  rulesSgFrom: TFormSgSgRule[],
+  rulesSgTo: TFormSgSgRule[],
+): TComposedForSubmitSgSgRules => {
+  const result: TComposedForSubmitSgSgRules = {
     rules: [],
     rulesToDelete: [],
   }
@@ -326,7 +326,7 @@ export const composeAllTypesOfSgRules = (
       priority: prioritySome ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
-      const ruleInRulesArr = findSgRuleInResultArr(rule, result.rules)
+      const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rules)
       if (ruleInRulesArr) {
         if (
           !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
@@ -338,7 +338,7 @@ export const composeAllTypesOfSgRules = (
         result.rules.push(rule)
       }
     } else {
-      const ruleInRulesArr = findSgRuleInResultArr(rule, result.rulesToDelete)
+      const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rulesToDelete)
       if (ruleInRulesArr) {
         if (
           !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
@@ -368,7 +368,7 @@ export const composeAllTypesOfSgRules = (
         priority: prioritySome ? { some: prioritySome } : undefined,
       }
       if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findSgRuleInResultArr(rule, result.rules)
+        const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rules)
         if (ruleInRulesArr) {
           if (
             !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
@@ -380,7 +380,7 @@ export const composeAllTypesOfSgRules = (
           result.rules.push(rule)
         }
       } else {
-        const ruleInRulesArr = findSgRuleInResultArr(rule, result.rulesToDelete)
+        const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rulesToDelete)
         if (ruleInRulesArr) {
           if (
             !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
@@ -393,142 +393,6 @@ export const composeAllTypesOfSgRules = (
         }
       }
     })
-
-  return result
-}
-
-const findFqdnRuleInResultArr = (rule: TFqdnRule, rulesArr: TFqdnRule[]) => {
-  return rulesArr.find(
-    ({ sgFrom, FQDN, logs, transport, action, priority }) =>
-      sgFrom === rule.sgFrom &&
-      FQDN === rule.FQDN &&
-      logs === rule.logs &&
-      transport === rule.transport &&
-      action === rule.action &&
-      priority?.some === rule.priority?.some,
-  )
-}
-
-export const composeAllTypesOfFqdnRules = (
-  centerSg: string,
-  rulesFqdnTo: TFormFqdnRule[],
-): TComposedForSubmitFqdnRules => {
-  const result: TComposedForSubmitFqdnRules = {
-    rules: [],
-    rulesToDelete: [],
-  }
-
-  rulesFqdnTo.forEach(({ fqdn, portsSource, portsDestination, transport, logs, formChanges, action, prioritySome }) => {
-    const rule = {
-      FQDN: fqdn,
-      sgFrom: centerSg,
-      logs: !!logs,
-      transport,
-      ports:
-        (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
-          ? [{ s: portsSource, d: portsDestination }]
-          : [],
-      action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
-    }
-    if (formChanges?.status !== STATUSES.deleted) {
-      const ruleInRulesArr = findFqdnRuleInResultArr(rule, result.rules)
-      if (ruleInRulesArr) {
-        if (
-          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-        ) {
-          ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-        }
-      } else {
-        result.rules.push(rule)
-      }
-    } else {
-      const ruleInRulesArr = findFqdnRuleInResultArr(rule, result.rulesToDelete)
-      if (ruleInRulesArr) {
-        if (
-          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-        ) {
-          ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-        }
-      } else {
-        result.rulesToDelete.push(rule)
-      }
-    }
-  })
-
-  return result
-}
-
-const findCidrSgRuleInResultArr = (rule: TCidrRule, rulesArr: TCidrRule[]) => {
-  return rulesArr.find(
-    ({ CIDR, SG, logs, transport, trace, traffic, action, priority }) =>
-      CIDR === rule.CIDR &&
-      SG === rule.SG &&
-      logs === rule.logs &&
-      transport === rule.transport &&
-      trace === rule.trace &&
-      traffic === rule.traffic &&
-      action === rule.action &&
-      priority?.some === rule.priority?.some,
-  )
-}
-
-export const composeAllTypesOfCidrSgRules = (
-  centerSg: string,
-  rulesCidrSgFrom: TFormCidrSgRule[],
-  rulesCidrSgTo: TFormCidrSgRule[],
-): TComposedForSubmitCidrRules => {
-  const result: TComposedForSubmitCidrRules = {
-    rules: [],
-    rulesToDelete: [],
-  }
-
-  const cidrRules = [...rulesCidrSgFrom, ...rulesCidrSgTo]
-  cidrRules.forEach(
-    ({ cidr, portsSource, portsDestination, transport, logs, trace, traffic, formChanges, action, prioritySome }) => {
-      const rule = {
-        CIDR: cidr,
-        SG: centerSg,
-        logs: !!logs,
-        trace: !!trace,
-        transport,
-        traffic,
-        ports:
-          (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
-            ? [{ s: portsSource, d: portsDestination }]
-            : [],
-        action,
-        priority: prioritySome ? { some: prioritySome } : undefined,
-      }
-      if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findCidrSgRuleInResultArr(rule, result.rules)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rules.push(rule)
-        }
-      } else {
-        const ruleInRulesArr = findCidrSgRuleInResultArr(rule, result.rulesToDelete)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rulesToDelete.push(rule)
-        }
-      }
-    },
-  )
 
   return result
 }
@@ -732,7 +596,145 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
   return result
 }
 
-const findCidrSgIcmpRuleInResultArr = (rule: TCidrSgIcmpRule, rulesArr: TCidrSgIcmpRule[]) => {
+const findSgFqdnRuleInResultArr = (rule: TSgFqdnRule, rulesArr: TSgFqdnRule[]) => {
+  return rulesArr.find(
+    ({ sgFrom, FQDN, logs, transport, action, priority }) =>
+      sgFrom === rule.sgFrom &&
+      FQDN === rule.FQDN &&
+      logs === rule.logs &&
+      transport === rule.transport &&
+      action === rule.action &&
+      priority?.some === rule.priority?.some,
+  )
+}
+
+export const composeAllTypesOfSgFqdnRules = (
+  centerSg: string,
+  rulesSgFqdnTo: TFormSgFqdnRule[],
+): TComposedForSubmitSgFqdnRules => {
+  const result: TComposedForSubmitSgFqdnRules = {
+    rules: [],
+    rulesToDelete: [],
+  }
+
+  rulesSgFqdnTo.forEach(
+    ({ fqdn, portsSource, portsDestination, transport, logs, formChanges, action, prioritySome }) => {
+      const rule = {
+        FQDN: fqdn,
+        sgFrom: centerSg,
+        logs: !!logs,
+        transport,
+        ports:
+          (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
+            ? [{ s: portsSource, d: portsDestination }]
+            : [],
+        action,
+        priority: prioritySome ? { some: prioritySome } : undefined,
+      }
+      if (formChanges?.status !== STATUSES.deleted) {
+        const ruleInRulesArr = findSgFqdnRuleInResultArr(rule, result.rules)
+        if (ruleInRulesArr) {
+          if (
+            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+          ) {
+            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
+          }
+        } else {
+          result.rules.push(rule)
+        }
+      } else {
+        const ruleInRulesArr = findSgFqdnRuleInResultArr(rule, result.rulesToDelete)
+        if (ruleInRulesArr) {
+          if (
+            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+          ) {
+            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
+          }
+        } else {
+          result.rulesToDelete.push(rule)
+        }
+      }
+    },
+  )
+
+  return result
+}
+
+const findSgCidrRuleInResultArr = (rule: TSgCidrRule, rulesArr: TSgCidrRule[]) => {
+  return rulesArr.find(
+    ({ CIDR, SG, logs, transport, trace, traffic, action, priority }) =>
+      CIDR === rule.CIDR &&
+      SG === rule.SG &&
+      logs === rule.logs &&
+      transport === rule.transport &&
+      trace === rule.trace &&
+      traffic === rule.traffic &&
+      action === rule.action &&
+      priority?.some === rule.priority?.some,
+  )
+}
+
+export const composeAllTypesOfSgCidrRules = (
+  centerSg: string,
+  rulesCidrSgFrom: TFormSgCidrRule[],
+  rulesCidrSgTo: TFormSgCidrRule[],
+): TComposedForSubmitSgCidrRules => {
+  const result: TComposedForSubmitSgCidrRules = {
+    rules: [],
+    rulesToDelete: [],
+  }
+
+  const sgCidrRules = [...rulesCidrSgFrom, ...rulesCidrSgTo]
+  sgCidrRules.forEach(
+    ({ cidr, portsSource, portsDestination, transport, logs, trace, traffic, formChanges, action, prioritySome }) => {
+      const rule = {
+        CIDR: cidr,
+        SG: centerSg,
+        logs: !!logs,
+        trace: !!trace,
+        transport,
+        traffic,
+        ports:
+          (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
+            ? [{ s: portsSource, d: portsDestination }]
+            : [],
+        action,
+        priority: prioritySome ? { some: prioritySome } : undefined,
+      }
+      if (formChanges?.status !== STATUSES.deleted) {
+        const ruleInRulesArr = findSgCidrRuleInResultArr(rule, result.rules)
+        if (ruleInRulesArr) {
+          if (
+            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+          ) {
+            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
+          }
+        } else {
+          result.rules.push(rule)
+        }
+      } else {
+        const ruleInRulesArr = findSgCidrRuleInResultArr(rule, result.rulesToDelete)
+        if (ruleInRulesArr) {
+          if (
+            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
+            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
+          ) {
+            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
+          }
+        } else {
+          result.rulesToDelete.push(rule)
+        }
+      }
+    },
+  )
+
+  return result
+}
+
+const findSgCidrIcmpRuleInResultArr = (rule: TSgCidrIcmpRule, rulesArr: TSgCidrIcmpRule[]) => {
   return rulesArr.find(
     ({ SG, CIDR, logs, trace, traffic, ICMP, action, priority }) =>
       SG === rule.SG &&
@@ -748,18 +750,18 @@ const findCidrSgIcmpRuleInResultArr = (rule: TCidrSgIcmpRule, rulesArr: TCidrSgI
   )
 }
 
-export const composeAllTypesOfCidrSgIcmpRules = (
+export const composeAllTypesOfSgCidrIcmpRules = (
   centerSg: string,
-  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[],
-  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[],
-): TComposedForSubmitCidrSgIcmpRules => {
-  const result: TComposedForSubmitCidrSgIcmpRules = {
+  rulesCidrSgIcmpFrom: TFormSgCidrIcmpRule[],
+  rulesCidrSgIcmpTo: TFormSgCidrIcmpRule[],
+): TComposedForSubmitSgCidrIcmpRules => {
+  const result: TComposedForSubmitSgCidrIcmpRules = {
     rules: [],
     rulesToDelete: [],
   }
 
-  const cidrSgIcmpRules = [...rulesCidrSgIcmpFrom, ...rulesCidrSgIcmpTo]
-  cidrSgIcmpRules.forEach(({ cidr, IPv, types, logs, trace, traffic, formChanges, action, prioritySome }) => {
+  const sgCidrIcmpRules = [...rulesCidrSgIcmpFrom, ...rulesCidrSgIcmpTo]
+  sgCidrIcmpRules.forEach(({ cidr, IPv, types, logs, trace, traffic, formChanges, action, prioritySome }) => {
     const rule = {
       SG: centerSg,
       CIDR: cidr,
@@ -771,12 +773,12 @@ export const composeAllTypesOfCidrSgIcmpRules = (
       priority: prioritySome ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
-      const ruleInRulesArr = findCidrSgIcmpRuleInResultArr(rule, result.rules)
+      const ruleInRulesArr = findSgCidrIcmpRuleInResultArr(rule, result.rules)
       if (!ruleInRulesArr) {
         result.rules.push(rule)
       }
     } else {
-      const ruleInRulesArr = findCidrSgIcmpRuleInResultArr(rule, result.rulesToDelete)
+      const ruleInRulesArr = findSgCidrIcmpRuleInResultArr(rule, result.rulesToDelete)
       if (!ruleInRulesArr) {
         result.rulesToDelete.push(rule)
       }
@@ -786,34 +788,51 @@ export const composeAllTypesOfCidrSgIcmpRules = (
   return result
 }
 
-export const checkIfSomeChangesMarked = (
-  rulesSgFrom: TFormSgRule[],
-  rulesSgTo: TFormSgRule[],
-  rulesFqdnTo: TFormFqdnRule[],
-  rulesCidrSgFrom: TFormCidrSgRule[],
-  rulesCidrSgTo: TFormCidrSgRule[],
-  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[],
-  rulesSgSgIcmpTo: TFormSgSgIcmpRule[],
-  rulesSgSgIeFrom: TFormSgSgIeRule[],
-  rulesSgSgIeTo: TFormSgSgIeRule[],
-  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[],
-  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[],
-  rulesCidrSgIcmpFrom: TFormCidrSgIcmpRule[],
-  rulesCidrSgIcmpTo: TFormCidrSgIcmpRule[],
-): boolean => {
+type TCheckIfSomeChangesMarkedProps = {
+  rulesSgSgFrom: TFormSgSgRule[]
+  rulesSgSgTo: TFormSgSgRule[]
+  rulesSgSgIcmpFrom: TFormSgSgIcmpRule[]
+  rulesSgSgIcmpTo: TFormSgSgIcmpRule[]
+  rulesSgSgIeFrom: TFormSgSgIeRule[]
+  rulesSgSgIeTo: TFormSgSgIeRule[]
+  rulesSgSgIeIcmpFrom: TFormSgSgIeIcmpRule[]
+  rulesSgSgIeIcmpTo: TFormSgSgIeIcmpRule[]
+  rulesSgFqdnTo: TFormSgFqdnRule[]
+  rulesSgCidrFrom: TFormSgCidrRule[]
+  rulesSgCidrTo: TFormSgCidrRule[]
+  rulesSgCidrIcmpFrom: TFormSgCidrIcmpRule[]
+  rulesSgCidrIcmpTo: TFormSgCidrIcmpRule[]
+}
+
+export const checkIfSomeChangesMarked = (data: TCheckIfSomeChangesMarkedProps): boolean => {
+  const {
+    rulesSgSgFrom,
+    rulesSgSgTo,
+    rulesSgSgIcmpFrom,
+    rulesSgSgIcmpTo,
+    rulesSgSgIeFrom,
+    rulesSgSgIeTo,
+    rulesSgSgIeIcmpFrom,
+    rulesSgSgIeIcmpTo,
+    rulesSgFqdnTo,
+    rulesSgCidrFrom,
+    rulesSgCidrTo,
+    rulesSgCidrIcmpFrom,
+    rulesSgCidrIcmpTo,
+  } = data
   return [
-    rulesSgFrom.some(({ checked }) => checked === true),
-    rulesSgTo.some(({ checked }) => checked === true),
-    rulesFqdnTo.some(({ checked }) => checked === true),
-    rulesCidrSgFrom.some(({ checked }) => checked === true),
-    rulesCidrSgTo.some(({ checked }) => checked === true),
+    rulesSgSgFrom.some(({ checked }) => checked === true),
+    rulesSgSgTo.some(({ checked }) => checked === true),
     rulesSgSgIcmpFrom.some(({ checked }) => checked === true),
     rulesSgSgIcmpTo.some(({ checked }) => checked === true),
     rulesSgSgIeFrom.some(({ checked }) => checked === true),
     rulesSgSgIeTo.some(({ checked }) => checked === true),
     rulesSgSgIeIcmpFrom.some(({ checked }) => checked === true),
     rulesSgSgIeIcmpTo.some(({ checked }) => checked === true),
-    rulesCidrSgIcmpFrom.some(({ checked }) => checked === true),
-    rulesCidrSgIcmpTo.some(({ checked }) => checked === true),
+    rulesSgFqdnTo.some(({ checked }) => checked === true),
+    rulesSgCidrFrom.some(({ checked }) => checked === true),
+    rulesSgCidrTo.some(({ checked }) => checked === true),
+    rulesSgCidrIcmpFrom.some(({ checked }) => checked === true),
+    rulesSgCidrIcmpTo.some(({ checked }) => checked === true),
   ].includes(true)
 }

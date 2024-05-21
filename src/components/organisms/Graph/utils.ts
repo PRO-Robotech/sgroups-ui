@@ -1,6 +1,6 @@
 /* eslint-disable camelcase */
 import { TEntry, TFilter } from 'localTypes/graph'
-import { TSgRule } from 'localTypes/rules'
+import { TSgSgRule } from 'localTypes/rules'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 
 const findNetworksBySg = (sg: string, sgs: TSecurityGroup[]): string[] => {
@@ -11,7 +11,7 @@ const findNetworksBySg = (sg: string, sgs: TSecurityGroup[]): string[] => {
   return []
 }
 
-export const mapRulesAndSgToEntries = (rules: TSgRule[], sgs: TSecurityGroup[]): TEntry[] => {
+export const mapRulesAndSgToEntries = (rules: TSgSgRule[], sgs: TSecurityGroup[]): TEntry[] => {
   const result: TEntry[] = []
   rules.forEach(({ sgFrom, sgTo, transport, ports }) => {
     const networksFrom = findNetworksBySg(sgFrom, sgs)

@@ -1,27 +1,27 @@
 import axios, { AxiosResponse } from 'axios'
 import {
-  TSgRulesResponse,
-  TFqdnRulesResponse,
-  TCidrRulesResponse,
+  TSgSgRulesResponse,
   TSgSgIcmpRulesResponse,
   TSgSgIeRulesResponse,
   TSgSgIeIcmpRulesResponse,
-  TCidrSgIcmpRulesResponse,
-  TSgRule,
-  TFqdnRule,
-  TCidrRule,
+  TSgFqdnRulesResponse,
+  TSgCidrRulesResponse,
+  TSgCidrIcmpRulesResponse,
+  TSgSgRule,
   TSgSgIcmpRule,
   TSgSgIeRule,
   TSgSgIeIcmpRule,
-  TCidrSgIcmpRule,
+  TSgFqdnRule,
+  TSgCidrRule,
+  TSgCidrIcmpRule,
 } from 'localTypes/rules'
 import { getBaseEndpoint } from './env'
 
-export const getRules = (): Promise<AxiosResponse<TSgRulesResponse>> =>
-  axios.post<TSgRulesResponse>(`${getBaseEndpoint()}/v1/rules`)
+export const getSgSgRules = (): Promise<AxiosResponse<TSgSgRulesResponse>> =>
+  axios.post<TSgSgRulesResponse>(`${getBaseEndpoint()}/v1/rules`)
 
-export const getRulesBySGFrom = (sg: string): Promise<AxiosResponse<TSgRulesResponse>> =>
-  axios.post<TSgRulesResponse>(
+export const getSgSgRulesBySgFrom = (sg: string): Promise<AxiosResponse<TSgSgRulesResponse>> =>
+  axios.post<TSgSgRulesResponse>(
     `${getBaseEndpoint()}/v1/rules`,
     {
       sgFrom: [sg],
@@ -33,8 +33,8 @@ export const getRulesBySGFrom = (sg: string): Promise<AxiosResponse<TSgRulesResp
     },
   )
 
-export const getRulesBySGTo = (sg: string): Promise<AxiosResponse<TSgRulesResponse>> =>
-  axios.post<TSgRulesResponse>(
+export const getSgSgRulesBySgTo = (sg: string): Promise<AxiosResponse<TSgSgRulesResponse>> =>
+  axios.post<TSgSgRulesResponse>(
     `${getBaseEndpoint()}/v1/rules`,
     {
       sgTo: [sg],
@@ -46,83 +46,13 @@ export const getRulesBySGTo = (sg: string): Promise<AxiosResponse<TSgRulesRespon
     },
   )
 
-export const removeRule = async (sgFrom: string, sgTo: string): Promise<AxiosResponse> => {
-  const currentRules = (await getRules()).data.rules
+export const removeSgSgRule = async (sgFrom: string, sgTo: string): Promise<AxiosResponse> => {
+  const currentRules = (await getSgSgRules()).data.rules
   const removedRules = [...currentRules].filter(el => el.sgFrom === sgFrom && el.sgTo === sgTo)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {
       sgRules: {
-        rules: removedRules,
-      },
-      syncOp: 'Delete',
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
-
-export const getFqdnRules = (): Promise<AxiosResponse<TFqdnRulesResponse>> =>
-  axios.post<TFqdnRulesResponse>(`${getBaseEndpoint()}/v1/fqdn/rules`)
-
-export const getFqdnRulesBySGFrom = (sg: string): Promise<AxiosResponse<TFqdnRulesResponse>> =>
-  axios.post<TFqdnRulesResponse>(
-    `${getBaseEndpoint()}/v1/fqdn/rules`,
-    {
-      sgFrom: [sg],
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-
-export const removeFqdnRule = async (sgFrom: string, FQDN: string): Promise<AxiosResponse> => {
-  const currentRules = (await getFqdnRules()).data.rules
-  const removedRules = [...currentRules].filter(el => el.sgFrom === sgFrom && el.FQDN === FQDN)
-  return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
-    {
-      fqdnRules: {
-        rules: removedRules,
-      },
-      syncOp: 'Delete',
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
-
-export const getCidrSgRules = (): Promise<AxiosResponse<TCidrRulesResponse>> =>
-  axios.post<TCidrRulesResponse>(`${getBaseEndpoint()}/v1/cird-sg/rules`)
-
-export const getCidrSgRulesBySG = (sg: string): Promise<AxiosResponse<TCidrRulesResponse>> =>
-  axios.post<TCidrRulesResponse>(
-    `${getBaseEndpoint()}/v1/cird-sg/rules`,
-    {
-      sg: [sg],
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-
-export const removeCidrSgRule = async (SG: string, CIDR: string): Promise<AxiosResponse> => {
-  const currentRules = (await getCidrSgRules()).data.rules
-  const removedRules = [...currentRules].filter(el => el.SG === SG && el.CIDR === CIDR)
-  return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
-    {
-      cidrSgRules: {
         rules: removedRules,
       },
       syncOp: 'Delete',
@@ -253,11 +183,81 @@ export const removeSgSgIeIcmpRule = async (sgFrom: string, sgTo: string): Promis
   )
 }
 
-export const getCidrSgIcmpRules = (): Promise<AxiosResponse<TCidrSgIcmpRulesResponse>> =>
-  axios.post<TCidrSgIcmpRulesResponse>(`${getBaseEndpoint()}/v1/cidr-sg-icmp/rules`)
+export const getSgFqdnRules = (): Promise<AxiosResponse<TSgFqdnRulesResponse>> =>
+  axios.post<TSgFqdnRulesResponse>(`${getBaseEndpoint()}/v1/fqdn/rules`)
 
-export const getCidrSgIcmpRulesBySg = (sg: string): Promise<AxiosResponse<TCidrSgIcmpRulesResponse>> =>
-  axios.post<TCidrSgIcmpRulesResponse>(
+export const getSgFqdnRulesBySgFrom = (sg: string): Promise<AxiosResponse<TSgFqdnRulesResponse>> =>
+  axios.post<TSgFqdnRulesResponse>(
+    `${getBaseEndpoint()}/v1/fqdn/rules`,
+    {
+      sgFrom: [sg],
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+
+export const removeSgFqdnRule = async (sgFrom: string, FQDN: string): Promise<AxiosResponse> => {
+  const currentRules = (await getSgFqdnRules()).data.rules
+  const removedRules = [...currentRules].filter(el => el.sgFrom === sgFrom && el.FQDN === FQDN)
+  return axios.post(
+    `${getBaseEndpoint()}/v1/sync`,
+    {
+      fqdnRules: {
+        rules: removedRules,
+      },
+      syncOp: 'Delete',
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+}
+
+export const getSgCidrRules = (): Promise<AxiosResponse<TSgCidrRulesResponse>> =>
+  axios.post<TSgCidrRulesResponse>(`${getBaseEndpoint()}/v1/cird-sg/rules`)
+
+export const getSgCidrRulesBySg = (sg: string): Promise<AxiosResponse<TSgCidrRulesResponse>> =>
+  axios.post<TSgCidrRulesResponse>(
+    `${getBaseEndpoint()}/v1/cird-sg/rules`,
+    {
+      sg: [sg],
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+
+export const removeSgCidrRule = async (SG: string, CIDR: string): Promise<AxiosResponse> => {
+  const currentRules = (await getSgCidrRules()).data.rules
+  const removedRules = [...currentRules].filter(el => el.SG === SG && el.CIDR === CIDR)
+  return axios.post(
+    `${getBaseEndpoint()}/v1/sync`,
+    {
+      cidrSgRules: {
+        rules: removedRules,
+      },
+      syncOp: 'Delete',
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    },
+  )
+}
+
+export const getSgCidrIcmpRules = (): Promise<AxiosResponse<TSgCidrIcmpRulesResponse>> =>
+  axios.post<TSgCidrIcmpRulesResponse>(`${getBaseEndpoint()}/v1/cidr-sg-icmp/rules`)
+
+export const getSgCidrIcmpRulesBySg = (sg: string): Promise<AxiosResponse<TSgCidrIcmpRulesResponse>> =>
+  axios.post<TSgCidrIcmpRulesResponse>(
     `${getBaseEndpoint()}/v1/cidr-sg-icmp/rules`,
     {
       sg: [sg],
@@ -269,8 +269,8 @@ export const getCidrSgIcmpRulesBySg = (sg: string): Promise<AxiosResponse<TCidrS
     },
   )
 
-export const removeCidrSgIcmpRule = async (sg: string, CIDR: string): Promise<AxiosResponse> => {
-  const currentRules = (await getCidrSgIcmpRules()).data.rules
+export const removeSgCidrIcmpRule = async (sg: string, CIDR: string): Promise<AxiosResponse> => {
+  const currentRules = (await getSgCidrIcmpRules()).data.rules
   const removedRules = [...currentRules].filter(el => el.SG === sg && el.CIDR === CIDR)
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
@@ -289,41 +289,35 @@ export const removeCidrSgIcmpRule = async (sg: string, CIDR: string): Promise<Ax
 }
 
 export const upsertRules = async (
-  sgRules: TSgRule[],
-  fqdnRules: TFqdnRule[],
-  cidrSgRules: TCidrRule[],
+  sgSgRules: TSgSgRule[],
   sgSgIcmpRules: TSgSgIcmpRule[],
   sgSgIeRules: TSgSgIeRule[],
   sgSgIeIcmpRules: TSgSgIeIcmpRule[],
-  cidrSgIcmpRules: TCidrSgIcmpRule[],
+  sgFqdnRules: TSgFqdnRule[],
+  sgCidrRules: TSgCidrRule[],
+  sgCidrIcmpRules: TSgCidrIcmpRule[],
 ): Promise<AxiosResponse[] | void> => {
   if (
-    sgRules.length > 0 ||
-    fqdnRules.length > 0 ||
-    cidrSgRules.length > 0 ||
+    sgSgRules.length > 0 ||
     sgSgIcmpRules.length > 0 ||
     sgSgIeRules.length > 0 ||
     sgSgIeIcmpRules.length > 0 ||
-    cidrSgIcmpRules.length > 0
+    sgFqdnRules.length > 0 ||
+    sgCidrRules.length > 0 ||
+    sgCidrIcmpRules.length > 0
   ) {
     /* limitations of current API
     const body: {
-      sgRules?: { rules: TSgRule[] }
-      fqdnRules?: { rules: TFqdnRule[] }
-      cidrSgRules?: { rules: TCidrRule[] }
+      sgSgRules?: { rules: TSgRule[] }
       sgSgIcmpRules?: {rules: TSgSgIcmpRule[] }
       sgSgIeRules?: {rules: TSgSgIeRule[] }
       sgSgIeIcmpRules?: {rules: TSgSgIeIcmpRule[] }
-      cidrSgIcmpRules?: {rules: TCidrSgIcmpRule[] }
+      sgFqdnRules?: { rules: TFqdnRule[] }
+      sgCidrRules?: { rules: TCidrRule[] }
+      sgCidrIcmpRules?: {rules: TCidrSgIcmpRule[] }
     } = {}
-    if (sgRules.length > 0) {
-      body.sgRules = { rules: sgRules }
-    }
-    if (fqdnRules.length > 0) {
-      body.fqdnRules = { rules: fqdnRules }
-    }
-    if (cidrSgRules.length > 0) {
-      body.cidrSgRules = { rules: cidrSgRules }
+    if (sgSgRules.length > 0) {
+      body.sgRules = { rules: sgSgRules }
     }
     if (sgSgIcmpRules.length > 0) {
       body.sgSgIcmpRules = { rules: sgSgIcmpRules }
@@ -334,8 +328,14 @@ export const upsertRules = async (
     if (sgSgIeIcmpRules.length > 0) {
       body.ieSgSgIcmpRules = { rules: sgSgIeIcmpRules }
     }
-    if (cidrSgIcmpRules.length > 0) {
-      body.cidrSgIcmpRules = { rules: cidrSgIcmpRules }
+    if (sgFqdnRules.length > 0) {
+      body.fqdnRules = { rules: sgFqdnRules }
+    }
+    if (sgCidrRules.length > 0) {
+      body.cidrSgRules = { rules: sgCidrRules }
+    }
+    if (sgCidrIcmpRules.length > 0) {
+      body.cidrSgIcmpRules = { rules: sgCidrIcmpRules }
     }
     return axios.post(
       `${getBaseEndpoint()}/v1/sync`,
@@ -350,49 +350,13 @@ export const upsertRules = async (
       },
     ) */
     const PromiseArr = []
-    if (sgRules.length > 0) {
+    if (sgSgRules.length > 0) {
       PromiseArr.push(
         axios.post(
           `${getBaseEndpoint()}/v1/sync`,
           {
             sgRules: {
-              rules: sgRules,
-            },
-            syncOp: 'Upsert',
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        ),
-      )
-    }
-    if (fqdnRules.length > 0) {
-      PromiseArr.push(
-        axios.post(
-          `${getBaseEndpoint()}/v1/sync`,
-          {
-            fqdnRules: {
-              rules: fqdnRules,
-            },
-            syncOp: 'Upsert',
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        ),
-      )
-    }
-    if (cidrSgRules.length > 0) {
-      PromiseArr.push(
-        axios.post(
-          `${getBaseEndpoint()}/v1/sync`,
-          {
-            cidrSgRules: {
-              rules: cidrSgRules,
+              rules: sgSgRules,
             },
             syncOp: 'Upsert',
           },
@@ -458,13 +422,50 @@ export const upsertRules = async (
         ),
       )
     }
-    if (cidrSgIcmpRules.length > 0) {
+
+    if (sgFqdnRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            fqdnRules: {
+              rules: sgFqdnRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (sgCidrRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            cidrSgRules: {
+              rules: sgCidrRules,
+            },
+            syncOp: 'Upsert',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (sgCidrIcmpRules.length > 0) {
       PromiseArr.push(
         axios.post(
           `${getBaseEndpoint()}/v1/sync`,
           {
             cidrSgIcmpRules: {
-              rules: cidrSgIcmpRules,
+              rules: sgCidrIcmpRules,
             },
             syncOp: 'Upsert',
           },
@@ -482,41 +483,35 @@ export const upsertRules = async (
 }
 
 export const deleteRules = async (
-  sgRules: TSgRule[],
-  fqdnRules: TFqdnRule[],
-  cidrSgRules: TCidrRule[],
+  sgSgRules: TSgSgRule[],
   sgSgIcmpRules: TSgSgIcmpRule[],
   sgSgIeRules: TSgSgIeRule[],
   sgSgIeIcmpRules: TSgSgIeIcmpRule[],
-  cidrSgIcmpRules: TCidrSgIcmpRule[],
+  sgFqdnRules: TSgFqdnRule[],
+  sgCidrRules: TSgCidrRule[],
+  sgCidrIcmpRules: TSgCidrIcmpRule[],
 ): Promise<AxiosResponse[] | void> => {
   if (
-    sgRules.length > 0 ||
-    fqdnRules.length > 0 ||
-    cidrSgRules.length > 0 ||
+    sgSgRules.length > 0 ||
     sgSgIcmpRules.length > 0 ||
     sgSgIeRules.length > 0 ||
     sgSgIeIcmpRules.length > 0 ||
-    cidrSgIcmpRules.length > 0
+    sgFqdnRules.length > 0 ||
+    sgCidrRules.length > 0 ||
+    sgCidrIcmpRules.length > 0
   ) {
     /* limitations of current API
     const body: {
-      sgRules?: { rules: TSgRule[] }
-      fqdnRules?: { rules: TFqdnRule[] }
-      cidrSgRules?: { rules: TCidrRule[] }
+      sgSgRules?: { rules: TSgRule[] }
       sgSgIcmpRules?: { rules: TSgSgIcmpRule[] }
       sgSgIeRules?: { rules: TSgSgIeRule[] }
       sgSgIeIcmpRules?: { rules: TSgSgIeIcmpRule[] }
-      cidrSgIcmpRules?: { rules: cidrSgIcmpRules[] }
+      sgFqdnRules?: { rules: TFqdnRule[] }
+      sgCidrRules?: { rules: TCidrRule[] }
+      sgCidrIcmpRules?: { rules: cidrSgIcmpRules[] }
     } = {}
-    if (sgRules.length > 0) {
-      body.sgRules = { rules: sgRules }
-    }
-    if (fqdnRules.length > 0) {
-      body.fqdnRules = { rules: fqdnRules }
-    }
-    if (cidrSgRules.length > 0) {
-      body.cidrSgRules = { rules: cidrSgRules }
+    if (sgSgRules.length > 0) {
+      body.sgRules = { rules: sgSgRules }
     }
     if (sgSgIcmpRules.length > 0) {
       body.sgSgIcmpRules = { rules: sgSgIcmpRules }
@@ -527,8 +522,14 @@ export const deleteRules = async (
     if (sgSgIeIcmpRules.length > 0) {
       body.ieSgSgIcmpRules = { rules: sgSgIeIcmpRules }
     }
-    if (cidrSgIcmpRules.length > 0) {
-      body.cidrSgIcmpRules = { rules: cidrSgIcmpRules }
+    if (sgFqdnRules.length > 0) {
+      body.fqdnRules = { rules: sgFqdnRules }
+    }
+    if (sgCidrRules.length > 0) {
+      body.cidrSgRules = { rules: sgCidrRules }
+    }
+    if (sgCidrIcmpRules.length > 0) {
+      body.cidrSgIcmpRules = { rules: sgCidrIcmpRules }
     }
     return axios.post(
       `${getBaseEndpoint()}/v1/sync`,
@@ -544,49 +545,13 @@ export const deleteRules = async (
     )
     */
     const PromiseArr = []
-    if (sgRules.length > 0) {
+    if (sgSgRules.length > 0) {
       PromiseArr.push(
         axios.post(
           `${getBaseEndpoint()}/v1/sync`,
           {
             sgRules: {
-              rules: sgRules,
-            },
-            syncOp: 'Delete',
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        ),
-      )
-    }
-    if (fqdnRules.length > 0) {
-      PromiseArr.push(
-        axios.post(
-          `${getBaseEndpoint()}/v1/sync`,
-          {
-            fqdnRules: {
-              rules: fqdnRules,
-            },
-            syncOp: 'Delete',
-          },
-          {
-            headers: {
-              'Content-Type': 'application/json',
-            },
-          },
-        ),
-      )
-    }
-    if (cidrSgRules.length > 0) {
-      PromiseArr.push(
-        axios.post(
-          `${getBaseEndpoint()}/v1/sync`,
-          {
-            cidrSgRules: {
-              rules: cidrSgRules,
+              rules: sgSgRules,
             },
             syncOp: 'Delete',
           },
@@ -652,13 +617,49 @@ export const deleteRules = async (
         ),
       )
     }
-    if (cidrSgIcmpRules.length > 0) {
+    if (sgFqdnRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            fqdnRules: {
+              rules: sgFqdnRules,
+            },
+            syncOp: 'Delete',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (sgCidrRules.length > 0) {
+      PromiseArr.push(
+        axios.post(
+          `${getBaseEndpoint()}/v1/sync`,
+          {
+            cidrSgRules: {
+              rules: sgCidrRules,
+            },
+            syncOp: 'Delete',
+          },
+          {
+            headers: {
+              'Content-Type': 'application/json',
+            },
+          },
+        ),
+      )
+    }
+    if (sgCidrIcmpRules.length > 0) {
       PromiseArr.push(
         axios.post(
           `${getBaseEndpoint()}/v1/sync`,
           {
             cidrSgIcmpRules: {
-              rules: cidrSgIcmpRules,
+              rules: sgCidrIcmpRules,
             },
             syncOp: 'Delete',
           },
@@ -674,132 +675,3 @@ export const deleteRules = async (
   }
   return Promise.resolve()
 }
-
-/*
-export const addRules = async (rules: TSgRule[]): Promise<AxiosResponse> => {
-  const currentRules = (await getRules()).data.rules
-  const newRules = [...currentRules, ...rules]
-  return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
-    {
-      sgRules: {
-        rules: newRules,
-      },
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
-
-export const editRule = async (sourceRule: TSgRule, editedRule: TSgRule): Promise<AxiosResponse> => {
-  const currentRules = (await getRules()).data.rules
-  const newRules = [...currentRules]
-  const editedRuleIndex = newRules.findIndex(el => el.sgFrom === sourceRule.sgFrom && el.sgTo === sourceRule.sgTo)
-  newRules[editedRuleIndex] = { ...editedRule }
-  return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
-    {
-      sgRules: {
-        rules: newRules,
-      },
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
-
-export const addFqdnRules = async (rules: TFqdnRule[]): Promise<AxiosResponse> => {
-  const currentRules = (await getFqdnRules()).data.rules
-  const newRules = [...currentRules, ...rules]
-  return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
-    {
-      fqdnRules: {
-        rules: newRules,
-      },
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
-
-export const editFqdnRule = async (sourceRule: TFqdnRule, editedRule: TFqdnRule): Promise<AxiosResponse> => {
-  const currentRules = (await getFqdnRules()).data.rules
-  const newRules = [...currentRules]
-  const editedRuleIndex = newRules.findIndex(el => el.sgFrom === sourceRule.sgFrom && el.FQDN === sourceRule.FQDN)
-  newRules[editedRuleIndex] = { ...editedRule }
-  return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
-    {
-      fqdnRules: {
-        rules: newRules,
-      },
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
-
-export const addCidrSgRules = async (rules: TCidrRule[]): Promise<AxiosResponse> => {
-  const currentRules = (await getCidrSgRules()).data.rules
-  const newRules = [...currentRules, ...rules]
-  return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
-    {
-      cidrSgRules: {
-        rules: newRules,
-      },
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
-
-export const editCidrSgRule = async (sourceRule: TCidrRule, editedRule: TCidrRule): Promise<AxiosResponse> => {
-  const currentRules = (await getCidrSgRules()).data.rules
-  const newRules = [...currentRules]
-  const editedRuleIndex = newRules.findIndex(el => el.SG === sourceRule.SG && el.CIDR === sourceRule.CIDR)
-  newRules[editedRuleIndex] = { ...editedRule }
-  return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
-    {
-      cidrSgRules: {
-        rules: newRules,
-      },
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-}
-
-export const getSgSgIeRulesBySg = (sg: string): Promise<AxiosResponse<TSgSgIeRulesResponse>> =>
-  axios.post<TSgSgIeRulesResponse>(
-    `${getBaseEndpoint()}/v1/ie-sg-sg/rules`,
-    {
-      Sg: [sg],
-    },
-    {
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    },
-  )
-*/

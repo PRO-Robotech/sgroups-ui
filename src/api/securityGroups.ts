@@ -1,12 +1,12 @@
 import axios, { AxiosResponse } from 'axios'
-import { TSGResponse, TSGDefaultAction } from 'localTypes/securityGroups'
+import { TSgResponse, TSgDefaultAction } from 'localTypes/securityGroups'
 import { getBaseEndpoint } from './env'
 
-export const getSecurityGroups = (): Promise<AxiosResponse<TSGResponse>> =>
-  axios.post<TSGResponse>(`${getBaseEndpoint()}/v1/list/security-groups`)
+export const getSecurityGroups = (): Promise<AxiosResponse<TSgResponse>> =>
+  axios.post<TSgResponse>(`${getBaseEndpoint()}/v1/list/security-groups`)
 
-export const getSecurityGroupByName = (name: string): Promise<AxiosResponse<TSGResponse>> =>
-  axios.post<TSGResponse>(
+export const getSecurityGroupByName = (name: string): Promise<AxiosResponse<TSgResponse>> =>
+  axios.post<TSgResponse>(
     `${getBaseEndpoint()}/v1/list/security-groups`,
     {
       sgNames: [name],
@@ -20,7 +20,7 @@ export const getSecurityGroupByName = (name: string): Promise<AxiosResponse<TSGR
 
 export const addSecurityGroup = async (
   name: string,
-  defaultAction: TSGDefaultAction,
+  defaultAction: TSgDefaultAction,
   networks: string[],
   logs: boolean,
   trace: boolean,
@@ -70,7 +70,7 @@ export const removeSecurityGroup = async (name: string): Promise<AxiosResponse> 
 
 export const editSecurityGroup = async (
   name: string,
-  defaultAction: TSGDefaultAction,
+  defaultAction: TSgDefaultAction,
   networks: string[],
   logs: boolean,
   trace: boolean,

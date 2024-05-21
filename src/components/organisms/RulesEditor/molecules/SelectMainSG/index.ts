@@ -1,1 +1,1 @@
-export * from './SelectMainSG'
+export * from './SelectMainSg'
