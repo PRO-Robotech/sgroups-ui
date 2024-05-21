@@ -3,25 +3,38 @@ import { ActionCreatorWithPayload, Dispatch as ReduxDispatch } from '@reduxjs/to
 import { STATUSES } from 'constants/rules'
 import { TFormSgFqdnRule } from 'localTypes/rules'
 import { getModifiedFieldsInSgFqdnRule } from './getModifiedFields'
+import { getNumberedPriorty } from './getNumberedPriority'
 
 export const edit = (
   dispatch: ReduxDispatch,
   rulesAll: TFormSgFqdnRule[],
   setRules: ActionCreatorWithPayload<TFormSgFqdnRule[]>,
   oldValues: TFormSgFqdnRule,
-  values: TFormSgFqdnRule,
+  values: Omit<TFormSgFqdnRule, 'prioritySome'> & { prioritySome?: number | string },
   toggleEditPopover: (index: number) => void,
 ): void => {
+  const numberedPriorty = getNumberedPriorty(values.prioritySome)
   const newFqdnRules = [...rulesAll]
   const index = newFqdnRules.findIndex(({ id }) => id === oldValues.id)
   if (newFqdnRules[index].formChanges?.status === STATUSES.new) {
-    newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.new } }
+    newFqdnRules[index] = {
+      ...values,
+      initialValues: oldValues.initialValues,
+      prioritySome: numberedPriorty,
+      formChanges: { status: STATUSES.new },
+    }
   } else {
-    const modifiedFields = getModifiedFieldsInSgFqdnRule(newFqdnRules[index], values)
-    if (modifiedFields.length === 0) {
-      newFqdnRules[index] = { ...values }
-    } else {
-      newFqdnRules[index] = { ...values, formChanges: { status: STATUSES.modified, modifiedFields } }
+    const modifiedFields = getModifiedFieldsInSgFqdnRule(newFqdnRules[index], {
+      ...values,
+      prioritySome: numberedPriorty,
+    })
+    if (modifiedFields.length !== 0) {
+      newFqdnRules[index] = {
+        ...values,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
+        formChanges: { status: STATUSES.modified, modifiedFields },
+      }
     }
   }
   dispatch(setRules(newFqdnRules))

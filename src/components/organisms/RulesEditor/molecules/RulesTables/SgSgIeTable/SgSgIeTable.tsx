@@ -67,11 +67,11 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   }
 
   const removeRule = (oldValues: TFormSgSgIeRule) => {
-    remove(dispatch, rulesAll, setRules, defaultTraffic, oldValues, editOpen, setEditOpen, toggleEditPopover)
+    remove(dispatch, rulesAll, setRules, oldValues, editOpen, setEditOpen, toggleEditPopover)
   }
 
   const restoreRule = (oldValues: TFormSgSgIeRule) => {
-    restore(dispatch, rulesAll, setRules, defaultTraffic, oldValues)
+    restore(dispatch, rulesAll, setRules, oldValues)
   }
 
   const columns: ColumnsType<TColumn> = [

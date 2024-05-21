@@ -3,6 +3,7 @@ import { ActionCreatorWithPayload, Dispatch as ReduxDispatch } from '@reduxjs/to
 import { STATUSES } from 'constants/rules'
 import { TFormSgCidrIcmpRule, TTraffic } from 'localTypes/rules'
 import { getModifiedFieldsInSgCidrIcmpRule } from './getModifiedFields'
+import { getNumberedPriorty } from './getNumberedPriority'
 
 export const edit = (
   dispatch: ReduxDispatch,
@@ -10,21 +11,31 @@ export const edit = (
   setRules: ActionCreatorWithPayload<TFormSgCidrIcmpRule[]>,
   defaultTraffic: TTraffic,
   oldValues: TFormSgCidrIcmpRule,
-  values: TFormSgCidrIcmpRule,
+  values: Omit<TFormSgCidrIcmpRule, 'prioritySome'> & { prioritySome?: number | string },
   toggleEditPopover: (index: number) => void,
 ): void => {
+  const numberedPriorty = getNumberedPriorty(values.prioritySome)
   const newRules = [...rulesAll]
   const index = newRules.findIndex(({ id }) => id === oldValues.id)
   if (newRules[index].formChanges?.status === STATUSES.new) {
-    newRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
+    newRules[index] = {
+      ...values,
+      traffic: defaultTraffic,
+      initialValues: oldValues.initialValues,
+      prioritySome: numberedPriorty,
+      formChanges: { status: STATUSES.new },
+    }
   } else {
-    const modifiedFields = getModifiedFieldsInSgCidrIcmpRule(newRules[index], values)
-    if (modifiedFields.length === 0) {
-      newRules[index] = { ...values }
-    } else {
+    const modifiedFields = getModifiedFieldsInSgCidrIcmpRule(newRules[index], {
+      ...values,
+      prioritySome: numberedPriorty,
+    })
+    if (modifiedFields.length !== 0) {
       newRules[index] = {
         ...values,
         traffic: defaultTraffic,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
     }
@@ -37,7 +48,6 @@ export const remove = (
   dispatch: ReduxDispatch,
   rulesAll: TFormSgCidrIcmpRule[],
   setRules: ActionCreatorWithPayload<TFormSgCidrIcmpRule[]>,
-  defaultTraffic: TTraffic,
   oldValues: TFormSgCidrIcmpRule,
   editOpen: boolean[],
   setEditOpen: Dispatch<SetStateAction<boolean[]>>,
@@ -53,7 +63,6 @@ export const remove = (
   } else {
     newCidrSgIcmpRules[index] = {
       ...newCidrSgIcmpRules[index],
-      traffic: defaultTraffic,
       formChanges: { status: STATUSES.deleted },
     }
     dispatch(setRules(newCidrSgIcmpRules))
@@ -65,14 +74,12 @@ export const restore = (
   dispatch: ReduxDispatch,
   rulesAll: TFormSgCidrIcmpRule[],
   setRules: ActionCreatorWithPayload<TFormSgCidrIcmpRule[]>,
-  defaultTraffic: TTraffic,
   oldValues: TFormSgCidrIcmpRule,
 ): void => {
   const newCidrSgIcmpRules = [...rulesAll]
   const index = newCidrSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
   newCidrSgIcmpRules[index] = {
     ...newCidrSgIcmpRules[index],
-    traffic: defaultTraffic,
     formChanges: { status: STATUSES.modified },
     checked: false,
   }

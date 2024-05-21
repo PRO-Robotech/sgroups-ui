@@ -68,11 +68,11 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
   }
 
   const removeRule = (oldValues: TFormSgCidrRule) => {
-    remove(dispatch, rulesAll, setRules, defaultTraffic, oldValues, editOpen, setEditOpen, toggleEditPopover)
+    remove(dispatch, rulesAll, setRules, oldValues, editOpen, setEditOpen, toggleEditPopover)
   }
 
   const restoreRule = (oldValues: TFormSgCidrRule) => {
-    restore(dispatch, rulesAll, setRules, defaultTraffic, oldValues)
+    restore(dispatch, rulesAll, setRules, oldValues)
   }
 
   const columns: ColumnsType<TColumn> = [

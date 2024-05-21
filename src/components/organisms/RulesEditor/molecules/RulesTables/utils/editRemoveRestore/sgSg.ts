@@ -4,6 +4,7 @@ import { STATUSES } from 'constants/rules'
 import { TFormSgSgRule } from 'localTypes/rules'
 import { getModifiedFieldsInSgSgRule } from './getModifiedFields'
 import { findSgSgPair } from './legacyFindPair'
+import { getNumberedPriorty } from './getNumberedPriority'
 
 /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
 export const edit = (
@@ -14,26 +15,44 @@ export const edit = (
   setRulesOtherside: ActionCreatorWithPayload<TFormSgSgRule[]>,
   centerSg: string | undefined,
   oldValues: TFormSgSgRule,
-  values: TFormSgSgRule,
+  values: Omit<TFormSgSgRule, 'prioritySome'> & { prioritySome?: number | string },
   toggleEditPopover: (index: number) => void,
 ): void => {
+  const numberedPriorty = getNumberedPriorty(values.prioritySome)
   const newSgRules = [...rulesAll]
   const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
   const newSgRulesOtherside = [...rulesOtherside]
   /* legacy */
   const newSgRulesOthersideIndex = findSgSgPair(centerSg, newSgRules[index], rulesOtherside)
   if (newSgRules[index].formChanges?.status === STATUSES.new) {
-    newSgRules[index] = { ...values, formChanges: { status: STATUSES.new } }
-    newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values, formChanges: { status: STATUSES.new } }
+    newSgRules[index] = {
+      ...values,
+      initialValues: oldValues.initialValues,
+      prioritySome: numberedPriorty,
+      formChanges: { status: STATUSES.new },
+    }
+    newSgRulesOtherside[newSgRulesOthersideIndex] = {
+      ...values,
+      initialValues: oldValues.initialValues,
+      prioritySome: numberedPriorty,
+      formChanges: { status: STATUSES.new },
+    }
   } else {
-    const modifiedFields = getModifiedFieldsInSgSgRule(newSgRules[index], values)
-    if (modifiedFields.length === 0) {
-      newSgRules[index] = { ...values }
-      newSgRulesOtherside[newSgRulesOthersideIndex] = { ...values }
-    } else {
-      newSgRules[index] = { ...values, formChanges: { status: STATUSES.modified, modifiedFields } }
+    const modifiedFields = getModifiedFieldsInSgSgRule(newSgRules[index], {
+      ...values,
+      prioritySome: numberedPriorty,
+    })
+    if (modifiedFields.length !== 0) {
+      newSgRules[index] = {
+        ...values,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
+        formChanges: { status: STATUSES.modified, modifiedFields },
+      }
       newSgRulesOtherside[newSgRulesOthersideIndex] = {
         ...values,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
     }

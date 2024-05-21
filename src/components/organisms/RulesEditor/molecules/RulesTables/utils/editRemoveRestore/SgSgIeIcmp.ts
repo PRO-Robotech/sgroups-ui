@@ -3,6 +3,7 @@ import { ActionCreatorWithPayload, Dispatch as ReduxDispatch } from '@reduxjs/to
 import { STATUSES } from 'constants/rules'
 import { TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
 import { getModifiedFieldsInSgSgIeIcmpRule } from './getModifiedFields'
+import { getNumberedPriorty } from './getNumberedPriority'
 
 export const edit = (
   dispatch: ReduxDispatch,
@@ -10,21 +11,31 @@ export const edit = (
   setRules: ActionCreatorWithPayload<TFormSgSgIeIcmpRule[]>,
   defaultTraffic: TTraffic,
   oldValues: TFormSgSgIeIcmpRule,
-  values: TFormSgSgIeIcmpRule,
+  values: Omit<TFormSgSgIeIcmpRule, 'prioritySome'> & { prioritySome?: number | string },
   toggleEditPopover: (index: number) => void,
 ): void => {
+  const numberedPriorty = getNumberedPriorty(values.prioritySome)
   const newSgSgIeIcmpRules = [...rulesAll]
   const index = newSgSgIeIcmpRules.findIndex(({ id }) => id === oldValues.id)
   if (newSgSgIeIcmpRules[index].formChanges?.status === STATUSES.new) {
-    newSgSgIeIcmpRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
+    newSgSgIeIcmpRules[index] = {
+      ...values,
+      traffic: defaultTraffic,
+      initialValues: oldValues.initialValues,
+      prioritySome: numberedPriorty,
+      formChanges: { status: STATUSES.new },
+    }
   } else {
-    const modifiedFields = getModifiedFieldsInSgSgIeIcmpRule(newSgSgIeIcmpRules[index], values)
-    if (modifiedFields.length === 0) {
-      newSgSgIeIcmpRules[index] = { ...values }
-    } else {
+    const modifiedFields = getModifiedFieldsInSgSgIeIcmpRule(newSgSgIeIcmpRules[index], {
+      ...values,
+      prioritySome: numberedPriorty,
+    })
+    if (modifiedFields.length !== 0) {
       newSgSgIeIcmpRules[index] = {
         ...values,
         traffic: defaultTraffic,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
     }
@@ -37,7 +48,6 @@ export const remove = (
   dispatch: ReduxDispatch,
   rulesAll: TFormSgSgIeIcmpRule[],
   setRules: ActionCreatorWithPayload<TFormSgSgIeIcmpRule[]>,
-  defaultTraffic: TTraffic,
   oldValues: TFormSgSgIeIcmpRule,
   editOpen: boolean[],
   setEditOpen: Dispatch<SetStateAction<boolean[]>>,
@@ -53,7 +63,6 @@ export const remove = (
   } else {
     newSgSgIeIcmpRules[index] = {
       ...newSgSgIeIcmpRules[index],
-      traffic: defaultTraffic,
       formChanges: { status: STATUSES.deleted },
     }
     dispatch(setRules(newSgSgIeIcmpRules))
@@ -65,14 +74,12 @@ export const restore = (
   dispatch: ReduxDispatch,
   rulesAll: TFormSgSgIeIcmpRule[],
   setRules: ActionCreatorWithPayload<TFormSgSgIeIcmpRule[]>,
-  defaultTraffic: TTraffic,
   oldValues: TFormSgSgIeIcmpRule,
 ): void => {
   const newSgSgIeIcmpRules = [...rulesAll]
   const index = newSgSgIeIcmpRules.findIndex(({ id }) => id === oldValues.id)
   newSgSgIeIcmpRules[index] = {
     ...newSgSgIeIcmpRules[index],
-    traffic: defaultTraffic,
     formChanges: { status: STATUSES.modified },
     checked: false,
   }

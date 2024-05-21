@@ -10,25 +10,25 @@ import {
 
 export const getModifiedFieldsInSgSgRule = (rule: TFormSgSgRule, values: TFormSgSgRule): string[] => {
   const modifiedFields = []
-  if (rule.sg !== values.sg) {
+  if (rule.initialValues.sg !== values.sg) {
     modifiedFields.push('sg')
   }
-  if (rule.portsSource !== values.portsSource) {
+  if (rule.initialValues.portsSource !== values.portsSource) {
     modifiedFields.push('portsSource')
   }
-  if (rule.portsDestination !== values.portsDestination) {
+  if (rule.initialValues.portsDestination !== values.portsDestination) {
     modifiedFields.push('portsDestination')
   }
-  if (rule.transport !== values.transport) {
+  if (rule.initialValues.transport !== values.transport) {
     modifiedFields.push('transport')
   }
-  if (rule.logs !== values.logs) {
+  if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
   }
-  if (rule.action !== values.action) {
+  if (rule.initialValues.action !== values.action) {
     modifiedFields.push('action')
   }
-  if (rule.prioritySome !== values.prioritySome) {
+  if (rule.initialValues.prioritySome !== values.prioritySome) {
     modifiedFields.push('prioritySome')
   }
   return modifiedFields
@@ -36,25 +36,25 @@ export const getModifiedFieldsInSgSgRule = (rule: TFormSgSgRule, values: TFormSg
 
 export const getModifiedFieldsInSgSgIcmpRule = (rule: TFormSgSgIcmpRule, values: TFormSgSgIcmpRule): string[] => {
   const modifiedFields = []
-  if (rule.sg !== values.sg) {
+  if (rule.initialValues.sg !== values.sg) {
     modifiedFields.push('sg')
   }
-  if (rule.IPv !== values.IPv) {
+  if (rule.initialValues.IPv !== values.IPv) {
     modifiedFields.push('ipv')
   }
-  if (JSON.stringify(rule.types.sort()) !== JSON.stringify(values.types.sort())) {
+  if (JSON.stringify(rule.initialValues.types.sort()) !== JSON.stringify(values.types.sort())) {
     modifiedFields.push('types')
   }
-  if (rule.logs !== values.logs) {
+  if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
   }
-  if (rule.trace !== values.trace) {
+  if (rule.initialValues.trace !== values.trace) {
     modifiedFields.push('trace')
   }
-  if (rule.action !== values.action) {
+  if (rule.initialValues.action !== values.action) {
     modifiedFields.push('action')
   }
-  if (rule.prioritySome !== values.prioritySome) {
+  if (rule.initialValues.prioritySome !== values.prioritySome) {
     modifiedFields.push('prioritySome')
   }
   return modifiedFields
@@ -62,28 +62,29 @@ export const getModifiedFieldsInSgSgIcmpRule = (rule: TFormSgSgIcmpRule, values:
 
 export const getModifiedFieldsInSgSgIeRule = (rule: TFormSgSgIeRule, values: TFormSgSgIeRule): string[] => {
   const modifiedFields = []
-  if (rule.sg !== values.sg) {
+  console.log(rule.initialValues)
+  if (rule.initialValues.sg !== values.sg) {
     modifiedFields.push('sg')
   }
-  if (rule.portsSource !== values.portsSource) {
+  if (rule.initialValues.portsSource !== values.portsSource) {
     modifiedFields.push('portsSource')
   }
-  if (rule.portsDestination !== values.portsDestination) {
+  if (rule.initialValues.portsDestination !== values.portsDestination) {
     modifiedFields.push('portsDestination')
   }
-  if (rule.transport !== values.transport) {
+  if (rule.initialValues.transport !== values.transport) {
     modifiedFields.push('transport')
   }
-  if (rule.logs !== values.logs) {
+  if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
   }
-  if (rule.trace !== values.trace) {
+  if (rule.initialValues.trace !== values.trace) {
     modifiedFields.push('trace')
   }
-  if (rule.action !== values.action) {
+  if (rule.initialValues.action !== values.action) {
     modifiedFields.push('action')
   }
-  if (rule.prioritySome !== values.prioritySome) {
+  if (rule.initialValues.prioritySome !== values.prioritySome) {
     modifiedFields.push('prioritySome')
   }
   return modifiedFields
@@ -91,25 +92,25 @@ export const getModifiedFieldsInSgSgIeRule = (rule: TFormSgSgIeRule, values: TFo
 
 export const getModifiedFieldsInSgSgIeIcmpRule = (rule: TFormSgSgIeIcmpRule, values: TFormSgSgIeIcmpRule): string[] => {
   const modifiedFields = []
-  if (rule.sg !== values.sg) {
+  if (rule.initialValues.sg !== values.sg) {
     modifiedFields.push('sg')
   }
-  if (rule.IPv !== values.IPv) {
+  if (rule.initialValues.IPv !== values.IPv) {
     modifiedFields.push('ipv')
   }
-  if (JSON.stringify(rule.types.sort()) !== JSON.stringify(values.types.sort())) {
+  if (JSON.stringify(rule.initialValues.types.sort()) !== JSON.stringify(values.types.sort())) {
     modifiedFields.push('types')
   }
-  if (rule.logs !== values.logs) {
+  if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
   }
-  if (rule.trace !== values.trace) {
+  if (rule.initialValues.trace !== values.trace) {
     modifiedFields.push('trace')
   }
-  if (rule.action !== values.action) {
+  if (rule.initialValues.action !== values.action) {
     modifiedFields.push('action')
   }
-  if (rule.prioritySome !== values.prioritySome) {
+  if (rule.initialValues.prioritySome !== values.prioritySome) {
     modifiedFields.push('prioritySome')
   }
   return modifiedFields
@@ -117,25 +118,25 @@ export const getModifiedFieldsInSgSgIeIcmpRule = (rule: TFormSgSgIeIcmpRule, val
 
 export const getModifiedFieldsInSgFqdnRule = (rule: TFormSgFqdnRule, values: TFormSgFqdnRule): string[] => {
   const modifiedFields = []
-  if (rule.fqdn !== values.fqdn) {
+  if (rule.initialValues.fqdn !== values.fqdn) {
     modifiedFields.push('fqdn')
   }
-  if (rule.portsSource !== values.portsSource) {
+  if (rule.initialValues.portsSource !== values.portsSource) {
     modifiedFields.push('portsSource')
   }
-  if (rule.portsDestination !== values.portsDestination) {
+  if (rule.initialValues.portsDestination !== values.portsDestination) {
     modifiedFields.push('portsDestination')
   }
-  if (rule.transport !== values.transport) {
+  if (rule.initialValues.transport !== values.transport) {
     modifiedFields.push('transport')
   }
-  if (rule.logs !== values.logs) {
+  if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
   }
-  if (rule.action !== values.action) {
+  if (rule.initialValues.action !== values.action) {
     modifiedFields.push('action')
   }
-  if (rule.prioritySome !== values.prioritySome) {
+  if (rule.initialValues.prioritySome !== values.prioritySome) {
     modifiedFields.push('prioritySome')
   }
   return modifiedFields
@@ -143,28 +144,28 @@ export const getModifiedFieldsInSgFqdnRule = (rule: TFormSgFqdnRule, values: TFo
 
 export const getModifiedFieldsInSgCidrRule = (rule: TFormSgCidrRule, values: TFormSgCidrRule): string[] => {
   const modifiedFields = []
-  if (rule.cidr !== values.cidr) {
+  if (rule.initialValues.cidr !== values.cidr) {
     modifiedFields.push('cidr')
   }
-  if (rule.portsSource !== values.portsSource) {
+  if (rule.initialValues.portsSource !== values.portsSource) {
     modifiedFields.push('portsSource')
   }
-  if (rule.portsDestination !== values.portsDestination) {
+  if (rule.initialValues.portsDestination !== values.portsDestination) {
     modifiedFields.push('portsDestination')
   }
-  if (rule.transport !== values.transport) {
+  if (rule.initialValues.transport !== values.transport) {
     modifiedFields.push('transport')
   }
-  if (rule.logs !== values.logs) {
+  if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
   }
-  if (rule.trace !== values.trace) {
+  if (rule.initialValues.trace !== values.trace) {
     modifiedFields.push('trace')
   }
-  if (rule.action !== values.action) {
+  if (rule.initialValues.action !== values.action) {
     modifiedFields.push('action')
   }
-  if (rule.prioritySome !== values.prioritySome) {
+  if (rule.initialValues.prioritySome !== values.prioritySome) {
     modifiedFields.push('prioritySome')
   }
   return modifiedFields
@@ -172,25 +173,25 @@ export const getModifiedFieldsInSgCidrRule = (rule: TFormSgCidrRule, values: TFo
 
 export const getModifiedFieldsInSgCidrIcmpRule = (rule: TFormSgCidrIcmpRule, values: TFormSgCidrIcmpRule): string[] => {
   const modifiedFields = []
-  if (rule.cidr !== values.cidr) {
+  if (rule.initialValues.cidr !== values.cidr) {
     modifiedFields.push('cidr')
   }
-  if (rule.IPv !== values.IPv) {
+  if (rule.initialValues.IPv !== values.IPv) {
     modifiedFields.push('ipv')
   }
-  if (JSON.stringify(rule.types.sort()) !== JSON.stringify(values.types.sort())) {
+  if (JSON.stringify(rule.initialValues.types.sort()) !== JSON.stringify(values.types.sort())) {
     modifiedFields.push('types')
   }
-  if (rule.logs !== values.logs) {
+  if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
   }
-  if (rule.trace !== values.trace) {
+  if (rule.initialValues.trace !== values.trace) {
     modifiedFields.push('trace')
   }
-  if (rule.action !== values.action) {
+  if (rule.initialValues.action !== values.action) {
     modifiedFields.push('action')
   }
-  if (rule.prioritySome !== values.prioritySome) {
+  if (rule.initialValues.prioritySome !== values.prioritySome) {
     modifiedFields.push('prioritySome')
   }
   return modifiedFields

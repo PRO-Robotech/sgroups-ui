@@ -3,6 +3,7 @@ import { ActionCreatorWithPayload, Dispatch as ReduxDispatch } from '@reduxjs/to
 import { STATUSES } from 'constants/rules'
 import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
 import { getModifiedFieldsInSgSgIeRule } from './getModifiedFields'
+import { getNumberedPriorty } from './getNumberedPriority'
 
 export const edit = (
   dispatch: ReduxDispatch,
@@ -10,21 +11,31 @@ export const edit = (
   setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>,
   defaultTraffic: TTraffic,
   oldValues: TFormSgSgIeRule,
-  values: TFormSgSgIeRule,
+  values: Omit<TFormSgSgIeRule, 'prioritySome'> & { prioritySome?: number | string },
   toggleEditPopover: (index: number) => void,
 ): void => {
+  const numberedPriorty = getNumberedPriorty(values.prioritySome)
   const newSgSgIeRules = [...rulesAll]
   const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
   if (newSgSgIeRules[index].formChanges?.status === STATUSES.new) {
-    newSgSgIeRules[index] = { ...values, traffic: defaultTraffic, formChanges: { status: STATUSES.new } }
+    newSgSgIeRules[index] = {
+      ...values,
+      initialValues: oldValues.initialValues,
+      traffic: defaultTraffic,
+      prioritySome: numberedPriorty,
+      formChanges: { status: STATUSES.new },
+    }
   } else {
-    const modifiedFields = getModifiedFieldsInSgSgIeRule(newSgSgIeRules[index], values)
-    if (modifiedFields.length === 0) {
-      newSgSgIeRules[index] = { ...values }
-    } else {
+    const modifiedFields = getModifiedFieldsInSgSgIeRule(newSgSgIeRules[index], {
+      ...values,
+      prioritySome: numberedPriorty,
+    })
+    if (modifiedFields.length !== 0) {
       newSgSgIeRules[index] = {
         ...values,
+        initialValues: oldValues.initialValues,
         traffic: defaultTraffic,
+        prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
     }
@@ -37,7 +48,6 @@ export const remove = (
   dispatch: ReduxDispatch,
   rulesAll: TFormSgSgIeRule[],
   setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>,
-  defaultTraffic: TTraffic,
   oldValues: TFormSgSgIeRule,
   editOpen: boolean[],
   setEditOpen: Dispatch<SetStateAction<boolean[]>>,
@@ -53,7 +63,6 @@ export const remove = (
   } else {
     newSgSgIeRules[index] = {
       ...newSgSgIeRules[index],
-      traffic: defaultTraffic,
       formChanges: { status: STATUSES.deleted },
     }
     dispatch(setRules(newSgSgIeRules))
@@ -65,14 +74,12 @@ export const restore = (
   dispatch: ReduxDispatch,
   rulesAll: TFormSgSgIeRule[],
   setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>,
-  defaultTraffic: TTraffic,
   oldValues: TFormSgSgIeRule,
 ): void => {
   const newSgSgIeRules = [...rulesAll]
   const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
   newSgSgIeRules[index] = {
     ...newSgSgIeRules[index],
-    traffic: defaultTraffic,
     formChanges: { status: STATUSES.modified },
     checked: false,
   }

@@ -10,7 +10,7 @@ import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
 import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/rulesSgCidr'
 import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 import { Spacer } from 'components'
-import { TcpUdpAndIcmpSwitcher } from '../../../../atoms'
+import { TcpUdpAndIcmpSwitcher, GroupRulesNodeWrapper } from '../../../../atoms'
 import { SelectCenterSg } from '../../../../molecules'
 import { RulesBlockFactory } from '../../../../organisms'
 import { Arrows } from '../../molecules'
@@ -174,7 +174,6 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
               />
             }
           />
-          {centerSg}
         </div>
       </Styled.CardsCol>
       <Styled.CardsCol>
@@ -290,17 +289,19 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
         </div>
         <Spacer $space={100} $samespace />
         <div id={FQDN_TO_ID}>
-          <RulesBlockFactory
-            forceArrowsUpdate={forceArrowsUpdate}
-            title="FQDN To"
-            type="sgFqdn"
-            popoverPosition="right"
-            data={{
-              rules: rulesSgFqdnTo,
-              setRules: setRulesSgFqdnTo,
-            }}
-            isDisabled={!centerSg}
-          />
+          <GroupRulesNodeWrapper>
+            <RulesBlockFactory
+              forceArrowsUpdate={forceArrowsUpdate}
+              title="FQDN To"
+              type="sgFqdn"
+              popoverPosition="right"
+              data={{
+                rules: rulesSgFqdnTo,
+                setRules: setRulesSgFqdnTo,
+              }}
+              isDisabled={!centerSg}
+            />
+          </GroupRulesNodeWrapper>
         </div>
       </Styled.CardsCol>
       <Arrows key={arrowsKey} />

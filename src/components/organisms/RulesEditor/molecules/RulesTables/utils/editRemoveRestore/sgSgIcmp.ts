@@ -4,6 +4,7 @@ import { STATUSES } from 'constants/rules'
 import { TFormSgSgIcmpRule } from 'localTypes/rules'
 import { getModifiedFieldsInSgSgIcmpRule } from './getModifiedFields'
 import { findSgSgIcmpPair } from './legacyFindPair'
+import { getNumberedPriorty } from './getNumberedPriority'
 
 /* remove newSgRulesOtherside as legacy after only ie-sg-sg will remain */
 export const edit = (
@@ -14,9 +15,10 @@ export const edit = (
   setRulesOtherside: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>,
   centerSg: string | undefined,
   oldValues: TFormSgSgIcmpRule,
-  values: TFormSgSgIcmpRule,
+  values: Omit<TFormSgSgIcmpRule, 'prioritySome'> & { prioritySome?: number | string },
   toggleEditPopover: (index: number) => void,
 ): void => {
+  const numberedPriorty = getNumberedPriorty(values.prioritySome)
   const newSgSgIcmpRules = [...rulesAll]
   const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
   const newSgSgIcmpRulesOtherside = [...rulesOtherside]
@@ -25,26 +27,32 @@ export const edit = (
   if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
     newSgSgIcmpRules[index] = {
       ...values,
+      initialValues: oldValues.initialValues,
+      prioritySome: numberedPriorty,
       formChanges: { status: STATUSES.new },
     }
     newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
       ...values,
+      initialValues: oldValues.initialValues,
+      prioritySome: numberedPriorty,
       formChanges: { status: STATUSES.new },
     }
   } else {
-    const modifiedFields = getModifiedFieldsInSgSgIcmpRule(newSgSgIcmpRules[index], values)
-    if (modifiedFields.length === 0) {
-      newSgSgIcmpRules[index] = { ...values }
-      newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
-        ...values,
-      }
-    } else {
+    const modifiedFields = getModifiedFieldsInSgSgIcmpRule(newSgSgIcmpRules[index], {
+      ...values,
+      prioritySome: numberedPriorty,
+    })
+    if (modifiedFields.length !== 0) {
       newSgSgIcmpRules[index] = {
         ...values,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
       newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
         ...values,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
     }
