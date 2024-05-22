@@ -1,3 +1,5 @@
+/* common properties */
+
 export type TTransport = 'TCP' | 'UDP'
 
 export type TPortGroup = {
@@ -19,6 +21,32 @@ export type TAction = {
   action: TActionType
 }
 
+export type TIpVersion = 'IPv4' | 'IPv6'
+
+export type TICMPDescription = {
+  IPv: TIpVersion
+  Types: number[]
+}
+
+/* internal properties for rules */
+
+export type TFormChangesStatuses = 'modified' | 'deleted' | 'new'
+
+export type TFormChanges = {
+  status: TFormChangesStatuses
+  modifiedFields?: string[]
+}
+
+type TCheckStatus = {
+  checked?: boolean
+}
+
+type TId = {
+  id: string
+}
+
+/* rules for/from backend */
+
 export type TSgSgRule = {
   sgFrom: string
   sgTo: string
@@ -30,13 +58,6 @@ export type TSgSgRule = {
 
 export type TSgSgRulesResponse = {
   rules: TSgSgRule[]
-}
-
-export type TIpVersion = 'IPv4' | 'IPv6'
-
-export type TICMPDescription = {
-  IPv: TIpVersion
-  Types: number[]
 }
 
 export type TSgSgIcmpRule = {
@@ -123,20 +144,7 @@ export type TSgCidrIcmpRulesResponse = {
   rules: TSgCidrIcmpRule[]
 }
 
-export type TFormChangesStatuses = 'modified' | 'deleted' | 'new'
-
-export type TFormChanges = {
-  status: TFormChangesStatuses
-  modifiedFields?: string[]
-}
-
-type TCheckStatus = {
-  checked?: boolean
-}
-
-type TId = {
-  id: string
-}
+/* rules for internal logic */
 
 export type TFormSgSgRuleBase = {
   sg: string
@@ -256,37 +264,9 @@ export type TFormSgCidrIcmpRule = TFormSgCidrIcmpRuleBase & {
 } & TCheckStatus &
   TId
 
-export type TComposedForSubmitSgSgRules = {
-  rules: TSgSgRule[]
-  rulesToDelete: TSgSgRule[]
-}
+/* rules to submit */
 
-export type TComposedForSubmitSgSgIcmpRules = {
-  rules: TSgSgIcmpRule[]
-  rulesToDelete: TSgSgIcmpRule[]
-}
-
-export type TComposedForSubmitSgSgIeRules = {
-  rules: TSgSgIeRule[]
-  rulesToDelete: TSgSgIeRule[]
-}
-
-export type TComposedForSubmitSgSgIeIcmpRules = {
-  rules: TSgSgIeIcmpRule[]
-  rulesToDelete: TSgSgIeIcmpRule[]
-}
-
-export type TComposedForSubmitSgFqdnRules = {
-  rules: TSgFqdnRule[]
-  rulesToDelete: TSgFqdnRule[]
-}
-
-export type TComposedForSubmitSgCidrRules = {
-  rules: TSgCidrRule[]
-  rulesToDelete: TSgCidrRule[]
-}
-
-export type TComposedForSubmitSgCidrIcmpRules = {
-  rules: TSgCidrIcmpRule[]
-  rulesToDelete: TSgCidrIcmpRule[]
+export type TComposedForSubmitRules<T> = {
+  rules: T[]
+  rulesToDelete: T[]
 }
