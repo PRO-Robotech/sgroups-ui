@@ -62,6 +62,10 @@ export const composeAllTypesOfSgSgRules = (
       } else {
         result.rules.push(rule)
       }
+      /* cuz transport + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('transport')) {
+        result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
+      }
     } else {
       const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rulesToDelete)
       if (ruleInRulesArr) {
@@ -103,6 +107,10 @@ export const composeAllTypesOfSgSgRules = (
           }
         } else {
           result.rules.push(rule)
+        }
+        /* cuz transport + sg === alt key (primary is internal on backend) */
+        if (formChanges?.modifiedFields?.includes('transport')) {
+          result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
         }
       } else {
         const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rulesToDelete)
@@ -220,6 +228,10 @@ export const composeAllTypesOfSgSgIeRules = (
         } else {
           result.rules.push(rule)
         }
+        /* cuz transport + sg === alt key (primary is internal on backend) */
+        if (formChanges?.modifiedFields?.includes('transport')) {
+          result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
+        }
       } else {
         const ruleInRulesArr = findSgSgIeRuleInResultArr(rule, result.rulesToDelete)
         if (ruleInRulesArr) {
@@ -312,6 +324,10 @@ export const composeAllTypesOfSgFqdnRules = (
         } else {
           result.rules.push(rule)
         }
+        /* cuz transport + sg === alt key (primary is internal on backend) */
+        if (formChanges?.modifiedFields?.includes('transport')) {
+          result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
+        }
       } else {
         const ruleInRulesArr = findSgFqdnRuleInResultArr(rule, result.rulesToDelete)
         if (ruleInRulesArr) {
@@ -369,6 +385,10 @@ export const composeAllTypesOfSgCidrRules = (
           }
         } else {
           result.rules.push(rule)
+        }
+        /* cuz transport + sg === alt key (primary is internal on backend) */
+        if (formChanges?.modifiedFields?.includes('transport')) {
+          result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
         }
       } else {
         const ruleInRulesArr = findSgCidrRuleInResultArr(rule, result.rulesToDelete)
