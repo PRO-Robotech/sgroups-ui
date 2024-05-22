@@ -9,10 +9,11 @@ import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
-import { EditSgSgIePopover } from '../../../atoms'
+import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSgIe'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIe'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell, TransportCell, PortsCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgSgIeTableProps = {
@@ -66,11 +67,11 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   }
 
   const removeRule = (oldValues: TFormSgSgIeRule) => {
-    remove(dispatch, rulesAll, setRules, defaultTraffic, oldValues, editOpen, setEditOpen, toggleEditPopover)
+    remove(dispatch, rulesAll, setRules, oldValues, editOpen, setEditOpen, toggleEditPopover)
   }
 
   const restoreRule = (oldValues: TFormSgSgIeRule) => {
-    restore(dispatch, rulesAll, setRules, defaultTraffic, oldValues)
+    restore(dispatch, rulesAll, setRules, oldValues)
   }
 
   const columns: ColumnsType<TColumn> = [
@@ -186,11 +187,12 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgSgIePopover
+              <EditPopover<TFormSgSgIeRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgSgIe}
                 isDisabled={isDisabled}
               />
             }

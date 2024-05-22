@@ -9,10 +9,11 @@ import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
-import { EditSgSgIeIcmpPopover } from '../../../atoms'
+import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSgIeIcmp'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIeIcmp'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgSgIeIcmpTableProps = {
@@ -66,11 +67,11 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
   }
 
   const removeRule = (oldValues: TFormSgSgIeIcmpRule) => {
-    remove(dispatch, rulesAll, setRules, defaultTraffic, oldValues, editOpen, setEditOpen, toggleEditPopover)
+    remove(dispatch, rulesAll, setRules, oldValues, editOpen, setEditOpen, toggleEditPopover)
   }
 
   const restoreRule = (oldValues: TFormSgSgIeIcmpRule) => {
-    restore(dispatch, rulesAll, setRules, defaultTraffic, oldValues)
+    restore(dispatch, rulesAll, setRules, oldValues)
   }
 
   const columns: ColumnsType<TColumn> = [
@@ -193,11 +194,12 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgSgIeIcmpPopover
+              <EditPopover<TFormSgSgIeIcmpRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgSgIeIcmp}
                 isDisabled={isDisabled}
               />
             }

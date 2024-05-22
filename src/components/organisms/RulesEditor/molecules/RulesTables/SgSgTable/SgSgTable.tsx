@@ -10,10 +10,11 @@ import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgRule } from 'localTypes/rules'
-import { EditSgSgPopover } from '../../../atoms'
+import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSg'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgSg'
 import { FilterDropdown, ActionCell, LogsCell, TransportCell, PortsCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgSgTableProps = {
@@ -198,11 +199,12 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgSgPopover
+              <EditPopover<TFormSgSgRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgSg}
                 isDisabled={isDisabled}
               />
             }
