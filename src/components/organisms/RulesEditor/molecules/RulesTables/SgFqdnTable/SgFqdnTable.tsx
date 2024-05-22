@@ -9,10 +9,11 @@ import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgFqdnRule } from 'localTypes/rules'
-import { EditSgFqdnPopover } from '../../../atoms'
+import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgFqdn'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgFqdn'
 import { FilterDropdown, ActionCell, LogsCell, TransportCell, PortsCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgFqdnTableProps = {
@@ -170,11 +171,12 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgFqdnPopover
+              <EditPopover<TFormSgFqdnRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgFqdn}
                 isDisabled={isDisabled}
               />
             }

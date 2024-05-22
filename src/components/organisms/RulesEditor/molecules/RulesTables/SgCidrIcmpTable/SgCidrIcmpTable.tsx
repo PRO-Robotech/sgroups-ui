@@ -10,10 +10,11 @@ import ipRangeCheck from 'ip-range-check'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgCidrIcmpRule, TTraffic } from 'localTypes/rules'
-import { EditSgCidrIcmpPopover } from '../../../atoms'
+import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgCidrIcmp'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgCidrIcmp'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgCidrIcmpTableProps = {
@@ -67,11 +68,11 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
   }
 
   const removeRule = (oldValues: TFormSgCidrIcmpRule) => {
-    remove(dispatch, rulesAll, setRules, defaultTraffic, oldValues, editOpen, setEditOpen, toggleEditPopover)
+    remove(dispatch, rulesAll, setRules, oldValues, editOpen, setEditOpen, toggleEditPopover)
   }
 
   const restoreRule = (oldValues: TFormSgCidrIcmpRule) => {
-    restore(dispatch, rulesAll, setRules, defaultTraffic, oldValues)
+    restore(dispatch, rulesAll, setRules, oldValues)
   }
 
   const columns: ColumnsType<TColumn> = [
@@ -189,11 +190,12 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgCidrIcmpPopover
+              <EditPopover<TFormSgCidrIcmpRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgCidrIcmp}
                 isDisabled={isDisabled}
               />
             }

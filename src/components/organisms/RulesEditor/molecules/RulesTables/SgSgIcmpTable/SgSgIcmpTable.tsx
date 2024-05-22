@@ -10,10 +10,11 @@ import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TFormSgSgIcmpRule } from 'localTypes/rules'
-import { EditSgSgIcmpPopover } from '../../../atoms'
+import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
-import { edit, remove, restore } from '../utilsEditRemoveRestoreRules/SgSgIcmp'
+import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIcmp'
 import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
+import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgSgIcmpTableProps = {
@@ -222,11 +223,12 @@ export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
           )}
           <Popover
             content={
-              <EditSgSgIcmpPopover
+              <EditPopover<TFormSgSgIcmpRule>
                 values={oldValues}
                 remove={() => removeRule(oldValues)}
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
+                {...RULES_CONFIGS.sgSgIcmp}
                 isDisabled={isDisabled}
               />
             }

@@ -28,6 +28,15 @@ export const mapRulesSgSgFrom = (rules: TSgSgRule[]): TFormSgSgRule[] => {
         action,
         prioritySome: priority?.some,
         id: nanoid(),
+        initialValues: {
+          sg: sgFrom,
+          transport,
+          portsSource: s,
+          portsDestination: d,
+          logs,
+          action,
+          prioritySome: priority?.some,
+        },
       }))
     }
     return {
@@ -36,6 +45,13 @@ export const mapRulesSgSgFrom = (rules: TSgSgRule[]): TFormSgSgRule[] => {
       logs,
       action,
       prioritySome: priority?.some,
+      initialValues: {
+        sg: sgFrom,
+        transport,
+        logs,
+        action,
+        prioritySome: priority?.some,
+      },
       id: nanoid(),
     }
   })
@@ -52,6 +68,15 @@ export const mapRulesSgSgTo = (rules: TSgSgRule[]): TFormSgSgRule[] => {
         logs,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          sg: sgTo,
+          transport,
+          portsSource: s,
+          portsDestination: d,
+          logs,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }))
     }
@@ -61,6 +86,13 @@ export const mapRulesSgSgTo = (rules: TSgSgRule[]): TFormSgSgRule[] => {
       logs,
       action,
       prioritySome: priority?.some,
+      initialValues: {
+        sg: sgTo,
+        transport,
+        logs,
+        action,
+        prioritySome: priority?.some,
+      },
       id: nanoid(),
     }
   })
@@ -75,6 +107,15 @@ export const mapRulesSgSgIcmpFrom = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[
     types: ICMP.Types,
     action,
     prioritySome: priority?.some,
+    initialValues: {
+      sg: SgFrom,
+      logs,
+      trace,
+      IPv: ICMP.IPv,
+      types: ICMP.Types,
+      action,
+      prioritySome: priority?.some,
+    },
     id: nanoid(),
   }))
 }
@@ -88,6 +129,15 @@ export const mapRulesSgSgIcmpTo = (rules: TSgSgIcmpRule[]): TFormSgSgIcmpRule[] 
     types: ICMP.Types,
     action,
     prioritySome: priority?.some,
+    initialValues: {
+      sg: SgTo,
+      logs,
+      trace,
+      IPv: ICMP.IPv,
+      types: ICMP.Types,
+      action,
+      prioritySome: priority?.some,
+    },
     id: nanoid(),
   }))
 }
@@ -107,6 +157,17 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          initialValues: {
+            sg: Sg,
+            portsSource: s,
+            portsDestination: d,
+            transport,
+            logs,
+            trace,
+            traffic,
+            action,
+            prioritySome: priority?.some,
+          },
           id: nanoid(),
         }))
       }
@@ -118,6 +179,15 @@ export const mapRulesSgSgIeFrom = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          sg: Sg,
+          transport,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }
     })
@@ -138,6 +208,17 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          initialValues: {
+            sg: Sg,
+            portsSource: s,
+            portsDestination: d,
+            transport,
+            logs,
+            trace,
+            traffic,
+            action,
+            prioritySome: priority?.some,
+          },
           id: nanoid(),
         }))
       }
@@ -149,6 +230,15 @@ export const mapRulesSgSgIeTo = (rules: TSgSgIeRule[]): TFormSgSgIeRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          sg: Sg,
+          transport,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }
     })
@@ -167,6 +257,16 @@ export const mapRulesSgSgIeIcmpFrom = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcm
         traffic,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          sg: Sg,
+          IPv: ICMP.IPv,
+          types: ICMP.Types,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }
     })
@@ -185,6 +285,16 @@ export const mapRulesSgSgIeIcmpTo = (rules: TSgSgIeIcmpRule[]): TFormSgSgIeIcmpR
         traffic,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          sg: Sg,
+          IPv: ICMP.IPv,
+          types: ICMP.Types,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }
     })
@@ -201,6 +311,15 @@ export const mapRulesSgFqdnTo = (rules: TSgFqdnRule[]): TFormSgFqdnRule[] => {
         logs,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          fqdn: FQDN,
+          transport,
+          portsSource: s,
+          portsDestination: d,
+          logs,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }))
     }
@@ -210,6 +329,13 @@ export const mapRulesSgFqdnTo = (rules: TSgFqdnRule[]): TFormSgFqdnRule[] => {
       logs,
       action,
       prioritySome: priority?.some,
+      initialValues: {
+        fqdn: FQDN,
+        transport,
+        logs,
+        action,
+        prioritySome: priority?.some,
+      },
       id: nanoid(),
     }
   })
@@ -230,6 +356,17 @@ export const mapRulesSgCidrFrom = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          initialValues: {
+            cidr: CIDR,
+            portsSource: s,
+            portsDestination: d,
+            transport,
+            logs,
+            trace,
+            traffic,
+            action,
+            prioritySome: priority?.some,
+          },
           id: nanoid(),
         }))
       }
@@ -241,6 +378,15 @@ export const mapRulesSgCidrFrom = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          cidr: CIDR,
+          transport,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }
     })
@@ -261,6 +407,17 @@ export const mapRulesSgCidrTo = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
           traffic,
           action,
           prioritySome: priority?.some,
+          initialValues: {
+            cidr: CIDR,
+            portsSource: s,
+            portsDestination: d,
+            transport,
+            logs,
+            trace,
+            traffic,
+            action,
+            prioritySome: priority?.some,
+          },
           id: nanoid(),
         }))
       }
@@ -272,6 +429,15 @@ export const mapRulesSgCidrTo = (rules: TSgCidrRule[]): TFormSgCidrRule[] => {
         traffic,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          cidr: CIDR,
+          transport,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }
     })
@@ -290,6 +456,16 @@ export const mapRulesSgCidrIcmpFrom = (rules: TSgCidrIcmpRule[]): TFormSgCidrIcm
         traffic,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          cidr: CIDR,
+          IPv: ICMP.IPv,
+          types: ICMP.Types,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }
     })
@@ -308,6 +484,16 @@ export const mapRulesSgCidrIcmpTo = (rules: TSgCidrIcmpRule[]): TFormSgCidrIcmpR
         traffic,
         action,
         prioritySome: priority?.some,
+        initialValues: {
+          cidr: CIDR,
+          IPv: ICMP.IPv,
+          types: ICMP.Types,
+          logs,
+          trace,
+          traffic,
+          action,
+          prioritySome: priority?.some,
+        },
         id: nanoid(),
       }
     })
