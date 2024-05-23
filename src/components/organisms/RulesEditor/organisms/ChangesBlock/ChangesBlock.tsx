@@ -23,8 +23,8 @@ import {
 } from 'localTypes/rules'
 import { upsertRules, deleteRules } from 'api/rules'
 import { Spacer, TitleWithNoTopMargin } from 'components'
+import { getChanges } from './utils/getChanges'
 import {
-  getChanges,
   composeAllTypesOfSgSgRules,
   composeAllTypesOfSgSgIcmpRules,
   composeAllTypesOfSgSgIeRules,
@@ -32,8 +32,8 @@ import {
   composeAllTypesOfSgFqdnRules,
   composeAllTypesOfSgCidrRules,
   composeAllTypesOfSgCidrIcmpRules,
-  checkIfSomeChangesMarked,
-} from './utils'
+} from './utils/composeForSubmit'
+import { checkIfSomeChangesMarked } from './utils/checkIfSomeChangesMarked'
 import { RulesDiff } from './molecules'
 import { Styled } from './styled'
 
