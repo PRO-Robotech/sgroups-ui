@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react'
+import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import {
@@ -24,9 +24,11 @@ import { RULES_CONFIGS } from '../../constants'
 import { RulesBlock } from './molecules'
 
 type TRulesBlockFactoryProps = {
-  forceArrowsUpdate: () => void
   popoverPosition: TooltipPlacement
+  addpopoverPosition?: TooltipPlacement
   title: string
+  onSetSpecific?: Dispatch<SetStateAction<{ open: boolean; value?: string }>>
+  forceArrowsUpdate?: () => void
   isDisabled?: boolean
 } & (
   | {
@@ -94,6 +96,8 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
   forceArrowsUpdate,
   title,
   popoverPosition,
+  addpopoverPosition,
+  onSetSpecific,
   isDisabled,
   type,
   data,
@@ -104,7 +108,8 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgSgRule>
         title={title}
-        popoverPosition={popoverPosition}
+        onSetSpecific={onSetSpecific}
+        popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgTable
             isChangesMode={false}
@@ -137,7 +142,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgSgIcmpRule>
         title={title}
-        popoverPosition={popoverPosition}
+        popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIcmpTable
             isChangesMode={false}
@@ -170,7 +175,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgSgIeRule>
         title={title}
-        popoverPosition={popoverPosition}
+        popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIeTable
             isChangesMode={false}
@@ -197,7 +202,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgSgIeIcmpRule>
         title={title}
-        popoverPosition={popoverPosition}
+        popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIeIcmpTable
             isChangesMode={false}
@@ -224,7 +229,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgFqdnRule>
         title={title}
-        popoverPosition={popoverPosition}
+        popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgFqdnTable
             isChangesMode={false}
@@ -249,7 +254,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgCidrRule>
         title={title}
-        popoverPosition={popoverPosition}
+        popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgCidrTable
             isChangesMode={false}
@@ -275,7 +280,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
   return (
     <RulesBlock<TFormSgCidrIcmpRule>
       title={title}
-      popoverPosition={popoverPosition}
+      popoverPosition={addpopoverPosition || popoverPosition}
       table={
         <SgCidrIcmpTable
           isChangesMode={false}

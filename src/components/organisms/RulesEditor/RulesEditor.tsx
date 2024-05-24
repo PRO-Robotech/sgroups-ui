@@ -42,7 +42,7 @@ import {
   checkIfChangesExist,
 } from './utils'
 import { SelectCenterSgModal } from './atoms'
-import { TransformBlock, BottomBar } from './populations'
+import { TransformBlock, BottomBar, RulesSpecific } from './populations'
 import { Styled } from './styled'
 
 type TRulesEditorProps = {
@@ -54,6 +54,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isSpeicificOpen, setSpecificOpen] = useState<{ open: boolean; value?: string }>({ open: false })
 
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
@@ -208,7 +210,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      <TransformBlock onSelectCenterSg={onSelectCenterSg} />
+      {isSpeicificOpen.open && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
+      {!isSpeicificOpen.open && <TransformBlock onSelectCenterSg={onSelectCenterSg} onSetSpecific={setSpecificOpen} />}
       <BottomBar onSubmit={() => fetchData()} />
       {isLoading && (
         <Styled.Loader>

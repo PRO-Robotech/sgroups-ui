@@ -1,7 +1,7 @@
-import React, { ReactElement, ReactNode, useState } from 'react'
+import React, { ReactElement, ReactNode, useState, Dispatch, SetStateAction } from 'react'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { PlusOutlined } from '@ant-design/icons'
+import { ArrowsAltOutlined, PlusOutlined } from '@ant-design/icons'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 import { TitleWithNoTopMargin } from 'components/atoms'
@@ -31,6 +31,7 @@ type TRulesBlockProps<T> = {
     setRulesOtherside: ActionCreatorWithPayload<T[]>
   }
   defaultTraffic?: TTraffic
+  onSetSpecific?: Dispatch<SetStateAction<{ open: boolean; value?: string }>>
   isDisabled?: boolean
 }
 
@@ -43,6 +44,7 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
   defaultTraffic,
   legacyOptions,
   ruleConfig,
+  onSetSpecific,
   isDisabled,
 }: TRulesBlockProps<T>): ReactElement => {
   const [addOpen, setAddOpen] = useState(false)
@@ -96,6 +98,13 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
   return (
     <>
       <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
+      <ArrowsAltOutlined
+        onClick={() => {
+          if (onSetSpecific) {
+            onSetSpecific({ open: true })
+          }
+        }}
+      />
       {table}
       <Popover
         content={<AddPopover<T> hide={toggleAddPopover} addNew={addNew} {...ruleConfig} />}
