@@ -7,6 +7,7 @@ import { STROKE_COLOR, STROKE_WIDTH, STROKE_OPACITY } from '../../constants'
 type TAnimatedArrowProps = {
   idFirst: string
   idSecond: string
+  type: 'ingress' | 'egress'
   curvature?: number
   reverse?: boolean
   duration?: number
@@ -18,6 +19,7 @@ type TAnimatedArrowProps = {
 export const AnimatedArrow: FC<TAnimatedArrowProps> = ({
   idFirst,
   idSecond,
+  type,
   curvature = 0,
   reverse = false,
   duration = Math.random() * 3 + 4,
@@ -55,11 +57,15 @@ export const AnimatedArrow: FC<TAnimatedArrowProps> = ({
         x: endContainer.offsetLeft - 3,
         y: endContainer.offsetTop + endContainer.clientHeight / 2,
       }
+      const controlX = start.x - curvature
       const controlY = start.y - curvature
-      const d = `M ${start.x},${start.y} Q ${(start.x + end.x) / 2},${controlY} ${end.x},${end.y}`
+      const d =
+        type === 'ingress'
+          ? `M ${start.x},${start.y} Q ${(start.x + end.x) / 2},${controlY} ${end.x},${end.y}`
+          : `M ${start.x},${start.y} Q ${controlX},${(start.y + end.y) / 2} ${end.x},${end.y}`
       setPathD(d)
     }
-  }, [idFirst, idSecond, curvature])
+  }, [idFirst, idSecond, curvature, type])
 
   return (
     <>

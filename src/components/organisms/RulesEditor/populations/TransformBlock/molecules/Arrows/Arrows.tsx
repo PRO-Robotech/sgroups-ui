@@ -32,13 +32,18 @@ export const Arrows: FC = () => {
   return (
     <Styled.Container>
       <svg fill="none" width={dimensions.width} height={dimensions.height} className="transform-gpu">
-        <AnimatedArrow idFirst={SG_AND_SG_SG_ICMP_FROM_ID} idSecond={CENTRAL_ID} />
-        <AnimatedArrow idFirst={CIDR_FROM_ID} idSecond={CENTRAL_ID} />
-        <AnimatedArrow idFirst={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID} idSecond={CENTRAL_ID} />
-        <AnimatedArrow idFirst={CENTRAL_ID} idSecond={SG_AND_SG_SG_ICMP_TO_ID} />
-        <AnimatedArrow idFirst={CENTRAL_ID} idSecond={CIDR_TO_ID} />
-        <AnimatedArrow idFirst={CENTRAL_ID} idSecond={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID} />
-        <AnimatedArrow idFirst={CENTRAL_ID} idSecond={FQDN_TO_ID} />
+        <AnimatedArrow type="ingress" idFirst={SG_AND_SG_SG_ICMP_FROM_ID} idSecond={CENTRAL_ID} />
+        <AnimatedArrow type="ingress" idFirst={CIDR_FROM_ID} idSecond={CENTRAL_ID} />
+        <AnimatedArrow type="ingress" idFirst={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID} idSecond={CENTRAL_ID} />
+        <AnimatedArrow type="egress" curvature={-100} idFirst={CENTRAL_ID} idSecond={SG_AND_SG_SG_ICMP_TO_ID} />
+        <AnimatedArrow type="egress" curvature={-100} idFirst={CENTRAL_ID} idSecond={CIDR_TO_ID} />
+        <AnimatedArrow
+          type="egress"
+          curvature={-100}
+          idFirst={CENTRAL_ID}
+          idSecond={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID}
+        />
+        <AnimatedArrow type="egress" curvature={-100} idFirst={CENTRAL_ID} idSecond={FQDN_TO_ID} />
       </svg>
     </Styled.Container>
   )
