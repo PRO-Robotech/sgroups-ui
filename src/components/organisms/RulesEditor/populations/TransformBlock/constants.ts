@@ -11,8 +11,10 @@ export const SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID = 'SgSgIeAndSgSgIeIcmpTo'
 export const CIDR_TO_ID = 'CIDRTo'
 export const FQDN_TO_ID = 'FQDNTo'
 
-export const STROKE_COLOR = '#164893'
-export const STROKE_WIDTH = 2
+// export const STROKE_COLOR = '#164893'
+export const STROKE_COLOR = '#c3c3c3'
+export const STROKE_OPACITY = 0.6
+export const STROKE_WIDTH = 6
 
 export const ARROW_END_GAP = 20
 
