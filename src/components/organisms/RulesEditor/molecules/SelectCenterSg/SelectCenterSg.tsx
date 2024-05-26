@@ -1,5 +1,6 @@
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState, useEffect, useRef } from 'react'
 import { Typography, Form, Select, Result, Spin } from 'antd'
+import type { BaseSelectRef } from 'rc-select'
 import { AxiosError } from 'axios'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
@@ -8,20 +9,31 @@ import { getSecurityGroupByName } from 'api/securityGroups'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { filterSgName } from 'utils/filterSgName'
+import { GroupRulesNodeWrapper } from '../../atoms'
 import { TFieldData } from './types'
 import { Styled } from './styled'
 
 type TSelectCenterSgProps = {
   onSelectCenterSg: (value?: string) => void
+  notInTransformBlock?: boolean
 }
 
-export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg }) => {
+export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg, notInTransformBlock }) => {
   const [curValues, setCurValues] = useState<TFieldData[]>([{ name: 'name', value: undefined }])
   const [securityGroup, setSecurityGroup] = useState<TSecurityGroup>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const inputTagRef = useRef<BaseSelectRef>(null)
+
   const sgNames = useSelector((state: RootState) => state.sgNames.sgNames)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
+
+  useEffect(() => {
+    if (inputTagRef.current) {
+      inputTagRef.current.focus()
+    }
+  }, [])
 
   useEffect(() => {
     if (!centerSg) {
@@ -51,12 +63,14 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg }) =
   }, [centerSg])
 
   return (
-    <Styled.GroupRulesNode>
+    <GroupRulesNodeWrapper $notInTransformBlock={notInTransformBlock} $isCenterSg>
       <TitleWithNoTopMargin level={4}>Main SG</TitleWithNoTopMargin>
-      <Styled.Directions>
-        <Typography.Text type="secondary">Ingress</Typography.Text>
-        <Typography.Text type="secondary">Egress</Typography.Text>
-      </Styled.Directions>
+      {!notInTransformBlock && (
+        <Styled.Directions>
+          <Typography.Text type="secondary">Ingress</Typography.Text>
+          <Typography.Text type="secondary">Egress</Typography.Text>
+        </Styled.Directions>
+      )}
       <Spacer $space={10} $samespace />
       <Form
         fields={curValues}
@@ -68,7 +82,12 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg }) =
           <Select
             showSearch
             allowClear
-            onSelect={onSelectCenterSg}
+            onSelect={value => {
+              if (inputTagRef.current) {
+                inputTagRef.current.blur()
+              }
+              onSelectCenterSg(value)
+            }}
             onClear={() => onSelectCenterSg(undefined)}
             placeholder="Select sg"
             optionFilterProp="children"
@@ -77,7 +96,7 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg }) =
               value: el,
               label: el,
             }))}
-            autoFocus
+            ref={inputTagRef}
           />
         </Styled.FormItem>
       </Form>
@@ -87,6 +106,6 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg }) =
       {securityGroup && (
         <Typography.Text type="secondary">Default Action: {securityGroup.defaultAction}</Typography.Text>
       )}
-    </Styled.GroupRulesNode>
+    </GroupRulesNodeWrapper>
   )
 }

@@ -42,7 +42,7 @@ import {
   checkIfChangesExist,
 } from './utils'
 import { SelectCenterSgModal } from './atoms'
-import { TransformBlock, BottomBar } from './populations'
+import { TransformBlock, BottomBar, RulesSpecific } from './populations'
 import { Styled } from './styled'
 
 type TRulesEditorProps = {
@@ -56,6 +56,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
+  const specificOpen = useSelector((state: RootState) => state.specific.specificOpen)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
   const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
@@ -208,7 +209,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      <TransformBlock onSelectCenterSg={onSelectCenterSg} />
+      {specificOpen && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
+      {!specificOpen && <TransformBlock onSelectCenterSg={onSelectCenterSg} />}
       <BottomBar onSubmit={() => fetchData()} />
       {isLoading && (
         <Styled.Loader>
