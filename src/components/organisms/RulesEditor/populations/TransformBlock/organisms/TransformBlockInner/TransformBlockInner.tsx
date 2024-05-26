@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
@@ -29,10 +29,9 @@ import { Styled } from './styled'
 
 type TTransformBlockInnerProps = {
   onSelectCenterSg: (value?: string) => void
-  onSetSpecific: Dispatch<SetStateAction<{ open: boolean; value?: string }>>
 }
 
-export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCenterSg, onSetSpecific }) => {
+export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCenterSg }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
@@ -81,7 +80,6 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG From"
                 popoverPosition="left"
                 type="sgSg"
-                onSetSpecific={onSetSpecific}
                 data={{
                   rules: rulesSgSgFrom,
                   setRules: setRulesSgSgFrom,
@@ -98,7 +96,6 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG From"
                 popoverPosition="left"
                 type="sgSgIcmp"
-                onSetSpecific={onSetSpecific}
                 data={{
                   rules: rulesSgSgIcmpFrom,
                   setRules: setRulesSgSgIcmpFrom,

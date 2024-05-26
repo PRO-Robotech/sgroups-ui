@@ -1,9 +1,10 @@
-import React, { ReactElement, ReactNode, useState, Dispatch, SetStateAction } from 'react'
+import React, { ReactElement, ReactNode, useState } from 'react'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { ArrowsAltOutlined, PlusOutlined } from '@ant-design/icons'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
+import { setSpecific } from 'store/editor/specific/specific'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { TTraffic } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
@@ -31,7 +32,7 @@ type TRulesBlockProps<T> = {
     setRulesOtherside: ActionCreatorWithPayload<T[]>
   }
   defaultTraffic?: TTraffic
-  onSetSpecific?: Dispatch<SetStateAction<{ open: boolean; value?: string }>>
+  openSpecificName?: string
   defaultPrioritySome?: string
   isDisabled?: boolean
 }
@@ -45,7 +46,7 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
   defaultTraffic,
   legacyOptions,
   ruleConfig,
-  onSetSpecific,
+  openSpecificName,
   defaultPrioritySome,
   isDisabled,
 }: TRulesBlockProps<T>): ReactElement => {
@@ -99,14 +100,18 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
 
   return (
     <>
-      <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
-      <ArrowsAltOutlined
-        onClick={() => {
-          if (onSetSpecific) {
-            onSetSpecific({ open: true })
-          }
-        }}
-      />
+      <TitleWithNoTopMargin level={4}>
+        {openSpecificName && (
+          <>
+            <ArrowsAltOutlined
+              onClick={() => {
+                dispatch(setSpecific({ specificOpen: true, specificValue: openSpecificName }))
+              }}
+            />{' '}
+          </>
+        )}
+        {title}
+      </TitleWithNoTopMargin>
       {table}
       <Popover
         content={

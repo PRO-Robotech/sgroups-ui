@@ -1,13 +1,12 @@
-import React, { FC, Dispatch, SetStateAction } from 'react'
+import React, { FC } from 'react'
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch'
 import { TransformBlockInner } from './organisms'
 
 type TTransformBlockProps = {
   onSelectCenterSg: (value?: string) => void
-  onSetSpecific: Dispatch<SetStateAction<{ open: boolean; value?: string }>>
 }
 
-export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectCenterSg, onSetSpecific }) => {
+export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectCenterSg }) => {
   return (
     <TransformWrapper
       minScale={0.05}
@@ -19,7 +18,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectCenterSg, onS
       wheel={{ excluded: ['no-scroll'] }}
     >
       <TransformComponent wrapperStyle={{ width: '100%', height: '100vh' }}>
-        <TransformBlockInner onSelectCenterSg={onSelectCenterSg} onSetSpecific={onSetSpecific} />
+        <TransformBlockInner onSelectCenterSg={onSelectCenterSg} />
       </TransformComponent>
     </TransformWrapper>
   )

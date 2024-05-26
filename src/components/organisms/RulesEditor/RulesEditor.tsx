@@ -54,10 +54,9 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [isSpeicificOpen, setSpecificOpen] = useState<{ open: boolean; value?: string }>({ open: false })
 
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
+  const specificOpen = useSelector((state: RootState) => state.specific.specificOpen)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
   const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
@@ -210,8 +209,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      {isSpeicificOpen.open && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
-      {!isSpeicificOpen.open && <TransformBlock onSelectCenterSg={onSelectCenterSg} onSetSpecific={setSpecificOpen} />}
+      {specificOpen && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
+      {!specificOpen && <TransformBlock onSelectCenterSg={onSelectCenterSg} />}
       <BottomBar onSubmit={() => fetchData()} />
       {isLoading && (
         <Styled.Loader>

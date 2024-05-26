@@ -1,4 +1,4 @@
-import React, { FC, useState, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState } from 'react'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import {
@@ -28,7 +28,6 @@ type TRulesBlockFactoryProps = {
   popoverPosition: TooltipPlacement
   addpopoverPosition?: TooltipPlacement
   title: string
-  onSetSpecific?: Dispatch<SetStateAction<{ open: boolean; value?: string }>>
   forceArrowsUpdate?: () => void
   isDisabled?: boolean
 } & (
@@ -98,7 +97,6 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
   title,
   popoverPosition,
   addpopoverPosition,
-  onSetSpecific,
   isDisabled,
   type,
   data,
@@ -109,7 +107,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgSgRule>
         title={title}
-        onSetSpecific={onSetSpecific}
+        openSpecificName="sgSg"
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgTable
@@ -144,6 +142,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgSgIcmpRule>
         title={title}
+        openSpecificName="sgSgIcmp"
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIcmpTable
@@ -178,6 +177,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgSgIeRule>
         title={title}
+        openSpecificName="sgSgIe"
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIeTable
@@ -206,6 +206,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgSgIeIcmpRule>
         title={title}
+        openSpecificName="sgSgIeIcmp"
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIeIcmpTable
@@ -234,6 +235,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgFqdnRule>
         title={title}
+        openSpecificName="sgFqdn"
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgFqdnTable
@@ -260,6 +262,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
     return (
       <RulesBlock<TFormSgCidrRule>
         title={title}
+        openSpecificName="sgCidr"
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgCidrTable
@@ -287,6 +290,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
   return (
     <RulesBlock<TFormSgCidrIcmpRule>
       title={title}
+      openSpecificName="sgCidrIcmp"
       popoverPosition={addpopoverPosition || popoverPosition}
       table={
         <SgCidrIcmpTable
