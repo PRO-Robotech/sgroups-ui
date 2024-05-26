@@ -177,6 +177,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
                 {...RULES_CONFIGS.sgFqdn}
+                defaultPrioritySome={DEFAULT_PRIORITIES.sgToFqdn}
                 isDisabled={isDisabled}
               />
             }

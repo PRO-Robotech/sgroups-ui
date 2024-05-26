@@ -43,11 +43,11 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
           ...alreadyAddedNetworks,
           ...allNetworksNameAndCidrs.filter(el => !unavailableNetworksName.includes(el.name)),
         ]
-        setNetworkOptions(availableNetworks.map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name })))
+        setNetworkOptions(availableNetworks.map(({ name, cidr }) => ({ label: `${name} : ${cidr}`, value: name })))
         setIsLoading(false)
         form.setFieldsValue({
           defaultAction: sgResponse.data.groups[0].defaultAction,
-          networks: alreadyAddedNetworks.map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name })),
+          networks: alreadyAddedNetworks.map(({ name, cidr }) => ({ label: `${name} : ${cidr}`, value: name })),
           logs: sgResponse.data.groups[0].logs,
           trace: sgResponse.data.groups[0].trace,
         })

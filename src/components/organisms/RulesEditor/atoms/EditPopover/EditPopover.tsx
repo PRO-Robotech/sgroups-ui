@@ -18,6 +18,7 @@ type TEditPopoverProps<T> = {
   isTransport?: boolean
   isIcmp?: boolean
   isTrace?: boolean
+  defaultPrioritySome?: string
   isDisabled?: boolean
 }
 
@@ -33,6 +34,7 @@ export const EditPopover = <T,>({
   isTransport,
   isIcmp,
   isTrace,
+  defaultPrioritySome,
   isDisabled,
 }: TEditPopoverProps<T>): ReactElement => {
   const [addForm] = Form.useForm()
@@ -220,7 +222,7 @@ export const EditPopover = <T,>({
           }),
         ]}
       >
-        <Input placeholder="priority.some" />
+        <Input placeholder={defaultPrioritySome || 'priority.some'} />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>
