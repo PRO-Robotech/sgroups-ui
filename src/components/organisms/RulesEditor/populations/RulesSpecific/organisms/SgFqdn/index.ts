@@ -1,1 +1,1 @@
-export * from './SgFqdn'
+export * from './SgFqdnTo'

@@ -6,7 +6,7 @@ import type { RootState } from 'store/store'
 import { setSpecific } from 'store/editor/specific/specific'
 import { SelectCenterSg } from '../../molecules'
 import { Styled } from './styled'
-import { SgSg, SgSgIe, SgFqdn, SgCidr } from './organisms'
+import { SgSgFrom, SgSgTo, SgSgIeFrom, SgSgIeTo, SgFqdnTo, SgCidrFrom, SgCidrTo } from './organisms'
 
 type TRulesSpecificProps = {
   onSelectCenterSg: (value?: string) => void
@@ -28,10 +28,13 @@ export const RulesSpecific: FC<TRulesSpecificProps> = ({ onSelectCenterSg }) => 
         </Button>
       </Styled.ExitModalContainer>
       <SelectCenterSg onSelectCenterSg={onSelectCenterSg} notInTransformBlock />
-      {specificValue === 'sgSg' && <SgSg />}
-      {specificValue === 'sgSgIe' && <SgSgIe />}
-      {specificValue === 'sgFqdn' && <SgFqdn />}
-      {specificValue === 'sgCidr' && <SgCidr />}
+      {specificValue === 'sgSg-from' && <SgSgFrom />}
+      {specificValue === 'sgSgIe-from' && <SgSgIeFrom />}
+      {specificValue === 'sgCidr-from' && <SgCidrFrom />}
+      {specificValue === 'sgSg-to' && <SgSgTo />}
+      {specificValue === 'sgSgIe-to' && <SgSgIeTo />}
+      {specificValue === 'sgFqdn-to' && <SgFqdnTo />}
+      {specificValue === 'sgCidr-to' && <SgCidrTo />}
     </Styled.Container>
   )
 }
