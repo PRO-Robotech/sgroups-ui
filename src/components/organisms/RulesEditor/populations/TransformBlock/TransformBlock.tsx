@@ -21,7 +21,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectCenterSg }) =
     >
       <TransformComponent
         wrapperStyle={{ maxWidth: '100vw', maxHeight: '100vh' }}
-        contentStyle={{ maxWidth: '100%', maxHeight: '100vh' }}
+        contentStyle={{ maxHeight: '100dvh' }}
       >
         <TransformBlockInner onSelectCenterSg={onSelectCenterSg} />
       </TransformComponent>
