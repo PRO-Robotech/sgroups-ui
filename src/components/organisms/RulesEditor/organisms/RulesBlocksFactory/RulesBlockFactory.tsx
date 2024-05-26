@@ -11,6 +11,7 @@ import {
   TFormSgCidrIcmpRule,
   TTraffic,
 } from 'localTypes/rules'
+import { DEFAULT_PRIORITIES } from 'constants/rules'
 import {
   SgSgTable,
   SgSgIcmpTable,
@@ -134,6 +135,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
           rulesOtherside: data.rulesOtherside,
           setRulesOtherside: data.setRulesOtherside,
         }}
+        defaultPrioritySome={DEFAULT_PRIORITIES.sgToSg}
         isDisabled={isDisabled}
       />
     )
@@ -167,6 +169,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
           rulesOtherside: data.rulesOtherside,
           setRulesOtherside: data.setRulesOtherside,
         }}
+        defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIcmp}
         isDisabled={isDisabled}
       />
     )
@@ -194,6 +197,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         rules={data.rules}
         setRules={data.setRules}
         defaultTraffic={data.defaultTraffic}
+        defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIe}
         isDisabled={isDisabled}
       />
     )
@@ -221,6 +225,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         rules={data.rules}
         setRules={data.setRules}
         defaultTraffic={data.defaultTraffic}
+        defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIeIcmp}
         isDisabled={isDisabled}
       />
     )
@@ -246,6 +251,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         ruleConfig={RULES_CONFIGS.sgFqdn}
         rules={data.rules}
         setRules={data.setRules}
+        defaultPrioritySome={DEFAULT_PRIORITIES.sgToFqdn}
         isDisabled={isDisabled}
       />
     )
@@ -273,6 +279,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         rules={data.rules}
         setRules={data.setRules}
         defaultTraffic={data.defaultTraffic}
+        defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIe}
         isDisabled={isDisabled}
       />
     )
@@ -299,6 +306,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
       rules={data.rules}
       setRules={data.setRules}
       defaultTraffic={data.defaultTraffic}
+      defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIeIcmp}
       isDisabled={isDisabled}
     />
   )

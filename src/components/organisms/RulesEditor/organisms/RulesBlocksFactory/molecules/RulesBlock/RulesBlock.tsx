@@ -32,6 +32,7 @@ type TRulesBlockProps<T> = {
   }
   defaultTraffic?: TTraffic
   onSetSpecific?: Dispatch<SetStateAction<{ open: boolean; value?: string }>>
+  defaultPrioritySome?: string
   isDisabled?: boolean
 }
 
@@ -45,6 +46,7 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
   legacyOptions,
   ruleConfig,
   onSetSpecific,
+  defaultPrioritySome,
   isDisabled,
 }: TRulesBlockProps<T>): ReactElement => {
   const [addOpen, setAddOpen] = useState(false)
@@ -107,7 +109,14 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
       />
       {table}
       <Popover
-        content={<AddPopover<T> hide={toggleAddPopover} addNew={addNew} {...ruleConfig} />}
+        content={
+          <AddPopover<T>
+            hide={toggleAddPopover}
+            addNew={addNew}
+            defaultPrioritySome={defaultPrioritySome}
+            {...ruleConfig}
+          />
+        }
         title={title}
         trigger="click"
         open={addOpen}
