@@ -47,7 +47,7 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
         setIsLoading(false)
         form.setFieldsValue({
           defaultAction: sgResponse.data.groups[0].defaultAction,
-          networks: alreadyAddedNetworks.map(({ name, cidr }) => `${name}:${cidr}`),
+          networks: alreadyAddedNetworks.map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name })),
           logs: sgResponse.data.groups[0].logs,
           trace: sgResponse.data.groups[0].trace,
         })
@@ -64,10 +64,16 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
       })
   }, [id, form])
 
-  const onFinish = ({ defaultAction, networks, logs, trace }: TSecurityGroup) => {
+  const onFinish = ({
+    defaultAction,
+    networks,
+    logs,
+    trace,
+  }: Omit<TSecurityGroup, 'networks'> & { networks: string[] | { value: string; label: string }[] }) => {
     setIsLoading(true)
     setError(undefined)
-    editSecurityGroup(id, defaultAction, networks, logs, trace)
+    const modifiedNetworks = networks.map(el => (typeof el === 'string' ? el : el.value))
+    editSecurityGroup(id, defaultAction, modifiedNetworks, logs, trace)
       .then(() => {
         setIsLoading(false)
         setSuccess(true)
@@ -114,7 +120,13 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
         <Card>
           <TitleWithNoTopMargin level={2}>Edit the security group: {securityGroup.name}</TitleWithNoTopMargin>
           <Spacer $space={15} $samespace />
-          <Form form={form} name="control-hooks" onFinish={onFinish}>
+          <Form
+            form={form}
+            name="control-hooks"
+            onFinish={(
+              values: Omit<TSecurityGroup, 'networks'> & { networks: string[] | { value: string; label: string }[] },
+            ) => onFinish({ ...values })}
+          >
             <Styled.Container>
               <Styled.FormItem
                 name="defaultAction"
