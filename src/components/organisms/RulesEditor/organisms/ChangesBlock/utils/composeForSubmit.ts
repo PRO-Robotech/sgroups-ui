@@ -155,6 +155,10 @@ export const composeAllTypesOfSgSgIcmpRules = (
       if (!ruleInRulesArr) {
         result.rules.push(rule)
       }
+      /* cuz ipv + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('ipv')) {
+        result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
+      }
     } else {
       const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
       if (!ruleInRulesArr) {
@@ -177,6 +181,10 @@ export const composeAllTypesOfSgSgIcmpRules = (
       const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
       if (!ruleInRulesArr) {
         result.rules.push(rule)
+      }
+      /* cuz ipv + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('ipv')) {
+        result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
       const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
@@ -277,6 +285,10 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
       const ruleInRulesArr = findSgSgIeIcmpRuleInResultArr(rule, result.rules)
       if (!ruleInRulesArr) {
         result.rules.push(rule)
+      }
+      /* cuz ipv + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('ipv')) {
+        result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
       const ruleInRulesArr = findSgSgIeIcmpRuleInResultArr(rule, result.rulesToDelete)
@@ -435,6 +447,10 @@ export const composeAllTypesOfSgCidrIcmpRules = (
       const ruleInRulesArr = findSgCidrIcmpRuleInResultArr(rule, result.rules)
       if (!ruleInRulesArr) {
         result.rules.push(rule)
+      }
+      /* cuz ipv + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('ipv')) {
+        result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
       const ruleInRulesArr = findSgCidrIcmpRuleInResultArr(rule, result.rulesToDelete)
