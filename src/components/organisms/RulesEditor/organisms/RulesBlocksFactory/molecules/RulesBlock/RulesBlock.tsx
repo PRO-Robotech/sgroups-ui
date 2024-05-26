@@ -130,11 +130,11 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
         onOpenChange={toggleAddPopover}
         placement={popoverPosition}
       >
-        <Styled.FormItem>
+        <Styled.AddButtonContainer>
           <Button type="dashed" block icon={<PlusOutlined />} disabled={isDisabled}>
             Add
           </Button>
-        </Styled.FormItem>
+        </Styled.AddButtonContainer>
       </Popover>
     </>
   )

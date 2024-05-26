@@ -9,6 +9,7 @@ import { getSecurityGroupByName } from 'api/securityGroups'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { filterSgName } from 'utils/filterSgName'
+import { GroupRulesNodeWrapper } from '../../atoms'
 import { TFieldData } from './types'
 import { Styled } from './styled'
 
@@ -62,7 +63,7 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg, not
   }, [centerSg])
 
   return (
-    <Styled.GroupRulesNode $notInTransformBlock={notInTransformBlock}>
+    <GroupRulesNodeWrapper $notInTransformBlock={notInTransformBlock} $isCenterSg>
       <TitleWithNoTopMargin level={4}>Main SG</TitleWithNoTopMargin>
       {!notInTransformBlock && (
         <Styled.Directions>
@@ -105,6 +106,6 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg, not
       {securityGroup && (
         <Typography.Text type="secondary">Default Action: {securityGroup.defaultAction}</Typography.Text>
       )}
-    </Styled.GroupRulesNode>
+    </GroupRulesNodeWrapper>
   )
 }
