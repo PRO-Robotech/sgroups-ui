@@ -1,5 +1,6 @@
-import React, { FC, useState, useEffect } from 'react'
+import React, { FC, useState, useEffect, useRef } from 'react'
 import { Typography, Form, Select, Result, Spin } from 'antd'
+import type { BaseSelectRef } from 'rc-select'
 import { AxiosError } from 'axios'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
@@ -21,8 +22,17 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg, not
   const [securityGroup, setSecurityGroup] = useState<TSecurityGroup>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+
+  const inputTagRef = useRef<BaseSelectRef>(null)
+
   const sgNames = useSelector((state: RootState) => state.sgNames.sgNames)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
+
+  useEffect(() => {
+    if (inputTagRef.current) {
+      inputTagRef.current.focus()
+    }
+  }, [])
 
   useEffect(() => {
     if (!centerSg) {
@@ -71,7 +81,12 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg, not
           <Select
             showSearch
             allowClear
-            onSelect={onSelectCenterSg}
+            onSelect={value => {
+              if (inputTagRef.current) {
+                inputTagRef.current.blur()
+              }
+              onSelectCenterSg(value)
+            }}
             onClear={() => onSelectCenterSg(undefined)}
             placeholder="Select sg"
             optionFilterProp="children"
@@ -80,7 +95,7 @@ export const SelectCenterSg: FC<TSelectCenterSgProps> = ({ onSelectCenterSg, not
               value: el,
               label: el,
             }))}
-            autoFocus
+            ref={inputTagRef}
           />
         </Styled.FormItem>
       </Form>
