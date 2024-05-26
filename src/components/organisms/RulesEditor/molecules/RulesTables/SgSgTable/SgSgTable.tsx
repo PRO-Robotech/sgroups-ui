@@ -205,6 +205,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
                 {...RULES_CONFIGS.sgSg}
+                defaultPrioritySome={DEFAULT_PRIORITIES.sgToSg}
                 isDisabled={isDisabled}
               />
             }

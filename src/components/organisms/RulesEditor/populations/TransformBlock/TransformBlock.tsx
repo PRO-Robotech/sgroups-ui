@@ -10,7 +10,7 @@ export const TransformBlock: FC<TTransformBlockProps> = ({ onSelectCenterSg }) =
   return (
     <TransformWrapper
       minScale={0.05}
-      initialScale={0.5}
+      initialScale={0.3}
       limitToBounds={false}
       doubleClick={{ disabled: true }}
       alignmentAnimation={{ disabled: true }}

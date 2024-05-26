@@ -5,15 +5,17 @@ import { Spacer } from 'components'
 import { Styled } from './styled'
 
 type TTcpUdpAndIcmpSwitcherProps = {
-  forceArrowsUpdate: () => void
   tcpUdpComponent: ReactNode
   icmpComponent: ReactNode
+  forceArrowsUpdate?: () => void
+  notInTransformBlock?: boolean
 }
 
 export const TcpUdpAndIcmpSwitcher: FC<TTcpUdpAndIcmpSwitcherProps> = ({
   forceArrowsUpdate,
   tcpUdpComponent,
   icmpComponent,
+  notInTransformBlock,
 }) => {
   const [tab, setTab] = useState('tcpudp')
 
@@ -24,11 +26,13 @@ export const TcpUdpAndIcmpSwitcher: FC<TTcpUdpAndIcmpSwitcherProps> = ({
 
   const onChange = ({ target: { value } }: RadioChangeEvent) => {
     setTab(value)
-    forceArrowsUpdate()
+    if (forceArrowsUpdate) {
+      forceArrowsUpdate()
+    }
   }
 
   return (
-    <Styled.GroupRulesNode>
+    <Styled.GroupRulesNode $notInTransformBlock={notInTransformBlock}>
       <Styled.RadioGroup>
         <Radio.Group
           options={options}

@@ -1,7 +1,7 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Tag, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
@@ -50,7 +50,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
           ...el,
           networks: el.networks.map(nw => {
             const nwData = nwResponse.data.networks.find(entry => entry.name === nw)
-            return nwData ? `${nwData.name}:${nwData.network.CIDR}` : `${nw}:null`
+            return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
           }),
         }))
         setSecurityGroups(enrichedWithCidrsSgData)
@@ -124,7 +124,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       render: (_, { networks }) => (
         <Styled.NetworksContainer>
           {networks.map(name => (
-            <div key={name}>{name}</div>
+            <Tag key={name}>{name}</Tag>
           ))}
         </Styled.NetworksContainer>
       ),

@@ -16,6 +16,7 @@ type TAddPopoverProps<T> = {
   isTransport?: boolean
   isIcmp?: boolean
   isTrace?: boolean
+  defaultPrioritySome?: string
 }
 
 export const AddPopover = <T,>({
@@ -28,6 +29,7 @@ export const AddPopover = <T,>({
   isTransport,
   isIcmp,
   isTrace,
+  defaultPrioritySome,
 }: TAddPopoverProps<T>): ReactElement | null => {
   const [addForm] = Form.useForm()
   const sgNames = useSelector((state: RootState) => state.sgNames.sgNames)
@@ -212,7 +214,7 @@ export const AddPopover = <T,>({
           }),
         ]}
       >
-        <Input placeholder="priority.some" />
+        <Input placeholder={defaultPrioritySome || 'priority.some'} />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>

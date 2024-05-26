@@ -1,14 +1,6 @@
-/* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
-import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
-import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
-import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
-import { setRulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpTo } from 'store/editor/rulesSgSgIeIcmp/rulesSgSgIeIcmp'
-import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
-import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/rulesSgCidr'
-import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
 import { Spacer } from 'components'
 import { TcpUdpAndIcmpSwitcher, GroupRulesNodeWrapper } from '../../../../atoms'
 import { SelectCenterSg } from '../../../../molecules'
@@ -53,6 +45,8 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
   }, [
     rulesSgSgFrom.length,
     rulesSgSgTo.length,
+    rulesSgSgIcmpFrom.length,
+    rulesSgSgIcmpTo.length,
     rulesSgSgIeFrom.length,
     rulesSgSgIeTo.length,
     rulesSgSgIeIcmpFrom.length,
@@ -80,13 +74,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG From"
                 popoverPosition="left"
                 type="sgSg"
-                data={{
-                  rules: rulesSgSgFrom,
-                  setRules: setRulesSgSgFrom,
-                  rulesOtherside: rulesSgSgTo,
-                  setRulesOtherside: setRulesSgSgTo,
-                  centerSg,
-                }}
+                subtype="from"
                 isDisabled
               />
             }
@@ -96,13 +84,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG From"
                 popoverPosition="left"
                 type="sgSgIcmp"
-                data={{
-                  rules: rulesSgSgIcmpFrom,
-                  setRules: setRulesSgSgIcmpFrom,
-                  rulesOtherside: rulesSgSgIcmpTo,
-                  setRulesOtherside: setRulesSgSgIcmpTo,
-                  centerSg,
-                }}
+                subtype="from"
               />
             }
           />
@@ -117,11 +99,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG-SG-IE From"
                 popoverPosition="left"
                 type="sgSgIe"
-                data={{
-                  rules: rulesSgSgIeFrom,
-                  setRules: setRulesSgSgIeFrom,
-                  defaultTraffic: 'Ingress',
-                }}
+                subtype="from"
                 isDisabled={!centerSg}
               />
             }
@@ -131,11 +109,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG-SG-IE From"
                 popoverPosition="left"
                 type="sgSgIeIcmp"
-                data={{
-                  rules: rulesSgSgIeIcmpFrom,
-                  setRules: setRulesSgSgIeIcmpFrom,
-                  defaultTraffic: 'Ingress',
-                }}
+                subtype="from"
                 isDisabled={!centerSg}
               />
             }
@@ -151,11 +125,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="CIDR From"
                 popoverPosition="left"
                 type="sgCidr"
-                data={{
-                  rules: rulesSgCidrFrom,
-                  setRules: setRulesSgCidrFrom,
-                  defaultTraffic: 'Ingress',
-                }}
+                subtype="from"
                 isDisabled={!centerSg}
               />
             }
@@ -165,11 +135,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="CIDR From"
                 popoverPosition="left"
                 type="sgCidrIcmp"
-                data={{
-                  rules: rulesSgCidrIcmpFrom,
-                  setRules: setRulesSgCidrIcmpFrom,
-                  defaultTraffic: 'Ingress',
-                }}
+                subtype="from"
                 isDisabled={!centerSg}
               />
             }
@@ -191,13 +157,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG To"
                 popoverPosition="right"
                 type="sgSg"
-                data={{
-                  rules: rulesSgSgTo,
-                  setRules: setRulesSgSgTo,
-                  rulesOtherside: rulesSgSgFrom,
-                  setRulesOtherside: setRulesSgSgFrom,
-                  centerSg,
-                }}
+                subtype="to"
                 isDisabled={!centerSg}
               />
             }
@@ -207,13 +167,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG To"
                 popoverPosition="right"
                 type="sgSgIcmp"
-                data={{
-                  rules: rulesSgSgIcmpTo,
-                  setRules: setRulesSgSgIcmpTo,
-                  rulesOtherside: rulesSgSgIcmpFrom,
-                  setRulesOtherside: setRulesSgSgIcmpFrom,
-                  centerSg,
-                }}
+                subtype="to"
                 isDisabled={!centerSg}
               />
             }
@@ -229,11 +183,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG-SG-IE To"
                 popoverPosition="right"
                 type="sgSgIe"
-                data={{
-                  rules: rulesSgSgIeTo,
-                  setRules: setRulesSgSgIeTo,
-                  defaultTraffic: 'Egress',
-                }}
+                subtype="to"
                 isDisabled={!centerSg}
               />
             }
@@ -243,11 +193,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="SG-SG-IE To"
                 popoverPosition="right"
                 type="sgSgIeIcmp"
-                data={{
-                  rules: rulesSgSgIeIcmpTo,
-                  setRules: setRulesSgSgIeIcmpTo,
-                  defaultTraffic: 'Egress',
-                }}
+                subtype="to"
                 isDisabled={!centerSg}
               />
             }
@@ -263,11 +209,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="CIDR To"
                 popoverPosition="right"
                 type="sgCidr"
-                data={{
-                  rules: rulesSgCidrTo,
-                  setRules: setRulesSgCidrTo,
-                  defaultTraffic: 'Egress',
-                }}
+                subtype="to"
                 isDisabled={!centerSg}
               />
             }
@@ -277,11 +219,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
                 title="CIDR To"
                 popoverPosition="right"
                 type="sgCidrIcmp"
-                data={{
-                  rules: rulesSgCidrIcmpTo,
-                  setRules: setRulesSgCidrIcmpTo,
-                  defaultTraffic: 'Egress',
-                }}
+                subtype="to"
                 isDisabled={!centerSg}
               />
             }
@@ -295,10 +233,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
               title="FQDN To"
               type="sgFqdn"
               popoverPosition="right"
-              data={{
-                rules: rulesSgFqdnTo,
-                setRules: setRulesSgFqdnTo,
-              }}
+              subtype="to"
               isDisabled={!centerSg}
             />
           </GroupRulesNodeWrapper>
