@@ -30,6 +30,7 @@ type TRulesBlockFactoryProps = {
   title: string
   forceArrowsUpdate?: () => void
   isDisabled?: boolean
+  inTransformBlock?: boolean
 } & (
   | {
       type: 'sgSg'
@@ -98,6 +99,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
   popoverPosition,
   addpopoverPosition,
   isDisabled,
+  inTransformBlock,
   type,
   data,
 }) => {
@@ -134,6 +136,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
           setRulesOtherside: data.setRulesOtherside,
         }}
         defaultPrioritySome={DEFAULT_PRIORITIES.sgToSg}
+        inTransformBlock={inTransformBlock}
         isDisabled={isDisabled}
       />
     )
@@ -169,6 +172,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
           setRulesOtherside: data.setRulesOtherside,
         }}
         defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIcmp}
+        inTransformBlock={inTransformBlock}
         isDisabled={isDisabled}
       />
     )
@@ -198,6 +202,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         setRules={data.setRules}
         defaultTraffic={data.defaultTraffic}
         defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIe}
+        inTransformBlock={inTransformBlock}
         isDisabled={isDisabled}
       />
     )
@@ -227,6 +232,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         setRules={data.setRules}
         defaultTraffic={data.defaultTraffic}
         defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIeIcmp}
+        inTransformBlock={inTransformBlock}
         isDisabled={isDisabled}
       />
     )
@@ -254,6 +260,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         rules={data.rules}
         setRules={data.setRules}
         defaultPrioritySome={DEFAULT_PRIORITIES.sgToFqdn}
+        inTransformBlock={inTransformBlock}
         isDisabled={isDisabled}
       />
     )
@@ -283,6 +290,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         setRules={data.setRules}
         defaultTraffic={data.defaultTraffic}
         defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIe}
+        inTransformBlock={inTransformBlock}
         isDisabled={isDisabled}
       />
     )
@@ -311,6 +319,7 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
       setRules={data.setRules}
       defaultTraffic={data.defaultTraffic}
       defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIeIcmp}
+      inTransformBlock={inTransformBlock}
       isDisabled={isDisabled}
     />
   )

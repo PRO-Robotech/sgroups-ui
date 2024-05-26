@@ -12,6 +12,13 @@ const Container = styled.div`
   box-shadow: 0 0 24px rgba(23, 49, 65, 0.13);
 `
 
+const ExitModalContainer = styled.div`
+  position: absolute;
+  right: 25px;
+  top: 15px;
+`
+
 export const Styled = {
   Container,
+  ExitModalContainer,
 }

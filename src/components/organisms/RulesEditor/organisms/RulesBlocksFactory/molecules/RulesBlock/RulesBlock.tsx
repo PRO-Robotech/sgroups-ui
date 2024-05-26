@@ -1,7 +1,7 @@
 import React, { ReactElement, ReactNode, useState } from 'react'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { ArrowsAltOutlined, PlusOutlined } from '@ant-design/icons'
+import { FullscreenOutlined, PlusOutlined } from '@ant-design/icons'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
 import { setSpecific } from 'store/editor/specific/specific'
@@ -35,6 +35,7 @@ type TRulesBlockProps<T> = {
   openSpecificName?: string
   defaultPrioritySome?: string
   isDisabled?: boolean
+  inTransformBlock?: boolean
 }
 
 export const RulesBlock = <T extends { sg?: string; prioritySome?: string | number }>({
@@ -49,6 +50,7 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
   openSpecificName,
   defaultPrioritySome,
   isDisabled,
+  inTransformBlock = true,
 }: TRulesBlockProps<T>): ReactElement => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
@@ -101,9 +103,9 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
   return (
     <>
       <TitleWithNoTopMargin level={4}>
-        {openSpecificName && (
+        {openSpecificName && inTransformBlock && (
           <>
-            <ArrowsAltOutlined
+            <FullscreenOutlined
               onClick={() => {
                 dispatch(setSpecific({ specificOpen: true, specificValue: openSpecificName }))
               }}
