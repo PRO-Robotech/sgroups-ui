@@ -196,6 +196,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
                 {...RULES_CONFIGS.sgCidrIcmp}
+                defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIeIcmp}
                 isDisabled={isDisabled}
               />
             }

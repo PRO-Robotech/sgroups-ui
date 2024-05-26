@@ -200,6 +200,7 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
                 {...RULES_CONFIGS.sgSgIeIcmp}
+                defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIeIcmp}
                 isDisabled={isDisabled}
               />
             }

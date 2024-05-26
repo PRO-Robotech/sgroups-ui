@@ -1,9 +1,10 @@
 import React, { ReactElement, ReactNode, useState } from 'react'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
-import { PlusOutlined } from '@ant-design/icons'
+import { FullscreenOutlined, PlusOutlined } from '@ant-design/icons'
 import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
 import { useDispatch } from 'react-redux'
+import { setSpecific } from 'store/editor/specific/specific'
 import { TitleWithNoTopMargin } from 'components/atoms'
 import { TTraffic } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
@@ -31,7 +32,10 @@ type TRulesBlockProps<T> = {
     setRulesOtherside: ActionCreatorWithPayload<T[]>
   }
   defaultTraffic?: TTraffic
+  openSpecificName?: string
+  defaultPrioritySome?: string
   isDisabled?: boolean
+  inTransformBlock?: boolean
 }
 
 export const RulesBlock = <T extends { sg?: string; prioritySome?: string | number }>({
@@ -43,7 +47,10 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
   defaultTraffic,
   legacyOptions,
   ruleConfig,
+  openSpecificName,
+  defaultPrioritySome,
   isDisabled,
+  inTransformBlock = true,
 }: TRulesBlockProps<T>): ReactElement => {
   const [addOpen, setAddOpen] = useState(false)
   const [editOpen, setEditOpen] = useState<boolean[]>([])
@@ -95,21 +102,39 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
 
   return (
     <>
-      <TitleWithNoTopMargin level={4}>{title}</TitleWithNoTopMargin>
+      <TitleWithNoTopMargin level={4}>
+        {openSpecificName && inTransformBlock && (
+          <>
+            <FullscreenOutlined
+              onClick={() => {
+                dispatch(setSpecific({ specificOpen: true, specificValue: openSpecificName }))
+              }}
+            />{' '}
+          </>
+        )}
+        {title}
+      </TitleWithNoTopMargin>
       {table}
       <Popover
-        content={<AddPopover<T> hide={toggleAddPopover} addNew={addNew} {...ruleConfig} />}
+        content={
+          <AddPopover<T>
+            hide={toggleAddPopover}
+            addNew={addNew}
+            defaultPrioritySome={defaultPrioritySome}
+            {...ruleConfig}
+          />
+        }
         title={title}
         trigger="click"
         open={addOpen}
         onOpenChange={toggleAddPopover}
         placement={popoverPosition}
       >
-        <Styled.FormItem>
+        <Styled.AddButtonContainer>
           <Button type="dashed" block icon={<PlusOutlined />} disabled={isDisabled}>
             Add
           </Button>
-        </Styled.FormItem>
+        </Styled.AddButtonContainer>
       </Popover>
     </>
   )

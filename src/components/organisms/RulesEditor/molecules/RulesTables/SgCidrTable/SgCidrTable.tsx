@@ -203,6 +203,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
                 hide={() => toggleEditPopover(index)}
                 edit={values => editRule(oldValues, values)}
                 {...RULES_CONFIGS.sgCidr}
+                defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIe}
                 isDisabled={isDisabled}
               />
             }
