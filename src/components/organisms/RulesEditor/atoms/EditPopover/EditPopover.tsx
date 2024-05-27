@@ -199,6 +199,7 @@ export const EditPopover = <T,>({
             { label: 'DROP', value: 'DROP' },
           ]}
           getPopupContainer={node => node.parentNode}
+          disabled={isDisabled}
         />
       </Styled.FormItem>
       <Styled.FormItem
@@ -222,7 +223,7 @@ export const EditPopover = <T,>({
           }),
         ]}
       >
-        <Input placeholder={defaultPrioritySome || 'priority.some'} />
+        <Input placeholder={defaultPrioritySome || 'priority.some'} disabled={isDisabled} />
       </Styled.FormItem>
       <Styled.ButtonsContainer>
         <Styled.ButtonWithRightMargin>
