@@ -153,7 +153,7 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome || DEFAULT_PRIORITIES.sgToCidrIe}
+          {!!prioritySome || prioritySome === 0 ? prioritySome : DEFAULT_PRIORITIES.sgToCidrIe}
         </Styled.RulesEntryPorts>
       ),
     },

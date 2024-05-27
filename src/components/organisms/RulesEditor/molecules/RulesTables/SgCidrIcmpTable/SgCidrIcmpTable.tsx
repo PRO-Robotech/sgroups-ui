@@ -173,7 +173,7 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome || DEFAULT_PRIORITIES.sgToCidrIeIcmp}
+          {!!prioritySome || prioritySome === 0 ? prioritySome : DEFAULT_PRIORITIES.sgToCidrIeIcmp}
         </Styled.RulesEntryPorts>
       ),
     },

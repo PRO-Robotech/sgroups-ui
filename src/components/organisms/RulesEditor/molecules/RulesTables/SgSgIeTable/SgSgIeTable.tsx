@@ -152,7 +152,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome || DEFAULT_PRIORITIES.sgToSgIe}
+          {!!prioritySome || prioritySome === 0 ? prioritySome : DEFAULT_PRIORITIES.sgToSgIe}
         </Styled.RulesEntryPorts>
       ),
     },

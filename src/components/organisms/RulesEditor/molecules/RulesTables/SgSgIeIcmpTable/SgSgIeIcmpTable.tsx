@@ -177,7 +177,7 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome || DEFAULT_PRIORITIES.sgToSgIeIcmp}
+          {!!prioritySome || prioritySome === 0 ? prioritySome : DEFAULT_PRIORITIES.sgToSgIeIcmp}
         </Styled.RulesEntryPorts>
       ),
     },
