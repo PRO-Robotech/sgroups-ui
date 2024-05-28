@@ -36,7 +36,9 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
 
   useEffect(() => {
     setFilteredInfo({ name: id ? [id] : null })
-    setSearchText(id || '')
+    if (id) {
+      setSearchText(id)
+    }
   }, [id])
 
   useEffect(() => {
@@ -174,7 +176,12 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
                 allowClear
                 placeholder="Filter by SG name"
                 value={searchText}
-                onChange={e => setSearchText(e.target.value)}
+                onChange={e => {
+                  if (id) {
+                    history.push('/security-groups', { replace: true })
+                  }
+                  setSearchText(e.target.value)
+                }}
                 onBlur={() => handleSearch(searchText)}
                 onPressEnter={() => handleSearch(searchText)}
               />
