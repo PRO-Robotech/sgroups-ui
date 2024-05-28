@@ -129,7 +129,7 @@ export const NetworksList: FC = () => {
           <div>
             <Input
               allowClear
-              placeholder="Filter by SG name"
+              placeholder="Filter by NW name"
               value={searchText}
               onChange={e => setSearchText(e.target.value)}
               onPressEnter={() => handleSearch(searchText)}
