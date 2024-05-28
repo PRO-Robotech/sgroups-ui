@@ -1,6 +1,11 @@
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { TRulesTypes, TRulesSubTypes } from 'localTypes/rules'
 
+export const VIEW_TYPE = {
+  simple: 'Simple',
+  overview: 'Overview',
+}
+
 type TRULES_CONFIGS = {
   [k: string]: {
     isSg?: boolean

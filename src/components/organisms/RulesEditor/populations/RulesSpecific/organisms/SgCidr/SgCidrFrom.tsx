@@ -9,14 +9,14 @@ export const SgCidrFrom: FC = () => {
       notInTransformBlock
       tcpUdpComponent={
         <RulesBlockFactory
-          {...RULES_CONFIGS_FOR_FACTORY.sgCidr.From}
+          {...RULES_CONFIGS_FOR_FACTORY.sgCidr.from}
           addpopoverPosition="top"
           inTransformBlock={false}
         />
       }
       icmpComponent={
         <RulesBlockFactory
-          {...RULES_CONFIGS_FOR_FACTORY.sgCidrIcmp.From}
+          {...RULES_CONFIGS_FOR_FACTORY.sgCidrIcmp.from}
           addpopoverPosition="top"
           inTransformBlock={false}
         />

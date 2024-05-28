@@ -9,14 +9,14 @@ export const SgSgIeFrom: FC = () => {
       notInTransformBlock
       tcpUdpComponent={
         <RulesBlockFactory
-          {...RULES_CONFIGS_FOR_FACTORY.sgSgIe.From}
+          {...RULES_CONFIGS_FOR_FACTORY.sgSgIe.from}
           addpopoverPosition="top"
           inTransformBlock={false}
         />
       }
       icmpComponent={
         <RulesBlockFactory
-          {...RULES_CONFIGS_FOR_FACTORY.sgSgIeIcmp.From}
+          {...RULES_CONFIGS_FOR_FACTORY.sgSgIeIcmp.from}
           addpopoverPosition="top"
           inTransformBlock={false}
         />

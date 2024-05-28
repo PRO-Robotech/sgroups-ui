@@ -1,17 +1,19 @@
-import React, { FC, useState, useEffect, useCallback } from 'react'
-import { Button } from 'antd'
+import React, { FC, useState, useEffect, useCallback, Dispatch, SetStateAction } from 'react'
+import { Button, Segmented } from 'antd'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { Spacer } from 'components'
 import { ChangesBlock } from '../../organisms'
 import { isChangesExist } from './utils'
 import { Styled } from './styled'
+import { VIEW_TYPE } from '../../constants'
 
 type TBottomBarProps = {
   onSubmit: () => void
+  onViewTypeChange: Dispatch<SetStateAction<string>>
 }
 
-export const BottomBar: FC<TBottomBarProps> = ({ onSubmit }) => {
+export const BottomBar: FC<TBottomBarProps> = ({ onSubmit, onViewTypeChange }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitButtonActive, setSubmitButtonActive] = useState(false)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
@@ -115,6 +117,25 @@ export const BottomBar: FC<TBottomBarProps> = ({ onSubmit }) => {
               Submit
             </Button>
           )}
+        </Styled.FlexContainerItem>
+        <Styled.FlexContainerItem>
+          <Segmented
+            options={[
+              {
+                label: VIEW_TYPE.simple,
+                value: VIEW_TYPE.simple,
+              },
+              {
+                label: VIEW_TYPE.overview,
+                value: VIEW_TYPE.overview,
+              },
+            ]}
+            onChange={value => {
+              if (typeof value === 'string') {
+                onViewTypeChange(value)
+              }
+            }}
+          />
         </Styled.FlexContainerItem>
       </Styled.FlexContainer>
       {centerSg && isOpen && (

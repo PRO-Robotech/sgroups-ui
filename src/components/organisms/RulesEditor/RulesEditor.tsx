@@ -35,8 +35,9 @@ import {
   mapRulesSgCidrIcmp,
   checkIfChangesExist,
 } from './utils'
+import { VIEW_TYPE } from './constants'
 import { SelectCenterSgModal } from './atoms'
-import { TransformBlock, BottomBar, RulesSpecific } from './populations'
+import { TransformBlock, BottomBar, RulesSpecific, RulesSimplified } from './populations'
 import { Styled } from './styled'
 
 type TRulesEditorProps = {
@@ -46,6 +47,7 @@ type TRulesEditorProps = {
 export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const dispatch = useDispatch()
 
+  const [viewType, setViewType] = useState<string>(VIEW_TYPE.simple)
   const [isChangeCenterSgModalVisible, setChangeCenterSgModalVisible] = useState<boolean>(false)
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
@@ -203,9 +205,10 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      {specificOpen && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
-      {!specificOpen && <TransformBlock onSelectCenterSg={onSelectCenterSg} />}
-      <BottomBar onSubmit={() => fetchData()} />
+      {viewType === VIEW_TYPE.overview && specificOpen && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
+      {viewType === VIEW_TYPE.overview && !specificOpen && <TransformBlock onSelectCenterSg={onSelectCenterSg} />}
+      {viewType === VIEW_TYPE.simple && <RulesSimplified onSelectCenterSg={onSelectCenterSg} />}
+      <BottomBar onSubmit={() => fetchData()} onViewTypeChange={setViewType} />
       {isLoading && (
         <Styled.Loader>
           <Spin size="large" />
