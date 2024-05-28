@@ -1,7 +1,7 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getNetworks, removeNetwork } from 'api/networks'
@@ -138,6 +138,11 @@ export const NetworksList: FC = () => {
               />
             </div>
           )}
+          <div>
+            <Styled.ButtonWithMarginLeft onClick={() => history.push('/networks/add')} type="primary">
+              Add
+            </Styled.ButtonWithMarginLeft>
+          </div>
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
         {!networks.length && !error && !isLoading && <Empty />}
@@ -158,10 +163,6 @@ export const NetworksList: FC = () => {
             onChange={handleChange}
           />
         )}
-        <Spacer $space={15} $samespace />
-        <Button onClick={() => history.push('/networks/add')} type="primary">
-          Add
-        </Button>
       </Card>
       <Modal
         title="Delete network"

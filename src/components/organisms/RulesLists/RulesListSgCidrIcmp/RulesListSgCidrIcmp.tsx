@@ -3,7 +3,7 @@ import React, { FC, useState, useEffect } from 'react'
 import { nanoid } from 'nanoid'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
@@ -205,6 +205,11 @@ export const RulesListSgCidrIcmp: FC = () => {
               />
             </div>
           )}
+          <div>
+            <Styled.ButtonWithMarginLeft type="primary" onClick={() => history.push('/rules-editor')}>
+              Add
+            </Styled.ButtonWithMarginLeft>
+          </div>
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
         {!cidrSgIcmpRules.length && !error && !isLoading && <Empty />}
@@ -225,10 +230,6 @@ export const RulesListSgCidrIcmp: FC = () => {
             size="small"
           />
         )}
-        <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules-editor')}>
-          Add
-        </Button>
       </Card>
       <Modal
         title="Delete sgSgIeIcmp rule"

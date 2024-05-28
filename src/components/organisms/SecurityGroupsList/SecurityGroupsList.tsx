@@ -1,7 +1,7 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Tag, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Tag, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
@@ -187,6 +187,11 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
               />
             </div>
           )}
+          <div>
+            <Styled.ButtonWithMarginLeft onClick={() => history.push('/security-groups/add')} type="primary">
+              Add
+            </Styled.ButtonWithMarginLeft>
+          </div>
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
         {!securityGroups.length && !error && !isLoading && <Empty />}
@@ -207,10 +212,6 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
             onChange={handleChange}
           />
         )}
-        <Spacer $space={15} $samespace />
-        <Button onClick={() => history.push('/security-groups/add')} type="primary">
-          Add
-        </Button>
       </Card>
       <Modal
         title="Delete security group"
