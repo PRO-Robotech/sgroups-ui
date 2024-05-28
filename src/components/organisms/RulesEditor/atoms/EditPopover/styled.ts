@@ -9,6 +9,19 @@ const FormItem = styled(Form.Item)`
   }
 `
 
+const PortsEditContainer = styled.div`
+  max-height: 250px;
+  overflow-x: auto;
+`
+
+const PortFormItemsContainer = styled.div`
+  display: grid;
+  grid-row-gap: 10px;
+  padding: 10px;
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+`
+
 const ButtonsContainer = styled.div`
   display: flex;
   justify-content: space-around;
@@ -20,6 +33,8 @@ const ButtonWithRightMargin = styled.div`
 
 export const Styled = {
   FormItem,
+  PortsEditContainer,
+  PortFormItemsContainer,
   ButtonsContainer,
   ButtonWithRightMargin,
 }
