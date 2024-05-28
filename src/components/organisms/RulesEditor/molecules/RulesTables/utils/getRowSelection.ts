@@ -33,7 +33,6 @@ export const getRowSelection = <S extends { id: string }, T extends S & { key: s
             // eslint-disable-next-line no-return-assign
             uncheckedIndex => (newRules[uncheckedIndex] = { ...newRules[uncheckedIndex], checked: false }),
           )
-          console.log(newRules)
           dispatch(setRules(newRules))
           setSelectedRowKeys(newSelectedRowKeys)
         },

@@ -11,7 +11,7 @@ type TPortsCellProps = {
 }
 
 export const PortsCell: FC<TPortsCellProps> = ({ ports, changesMarker, formChanges }) => {
-  if (!ports) {
+  if (!ports || ports.length === 0) {
     return <Tag>any : any</Tag>
   }
 

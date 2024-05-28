@@ -12,6 +12,9 @@ export const comparePorts = (portsOne?: TPortGroup[], portsTwo?: TPortGroup[]): 
       return true
     })
   }
+  if ((portsOne && portsOne.length === 0 && !portsTwo) || (portsTwo && portsTwo.length === 0 && !portsOne)) {
+    return false
+  }
   if ((portsOne && !portsTwo) || (!portsOne && portsTwo)) {
     return true
   }
