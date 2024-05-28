@@ -4,6 +4,7 @@ import { AxiosError } from 'axios'
 import { Card, Form, Select, Switch, Breadcrumb, Result, Spin, Alert } from 'antd'
 import type { SelectProps } from 'antd'
 import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
+import { BASEPREFIX } from 'constants/basePrefix'
 import { getSecurityGroupByName, editSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -107,7 +108,7 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
       <Breadcrumb
         items={[
           {
-            href: '/security-groups',
+            href: `${BASEPREFIX}/security-groups`,
             title: 'Security groups',
           },
           {
