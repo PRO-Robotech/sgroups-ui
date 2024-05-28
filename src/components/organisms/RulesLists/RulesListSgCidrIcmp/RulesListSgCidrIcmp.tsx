@@ -176,9 +176,10 @@ export const RulesListSgCidrIcmp: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
       render: (_, record: TSgCidrIcmpRuleWithId) => (
-        <TextAlignContainer $align="center">
+        <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.SG}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveCidrSgIcmpRuleModal(record)} />
         </TextAlignContainer>

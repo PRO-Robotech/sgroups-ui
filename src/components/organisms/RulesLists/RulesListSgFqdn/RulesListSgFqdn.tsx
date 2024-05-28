@@ -168,9 +168,10 @@ export const RulesListSgFqdn: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
       render: (_, record: TSgFqdnRuleWithId) => (
-        <TextAlignContainer $align="center">
+        <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.sgFrom}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveFqdnRuleModal(record)} />
         </TextAlignContainer>

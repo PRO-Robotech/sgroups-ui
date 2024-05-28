@@ -109,9 +109,10 @@ export const NetworksList: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
       render: (_, record: { name: string; cidr: string }) => (
-        <TextAlignContainer $align="center">
+        <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => history.push(`/networks/edit/${record.name}`)} />{' '}
           <CustomIcons.DeleteIcon onClick={() => openRemoveNetworkModal(record.name)} />
         </TextAlignContainer>

@@ -183,9 +183,10 @@ export const RulesListSgSgIe: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
       render: (_, record: TSgSgIeRuleWithId) => (
-        <TextAlignContainer $align="center">
+        <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.SgLocal}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveSgSgIeRuleModal(record)} />
         </TextAlignContainer>

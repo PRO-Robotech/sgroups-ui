@@ -151,9 +151,10 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 150,
       render: (_, record: TSecurityGroup) => (
-        <TextAlignContainer $align="center">
+        <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => history.push(`/security-groups/edit/${record.name}`)} />{' '}
           <CustomIcons.DeleteIcon onClick={() => openRemoveSGModal(record.name)} />
         </TextAlignContainer>

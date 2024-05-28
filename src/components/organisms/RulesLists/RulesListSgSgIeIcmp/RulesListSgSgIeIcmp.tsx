@@ -176,9 +176,10 @@ export const RulesListSgSgIeIcmp: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
       render: (_, record: TSgSgIeIcmpRuleWithId) => (
-        <TextAlignContainer $align="center">
+        <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.SgLocal}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveSgSgIeIcmpRuleModal(record)} />
         </TextAlignContainer>
