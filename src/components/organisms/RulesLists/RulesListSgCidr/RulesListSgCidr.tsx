@@ -1,18 +1,21 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
+import { nanoid } from 'nanoid'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getSgCidrRules, removeSgCidrRule } from 'api/rules'
+import { getSgCidrRules, deleteRules } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSgCidrRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
-type TCidrRuleColumn = TSgCidrRule & {
+type TSgCidrRuleWithId = TSgCidrRule & { id: string }
+
+type TCidrRuleColumn = TSgCidrRuleWithId & {
   key: string
 }
 
@@ -21,12 +24,12 @@ type OnChange = NonNullable<TableProps<TCidrRuleColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const RulesListSgCidr: FC = () => {
-  const [cidrRules, setCidrRules] = useState<TSgCidrRule[]>([])
+  const [cidrRules, setCidrRules] = useState<TSgCidrRuleWithId[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteErrorCidr, setDeleteErrorCidr] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpenCidr, setIsModalOpenCidr] = useState<boolean>(false)
-  const [pendingToDeleteCidrRule, setPendingToDeleteCidrRule] = useState<{ sg: string; cidr: string }>()
+  const [pendingToDeleteCidrRule, setPendingToDeleteCidrRule] = useState<TSgCidrRuleWithId>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
@@ -37,7 +40,7 @@ export const RulesListSgCidr: FC = () => {
     getSgCidrRules()
       .then(({ data }) => {
         setIsLoading(false)
-        setCidrRules(data.rules)
+        setCidrRules(data.rules.map(entry => ({ ...entry, id: nanoid() })))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -51,10 +54,19 @@ export const RulesListSgCidr: FC = () => {
       })
   }, [])
 
-  const removeCidrRuleFromList = (sg: string, cidr: string) => {
-    removeSgCidrRule(sg, cidr)
+  const removeCidrRuleFromList = (id: string) => {
+    deleteRules(
+      [],
+      [],
+      [],
+      [],
+      [],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      [...cidrRules].filter(el => el.id === id).map(({ id, ...entry }) => entry),
+      [],
+    )
       .then(() => {
-        setCidrRules([...cidrRules].filter(el => el.SG !== sg || el.CIDR !== cidr))
+        setCidrRules([...cidrRules].filter(el => el.id !== id))
         setIsModalOpenCidr(false)
         setPendingToDeleteCidrRule(undefined)
         setDeleteErrorCidr(undefined)
@@ -71,8 +83,8 @@ export const RulesListSgCidr: FC = () => {
       })
   }
 
-  const openRemoveCidrRuleModal = (sg: string, cidr: string) => {
-    setPendingToDeleteCidrRule({ sg, cidr })
+  const openRemoveCidrRuleModal = (record: TSgCidrRuleWithId) => {
+    setPendingToDeleteCidrRule(record)
     setIsModalOpenCidr(true)
   }
 
@@ -172,10 +184,10 @@ export const RulesListSgCidr: FC = () => {
       title: 'Controls',
       key: 'controls',
       width: 100,
-      render: (_, record: TSgCidrRule) => (
+      render: (_, record: TSgCidrRuleWithId) => (
         <TextAlignContainer $align="center">
           <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SG}`)} />
-          <CustomIcons.DeleteIcon onClick={() => openRemoveCidrRuleModal(record.SG, record.CIDR)} />
+          <CustomIcons.DeleteIcon onClick={() => openRemoveCidrRuleModal(record)} />
         </TextAlignContainer>
       ),
     },
@@ -231,9 +243,7 @@ export const RulesListSgCidr: FC = () => {
       <Modal
         title="Delete cidr rule"
         open={isModalOpenCidr}
-        onOk={() =>
-          pendingToDeleteCidrRule && removeCidrRuleFromList(pendingToDeleteCidrRule.sg, pendingToDeleteCidrRule.cidr)
-        }
+        onOk={() => pendingToDeleteCidrRule && removeCidrRuleFromList(pendingToDeleteCidrRule.id)}
         confirmLoading={isLoading}
         onCancel={() => {
           setIsModalOpenCidr(false)
@@ -241,7 +251,7 @@ export const RulesListSgCidr: FC = () => {
         }}
       >
         <p>
-          Are you sure you want to delete cidr rule: {pendingToDeleteCidrRule?.sg} - {pendingToDeleteCidrRule?.cidr}
+          Are you sure you want to delete cidr rule: {pendingToDeleteCidrRule?.SG} - {pendingToDeleteCidrRule?.CIDR}
         </p>
         {deleteErrorCidr && (
           <Result status="error" title={deleteErrorCidr.status} subTitle={deleteErrorCidr.data?.message} />

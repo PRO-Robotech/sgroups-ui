@@ -1,18 +1,21 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
+import { nanoid } from 'nanoid'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getSgCidrIcmpRules, removeSgCidrIcmpRule } from 'api/rules'
+import { getSgCidrIcmpRules, deleteRules } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSgCidrIcmpRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
-type TCidrSgIcmpRuleColumn = TSgCidrIcmpRule & {
+type TSgCidrIcmpRuleWithId = TSgCidrIcmpRule & { id: string }
+
+type TCidrSgIcmpRuleColumn = TSgCidrIcmpRuleWithId & {
   key: string
 }
 
@@ -21,12 +24,12 @@ type OnChange = NonNullable<TableProps<TCidrSgIcmpRuleColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const RulesListSgCidrIcmp: FC = () => {
-  const [cidrSgIcmpRules, setCidrSgIcmpRules] = useState<TSgCidrIcmpRule[]>([])
+  const [cidrSgIcmpRules, setCidrSgIcmpRules] = useState<TSgCidrIcmpRuleWithId[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteErrorCidrSgIcmp, setDeleteErrorCidrSgIcmp] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpenCidrSgIcmp, setIsModalOpenCidrSgIcmp] = useState<boolean>(false)
-  const [pendingToDeleteCidrSgIcmpRule, setPendingToDeleteCidrSgIcmpRule] = useState<{ sg: string; cidr: string }>()
+  const [pendingToDeleteCidrSgIcmpRule, setPendingToDeleteCidrSgIcmpRule] = useState<TSgCidrIcmpRuleWithId>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
@@ -37,7 +40,7 @@ export const RulesListSgCidrIcmp: FC = () => {
     getSgCidrIcmpRules()
       .then(({ data }) => {
         setIsLoading(false)
-        setCidrSgIcmpRules(data.rules)
+        setCidrSgIcmpRules(data.rules.map(entry => ({ ...entry, id: nanoid() })))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -51,10 +54,19 @@ export const RulesListSgCidrIcmp: FC = () => {
       })
   }, [])
 
-  const removeCidrSgIcmpRuleFromList = (sg: string, cidr: string) => {
-    removeSgCidrIcmpRule(sg, cidr)
+  const removeCidrSgIcmpRuleFromList = (id: string) => {
+    deleteRules(
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      [...cidrSgIcmpRules].filter(el => el.id === id).map(({ id, ...entry }) => entry),
+    )
       .then(() => {
-        setCidrSgIcmpRules([...cidrSgIcmpRules].filter(el => el.SG !== sg || el.CIDR !== cidr))
+        setCidrSgIcmpRules([...cidrSgIcmpRules].filter(el => el.id !== id))
         setIsModalOpenCidrSgIcmp(false)
         setPendingToDeleteCidrSgIcmpRule(undefined)
         setDeleteErrorCidrSgIcmp(undefined)
@@ -71,8 +83,8 @@ export const RulesListSgCidrIcmp: FC = () => {
       })
   }
 
-  const openRemoveCidrSgIcmpRuleModal = (sg: string, cidr: string) => {
-    setPendingToDeleteCidrSgIcmpRule({ sg, cidr })
+  const openRemoveCidrSgIcmpRuleModal = (record: TSgCidrIcmpRuleWithId) => {
+    setPendingToDeleteCidrSgIcmpRule(record)
     setIsModalOpenCidrSgIcmp(true)
   }
 
@@ -165,10 +177,10 @@ export const RulesListSgCidrIcmp: FC = () => {
       title: 'Controls',
       key: 'controls',
       width: 100,
-      render: (_, record: TSgCidrIcmpRule) => (
+      render: (_, record: TSgCidrIcmpRuleWithId) => (
         <TextAlignContainer $align="center">
           <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SG}`)} />
-          <CustomIcons.DeleteIcon onClick={() => openRemoveCidrSgIcmpRuleModal(record.SG, record.CIDR)} />
+          <CustomIcons.DeleteIcon onClick={() => openRemoveCidrSgIcmpRuleModal(record)} />
         </TextAlignContainer>
       ),
     },
@@ -224,10 +236,7 @@ export const RulesListSgCidrIcmp: FC = () => {
       <Modal
         title="Delete sgSgIeIcmp rule"
         open={isModalOpenCidrSgIcmp}
-        onOk={() =>
-          pendingToDeleteCidrSgIcmpRule &&
-          removeCidrSgIcmpRuleFromList(pendingToDeleteCidrSgIcmpRule.sg, pendingToDeleteCidrSgIcmpRule.cidr)
-        }
+        onOk={() => pendingToDeleteCidrSgIcmpRule && removeCidrSgIcmpRuleFromList(pendingToDeleteCidrSgIcmpRule.id)}
         confirmLoading={isLoading}
         onCancel={() => {
           setIsModalOpenCidrSgIcmp(false)
@@ -235,8 +244,8 @@ export const RulesListSgCidrIcmp: FC = () => {
         }}
       >
         <p>
-          Are you sure you want to delete sgSgIeIcmp rule: {pendingToDeleteCidrSgIcmpRule?.sg} -{' '}
-          {pendingToDeleteCidrSgIcmpRule?.cidr}
+          Are you sure you want to delete sgSgIeIcmp rule: {pendingToDeleteCidrSgIcmpRule?.SG} -{' '}
+          {pendingToDeleteCidrSgIcmpRule?.CIDR}
         </p>
         {deleteErrorCidrSgIcmp && (
           <Result status="error" title={deleteErrorCidrSgIcmp.status} subTitle={deleteErrorCidrSgIcmp.data?.message} />

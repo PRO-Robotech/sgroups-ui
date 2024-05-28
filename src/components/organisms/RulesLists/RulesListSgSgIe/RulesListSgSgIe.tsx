@@ -1,18 +1,21 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
+import { nanoid } from 'nanoid'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getSgSgIeRules, removeSgSgIeRule } from 'api/rules'
+import { getSgSgIeRules, deleteRules } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSgSgIeRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
-type TSgSgIeRuleColumn = TSgSgIeRule & {
+type TSgSgIeRuleWithId = TSgSgIeRule & { id: string }
+
+type TSgSgIeRuleColumn = TSgSgIeRuleWithId & {
   key: string
 }
 
@@ -21,12 +24,12 @@ type OnChange = NonNullable<TableProps<TSgSgIeRuleColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const RulesListSgSgIe: FC = () => {
-  const [sgSgIeRules, setSgSgIeRules] = useState<TSgSgIeRule[]>([])
+  const [sgSgIeRules, setSgSgIeRules] = useState<TSgSgIeRuleWithId[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteErrorSgSgIe, setDeleteErrorSgSgIe] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpenSgSgIe, setIsModalOpenSgSgIe] = useState<boolean>(false)
-  const [pendingToDeleteSgSgIeRule, setPendingToDeleteSgSgIeRule] = useState<{ sgFrom: string; sgTo: string }>()
+  const [pendingToDeleteSgSgIeRule, setPendingToDeleteSgSgIeRule] = useState<TSgSgIeRuleWithId>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
@@ -37,7 +40,7 @@ export const RulesListSgSgIe: FC = () => {
     getSgSgIeRules()
       .then(({ data }) => {
         setIsLoading(false)
-        setSgSgIeRules(data.rules)
+        setSgSgIeRules(data.rules.map(entry => ({ ...entry, id: nanoid() })))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -51,10 +54,19 @@ export const RulesListSgSgIe: FC = () => {
       })
   }, [])
 
-  const removeSgSgIeRuleFromList = (sgFrom: string, sgTo: string) => {
-    removeSgSgIeRule(sgFrom, sgTo)
+  const removeSgSgIeRuleFromList = (id: string) => {
+    deleteRules(
+      [],
+      [],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      [...sgSgIeRules].filter(el => el.id === id).map(({ id, ...entry }) => entry),
+      [],
+      [],
+      [],
+      [],
+    )
       .then(() => {
-        setSgSgIeRules([...sgSgIeRules].filter(el => el.SgLocal !== sgFrom || el.Sg !== sgTo))
+        setSgSgIeRules([...sgSgIeRules].filter(el => el.id !== id))
         setIsModalOpenSgSgIe(false)
         setPendingToDeleteSgSgIeRule(undefined)
         setDeleteErrorSgSgIe(undefined)
@@ -71,8 +83,8 @@ export const RulesListSgSgIe: FC = () => {
       })
   }
 
-  const openRemoveSgSgIeRuleModal = (sgFrom: string, sgTo: string) => {
-    setPendingToDeleteSgSgIeRule({ sgFrom, sgTo })
+  const openRemoveSgSgIeRuleModal = (record: TSgSgIeRuleWithId) => {
+    setPendingToDeleteSgSgIeRule(record)
     setIsModalOpenSgSgIe(true)
   }
 
@@ -172,10 +184,10 @@ export const RulesListSgSgIe: FC = () => {
       title: 'Controls',
       key: 'controls',
       width: 100,
-      render: (_, record: TSgSgIeRule) => (
+      render: (_, record: TSgSgIeRuleWithId) => (
         <TextAlignContainer $align="center">
           <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SgLocal}`)} />
-          <CustomIcons.DeleteIcon onClick={() => openRemoveSgSgIeRuleModal(record.SgLocal, record.Sg)} />
+          <CustomIcons.DeleteIcon onClick={() => openRemoveSgSgIeRuleModal(record)} />
         </TextAlignContainer>
       ),
     },
@@ -231,10 +243,7 @@ export const RulesListSgSgIe: FC = () => {
       <Modal
         title="Delete sgSgIe rule"
         open={isModalOpenSgSgIe}
-        onOk={() =>
-          pendingToDeleteSgSgIeRule &&
-          removeSgSgIeRuleFromList(pendingToDeleteSgSgIeRule.sgFrom, pendingToDeleteSgSgIeRule.sgTo)
-        }
+        onOk={() => pendingToDeleteSgSgIeRule && removeSgSgIeRuleFromList(pendingToDeleteSgSgIeRule.id)}
         confirmLoading={isLoading}
         onCancel={() => {
           setIsModalOpenSgSgIe(false)
@@ -242,8 +251,8 @@ export const RulesListSgSgIe: FC = () => {
         }}
       >
         <p>
-          Are you sure you want to delete sgSgIe rule: {pendingToDeleteSgSgIeRule?.sgFrom} -{' '}
-          {pendingToDeleteSgSgIeRule?.sgTo}
+          Are you sure you want to delete sgSgIe rule: {pendingToDeleteSgSgIeRule?.SgLocal} -{' '}
+          {pendingToDeleteSgSgIeRule?.Sg}
         </p>
         {deleteErrorSgSgIe && (
           <Result status="error" title={deleteErrorSgSgIe.status} subTitle={deleteErrorSgSgIe.data?.message} />
