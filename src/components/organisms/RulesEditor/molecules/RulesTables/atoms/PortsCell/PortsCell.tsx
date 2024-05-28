@@ -1,7 +1,8 @@
-import React, { FC, Fragment } from 'react'
+import React, { FC } from 'react'
+import { Popover, Tag } from 'antd'
 import { TFormChanges, TPortGroup } from 'localTypes/rules'
-import { ShortenedTextWithTooltip } from 'components/atoms'
-import { Styled } from '../../styled'
+import { Styled as CommonStyled } from '../../styled'
+import { Styled } from './styled'
 
 type TPortsCellProps = {
   ports: TPortGroup[]
@@ -10,14 +11,30 @@ type TPortsCellProps = {
 }
 
 export const PortsCell: FC<TPortsCellProps> = ({ ports, changesMarker, formChanges }) => {
-  return (
-    <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes(changesMarker)} className="no-scroll">
+  const popoverContent = (
+    <Styled.PopoverContainer>
       {ports.map(({ s, d }) => (
-        <Fragment key={`${s || 'any'}${d || 'any'}`}>
-          {!s || s.length === 0 ? 'any' : <ShortenedTextWithTooltip text={s} />} :
-          {!d || d.length === 0 ? 'any' : <ShortenedTextWithTooltip text={d} />}
-        </Fragment>
+        <Tag key={`${s || 'any'}${d || 'any'}`}>
+          {!s || s.length === 0 ? 'any' : s} : {!d || d.length === 0 ? 'any' : d}
+        </Tag>
       ))}
-    </Styled.RulesEntryPorts>
+    </Styled.PopoverContainer>
+  )
+
+  return (
+    <CommonStyled.RulesEntryPorts
+      $modified={formChanges?.modifiedFields?.includes(changesMarker)}
+      className="no-scroll"
+    >
+      <Popover title="Ports" content={popoverContent}>
+        <Styled.InlineContainerWidthMaxWidth>
+          {ports.map(({ s, d }) => (
+            <Styled.PortsEntry key={`${s || 'any'}${d || 'any'}`}>
+              {!s || s.length === 0 ? 'any' : s} : {!d || d.length === 0 ? 'any' : d}
+            </Styled.PortsEntry>
+          ))}
+        </Styled.InlineContainerWidthMaxWidth>
+      </Popover>
+    </CommonStyled.RulesEntryPorts>
   )
 }
