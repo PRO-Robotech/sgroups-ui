@@ -1,4 +1,5 @@
 import React, { ReactElement, ReactNode, useState } from 'react'
+import { nanoid } from 'nanoid'
 import { Button, Popover } from 'antd'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { FullscreenOutlined, PlusOutlined } from '@ant-design/icons'
@@ -65,6 +66,7 @@ export const RulesBlock = <T extends { sg?: string; prioritySome?: string | numb
       setRules([
         ...rules,
         {
+          id: nanoid(),
           ...values,
           traffic: defaultTraffic || null,
           initialValues: { ...values, formChanges: null, id: null },
