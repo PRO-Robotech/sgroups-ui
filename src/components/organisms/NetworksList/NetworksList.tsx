@@ -3,7 +3,6 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getNetworks, removeNetwork } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
@@ -126,22 +125,18 @@ export const NetworksList: FC = () => {
         <TitleWithNoTopMargin level={2}>Networks</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Styled.FiltersContainer>
-          <div>
-            <Input
-              allowClear
-              placeholder="Filter by NW name"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onPressEnter={() => handleSearch(searchText)}
-            />
-          </div>
-          <div>
-            <Styled.ButtonWithMarginLeft
-              onClick={() => handleSearch(searchText)}
-              icon={<SearchOutlined />}
-              type="primary"
-            />
-          </div>
+          {networks.length > 0 && (
+            <div>
+              <Input
+                allowClear
+                placeholder="Filter by NW name"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                onBlur={() => handleSearch(searchText)}
+                onPressEnter={() => handleSearch(searchText)}
+              />
+            </div>
+          )}
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
         {!networks.length && !error && !isLoading && <Empty />}

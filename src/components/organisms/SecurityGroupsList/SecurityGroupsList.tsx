@@ -3,7 +3,6 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Tag, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
@@ -168,22 +167,18 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
         <TitleWithNoTopMargin level={2}>Security Groups</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Styled.FiltersContainer>
-          <div>
-            <Input
-              allowClear
-              placeholder="Filter by SG name"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onPressEnter={() => handleSearch(searchText)}
-            />
-          </div>
-          <div>
-            <Styled.ButtonWithMarginLeft
-              onClick={() => handleSearch(searchText)}
-              icon={<SearchOutlined />}
-              type="primary"
-            />
-          </div>
+          {securityGroups.length > 0 && (
+            <div>
+              <Input
+                allowClear
+                placeholder="Filter by SG name"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                onBlur={() => handleSearch(searchText)}
+                onPressEnter={() => handleSearch(searchText)}
+              />
+            </div>
+          )}
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
         {!securityGroups.length && !error && !isLoading && <Empty />}

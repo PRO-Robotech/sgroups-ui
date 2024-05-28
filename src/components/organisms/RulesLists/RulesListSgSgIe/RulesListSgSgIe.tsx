@@ -5,7 +5,7 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getSgSgIeRules, deleteRules } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
@@ -199,22 +199,18 @@ export const RulesListSgSgIe: FC = () => {
         <TitleWithNoTopMargin level={2}>Rules: SG-SG-IE</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Styled.FiltersContainer>
-          <div>
-            <Input
-              allowClear
-              placeholder="Filter by SG name"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onPressEnter={() => handleSearch(searchText)}
-            />
-          </div>
-          <div>
-            <Styled.ButtonWithMarginLeft
-              onClick={() => handleSearch(searchText)}
-              icon={<SearchOutlined />}
-              type="primary"
-            />
-          </div>
+          {sgSgIeRules.length > 0 && (
+            <div>
+              <Input
+                allowClear
+                placeholder="Filter by SG name"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                onBlur={() => handleSearch(searchText)}
+                onPressEnter={() => handleSearch(searchText)}
+              />
+            </div>
+          )}
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
         {!sgSgIeRules.length && !error && !isLoading && <Empty />}
