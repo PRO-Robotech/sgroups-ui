@@ -18,7 +18,7 @@ const PortFormItemsContainer = styled.div`
   display: grid;
   grid-row-gap: 10px;
   padding: 10px;
-  border: 1px solid #dcdcdc;
+  border: 1px solid gainsboro;
   border-radius: 10px;
 `
 

@@ -5,12 +5,16 @@ import { Styled as CommonStyled } from '../../styled'
 import { Styled } from './styled'
 
 type TPortsCellProps = {
-  ports: TPortGroup[]
+  ports?: TPortGroup[]
   changesMarker: string
   formChanges?: TFormChanges
 }
 
 export const PortsCell: FC<TPortsCellProps> = ({ ports, changesMarker, formChanges }) => {
+  if (!ports) {
+    return <Tag>any : any</Tag>
+  }
+
   const popoverContent = (
     <Styled.PopoverContainer>
       {ports.map(({ s, d }) => (

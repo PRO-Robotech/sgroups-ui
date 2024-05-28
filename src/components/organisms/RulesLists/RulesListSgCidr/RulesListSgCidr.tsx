@@ -154,10 +154,10 @@ export const RulesListSgCidr: FC = () => {
       width: 50,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
-          {ports.length === 0 ? (
+          {ports?.length === 0 ? (
             <div>any : any</div>
           ) : (
-            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
+            ports?.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
           )}
         </Styled.PortsContainer>
       ),

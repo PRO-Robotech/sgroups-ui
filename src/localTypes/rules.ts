@@ -170,7 +170,7 @@ export type TSgCidrIcmpRulesResponse = {
 export type TFormSgSgRuleBase = {
   sg: string
   transport: TTransport
-  ports: TPortGroup[]
+  ports?: TPortGroup[]
   logs: boolean
 } & TAction &
   TPrioritySome
@@ -198,7 +198,7 @@ export type TFormSgSgIcmpRule = TFormSgSgIcmpRuleBase & {
 
 export type TFormSgSgIeRuleBase = {
   sg: string
-  ports: TPortGroup[]
+  ports?: TPortGroup[]
   transport: TTransport
   traffic: TTraffic
   logs: boolean
@@ -230,7 +230,7 @@ export type TFormSgSgIeIcmpRule = TFormSgSgIeIcmpRuleBase & {
 
 export type TFormSgFqdnRuleBase = {
   fqdn: string
-  ports: TPortGroup[]
+  ports?: TPortGroup[]
   transport: TTransport
   logs: boolean
 } & TAction &
@@ -244,7 +244,7 @@ export type TFormSgFqdnRule = TFormSgFqdnRuleBase & {
 
 export type TFormSgCidrRuleBase = {
   cidr: string
-  ports: TPortGroup[]
+  ports?: TPortGroup[]
   transport: TTransport
   traffic: TTraffic
   logs: boolean
