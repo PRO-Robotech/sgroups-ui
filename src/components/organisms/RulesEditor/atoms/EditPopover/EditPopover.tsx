@@ -110,6 +110,9 @@ export const EditPopover = <T,>({
                       rules={[
                         () => ({
                           validator(_, value: string) {
+                            if (value === undefined) {
+                              return Promise.resolve()
+                            }
                             const numberedValue = Number(value)
                             if (numberedValue > 0 && numberedValue < 65536) {
                               return Promise.resolve()
@@ -128,6 +131,9 @@ export const EditPopover = <T,>({
                       rules={[
                         () => ({
                           validator(_, value: string) {
+                            if (value === undefined) {
+                              return Promise.resolve()
+                            }
                             const numberedValue = Number(value)
                             if (numberedValue > 0 && numberedValue < 65536) {
                               return Promise.resolve()
