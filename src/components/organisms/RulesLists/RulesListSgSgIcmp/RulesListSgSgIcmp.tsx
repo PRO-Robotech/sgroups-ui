@@ -173,7 +173,7 @@ export const RulesListSgSgIcmp: FC = () => {
       width: 100,
       render: (_, record: TSgSgIcmpRuleWithId) => (
         <TextAlignContainer $align="center">
-          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SgFrom}`)} />
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.SgFrom}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveSgSgIcmpRuleModal(record)} />
         </TextAlignContainer>
       ),
@@ -223,7 +223,7 @@ export const RulesListSgSgIcmp: FC = () => {
           />
         )}
         <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
+        <Button type="primary" onClick={() => history.push('/rules-editor')}>
           Add
         </Button>
       </Card>

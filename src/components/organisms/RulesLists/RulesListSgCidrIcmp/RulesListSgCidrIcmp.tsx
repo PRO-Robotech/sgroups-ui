@@ -179,7 +179,7 @@ export const RulesListSgCidrIcmp: FC = () => {
       width: 100,
       render: (_, record: TSgCidrIcmpRuleWithId) => (
         <TextAlignContainer $align="center">
-          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SG}`)} />
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.SG}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveCidrSgIcmpRuleModal(record)} />
         </TextAlignContainer>
       ),
@@ -229,7 +229,7 @@ export const RulesListSgCidrIcmp: FC = () => {
           />
         )}
         <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
+        <Button type="primary" onClick={() => history.push('/rules-editor')}>
           Add
         </Button>
       </Card>

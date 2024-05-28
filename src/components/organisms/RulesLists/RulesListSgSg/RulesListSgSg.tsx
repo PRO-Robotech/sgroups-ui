@@ -171,7 +171,7 @@ export const RulesListSgSg: FC = () => {
       width: 100,
       render: (_, record: TSgSgRuleWithId) => (
         <TextAlignContainer $align="center">
-          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.sgFrom}`)} />
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.sgFrom}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveRuleModal(record)} />
         </TextAlignContainer>
       ),
@@ -221,7 +221,7 @@ export const RulesListSgSg: FC = () => {
           />
         )}
         <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
+        <Button type="primary" onClick={() => history.push('/rules-editor')}>
           Add
         </Button>
       </Card>

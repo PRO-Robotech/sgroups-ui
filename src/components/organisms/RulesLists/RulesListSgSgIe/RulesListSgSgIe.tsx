@@ -186,7 +186,7 @@ export const RulesListSgSgIe: FC = () => {
       width: 100,
       render: (_, record: TSgSgIeRuleWithId) => (
         <TextAlignContainer $align="center">
-          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SgLocal}`)} />
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.SgLocal}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveSgSgIeRuleModal(record)} />
         </TextAlignContainer>
       ),
@@ -236,7 +236,7 @@ export const RulesListSgSgIe: FC = () => {
           />
         )}
         <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
+        <Button type="primary" onClick={() => history.push('/rules-editor')}>
           Add
         </Button>
       </Card>

@@ -22,7 +22,7 @@ export const LeftMenuTemplate: FC<TLeftMenuTemplateProps> = ({ children }) => {
   return (
     <BaseTemplate>
       <Layout>
-        <Layout.Sider width={170} breakpoint="lg" collapsedWidth="0">
+        <Layout.Sider width={200} breakpoint="lg" collapsedWidth="0">
           <Styled.PositionStickyWithNoUserSelect>
             <Menu
               theme="dark"

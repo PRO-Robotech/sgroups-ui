@@ -186,7 +186,7 @@ export const RulesListSgCidr: FC = () => {
       width: 100,
       render: (_, record: TSgCidrRuleWithId) => (
         <TextAlignContainer $align="center">
-          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SG}`)} />
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.SG}`)} />
           <CustomIcons.DeleteIcon onClick={() => openRemoveCidrRuleModal(record)} />
         </TextAlignContainer>
       ),
@@ -236,7 +236,7 @@ export const RulesListSgCidr: FC = () => {
           />
         )}
         <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
+        <Button type="primary" onClick={() => history.push('/rules-editor')}>
           Add
         </Button>
       </Card>
