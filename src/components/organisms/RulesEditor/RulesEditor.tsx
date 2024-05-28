@@ -26,19 +26,13 @@ import {
   getSgCidrIcmpRulesBySg,
 } from 'api/rules'
 import {
-  mapRulesSgSgFrom,
-  mapRulesSgSgTo,
-  mapRulesSgSgIcmpFrom,
-  mapRulesSgSgIcmpTo,
-  mapRulesSgSgIeFrom,
-  mapRulesSgSgIeTo,
-  mapRulesSgSgIeIcmpFrom,
-  mapRulesSgSgIeIcmpTo,
-  mapRulesSgFqdnTo,
-  mapRulesSgCidrFrom,
-  mapRulesSgCidrTo,
-  mapRulesSgCidrIcmpFrom,
-  mapRulesSgCidrIcmpTo,
+  mapRulesSgSg,
+  mapRulesSgSgIcmp,
+  mapRulesSgSgIe,
+  mapRulesSgSgIeIcmp,
+  mapRulesSgFqdn,
+  mapRulesSgCidr,
+  mapRulesSgCidrIcmp,
   checkIfChangesExist,
 } from './utils'
 import { SelectCenterSgModal } from './atoms'
@@ -50,6 +44,8 @@ type TRulesEditorProps = {
 }
 
 export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
+  const dispatch = useDispatch()
+
   const [isChangeCenterSgModalVisible, setChangeCenterSgModalVisible] = useState<boolean>(false)
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
@@ -70,8 +66,6 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const rulesSgCidrTo = useSelector((state: RootState) => state.rulesSgCidr.rulesTo)
   const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
   const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
-
-  const dispatch = useDispatch()
 
   useEffect(() => {
     dispatch(setCenterSg(id))
@@ -103,8 +97,8 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       setIsLoading(true)
       setError(undefined)
       Promise.all([
-        getSgSgRulesBySgFrom(centerSg),
         getSgSgRulesBySgTo(centerSg),
+        getSgSgRulesBySgFrom(centerSg),
         getSgSgIcmpRulesBySgTo(centerSg),
         getSgSgIcmpRulesBySgFrom(centerSg),
         getSgSgIeRulesBySgLocal(centerSg),
@@ -115,29 +109,29 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       ])
         .then(
           ([
-            rulesSgFrom,
-            rulesSgTo,
-            rulesSgSgIcmpFrom,
-            rulesSgSgIcmpTo,
+            rulesBySgTo,
+            rulesBySgFrom,
+            rulesSgSgIcmpBySgTo,
+            rulesSgSgIcmpBySgFrom,
             rulesSgSgIe,
             rulesSgSgIeIcmp,
-            rulesFqdnTo,
+            rulesFqdnBySgFrom,
             rulesCidrSg,
             rulesCidrSgIcmp,
           ]) => {
-            dispatch(setRulesSgSgFrom(mapRulesSgSgFrom(rulesSgFrom.data.rules)))
-            dispatch(setRulesSgSgTo(mapRulesSgSgTo(rulesSgTo.data.rules)))
-            dispatch(setRulesSgSgIcmpFrom(mapRulesSgSgIcmpFrom(rulesSgSgIcmpFrom.data.rules)))
-            dispatch(setRulesSgSgIcmpTo(mapRulesSgSgIcmpTo(rulesSgSgIcmpTo.data.rules)))
-            dispatch(setRulesSgSgIeFrom(mapRulesSgSgIeFrom(rulesSgSgIe.data.rules)))
-            dispatch(setRulesSgSgIeTo(mapRulesSgSgIeTo(rulesSgSgIe.data.rules)))
-            dispatch(setRulesSgSgIeIcmpFrom(mapRulesSgSgIeIcmpFrom(rulesSgSgIeIcmp.data.rules)))
-            dispatch(setRulesSgSgIeIcmpTo(mapRulesSgSgIeIcmpTo(rulesSgSgIeIcmp.data.rules)))
-            dispatch(setRulesSgFqdnTo(mapRulesSgFqdnTo(rulesFqdnTo.data.rules)))
-            dispatch(setRulesSgCidrFrom(mapRulesSgCidrFrom(rulesCidrSg.data.rules)))
-            dispatch(setRulesSgCidrTo(mapRulesSgCidrTo(rulesCidrSg.data.rules)))
-            dispatch(setRulesSgCidrIcmpFrom(mapRulesSgCidrIcmpFrom(rulesCidrSgIcmp.data.rules)))
-            dispatch(setRulesSgCidrIcmpTo(mapRulesSgCidrIcmpTo(rulesCidrSgIcmp.data.rules)))
+            dispatch(setRulesSgSgFrom(mapRulesSgSg(rulesBySgTo.data.rules, 'Ingress')))
+            dispatch(setRulesSgSgTo(mapRulesSgSg(rulesBySgFrom.data.rules, 'Egress')))
+            dispatch(setRulesSgSgIcmpFrom(mapRulesSgSgIcmp(rulesSgSgIcmpBySgTo.data.rules, 'Ingress')))
+            dispatch(setRulesSgSgIcmpTo(mapRulesSgSgIcmp(rulesSgSgIcmpBySgFrom.data.rules, 'Egress')))
+            dispatch(setRulesSgSgIeFrom(mapRulesSgSgIe(rulesSgSgIe.data.rules, 'Ingress')))
+            dispatch(setRulesSgSgIeTo(mapRulesSgSgIe(rulesSgSgIe.data.rules, 'Egress')))
+            dispatch(setRulesSgSgIeIcmpFrom(mapRulesSgSgIeIcmp(rulesSgSgIeIcmp.data.rules, 'Ingress')))
+            dispatch(setRulesSgSgIeIcmpTo(mapRulesSgSgIeIcmp(rulesSgSgIeIcmp.data.rules, 'Egress')))
+            dispatch(setRulesSgFqdnTo(mapRulesSgFqdn(rulesFqdnBySgFrom.data.rules)))
+            dispatch(setRulesSgCidrFrom(mapRulesSgCidr(rulesCidrSg.data.rules, 'Ingress')))
+            dispatch(setRulesSgCidrTo(mapRulesSgCidr(rulesCidrSg.data.rules, 'Egress')))
+            dispatch(setRulesSgCidrIcmpFrom(mapRulesSgCidrIcmp(rulesCidrSgIcmp.data.rules, 'Ingress')))
+            dispatch(setRulesSgCidrIcmpTo(mapRulesSgCidrIcmp(rulesCidrSgIcmp.data.rules, 'Egress')))
             setIsLoading(false)
           },
         )
@@ -174,21 +168,21 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   }, [centerSg, fetchData])
 
   const onSelectCenterSg = (newSg?: string) => {
-    const result = checkIfChangesExist({
-      rulesSgSgFrom,
-      rulesSgSgTo,
-      rulesSgSgIcmpFrom,
-      rulesSgSgIcmpTo,
-      rulesSgSgIeFrom,
-      rulesSgSgIeTo,
-      rulesSgSgIeIcmpFrom,
-      rulesSgSgIeIcmpTo,
-      rulesSgFqdnTo,
-      rulesSgCidrFrom,
-      rulesSgCidrTo,
-      rulesSgCidrIcmpFrom,
-      rulesSgCidrIcmpTo,
-    })
+    const result = checkIfChangesExist([
+      ...rulesSgSgFrom,
+      ...rulesSgSgTo,
+      ...rulesSgSgIcmpFrom,
+      ...rulesSgSgIcmpTo,
+      ...rulesSgSgIeFrom,
+      ...rulesSgSgIeTo,
+      ...rulesSgSgIeIcmpFrom,
+      ...rulesSgSgIeIcmpTo,
+      ...rulesSgFqdnTo,
+      ...rulesSgCidrFrom,
+      ...rulesSgCidrTo,
+      ...rulesSgCidrIcmpFrom,
+      ...rulesSgCidrIcmpTo,
+    ])
     if (result) {
       setPendingSg(newSg)
       setChangeCenterSgModalVisible(true)

@@ -1,3 +1,20 @@
+import { TooltipPlacement } from 'antd/es/tooltip'
+
+/* internal types */
+export type TRulesTypes = 'sgSg' | 'sgSgIcmp' | 'sgSgIe' | 'sgSgIeIcmp' | 'sgFqdn' | 'sgCidr' | 'sgCidrIcmp'
+
+export type TRulesSubTypes = 'from' | 'to'
+
+export type TRulesTables<T> = {
+  direction: TRulesSubTypes
+  isChangesMode: boolean
+  popoverPosition: TooltipPlacement
+  rulesData: T[]
+  isDisabled?: boolean
+  isRestoreButtonActive?: boolean
+  forceArrowsUpdate?: () => void
+}
+
 /* common properties */
 
 export type TTransport = 'TCP' | 'UDP'
@@ -13,6 +30,10 @@ export type TPriority = {
   priority?: {
     some?: number
   }
+}
+
+export type TPrioritySome = {
+  prioritySome?: number
 }
 
 export type TActionType = 'ACCEPT' | 'DROP'
@@ -149,12 +170,10 @@ export type TSgCidrIcmpRulesResponse = {
 export type TFormSgSgRuleBase = {
   sg: string
   transport: TTransport
-  portsDestination?: string
-  portsSource?: string
+  ports: TPortGroup[]
   logs: boolean
-  action: TActionType
-  prioritySome?: number
-}
+} & TAction &
+  TPrioritySome
 
 export type TFormSgSgRule = TFormSgSgRuleBase & {
   initialValues: TFormSgSgRuleBase
@@ -168,9 +187,8 @@ export type TFormSgSgIcmpRuleBase = {
   types: number[]
   logs: boolean
   trace: boolean
-  action: TActionType
-  prioritySome?: number
-}
+} & TAction &
+  TPrioritySome
 
 export type TFormSgSgIcmpRule = TFormSgSgIcmpRuleBase & {
   initialValues: TFormSgSgIcmpRuleBase
@@ -180,15 +198,13 @@ export type TFormSgSgIcmpRule = TFormSgSgIcmpRuleBase & {
 
 export type TFormSgSgIeRuleBase = {
   sg: string
-  portsSource?: string
-  portsDestination?: string
+  ports: TPortGroup[]
   transport: TTransport
   traffic: TTraffic
   logs: boolean
   trace: boolean
-  action: TActionType
-  prioritySome?: number
-}
+} & TAction &
+  TPrioritySome
 
 export type TFormSgSgIeRule = TFormSgSgIeRuleBase & {
   initialValues: TFormSgSgIeRuleBase
@@ -203,9 +219,8 @@ export type TFormSgSgIeIcmpRuleBase = {
   traffic: TTraffic
   logs: boolean
   trace: boolean
-  action: TActionType
-  prioritySome?: number
-}
+} & TAction &
+  TPrioritySome
 
 export type TFormSgSgIeIcmpRule = TFormSgSgIeIcmpRuleBase & {
   initialValues: TFormSgSgIeIcmpRuleBase
@@ -215,13 +230,11 @@ export type TFormSgSgIeIcmpRule = TFormSgSgIeIcmpRuleBase & {
 
 export type TFormSgFqdnRuleBase = {
   fqdn: string
-  portsSource?: string
-  portsDestination?: string
+  ports: TPortGroup[]
   transport: TTransport
   logs: boolean
-  action: TActionType
-  prioritySome?: number
-}
+} & TAction &
+  TPrioritySome
 
 export type TFormSgFqdnRule = TFormSgFqdnRuleBase & {
   initialValues: TFormSgFqdnRuleBase
@@ -231,15 +244,13 @@ export type TFormSgFqdnRule = TFormSgFqdnRuleBase & {
 
 export type TFormSgCidrRuleBase = {
   cidr: string
-  portsDestination?: string
-  portsSource?: string
+  ports: TPortGroup[]
   transport: TTransport
   traffic: TTraffic
   logs: boolean
   trace: boolean
-  action: TActionType
-  prioritySome?: number
-}
+} & TAction &
+  TPrioritySome
 
 export type TFormSgCidrRule = TFormSgCidrRuleBase & {
   initialValues: TFormSgCidrRuleBase
@@ -254,9 +265,8 @@ export type TFormSgCidrIcmpRuleBase = {
   traffic: TTraffic
   logs: boolean
   trace: boolean
-  action: TActionType
-  prioritySome?: number
-}
+} & TAction &
+  TPrioritySome
 
 export type TFormSgCidrIcmpRule = TFormSgCidrIcmpRuleBase & {
   initialValues: TFormSgCidrIcmpRuleBase

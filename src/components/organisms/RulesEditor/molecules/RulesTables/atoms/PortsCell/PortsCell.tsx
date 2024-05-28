@@ -1,18 +1,23 @@
-import React, { FC } from 'react'
-import { TFormChanges } from 'localTypes/rules'
+import React, { FC, Fragment } from 'react'
+import { TFormChanges, TPortGroup } from 'localTypes/rules'
 import { ShortenedTextWithTooltip } from 'components/atoms'
 import { Styled } from '../../styled'
 
 type TPortsCellProps = {
-  port: string | undefined
+  ports: TPortGroup[]
   changesMarker: string
   formChanges?: TFormChanges
 }
 
-export const PortsCell: FC<TPortsCellProps> = ({ port, changesMarker, formChanges }) => {
+export const PortsCell: FC<TPortsCellProps> = ({ ports, changesMarker, formChanges }) => {
   return (
     <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes(changesMarker)} className="no-scroll">
-      {!port || port.length === 0 ? 'any' : <ShortenedTextWithTooltip text={port} />}
+      {ports.map(({ s, d }) => (
+        <Fragment key={`${s || 'any'}${d || 'any'}`}>
+          {!s || s.length === 0 ? 'any' : <ShortenedTextWithTooltip text={s} />} :
+          {!d || d.length === 0 ? 'any' : <ShortenedTextWithTooltip text={d} />}
+        </Fragment>
+      ))}
     </Styled.RulesEntryPorts>
   )
 }

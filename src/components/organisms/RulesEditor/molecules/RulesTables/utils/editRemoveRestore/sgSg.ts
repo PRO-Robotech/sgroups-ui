@@ -23,7 +23,8 @@ export const edit = (
   const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
   const newSgRulesOtherside = [...rulesOtherside]
   /* legacy */
-  const newSgRulesOthersideIndex = findSgSgPair(centerSg, newSgRules[index], rulesOtherside)
+  const newSgRulesOthersideIndex =
+    values.sg === centerSg ? findSgSgPair(centerSg, newSgRules[index], rulesOtherside) : undefined
   if (newSgRules[index].formChanges?.status === STATUSES.new) {
     newSgRules[index] = {
       ...values,
@@ -31,11 +32,13 @@ export const edit = (
       prioritySome: numberedPriorty,
       formChanges: { status: STATUSES.new },
     }
-    newSgRulesOtherside[newSgRulesOthersideIndex] = {
-      ...values,
-      initialValues: oldValues.initialValues,
-      prioritySome: numberedPriorty,
-      formChanges: { status: STATUSES.new },
+    if (newSgRulesOthersideIndex) {
+      newSgRulesOtherside[newSgRulesOthersideIndex] = {
+        ...values,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
+        formChanges: { status: STATUSES.new },
+      }
     }
   } else {
     const modifiedFields = getModifiedFieldsInSgSgRule(newSgRules[index], {
@@ -49,11 +52,13 @@ export const edit = (
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
-      newSgRulesOtherside[newSgRulesOthersideIndex] = {
-        ...values,
-        initialValues: oldValues.initialValues,
-        prioritySome: numberedPriorty,
-        formChanges: { status: STATUSES.modified, modifiedFields },
+      if (newSgRulesOthersideIndex) {
+        newSgRulesOtherside[newSgRulesOthersideIndex] = {
+          ...values,
+          initialValues: oldValues.initialValues,
+          prioritySome: numberedPriorty,
+          formChanges: { status: STATUSES.modified, modifiedFields },
+        }
       }
     } else {
       newSgRules[index] = {
@@ -62,16 +67,20 @@ export const edit = (
         formChanges: undefined,
         id: values.id,
       }
-      newSgRulesOtherside[newSgRulesOthersideIndex] = {
-        ...newSgRulesOtherside[newSgRulesOthersideIndex].initialValues,
-        initialValues: { ...newSgRulesOtherside[newSgRulesOthersideIndex].initialValues },
-        formChanges: undefined,
-        id: newSgRulesOtherside[newSgRulesOthersideIndex].id,
+      if (newSgRulesOthersideIndex) {
+        newSgRulesOtherside[newSgRulesOthersideIndex] = {
+          ...newSgRulesOtherside[newSgRulesOthersideIndex].initialValues,
+          initialValues: { ...newSgRulesOtherside[newSgRulesOthersideIndex].initialValues },
+          formChanges: undefined,
+          id: newSgRulesOtherside[newSgRulesOthersideIndex].id,
+        }
       }
     }
   }
   dispatch(setRules(newSgRules))
-  dispatch(setRulesOtherside(newSgRulesOtherside))
+  if (newSgRulesOthersideIndex) {
+    dispatch(setRulesOtherside(newSgRulesOtherside))
+  }
   toggleEditPopover(index)
 }
 
@@ -92,16 +101,7 @@ export const remove = (
   const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
   const newSgRulesOtherside = [...rulesOtherside]
   /* legacy */
-  const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-    ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-      sg === centerSg &&
-      portsSource === newSgRules[index].portsSource &&
-      portsDestination === newSgRules[index].portsDestination &&
-      transport === newSgRules[index].transport &&
-      logs === newSgRules[index].logs &&
-      action === newSgRules[index].action &&
-      prioritySome === newSgRules[index].prioritySome,
-  )
+  const newSgRulesOthersideIndex = findSgSgPair(centerSg, oldValues, rulesOtherside)
   const newEditOpenRules = [...editOpen]
   if (newSgRules[index].formChanges?.status === STATUSES.new) {
     dispatch(setRules([...newSgRules.slice(0, index), ...newSgRules.slice(index + 1)]))
@@ -139,16 +139,7 @@ export const restore = (
   const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
   const newSgRulesOtherside = [...rulesOtherside]
   /* legacy */
-  const newSgRulesOthersideIndex = rulesOtherside.findIndex(
-    ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
-      sg === centerSg &&
-      portsSource === newSgRules[index].portsSource &&
-      portsDestination === newSgRules[index].portsDestination &&
-      transport === newSgRules[index].transport &&
-      logs === newSgRules[index].logs &&
-      action === newSgRules[index].action &&
-      prioritySome === newSgRules[index].prioritySome,
-  )
+  const newSgRulesOthersideIndex = findSgSgPair(centerSg, oldValues, rulesOtherside)
   newSgRules[index] = { ...newSgRules[index], formChanges: { status: STATUSES.modified }, checked: false }
   newSgRulesOtherside[newSgRulesOthersideIndex] = {
     ...newSgRulesOtherside[newSgRulesOthersideIndex],

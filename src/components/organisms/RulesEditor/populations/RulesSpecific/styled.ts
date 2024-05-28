@@ -14,8 +14,8 @@ const Container = styled.div`
 
 const ExitModalContainer = styled.div`
   position: absolute;
-  right: 25px;
   top: 15px;
+  right: 25px;
 `
 
 export const Styled = {

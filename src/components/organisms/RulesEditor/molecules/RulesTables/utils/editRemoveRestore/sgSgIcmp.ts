@@ -23,7 +23,8 @@ export const edit = (
   const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
   const newSgSgIcmpRulesOtherside = [...rulesOtherside]
   /* legacy */
-  const newSgSgSgIcmpRulesOthersideIndex = findSgSgIcmpPair(centerSg, newSgSgIcmpRules[index], rulesOtherside)
+  const newSgSgSgIcmpRulesOthersideIndex =
+    values.sg === centerSg ? findSgSgIcmpPair(centerSg, newSgSgIcmpRules[index], rulesOtherside) : undefined
   if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
     newSgSgIcmpRules[index] = {
       ...values,
@@ -31,11 +32,13 @@ export const edit = (
       prioritySome: numberedPriorty,
       formChanges: { status: STATUSES.new },
     }
-    newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
-      ...values,
-      initialValues: oldValues.initialValues,
-      prioritySome: numberedPriorty,
-      formChanges: { status: STATUSES.new },
+    if (newSgSgSgIcmpRulesOthersideIndex) {
+      newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
+        ...values,
+        initialValues: oldValues.initialValues,
+        prioritySome: numberedPriorty,
+        formChanges: { status: STATUSES.new },
+      }
     }
   } else {
     const modifiedFields = getModifiedFieldsInSgSgIcmpRule(newSgSgIcmpRules[index], {
@@ -49,11 +52,13 @@ export const edit = (
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
       }
-      newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
-        ...values,
-        initialValues: oldValues.initialValues,
-        prioritySome: numberedPriorty,
-        formChanges: { status: STATUSES.modified, modifiedFields },
+      if (newSgSgSgIcmpRulesOthersideIndex) {
+        newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
+          ...values,
+          initialValues: oldValues.initialValues,
+          prioritySome: numberedPriorty,
+          formChanges: { status: STATUSES.modified, modifiedFields },
+        }
       }
     } else {
       newSgSgIcmpRules[index] = {
@@ -62,16 +67,20 @@ export const edit = (
         formChanges: undefined,
         id: values.id,
       }
-      newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
-        ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex].initialValues,
-        initialValues: { ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex].initialValues },
-        formChanges: undefined,
-        id: newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex].id,
+      if (newSgSgSgIcmpRulesOthersideIndex) {
+        newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
+          ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex].initialValues,
+          initialValues: { ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex].initialValues },
+          formChanges: undefined,
+          id: newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex].id,
+        }
       }
     }
   }
   dispatch(setRules(newSgSgIcmpRules))
-  dispatch(setRulesOtherside(newSgSgIcmpRulesOtherside))
+  if (newSgSgSgIcmpRulesOthersideIndex) {
+    dispatch(setRulesOtherside(newSgSgIcmpRulesOtherside))
+  }
   toggleEditPopover(index)
 }
 
@@ -92,16 +101,7 @@ export const remove = (
   const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
   const newSgSgIcmpRulesOtherside = [...rulesOtherside]
   /* legacy */
-  const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
-    ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-      sg === centerSg &&
-      IPv === newSgSgIcmpRules[index].IPv &&
-      JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
-      logs === newSgSgIcmpRules[index].logs &&
-      trace === newSgSgIcmpRules[index].trace &&
-      action === newSgSgIcmpRules[index].action &&
-      prioritySome === newSgSgIcmpRules[index].prioritySome,
-  )
+  const newSgSgSgIcmpRulesOthersideIndex = findSgSgIcmpPair(centerSg, oldValues, rulesOtherside)
   const newEditOpenRules = [...editOpen]
   if (newSgSgIcmpRules[index].formChanges?.status === STATUSES.new) {
     dispatch(setRules([...newSgSgIcmpRules.slice(0, index), ...newSgSgIcmpRules.slice(index + 1)]))
@@ -139,16 +139,7 @@ export const restore = (
   const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
   const newSgSgIcmpRulesOtherside = [...rulesOtherside]
   /* legacy */
-  const newSgSgSgIcmpRulesOthersideIndex = rulesOtherside.findIndex(
-    ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
-      sg === centerSg &&
-      IPv === newSgSgIcmpRules[index].IPv &&
-      JSON.stringify(types.sort()) === JSON.stringify(newSgSgIcmpRules[index].types.sort()) &&
-      logs === newSgSgIcmpRules[index].logs &&
-      trace === newSgSgIcmpRules[index].trace &&
-      action === newSgSgIcmpRules[index].action &&
-      prioritySome === newSgSgIcmpRules[index].prioritySome,
-  )
+  const newSgSgSgIcmpRulesOthersideIndex = findSgSgIcmpPair(centerSg, oldValues, rulesOtherside)
   newSgSgIcmpRules[index] = { ...newSgSgIcmpRules[index], formChanges: { status: STATUSES.modified }, checked: false }
   newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
     ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex],

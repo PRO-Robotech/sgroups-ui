@@ -1,15 +1,15 @@
 /* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
-import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
-import { useDispatch } from 'react-redux'
+import React, { FC, Key, useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
+import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
 import { Button, Popover, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { TooltipPlacement } from 'antd/es/tooltip'
 import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
-import { TFormSgSgIcmpRule } from 'localTypes/rules'
+import { TRulesTables, TFormSgSgIcmpRule } from 'localTypes/rules'
 import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIcmp'
@@ -17,43 +17,33 @@ import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
 import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
-type TSgSgIcmpTableProps = {
-  isChangesMode: boolean
-  popoverPosition: TooltipPlacement
-  rulesData: TFormSgSgIcmpRule[]
-  rulesAll: TFormSgSgIcmpRule[]
-  setRules: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
-  rulesOtherside: TFormSgSgIcmpRule[]
-  setRulesOtherside: ActionCreatorWithPayload<TFormSgSgIcmpRule[]>
-  editOpen: boolean[]
-  setEditOpen: Dispatch<SetStateAction<boolean[]>>
-  centerSg?: string
-  isDisabled?: boolean
-  isRestoreButtonActive?: boolean
-  forceArrowsUpdate?: () => void
-}
+type TSgSgIcmpTableProps = TRulesTables<TFormSgSgIcmpRule>
 
 type TColumn = TFormSgSgIcmpRule & { key: string }
 
 export const SgSgIcmpTable: FC<TSgSgIcmpTableProps> = ({
+  direction,
   isChangesMode,
   popoverPosition,
   rulesData,
-  rulesAll,
-  setRules,
-  rulesOtherside,
-  setRulesOtherside,
-  editOpen,
-  setEditOpen,
-  centerSg,
   isDisabled,
   isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
+  const dispatch = useDispatch()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
-  const dispatch = useDispatch()
+  const [editOpen, setEditOpen] = useState<boolean[]>([])
+
+  const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
+  const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
+  const rulesSgSgIcmpTo = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesTo)
+
+  const rulesAll = direction === 'from' ? rulesSgSgIcmpFrom : rulesSgSgIcmpTo
+  const setRules = direction === 'from' ? setRulesSgSgIcmpFrom : setRulesSgSgIcmpTo
+  const rulesOtherside = direction === 'from' ? rulesSgSgIcmpTo : rulesSgSgIcmpFrom
+  const setRulesOtherside = direction === 'from' ? setRulesSgSgIcmpTo : setRulesSgSgIcmpFrom
 
   useEffect(() => {
     setEditOpen(
