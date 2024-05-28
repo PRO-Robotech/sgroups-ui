@@ -16,10 +16,10 @@ export const getRowSelection = <S extends { id: string }, T extends S & { key: s
     ? {
         selectedRowKeys,
         type: 'checkbox',
-        onChange: (newSelectedRowKeys, newSelectedRows) => {
+        onChange: newSelectedRowKeys => {
           const newRules = [...rulesAll]
           const uncheckedKeys = selectedRowKeys.filter(el => !newSelectedRowKeys.includes(el))
-          const checkedIndexes = newSelectedRows
+          const checkedIndexes = dataSource
             .filter(({ key }) => newSelectedRowKeys.includes(key))
             .map(newRow => rulesAll.findIndex(({ id }) => id === newRow.id))
           const uncheckedIndexes = dataSource
@@ -31,8 +31,9 @@ export const getRowSelection = <S extends { id: string }, T extends S & { key: s
           )
           uncheckedIndexes.forEach(
             // eslint-disable-next-line no-return-assign
-            checkedIndex => (newRules[checkedIndex] = { ...newRules[checkedIndex], checked: false }),
+            uncheckedIndex => (newRules[uncheckedIndex] = { ...newRules[uncheckedIndex], checked: false }),
           )
+          console.log(newRules)
           dispatch(setRules(newRules))
           setSelectedRowKeys(newSelectedRowKeys)
         },

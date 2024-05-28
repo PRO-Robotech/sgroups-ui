@@ -31,6 +31,7 @@ export const edit = (
       initialValues: oldValues.initialValues,
       prioritySome: numberedPriorty,
       formChanges: { status: STATUSES.new },
+      id: oldValues.id,
     }
     if (newSgSgSgIcmpRulesOthersideIndex) {
       newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
@@ -38,6 +39,7 @@ export const edit = (
         initialValues: oldValues.initialValues,
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.new },
+        id: newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex].id,
       }
     }
   } else {
@@ -51,6 +53,7 @@ export const edit = (
         initialValues: oldValues.initialValues,
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
+        id: oldValues.id,
       }
       if (newSgSgSgIcmpRulesOthersideIndex) {
         newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
@@ -58,6 +61,7 @@ export const edit = (
           initialValues: oldValues.initialValues,
           prioritySome: numberedPriorty,
           formChanges: { status: STATUSES.modified, modifiedFields },
+          id: newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex].id,
         }
       }
     } else {
@@ -65,7 +69,7 @@ export const edit = (
         ...newSgSgIcmpRules[index].initialValues,
         initialValues: { ...newSgSgIcmpRules[index].initialValues },
         formChanges: undefined,
-        id: values.id,
+        id: oldValues.id,
       }
       if (newSgSgSgIcmpRulesOthersideIndex) {
         newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
