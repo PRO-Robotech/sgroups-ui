@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 import React, { ReactElement, useEffect } from 'react'
 import { Button, Form, Select, Input, Switch } from 'antd'
 import { PlusCircleOutlined, MinusCircleOutlined, CloseOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons'
@@ -102,10 +103,40 @@ export const EditPopover = <T,>({
               <>
                 {fields.map(({ key, name, ...restField }) => (
                   <Styled.PortFormItemsContainer key={key}>
-                    <Styled.FormItem {...restField} name={[name, 's']} label="Source">
+                    <Styled.FormItem
+                      {...restField}
+                      name={[name, 's']}
+                      label="Source"
+                      rules={[
+                        () => ({
+                          validator(_, value: string) {
+                            const numberedValue = Number(value)
+                            if (numberedValue > 0 && numberedValue < 65536) {
+                              return Promise.resolve()
+                            }
+                            return Promise.reject(new Error('Not in valid range'))
+                          },
+                        }),
+                      ]}
+                    >
                       <Input placeholder="Port source" />
                     </Styled.FormItem>
-                    <Styled.FormItem {...restField} name={[name, 'd']} label="Destination">
+                    <Styled.FormItem
+                      {...restField}
+                      name={[name, 'd']}
+                      label="Destination"
+                      rules={[
+                        () => ({
+                          validator(_, value: string) {
+                            const numberedValue = Number(value)
+                            if (numberedValue > 0 && numberedValue < 65536) {
+                              return Promise.resolve()
+                            }
+                            return Promise.reject(new Error('Not in valid range'))
+                          },
+                        }),
+                      ]}
+                    >
                       <Input placeholder="Port destination" />
                     </Styled.FormItem>
                     <Button type="dashed" onClick={() => remove(name)} block icon={<MinusOutlined />}>
