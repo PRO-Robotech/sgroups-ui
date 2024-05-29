@@ -5,18 +5,18 @@ export const comparePorts = (portsOne?: TPortGroup[], portsTwo?: TPortGroup[]): 
     if (portsOne.length !== portsTwo.length) {
       return false
     }
-    return portsOne.some(({ s, d }, index) => {
+    return !portsOne.some(({ s, d }, index) => {
       if (s !== portsTwo[index].s || d !== portsTwo[index].d) {
-        return false
+        return true
       }
-      return true
+      return false
     })
   }
   if ((portsOne && portsOne.length === 0 && !portsTwo) || (portsTwo && portsTwo.length === 0 && !portsOne)) {
-    return false
+    return true
   }
   if ((portsOne && !portsTwo) || (!portsOne && portsTwo)) {
-    return true
+    return false
   }
   return false
 }
