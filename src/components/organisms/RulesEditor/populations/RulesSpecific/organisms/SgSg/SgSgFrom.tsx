@@ -8,7 +8,12 @@ export const SgSgFrom: FC = () => {
     <TcpUdpAndIcmpSwitcher
       notInTransformBlock
       tcpUdpComponent={
-        <RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSg.from} addpopoverPosition="top" inTransformBlock={false} />
+        <RulesBlockFactory
+          {...RULES_CONFIGS_FOR_FACTORY.sgSg.from}
+          addpopoverPosition="top"
+          inTransformBlock={false}
+          isDisabledDefault
+        />
       }
       icmpComponent={
         <RulesBlockFactory
