@@ -72,7 +72,7 @@ export const remove = (
   } else {
     newCidrSgRules[index] = {
       ...newCidrSgRules[index],
-      formChanges: { status: STATUSES.deleted },
+      formChanges: { status: STATUSES.deleted, modifiedFields: newCidrSgRules[index].formChanges?.modifiedFields },
     }
     dispatch(setRules(newCidrSgRules))
     toggleEditPopover(index)
@@ -87,10 +87,20 @@ export const restore = (
 ): void => {
   const newCidrSgRules = [...rulesAll]
   const index = newCidrSgRules.findIndex(({ id }) => id === oldValues.id)
+  const values = newCidrSgRules[index]
   newCidrSgRules[index] = {
-    ...newCidrSgRules[index],
-    formChanges: { status: STATUSES.modified },
+    ...values,
     checked: false,
+    formChanges: undefined,
+  }
+  if (values.formChanges && values.formChanges.modifiedFields && values.formChanges.modifiedFields.length > 0) {
+    newCidrSgRules[index] = {
+      ...newCidrSgRules[index],
+      formChanges: {
+        status: STATUSES.modified,
+        modifiedFields: values.formChanges?.modifiedFields,
+      },
+    }
   }
   dispatch(setRules(newCidrSgRules))
 }
