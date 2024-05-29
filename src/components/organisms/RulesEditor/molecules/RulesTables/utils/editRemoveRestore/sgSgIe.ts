@@ -24,6 +24,7 @@ export const edit = (
       traffic: defaultTraffic,
       prioritySome: numberedPriorty,
       formChanges: { status: STATUSES.new },
+      id: oldValues.id,
     }
   } else {
     const modifiedFields = getModifiedFieldsInSgSgIeRule(newSgSgIeRules[index], {
@@ -37,6 +38,7 @@ export const edit = (
         traffic: defaultTraffic,
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
+        id: oldValues.id,
       }
     } else {
       newSgSgIeRules[index] = {

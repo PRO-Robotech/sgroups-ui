@@ -1,14 +1,14 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
-import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
-import { useDispatch } from 'react-redux'
+import React, { FC, Key, useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
+import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
 import { Button, Popover, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { TooltipPlacement } from 'antd/es/tooltip'
 import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
-import { TFormSgSgIeRule, TTraffic } from 'localTypes/rules'
+import { TRulesTables, TFormSgSgIeRule } from 'localTypes/rules'
 import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIe'
@@ -16,39 +16,31 @@ import { FilterDropdown, ActionCell, LogsCell, TraceCell, TransportCell, PortsCe
 import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
-type TSgSgIeTableProps = {
-  isChangesMode: boolean
-  popoverPosition: TooltipPlacement
-  defaultTraffic: TTraffic
-  rulesData: TFormSgSgIeRule[]
-  rulesAll: TFormSgSgIeRule[]
-  setRules: ActionCreatorWithPayload<TFormSgSgIeRule[]>
-  setEditOpen: Dispatch<SetStateAction<boolean[]>>
-  editOpen: boolean[]
-  isDisabled?: boolean
-  isRestoreButtonActive?: boolean
-  forceArrowsUpdate?: () => void
-}
+type TSgSgIeTableProps = TRulesTables<TFormSgSgIeRule>
 
 type TColumn = TFormSgSgIeRule & { key: string }
 
 export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
+  direction,
   isChangesMode,
   popoverPosition,
-  defaultTraffic,
   rulesData,
-  rulesAll,
-  setRules,
-  setEditOpen,
-  editOpen,
   isDisabled,
   isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
+  const dispatch = useDispatch()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
-  const dispatch = useDispatch()
+  const [editOpen, setEditOpen] = useState<boolean[]>([])
+
+  const rulesSgSgIeFrom = useSelector((state: RootState) => state.rulesSgSgIe.rulesFrom)
+  const rulesSgSgIeTo = useSelector((state: RootState) => state.rulesSgSgIe.rulesTo)
+
+  const rulesAll = direction === 'from' ? rulesSgSgIeFrom : rulesSgSgIeTo
+  const setRules = direction === 'from' ? setRulesSgSgIeFrom : setRulesSgSgIeTo
+  const defaultTraffic = direction === 'from' ? 'Ingress' : 'Egress'
 
   useEffect(() => {
     setEditOpen(
@@ -152,26 +144,17 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome || DEFAULT_PRIORITIES.sgToSgIe}
+          {!!prioritySome || prioritySome === 0 ? prioritySome : DEFAULT_PRIORITIES.sgToSgIe}
         </Styled.RulesEntryPorts>
       ),
     },
     {
-      title: 'Ports Src',
-      key: 'portsSource',
-      dataIndex: 'portsSource',
+      title: 'Ports',
+      key: 'ports',
+      dataIndex: 'ports',
       width: 50,
-      render: (_, { portsSource, formChanges }) => (
-        <PortsCell port={portsSource} changesMarker="portsSource" formChanges={formChanges} />
-      ),
-    },
-    {
-      title: 'Ports Dst',
-      key: 'portsDestination',
-      dataIndex: 'portsDestination',
-      width: 50,
-      render: (_, { portsDestination, formChanges }) => (
-        <PortsCell port={portsDestination} changesMarker="portsDestination" formChanges={formChanges} />
+      render: (_, { ports, formChanges }) => (
+        <PortsCell ports={ports} changesMarker="ports" formChanges={formChanges} />
       ),
     },
     {
@@ -214,13 +197,13 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   const dataSource = isChangesMode
     ? rulesData.map(row => ({
         ...row,
-        key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+        key: `${row.sg}-${row.transport}`,
       }))
     : rulesData
         .filter(({ formChanges }) => formChanges?.status !== STATUSES.deleted)
         .map(row => ({
           ...row,
-          key: `${row.sg}-${row.portsSource}-${row.portsDestination}-${row.transport}`,
+          key: `${row.sg}-${row.transport}`,
         }))
 
   const rowSelection = getRowSelection<TFormSgSgIeRule, TColumn>(

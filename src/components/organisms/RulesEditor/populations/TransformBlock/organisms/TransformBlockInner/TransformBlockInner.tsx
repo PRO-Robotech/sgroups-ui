@@ -2,6 +2,7 @@ import React, { FC, useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { Spacer } from 'components'
+import { RULES_CONFIGS_FOR_FACTORY } from '../../../../constants'
 import { TcpUdpAndIcmpSwitcher, GroupRulesNodeWrapper } from '../../../../atoms'
 import { SelectCenterSg } from '../../../../molecules'
 import { RulesBlockFactory } from '../../../../organisms'
@@ -25,7 +26,7 @@ type TTransformBlockInnerProps = {
 
 export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCenterSg }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
-  const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
+
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
   const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
@@ -71,21 +72,12 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
             tcpUdpComponent={
               <RulesBlockFactory
                 forceArrowsUpdate={forceArrowsUpdate}
-                title="SG From"
-                popoverPosition="left"
-                type="sgSg"
-                subtype="from"
-                isDisabled
+                {...RULES_CONFIGS_FOR_FACTORY.sgSg.from}
+                isDisabledDefault
               />
             }
             icmpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="SG From"
-                popoverPosition="left"
-                type="sgSgIcmp"
-                subtype="from"
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgSgIcmp.from} />
             }
           />
         </div>
@@ -94,24 +86,10 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
           <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
             tcpUdpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="SG-SG-IE From"
-                popoverPosition="left"
-                type="sgSgIe"
-                subtype="from"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgSgIe.from} />
             }
             icmpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="SG-SG-IE From"
-                popoverPosition="left"
-                type="sgSgIeIcmp"
-                subtype="from"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgSgIeIcmp.from} />
             }
           />
         </div>
@@ -120,24 +98,10 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
           <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
             tcpUdpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="CIDR From"
-                popoverPosition="left"
-                type="sgCidr"
-                subtype="from"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgCidr.from} />
             }
             icmpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="CIDR From"
-                popoverPosition="left"
-                type="sgCidrIcmp"
-                subtype="from"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgCidrIcmp.from} />
             }
           />
         </div>
@@ -152,24 +116,10 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
           <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
             tcpUdpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="SG To"
-                popoverPosition="right"
-                type="sgSg"
-                subtype="to"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgSg.to} />
             }
             icmpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="SG To"
-                popoverPosition="right"
-                type="sgSgIcmp"
-                subtype="to"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgSgIcmp.to} />
             }
           />
         </div>
@@ -178,24 +128,10 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
           <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
             tcpUdpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="SG-SG-IE To"
-                popoverPosition="right"
-                type="sgSgIe"
-                subtype="to"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgSgIe.to} />
             }
             icmpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="SG-SG-IE To"
-                popoverPosition="right"
-                type="sgSgIeIcmp"
-                subtype="to"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgSgIeIcmp.to} />
             }
           />
         </div>
@@ -204,38 +140,17 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
           <TcpUdpAndIcmpSwitcher
             forceArrowsUpdate={forceArrowsUpdate}
             tcpUdpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="CIDR To"
-                popoverPosition="right"
-                type="sgCidr"
-                subtype="to"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgCidr.to} />
             }
             icmpComponent={
-              <RulesBlockFactory
-                forceArrowsUpdate={forceArrowsUpdate}
-                title="CIDR To"
-                popoverPosition="right"
-                type="sgCidrIcmp"
-                subtype="to"
-                isDisabled={!centerSg}
-              />
+              <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgCidrIcmp.to} />
             }
           />
         </div>
         <Spacer $space={100} $samespace />
         <div id={FQDN_TO_ID}>
           <GroupRulesNodeWrapper>
-            <RulesBlockFactory
-              forceArrowsUpdate={forceArrowsUpdate}
-              title="FQDN To"
-              type="sgFqdn"
-              popoverPosition="right"
-              subtype="to"
-              isDisabled={!centerSg}
-            />
+            <RulesBlockFactory forceArrowsUpdate={forceArrowsUpdate} {...RULES_CONFIGS_FOR_FACTORY.sgFqdn.to} />
           </GroupRulesNodeWrapper>
         </div>
       </Styled.CardsCol>

@@ -3,6 +3,7 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Form, Input, Breadcrumb, Result, Spin, Alert } from 'antd'
 import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
+import { BASEPREFIX } from 'constants/basePrefix'
 import { getNetworkByName, editNetwork } from 'api/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork } from 'localTypes/networks'
@@ -81,7 +82,7 @@ export const NetworkEdit: FC<TNetworkEditProps> = ({ id }) => {
       <Breadcrumb
         items={[
           {
-            href: '/networks',
+            href: `${BASEPREFIX}/networks`,
             title: 'Networks',
           },
           {

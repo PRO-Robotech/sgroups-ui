@@ -2,6 +2,7 @@ import React, { FC, Fragment, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Breadcrumb, notification, Spin, Result } from 'antd'
 import { TitleWithNoTopMargin, Spacer } from 'components'
+import { BASEPREFIX } from 'constants/basePrefix'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetworkForm } from 'localTypes/networks'
 import { addNetworks } from 'api/networks'
@@ -67,7 +68,7 @@ export const NetworkAdd: FC = () => {
       <Breadcrumb
         items={[
           {
-            href: '/networks',
+            href: `${BASEPREFIX}/networks`,
             title: 'Networks',
           },
           {

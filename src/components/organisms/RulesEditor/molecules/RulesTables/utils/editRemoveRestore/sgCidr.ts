@@ -24,6 +24,7 @@ export const edit = (
       initialValues: oldValues.initialValues,
       prioritySome: numberedPriorty,
       formChanges: { status: STATUSES.new },
+      id: oldValues.id,
     }
   } else {
     const modifiedFields = getModifiedFieldsInSgCidrRule(newCidrSgRules[index], {
@@ -37,13 +38,14 @@ export const edit = (
         initialValues: oldValues.initialValues,
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
+        id: oldValues.id,
       }
     } else {
       newCidrSgRules[index] = {
         ...newCidrSgRules[index].initialValues,
         initialValues: { ...newCidrSgRules[index].initialValues },
         formChanges: undefined,
-        id: values.id,
+        id: oldValues.id,
       }
     }
   }

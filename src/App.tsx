@@ -59,7 +59,7 @@ export const App: FC = () => (
       <Route exact path="/rules-sg-cidr-icmp">
         <RulesPageSpecific id="sgCidrIcmp" />
       </Route>
-      <Route exact path="/rules/editor/:securityGroupId?">
+      <Route exact path="/rules-editor/:securityGroupId?">
         <RulesEditorPage />
       </Route>
       <Route exact path="/graph">

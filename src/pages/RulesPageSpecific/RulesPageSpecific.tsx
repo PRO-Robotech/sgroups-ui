@@ -9,9 +9,10 @@ import {
   RulesListSgCidr,
   RulesListSgCidrIcmp,
 } from 'components'
+import { TRulesTypes } from 'localTypes/rules'
 
 type TRulesPageSpecificProps = {
-  id: 'sgSg' | 'sgSgIcmp' | 'sgSgIe' | 'sgSgIeIcmp' | 'sgFqdn' | 'sgCidr' | 'sgCidrIcmp'
+  id: TRulesTypes
 }
 
 export const RulesPageSpecific: FC<TRulesPageSpecificProps> = ({ id }) => (

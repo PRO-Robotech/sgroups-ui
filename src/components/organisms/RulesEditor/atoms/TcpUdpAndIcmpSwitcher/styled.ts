@@ -7,10 +7,10 @@ const RadioGroup = styled.div`
 `
 
 const ContainerAfterSwitcher = styled.div`
-  margin-top: -35px;
-  height: 100%;
   display: flex;
   flex-flow: column;
+  height: 100%;
+  margin-top: -35px;
 `
 
 export const Styled = {

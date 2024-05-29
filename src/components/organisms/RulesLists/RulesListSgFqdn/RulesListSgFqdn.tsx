@@ -1,18 +1,21 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
+import { nanoid } from 'nanoid'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getSgFqdnRules, removeSgFqdnRule } from 'api/rules'
+import { getSgFqdnRules, deleteRules } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSgFqdnRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
-type TFqdnRuleColumn = TSgFqdnRule & {
+type TSgFqdnRuleWithId = TSgFqdnRule & { id: string }
+
+type TFqdnRuleColumn = TSgFqdnRuleWithId & {
   key: string
 }
 
@@ -21,12 +24,12 @@ type OnChange = NonNullable<TableProps<TFqdnRuleColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const RulesListSgFqdn: FC = () => {
-  const [fqdnRules, setFqdnRules] = useState<TSgFqdnRule[]>([])
+  const [fqdnRules, setFqdnRules] = useState<TSgFqdnRuleWithId[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteErrorFqdn, setDeleteErrorFqdn] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpenFqdn, setIsModalOpenFqdn] = useState<boolean>(false)
-  const [pendingToDeleteFqdnRule, setPendingToDeleteFqdnRule] = useState<{ sgFrom: string; fqdn: string }>()
+  const [pendingToDeleteFqdnRule, setPendingToDeleteFqdnRule] = useState<TSgFqdnRuleWithId>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
@@ -37,7 +40,7 @@ export const RulesListSgFqdn: FC = () => {
     getSgFqdnRules()
       .then(({ data }) => {
         setIsLoading(false)
-        setFqdnRules(data.rules)
+        setFqdnRules(data.rules.map(entry => ({ ...entry, id: nanoid() })))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -51,10 +54,19 @@ export const RulesListSgFqdn: FC = () => {
       })
   }, [])
 
-  const removeFqdnRuleFromList = (sg: string, fqdn: string) => {
-    removeSgFqdnRule(sg, fqdn)
+  const removeFqdnRuleFromList = (id: string) => {
+    deleteRules(
+      [],
+      [],
+      [],
+      [],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      [...fqdnRules].filter(el => el.id === id).map(({ id, ...entry }) => entry),
+      [],
+      [],
+    )
       .then(() => {
-        setFqdnRules([...fqdnRules].filter(el => el.sgFrom !== sg || el.FQDN !== fqdn))
+        setFqdnRules([...fqdnRules].filter(el => el.id !== id))
         setIsModalOpenFqdn(false)
         setPendingToDeleteFqdnRule(undefined)
         setDeleteErrorFqdn(undefined)
@@ -71,8 +83,8 @@ export const RulesListSgFqdn: FC = () => {
       })
   }
 
-  const openRemoveFqdnRuleModal = (sgFrom: string, fqdn: string) => {
-    setPendingToDeleteFqdnRule({ sgFrom, fqdn })
+  const openRemoveFqdnRuleModal = (record: TSgFqdnRuleWithId) => {
+    setPendingToDeleteFqdnRule(record)
     setIsModalOpenFqdn(true)
   }
 
@@ -145,10 +157,10 @@ export const RulesListSgFqdn: FC = () => {
       width: 100,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
-          {ports.length === 0 ? (
+          {ports?.length === 0 ? (
             <div>any : any</div>
           ) : (
-            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
+            ports?.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
           )}
         </Styled.PortsContainer>
       ),
@@ -156,11 +168,12 @@ export const RulesListSgFqdn: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
-      render: (_, record: TSgFqdnRule) => (
-        <TextAlignContainer $align="center">
-          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.sgFrom}`)} />
-          <CustomIcons.DeleteIcon onClick={() => openRemoveFqdnRuleModal(record.sgFrom, record.FQDN)} />
+      render: (_, record: TSgFqdnRuleWithId) => (
+        <TextAlignContainer $align="right">
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.sgFrom}`)} />
+          <CustomIcons.DeleteIcon onClick={() => openRemoveFqdnRuleModal(record)} />
         </TextAlignContainer>
       ),
     },
@@ -172,21 +185,22 @@ export const RulesListSgFqdn: FC = () => {
         <TitleWithNoTopMargin level={2}>Rules: SG-FQDN</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Styled.FiltersContainer>
+          {fqdnRules.length > 0 && (
+            <div>
+              <Input
+                allowClear
+                placeholder="Filter by SG name"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                onBlur={() => handleSearch(searchText)}
+                onPressEnter={() => handleSearch(searchText)}
+              />
+            </div>
+          )}
           <div>
-            <Input
-              allowClear
-              placeholder="Filter by SG name"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onPressEnter={() => handleSearch(searchText)}
-            />
-          </div>
-          <div>
-            <Styled.ButtonWithMarginLeft
-              onClick={() => handleSearch(searchText)}
-              icon={<SearchOutlined />}
-              type="primary"
-            />
+            <Styled.ButtonWithMarginLeft type="primary" onClick={() => history.push('/rules-editor')}>
+              Add
+            </Styled.ButtonWithMarginLeft>
           </div>
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
@@ -208,18 +222,11 @@ export const RulesListSgFqdn: FC = () => {
             size="small"
           />
         )}
-        <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
-          Add
-        </Button>
       </Card>
       <Modal
         title="Delete fqdn rule"
         open={isModalOpenFqdn}
-        onOk={() =>
-          pendingToDeleteFqdnRule &&
-          removeFqdnRuleFromList(pendingToDeleteFqdnRule.sgFrom, pendingToDeleteFqdnRule.fqdn)
-        }
+        onOk={() => pendingToDeleteFqdnRule && removeFqdnRuleFromList(pendingToDeleteFqdnRule.id)}
         confirmLoading={isLoading}
         onCancel={() => {
           setIsModalOpenFqdn(false)
@@ -227,7 +234,7 @@ export const RulesListSgFqdn: FC = () => {
         }}
       >
         <p>
-          Are you sure you want to delete fqdn rule: {pendingToDeleteFqdnRule?.sgFrom} - {pendingToDeleteFqdnRule?.fqdn}
+          Are you sure you want to delete fqdn rule: {pendingToDeleteFqdnRule?.sgFrom} - {pendingToDeleteFqdnRule?.FQDN}
         </p>
         {deleteErrorFqdn && (
           <Result status="error" title={deleteErrorFqdn.status} subTitle={deleteErrorFqdn.data?.message} />

@@ -1,6 +1,7 @@
+/* eslint-disable max-lines-per-function */
 import React, { ReactElement } from 'react'
 import { Button, Form, Input, Select, Switch } from 'antd'
-import { PlusCircleOutlined, CloseOutlined } from '@ant-design/icons'
+import { PlusCircleOutlined, CloseOutlined, PlusOutlined, MinusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { filterSgName } from 'utils/filterSgName'
@@ -91,14 +92,68 @@ export const AddPopover = <T,>({
         </Styled.FormItem>
       )}
       {isPorts && (
-        <>
-          <Styled.FormItem label="Ports Source" name="portsSource">
-            <Input placeholder="Ports Source" />
-          </Styled.FormItem>
-          <Styled.FormItem label="Ports Destination" name="portsDestination">
-            <Input placeholder="Ports Destination" />
-          </Styled.FormItem>
-        </>
+        <Styled.PortsEditContainer>
+          <Form.List name="ports">
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name, ...restField }) => (
+                  <Styled.PortFormItemsContainer key={key}>
+                    <Styled.FormItem
+                      {...restField}
+                      name={[name, 's']}
+                      label="Source"
+                      rules={[
+                        () => ({
+                          validator(_, value: string) {
+                            if (value === undefined) {
+                              return Promise.resolve()
+                            }
+                            const numberedValue = Number(value)
+                            if (numberedValue > 0 && numberedValue < 65536) {
+                              return Promise.resolve()
+                            }
+                            return Promise.reject(new Error('Not in valid range'))
+                          },
+                        }),
+                      ]}
+                    >
+                      <Input placeholder="Port source" />
+                    </Styled.FormItem>
+                    <Styled.FormItem
+                      {...restField}
+                      name={[name, 'd']}
+                      label="Destination"
+                      rules={[
+                        () => ({
+                          validator(_, value: string) {
+                            if (value === undefined) {
+                              return Promise.resolve()
+                            }
+                            const numberedValue = Number(value)
+                            if (numberedValue > 0 && numberedValue < 65536) {
+                              return Promise.resolve()
+                            }
+                            return Promise.reject(new Error('Not in valid range'))
+                          },
+                        }),
+                      ]}
+                    >
+                      <Input placeholder="Port destination" />
+                    </Styled.FormItem>
+                    <Button type="dashed" onClick={() => remove(name)} block icon={<MinusOutlined />}>
+                      Remove ports
+                    </Button>
+                  </Styled.PortFormItemsContainer>
+                ))}
+                <Form.Item>
+                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                    Add ports
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+        </Styled.PortsEditContainer>
       )}
       {isTransport && (
         <Styled.FormItem
