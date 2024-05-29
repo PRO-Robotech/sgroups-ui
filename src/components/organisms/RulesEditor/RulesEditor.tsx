@@ -5,6 +5,7 @@ import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from 'store/store'
 import { setSgNames } from 'store/editor/sgNames/sgNames'
 import { setCenterSg } from 'store/editor/centerSg/centerSg'
+import { setSpecific } from 'store/editor/specific/specific'
 import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
 import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
 import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
@@ -73,7 +74,24 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
 
   useEffect(() => {
-    dispatch(setCenterSg(id))
+    if (id) {
+      dispatch(setCenterSg(id))
+    } else {
+      dispatch(setRulesSgSgFrom([]))
+      dispatch(setRulesSgSgTo([]))
+      dispatch(setRulesSgFqdnTo([]))
+      dispatch(setRulesSgCidrFrom([]))
+      dispatch(setRulesSgCidrTo([]))
+      dispatch(setRulesSgSgIcmpFrom([]))
+      dispatch(setRulesSgSgIcmpTo([]))
+      dispatch(setRulesSgSgIeFrom([]))
+      dispatch(setRulesSgSgIeTo([]))
+      dispatch(setRulesSgSgIeIcmpFrom([]))
+      dispatch(setRulesSgSgIeIcmpTo([]))
+      dispatch(setRulesSgCidrIcmpFrom([]))
+      dispatch(setRulesSgCidrIcmpTo([]))
+    }
+    dispatch(setSpecific({ specificOpen: false, specificValue: undefined }))
   }, [id, dispatch])
 
   useEffect(() => {
