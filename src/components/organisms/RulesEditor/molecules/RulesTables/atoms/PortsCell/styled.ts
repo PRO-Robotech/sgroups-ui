@@ -15,7 +15,6 @@ export const PortsEntry = styled(Tag)`
 const PopoverContainer = styled.div`
   display: grid;
   grid-row-gap: 5px;
-  grid-template-columns: 120px;
 `
 
 export const Styled = {

@@ -98,46 +98,10 @@ export const AddPopover = <T,>({
               <>
                 {fields.map(({ key, name, ...restField }) => (
                   <Styled.PortFormItemsContainer key={key}>
-                    <Styled.FormItem
-                      {...restField}
-                      name={[name, 's']}
-                      label="Source"
-                      rules={[
-                        () => ({
-                          validator(_, value: string) {
-                            if (value === undefined) {
-                              return Promise.resolve()
-                            }
-                            const numberedValue = Number(value)
-                            if (numberedValue > 0 && numberedValue < 65536) {
-                              return Promise.resolve()
-                            }
-                            return Promise.reject(new Error('Not in valid range'))
-                          },
-                        }),
-                      ]}
-                    >
+                    <Styled.FormItem {...restField} name={[name, 's']} label="Source">
                       <Input placeholder="Port source" />
                     </Styled.FormItem>
-                    <Styled.FormItem
-                      {...restField}
-                      name={[name, 'd']}
-                      label="Destination"
-                      rules={[
-                        () => ({
-                          validator(_, value: string) {
-                            if (value === undefined) {
-                              return Promise.resolve()
-                            }
-                            const numberedValue = Number(value)
-                            if (numberedValue > 0 && numberedValue < 65536) {
-                              return Promise.resolve()
-                            }
-                            return Promise.reject(new Error('Not in valid range'))
-                          },
-                        }),
-                      ]}
-                    >
+                    <Styled.FormItem {...restField} name={[name, 'd']} label="Destination">
                       <Input placeholder="Port destination" />
                     </Styled.FormItem>
                     <Button type="dashed" onClick={() => remove(name)} block icon={<MinusOutlined />}>
@@ -260,8 +224,11 @@ export const AddPopover = <T,>({
           },
           () => ({
             validator(_, value: string) {
+              if (value === undefined) {
+                return Promise.resolve()
+              }
               const numberedValue = Number(value)
-              if (numberedValue > 32767 || numberedValue < -32768) {
+              if (Number.isNaN(numberedValue) || numberedValue > 32767 || numberedValue < -32768) {
                 return Promise.reject(new Error('Not in valid range'))
               }
               return Promise.resolve()
