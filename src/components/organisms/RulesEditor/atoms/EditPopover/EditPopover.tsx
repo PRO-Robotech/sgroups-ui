@@ -60,7 +60,7 @@ export const EditPopover = <T,>({
             },
           ]}
         >
-          <Input placeholder="FQDN" disabled={isDisabled} />
+          <Input placeholder="FQDN" disabled />
         </Styled.FormItem>
       )}
       {isCidr && (
@@ -76,7 +76,7 @@ export const EditPopover = <T,>({
             },
           ]}
         >
-          <Input placeholder="CIDR" disabled={isDisabled} />
+          <Input placeholder="CIDR" disabled />
         </Styled.FormItem>
       )}
       {isSg && (
@@ -92,7 +92,7 @@ export const EditPopover = <T,>({
               label: el,
             }))}
             getPopupContainer={node => node.parentNode}
-            disabled={isDisabled}
+            disabled
           />
         </Styled.FormItem>
       )}
@@ -103,55 +103,25 @@ export const EditPopover = <T,>({
               <>
                 {fields.map(({ key, name, ...restField }) => (
                   <Styled.PortFormItemsContainer key={key}>
-                    <Styled.FormItem
-                      {...restField}
-                      name={[name, 's']}
-                      label="Source"
-                      rules={[
-                        () => ({
-                          validator(_, value: string) {
-                            if (value === undefined) {
-                              return Promise.resolve()
-                            }
-                            const numberedValue = Number(value)
-                            if (numberedValue > 0 && numberedValue < 65536) {
-                              return Promise.resolve()
-                            }
-                            return Promise.reject(new Error('Not in valid range'))
-                          },
-                        }),
-                      ]}
-                    >
-                      <Input placeholder="Port source" />
+                    <Styled.FormItem {...restField} name={[name, 's']} label="Source">
+                      <Input placeholder="Port source" disabled={isDisabled} />
                     </Styled.FormItem>
-                    <Styled.FormItem
-                      {...restField}
-                      name={[name, 'd']}
-                      label="Destination"
-                      rules={[
-                        () => ({
-                          validator(_, value: string) {
-                            if (value === undefined) {
-                              return Promise.resolve()
-                            }
-                            const numberedValue = Number(value)
-                            if (Number.isNaN(numberedValue) || (numberedValue > 0 && numberedValue < 65536)) {
-                              return Promise.resolve()
-                            }
-                            return Promise.reject(new Error('Not in valid range'))
-                          },
-                        }),
-                      ]}
-                    >
-                      <Input placeholder="Port destination" />
+                    <Styled.FormItem {...restField} name={[name, 'd']} label="Destination">
+                      <Input placeholder="Port destination" disabled={isDisabled} />
                     </Styled.FormItem>
-                    <Button type="dashed" onClick={() => remove(name)} block icon={<MinusOutlined />}>
+                    <Button
+                      type="dashed"
+                      disabled={isDisabled}
+                      onClick={() => remove(name)}
+                      block
+                      icon={<MinusOutlined />}
+                    >
                       Remove ports
                     </Button>
                   </Styled.PortFormItemsContainer>
                 ))}
                 <Form.Item>
-                  <Button type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
+                  <Button disabled={isDisabled} type="dashed" onClick={() => add()} block icon={<PlusOutlined />}>
                     Add ports
                   </Button>
                 </Form.Item>
@@ -269,8 +239,11 @@ export const EditPopover = <T,>({
           },
           () => ({
             validator(_, value: string) {
+              if (value === undefined) {
+                return Promise.resolve()
+              }
               const numberedValue = Number(value)
-              if (numberedValue > 32767 || numberedValue < -32768) {
+              if (Number.isNaN(numberedValue) || numberedValue > 32767 || numberedValue < -32768) {
                 return Promise.reject(new Error('Not in valid range'))
               }
               return Promise.resolve()
