@@ -34,8 +34,8 @@ const Resizer = styled.div`
 const FlexContainer = styled.div`
   display: flex;
   align-items: center;
-  width: 100%;
   justify-content: space-between;
+  width: 100%;
 `
 
 const FlexContainerItem = styled.div`
