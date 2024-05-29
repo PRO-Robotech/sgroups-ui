@@ -135,7 +135,7 @@ export const EditPopover = <T,>({
                               return Promise.resolve()
                             }
                             const numberedValue = Number(value)
-                            if (numberedValue > 0 && numberedValue < 65536) {
+                            if (Number.isNaN(numberedValue) || (numberedValue > 0 && numberedValue < 65536)) {
                               return Promise.resolve()
                             }
                             return Promise.reject(new Error('Not in valid range'))

@@ -261,7 +261,7 @@ export const AddPopover = <T,>({
           () => ({
             validator(_, value: string) {
               const numberedValue = Number(value)
-              if (numberedValue > 32767 || numberedValue < -32768) {
+              if (Number.isNaN(numberedValue) || numberedValue > 32767 || numberedValue < -32768) {
                 return Promise.reject(new Error('Not in valid range'))
               }
               return Promise.resolve()
