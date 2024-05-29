@@ -47,7 +47,10 @@ type TRulesEditorProps = {
 export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const dispatch = useDispatch()
 
-  const [viewType, setViewType] = useState<string>(VIEW_TYPE.simple)
+  const lsViewtype = localStorage.getItem('viewType')
+  const lsViewtypeRead = lsViewtype ? JSON.parse(lsViewtype) : undefined
+
+  const [viewType, setViewType] = useState<string>(lsViewtypeRead || VIEW_TYPE.simple)
   const [isChangeCenterSgModalVisible, setChangeCenterSgModalVisible] = useState<boolean>(false)
   const [pendingSg, setPendingSg] = useState<string>()
   const [error, setError] = useState<TRequestError | undefined>()
@@ -72,6 +75,10 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   useEffect(() => {
     dispatch(setCenterSg(id))
   }, [id, dispatch])
+
+  useEffect(() => {
+    localStorage.setItem('viewType', JSON.stringify(viewType))
+  }, [viewType])
 
   useEffect(() => {
     setIsLoading(true)
@@ -208,7 +215,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       {viewType === VIEW_TYPE.overview && specificOpen && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
       {viewType === VIEW_TYPE.overview && !specificOpen && <TransformBlock onSelectCenterSg={onSelectCenterSg} />}
       {viewType === VIEW_TYPE.simple && <RulesSimplified onSelectCenterSg={onSelectCenterSg} />}
-      <BottomBar onSubmit={() => fetchData()} onViewTypeChange={setViewType} />
+      <BottomBar onSubmit={() => fetchData()} viewType={viewType} onViewTypeChange={setViewType} />
       {isLoading && (
         <Styled.Loader>
           <Spin size="large" />

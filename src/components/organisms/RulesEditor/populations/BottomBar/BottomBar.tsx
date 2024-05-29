@@ -10,10 +10,11 @@ import { VIEW_TYPE } from '../../constants'
 
 type TBottomBarProps = {
   onSubmit: () => void
+  viewType: string
   onViewTypeChange: Dispatch<SetStateAction<string>>
 }
 
-export const BottomBar: FC<TBottomBarProps> = ({ onSubmit, onViewTypeChange }) => {
+export const BottomBar: FC<TBottomBarProps> = ({ onSubmit, viewType, onViewTypeChange }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitButtonActive, setSubmitButtonActive] = useState(false)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
@@ -130,6 +131,7 @@ export const BottomBar: FC<TBottomBarProps> = ({ onSubmit, onViewTypeChange }) =
                 value: VIEW_TYPE.overview,
               },
             ]}
+            defaultValue={viewType}
             onChange={value => {
               if (typeof value === 'string') {
                 onViewTypeChange(value)
