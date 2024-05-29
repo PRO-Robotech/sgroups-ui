@@ -40,7 +40,7 @@ export const composeAllTypesOfSgSgRules = (
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
       /* cuz transport + sg === alt key (primary is internal on backend) */
-      if (formChanges?.modifiedFields?.includes('transport')) {
+      if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('transport')) {
         result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
       }
     } else {
@@ -63,7 +63,7 @@ export const composeAllTypesOfSgSgRules = (
       if (formChanges?.status !== STATUSES.deleted) {
         result.rules.push(rule)
         /* cuz transport + sg === alt key (primary is internal on backend) */
-        if (formChanges?.modifiedFields?.includes('transport')) {
+        if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('transport')) {
           result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
         }
       } else {
@@ -97,7 +97,7 @@ export const composeAllTypesOfSgSgIcmpRules = (
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
       /* cuz ipv + sg === alt key (primary is internal on backend) */
-      if (formChanges?.modifiedFields?.includes('ipv')) {
+      if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('ipv')) {
         result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
@@ -118,7 +118,7 @@ export const composeAllTypesOfSgSgIcmpRules = (
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
       /* cuz ipv + sg === alt key (primary is internal on backend) */
-      if (formChanges?.modifiedFields?.includes('ipv')) {
+      if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('ipv')) {
         result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
@@ -155,7 +155,7 @@ export const composeAllTypesOfSgSgIeRules = (
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
       /* cuz transport + sg === alt key (primary is internal on backend) */
-      if (formChanges?.modifiedFields?.includes('transport')) {
+      if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('transport')) {
         result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
       }
     } else {
@@ -191,7 +191,7 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
       /* cuz ipv + sg === alt key (primary is internal on backend) */
-      if (formChanges?.modifiedFields?.includes('ipv')) {
+      if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('ipv')) {
         result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
@@ -224,7 +224,7 @@ export const composeAllTypesOfSgFqdnRules = (
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
       /* cuz transport + sg === alt key (primary is internal on backend) */
-      if (formChanges?.modifiedFields?.includes('transport')) {
+      if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('transport')) {
         result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
       }
     } else {
@@ -261,7 +261,7 @@ export const composeAllTypesOfSgCidrRules = (
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
       /* cuz transport + sg === alt key (primary is internal on backend) */
-      if (formChanges?.modifiedFields?.includes('transport')) {
+      if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('transport')) {
         result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
       }
     } else {
@@ -297,7 +297,7 @@ export const composeAllTypesOfSgCidrIcmpRules = (
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
       /* cuz ipv + sg === alt key (primary is internal on backend) */
-      if (formChanges?.modifiedFields?.includes('ipv')) {
+      if (formChanges?.status !== STATUSES.new && formChanges?.modifiedFields?.includes('ipv')) {
         result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {

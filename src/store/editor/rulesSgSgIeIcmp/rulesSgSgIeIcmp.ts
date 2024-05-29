@@ -24,10 +24,10 @@ export const rulesSgSgIeIcmpSlice = createSlice({
       state.rulesFrom = action.payload
     },
     addRulesSgSgIeIcmpTo: (state, action: PayloadAction<TFormSgSgIeIcmpRule>) => {
-      state.rulesFrom.push(action.payload)
+      state.rulesTo.push(action.payload)
     },
     setRulesSgSgIeIcmpTo: (state, action: PayloadAction<TFormSgSgIeIcmpRule[]>) => {
-      state.rulesFrom = action.payload
+      state.rulesTo = action.payload
     },
   },
 })
