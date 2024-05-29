@@ -50,10 +50,11 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   const lsViewtype = localStorage.getItem('viewType')
   const lsViewtypeRead = lsViewtype ? JSON.parse(lsViewtype) : undefined
-
   const [viewType, setViewType] = useState<string>(lsViewtypeRead || VIEW_TYPE.simple)
+
   const [isChangeCenterSgModalVisible, setChangeCenterSgModalVisible] = useState<boolean>(false)
   const [pendingSg, setPendingSg] = useState<string>()
+
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -74,9 +75,17 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
   const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
 
   useEffect(() => {
-    if (id) {
-      dispatch(setCenterSg(id))
-    } else {
+    localStorage.setItem('viewType', JSON.stringify(viewType))
+  }, [viewType])
+
+  useEffect(() => {
+    dispatch(setCenterSg(id))
+    dispatch(setSpecific({ specificOpen: false, specificValue: undefined }))
+  }, [id, dispatch])
+
+  /* clean even if trying to dispatch rules when center sg is no longer provided */
+  useEffect(() => {
+    if (!centerSg) {
       dispatch(setRulesSgSgFrom([]))
       dispatch(setRulesSgSgTo([]))
       dispatch(setRulesSgFqdnTo([]))
@@ -90,13 +99,26 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
       dispatch(setRulesSgSgIeIcmpTo([]))
       dispatch(setRulesSgCidrIcmpFrom([]))
       dispatch(setRulesSgCidrIcmpTo([]))
+      setError(undefined)
     }
-    dispatch(setSpecific({ specificOpen: false, specificValue: undefined }))
-  }, [id, dispatch])
-
-  useEffect(() => {
-    localStorage.setItem('viewType', JSON.stringify(viewType))
-  }, [viewType])
+  }, [
+    id,
+    centerSg,
+    dispatch,
+    rulesSgSgFrom.length,
+    rulesSgSgTo.length,
+    rulesSgSgIcmpFrom.length,
+    rulesSgSgIcmpTo.length,
+    rulesSgSgIeFrom.length,
+    rulesSgSgIeTo.length,
+    rulesSgSgIeIcmpFrom.length,
+    rulesSgSgIeIcmpTo.length,
+    rulesSgFqdnTo.length,
+    rulesSgCidrFrom.length,
+    rulesSgCidrTo.length,
+    rulesSgCidrIcmpFrom.length,
+    rulesSgCidrIcmpTo.length,
+  ])
 
   useEffect(() => {
     setIsLoading(true)
