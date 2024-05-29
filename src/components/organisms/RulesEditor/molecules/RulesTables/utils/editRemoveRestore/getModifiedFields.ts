@@ -40,7 +40,7 @@ export const getModifiedFieldsInSgSgIcmpRule = (rule: TFormSgSgIcmpRule, values:
   if (rule.initialValues.IPv !== values.IPv) {
     modifiedFields.push('ipv')
   }
-  if (JSON.stringify(rule.initialValues.types.sort()) !== JSON.stringify(values.types.sort())) {
+  if (JSON.stringify([...rule.initialValues.types].sort()) !== JSON.stringify([...values.types].sort())) {
     modifiedFields.push('types')
   }
   if (rule.initialValues.logs !== values.logs) {
@@ -92,7 +92,7 @@ export const getModifiedFieldsInSgSgIeIcmpRule = (rule: TFormSgSgIeIcmpRule, val
   if (rule.initialValues.IPv !== values.IPv) {
     modifiedFields.push('ipv')
   }
-  if (JSON.stringify(rule.initialValues.types.sort()) !== JSON.stringify(values.types.sort())) {
+  if (JSON.stringify([...rule.initialValues.types].sort()) !== JSON.stringify([...values.types].sort())) {
     modifiedFields.push('types')
   }
   if (rule.initialValues.logs !== values.logs) {
@@ -167,7 +167,7 @@ export const getModifiedFieldsInSgCidrIcmpRule = (rule: TFormSgCidrIcmpRule, val
   if (rule.initialValues.IPv !== values.IPv) {
     modifiedFields.push('ipv')
   }
-  if (JSON.stringify(rule.initialValues.types.sort()) !== JSON.stringify(values.types.sort())) {
+  if (JSON.stringify([...rule.initialValues.types].sort()) !== JSON.stringify([...values.types].sort())) {
     modifiedFields.push('types')
   }
   if (rule.initialValues.logs !== values.logs) {
