@@ -184,27 +184,29 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
               Restore
             </Button>
           )}
-          <Popover
-            content={
-              <EditPopover<TFormSgSgIeIcmpRule>
-                values={oldValues}
-                remove={() => removeRule(oldValues)}
-                hide={() => toggleEditPopover(index)}
-                edit={values => editRule(oldValues, values)}
-                {...RULES_CONFIGS.sgSgIeIcmp}
-                defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIeIcmp}
-                isDisabled={isDisabled}
-              />
-            }
-            title="SG-SG-IE-ICMP"
-            trigger="click"
-            open={editOpen[index]}
-            onOpenChange={() => toggleEditPopover(index)}
-            placement={popoverPosition}
-            className="no-scroll"
-          >
-            <Button type="primary">Edit</Button>
-          </Popover>
+          {!isRestoreButtonActive && (
+            <Popover
+              content={
+                <EditPopover<TFormSgSgIeIcmpRule>
+                  values={oldValues}
+                  remove={() => removeRule(oldValues)}
+                  hide={() => toggleEditPopover(index)}
+                  edit={values => editRule(oldValues, values)}
+                  {...RULES_CONFIGS.sgSgIeIcmp}
+                  defaultPrioritySome={DEFAULT_PRIORITIES.sgToSgIeIcmp}
+                  isDisabled={isDisabled}
+                />
+              }
+              title="SG-SG-IE-ICMP"
+              trigger="click"
+              open={editOpen[index]}
+              onOpenChange={() => toggleEditPopover(index)}
+              placement={popoverPosition}
+              className="no-scroll"
+            >
+              <Button type="primary">Edit</Button>
+            </Popover>
+          )}
         </>
       ),
     },

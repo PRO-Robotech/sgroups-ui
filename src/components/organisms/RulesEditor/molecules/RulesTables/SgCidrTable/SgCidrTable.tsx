@@ -169,27 +169,29 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
               Restore
             </Button>
           )}
-          <Popover
-            content={
-              <EditPopover<TFormSgCidrRule>
-                values={oldValues}
-                remove={() => removeRule(oldValues)}
-                hide={() => toggleEditPopover(index)}
-                edit={values => editRule(oldValues, values)}
-                {...RULES_CONFIGS.sgCidr}
-                defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIe}
-                isDisabled={isDisabled}
-              />
-            }
-            title="CIDR-SG"
-            trigger="click"
-            open={editOpen[index]}
-            onOpenChange={() => toggleEditPopover(index)}
-            placement={popoverPosition}
-            className="no-scroll"
-          >
-            <Button type="primary">Edit</Button>
-          </Popover>
+          {!isRestoreButtonActive && (
+            <Popover
+              content={
+                <EditPopover<TFormSgCidrRule>
+                  values={oldValues}
+                  remove={() => removeRule(oldValues)}
+                  hide={() => toggleEditPopover(index)}
+                  edit={values => editRule(oldValues, values)}
+                  {...RULES_CONFIGS.sgCidr}
+                  defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIe}
+                  isDisabled={isDisabled}
+                />
+              }
+              title="CIDR-SG"
+              trigger="click"
+              open={editOpen[index]}
+              onOpenChange={() => toggleEditPopover(index)}
+              placement={popoverPosition}
+              className="no-scroll"
+            >
+              <Button type="primary">Edit</Button>
+            </Popover>
+          )}
         </>
       ),
     },

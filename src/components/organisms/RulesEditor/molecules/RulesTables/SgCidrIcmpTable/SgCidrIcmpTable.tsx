@@ -180,27 +180,29 @@ export const SgCidrIcmpTable: FC<TSgCidrIcmpTableProps> = ({
               Restore
             </Button>
           )}
-          <Popover
-            content={
-              <EditPopover<TFormSgCidrIcmpRule>
-                values={oldValues}
-                remove={() => removeRule(oldValues)}
-                hide={() => toggleEditPopover(index)}
-                edit={values => editRule(oldValues, values)}
-                {...RULES_CONFIGS.sgCidrIcmp}
-                defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIeIcmp}
-                isDisabled={isDisabled}
-              />
-            }
-            title="CIDR-ICMP"
-            trigger="click"
-            open={editOpen[index]}
-            onOpenChange={() => toggleEditPopover(index)}
-            placement={popoverPosition}
-            className="no-scroll"
-          >
-            <Button type="primary">Edit</Button>
-          </Popover>
+          {!isRestoreButtonActive && (
+            <Popover
+              content={
+                <EditPopover<TFormSgCidrIcmpRule>
+                  values={oldValues}
+                  remove={() => removeRule(oldValues)}
+                  hide={() => toggleEditPopover(index)}
+                  edit={values => editRule(oldValues, values)}
+                  {...RULES_CONFIGS.sgCidrIcmp}
+                  defaultPrioritySome={DEFAULT_PRIORITIES.sgToCidrIeIcmp}
+                  isDisabled={isDisabled}
+                />
+              }
+              title="CIDR-ICMP"
+              trigger="click"
+              open={editOpen[index]}
+              onOpenChange={() => toggleEditPopover(index)}
+              placement={popoverPosition}
+              className="no-scroll"
+            >
+              <Button type="primary">Edit</Button>
+            </Popover>
+          )}
         </>
       ),
     },
