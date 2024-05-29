@@ -1,14 +1,14 @@
 /* eslint-disable react/no-unstable-nested-components */
-import React, { FC, Key, useState, useEffect, Dispatch, SetStateAction } from 'react'
-import { ActionCreatorWithPayload } from '@reduxjs/toolkit'
-import { useDispatch } from 'react-redux'
+import React, { FC, Key, useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
+import { setRulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpTo } from 'store/editor/rulesSgSgIeIcmp/rulesSgSgIeIcmp'
 import { Button, Popover, Table } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { TooltipPlacement } from 'antd/es/tooltip'
 import { SearchOutlined } from '@ant-design/icons'
 import { ShortenedTextWithTooltip, ThWhiteSpaceNoWrap } from 'components/atoms'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
-import { TFormSgSgIeIcmpRule, TTraffic } from 'localTypes/rules'
+import { TRulesTables, TFormSgSgIeIcmpRule } from 'localTypes/rules'
 import { EditPopover } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIeIcmp'
@@ -16,39 +16,31 @@ import { FilterDropdown, ActionCell, LogsCell, TraceCell } from '../atoms'
 import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
-type TSgSgIeIcmpTableProps = {
-  isChangesMode: boolean
-  popoverPosition: TooltipPlacement
-  defaultTraffic: TTraffic
-  rulesData: TFormSgSgIeIcmpRule[]
-  rulesAll: TFormSgSgIeIcmpRule[]
-  setRules: ActionCreatorWithPayload<TFormSgSgIeIcmpRule[]>
-  setEditOpen: Dispatch<SetStateAction<boolean[]>>
-  editOpen: boolean[]
-  isDisabled?: boolean
-  isRestoreButtonActive?: boolean
-  forceArrowsUpdate?: () => void
-}
+type TSgSgIeIcmpTableProps = TRulesTables<TFormSgSgIeIcmpRule>
 
 type TColumn = TFormSgSgIeIcmpRule & { key: string }
 
 export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
+  direction,
   isChangesMode,
   popoverPosition,
-  defaultTraffic,
   rulesData,
-  rulesAll,
-  setRules,
-  setEditOpen,
-  editOpen,
   isDisabled,
   isRestoreButtonActive,
   forceArrowsUpdate,
 }) => {
+  const dispatch = useDispatch()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [searchText, setSearchText] = useState('')
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
-  const dispatch = useDispatch()
+  const [editOpen, setEditOpen] = useState<boolean[]>([])
+
+  const rulesSgSgIeIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesFrom)
+  const rulesSgSgIeIcmpTo = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesTo)
+
+  const rulesAll = direction === 'from' ? rulesSgSgIeIcmpFrom : rulesSgSgIeIcmpTo
+  const setRules = direction === 'from' ? setRulesSgSgIeIcmpFrom : setRulesSgSgIeIcmpTo
+  const defaultTraffic = direction === 'from' ? 'Ingress' : 'Egress'
 
   useEffect(() => {
     setEditOpen(
@@ -177,7 +169,7 @@ export const SgSgIeIcmpTable: FC<TSgSgIeIcmpTableProps> = ({
       width: 25,
       render: (_, { prioritySome, formChanges }) => (
         <Styled.RulesEntryPorts $modified={formChanges?.modifiedFields?.includes('prioritySome')} className="no-scroll">
-          {prioritySome || DEFAULT_PRIORITIES.sgToSgIeIcmp}
+          {!!prioritySome || prioritySome === 0 ? prioritySome : DEFAULT_PRIORITIES.sgToSgIeIcmp}
         </Styled.RulesEntryPorts>
       ),
     },

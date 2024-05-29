@@ -22,6 +22,7 @@ export const edit = (
       initialValues: oldValues.initialValues,
       prioritySome: numberedPriorty,
       formChanges: { status: STATUSES.new },
+      id: oldValues.id,
     }
   } else {
     const modifiedFields = getModifiedFieldsInSgFqdnRule(newFqdnRules[index], {
@@ -34,13 +35,14 @@ export const edit = (
         initialValues: oldValues.initialValues,
         prioritySome: numberedPriorty,
         formChanges: { status: STATUSES.modified, modifiedFields },
+        id: oldValues.id,
       }
     } else {
       newFqdnRules[index] = {
         ...newFqdnRules[index].initialValues,
         initialValues: { ...newFqdnRules[index].initialValues },
         formChanges: undefined,
-        id: values.id,
+        id: oldValues.id,
       }
     }
   }

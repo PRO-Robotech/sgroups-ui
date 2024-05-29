@@ -1,4 +1,5 @@
 import { TFormSgSgRule, TFormSgSgIcmpRule } from 'localTypes/rules'
+import { comparePorts } from './comparePorts'
 
 export const findSgSgPair = (
   centerSg: string | undefined,
@@ -6,10 +7,9 @@ export const findSgSgPair = (
   rulesOtherside: TFormSgSgRule[],
 ): number => {
   return rulesOtherside.findIndex(
-    ({ sg, portsSource, portsDestination, transport, logs, action, prioritySome }) =>
+    ({ sg, ports, transport, logs, action, prioritySome }) =>
       sg === centerSg &&
-      portsSource === values.portsSource &&
-      portsDestination === values.portsDestination &&
+      comparePorts(ports, values.ports) &&
       transport === values.transport &&
       logs === values.logs &&
       action === values.action &&

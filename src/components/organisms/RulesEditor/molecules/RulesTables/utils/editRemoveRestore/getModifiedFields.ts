@@ -7,20 +7,18 @@ import {
   TFormSgCidrRule,
   TFormSgCidrIcmpRule,
 } from 'localTypes/rules'
+import { comparePorts } from './comparePorts'
 
 export const getModifiedFieldsInSgSgRule = (rule: TFormSgSgRule, values: TFormSgSgRule): string[] => {
   const modifiedFields = []
   if (rule.initialValues.sg !== values.sg) {
     modifiedFields.push('sg')
   }
-  if (rule.initialValues.portsSource !== values.portsSource) {
-    modifiedFields.push('portsSource')
-  }
-  if (rule.initialValues.portsDestination !== values.portsDestination) {
-    modifiedFields.push('portsDestination')
-  }
   if (rule.initialValues.transport !== values.transport) {
     modifiedFields.push('transport')
+  }
+  if (!comparePorts(rule.initialValues.ports, values.ports)) {
+    modifiedFields.push('ports')
   }
   if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
@@ -65,14 +63,11 @@ export const getModifiedFieldsInSgSgIeRule = (rule: TFormSgSgIeRule, values: TFo
   if (rule.initialValues.sg !== values.sg) {
     modifiedFields.push('sg')
   }
-  if (rule.initialValues.portsSource !== values.portsSource) {
-    modifiedFields.push('portsSource')
-  }
-  if (rule.initialValues.portsDestination !== values.portsDestination) {
-    modifiedFields.push('portsDestination')
-  }
   if (rule.initialValues.transport !== values.transport) {
     modifiedFields.push('transport')
+  }
+  if (!comparePorts(rule.initialValues.ports, values.ports)) {
+    modifiedFields.push('ports')
   }
   if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
@@ -120,14 +115,11 @@ export const getModifiedFieldsInSgFqdnRule = (rule: TFormSgFqdnRule, values: TFo
   if (rule.initialValues.fqdn !== values.fqdn) {
     modifiedFields.push('fqdn')
   }
-  if (rule.initialValues.portsSource !== values.portsSource) {
-    modifiedFields.push('portsSource')
-  }
-  if (rule.initialValues.portsDestination !== values.portsDestination) {
-    modifiedFields.push('portsDestination')
-  }
   if (rule.initialValues.transport !== values.transport) {
     modifiedFields.push('transport')
+  }
+  if (!comparePorts(rule.initialValues.ports, values.ports)) {
+    modifiedFields.push('ports')
   }
   if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')
@@ -146,14 +138,11 @@ export const getModifiedFieldsInSgCidrRule = (rule: TFormSgCidrRule, values: TFo
   if (rule.initialValues.cidr !== values.cidr) {
     modifiedFields.push('cidr')
   }
-  if (rule.initialValues.portsSource !== values.portsSource) {
-    modifiedFields.push('portsSource')
-  }
-  if (rule.initialValues.portsDestination !== values.portsDestination) {
-    modifiedFields.push('portsDestination')
-  }
   if (rule.initialValues.transport !== values.transport) {
     modifiedFields.push('transport')
+  }
+  if (!comparePorts(rule.initialValues.ports, values.ports)) {
+    modifiedFields.push('ports')
   }
   if (rule.initialValues.logs !== values.logs) {
     modifiedFields.push('logs')

@@ -1,18 +1,21 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
+import { nanoid } from 'nanoid'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getSgSgIeIcmpRules, removeSgSgIeIcmpRule } from 'api/rules'
+import { getSgSgIeIcmpRules, deleteRules } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSgSgIeIcmpRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
-type TSgSgIeIcmpRuleColumn = TSgSgIeIcmpRule & {
+type TSgSgIeIcmpRuleWithId = TSgSgIeIcmpRule & { id: string }
+
+type TSgSgIeIcmpRuleColumn = TSgSgIeIcmpRuleWithId & {
   key: string
 }
 
@@ -21,12 +24,12 @@ type OnChange = NonNullable<TableProps<TSgSgIeIcmpRuleColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const RulesListSgSgIeIcmp: FC = () => {
-  const [sgSgIeIcmpRules, setSgSgIeIcmpRules] = useState<TSgSgIeIcmpRule[]>([])
+  const [sgSgIeIcmpRules, setSgSgIeIcmpRules] = useState<TSgSgIeIcmpRuleWithId[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteErrorSgSgIeIcmp, setDeleteErrorSgSgIeIcmp] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpenSgSgIeIcmp, setIsModalOpenSgSgIeIcmp] = useState<boolean>(false)
-  const [pendingToDeleteSgSgIeIcmpRule, setPendingToDeleteSgSgIeIcmpRule] = useState<{ sgFrom: string; sgTo: string }>()
+  const [pendingToDeleteSgSgIeIcmpRule, setPendingToDeleteSgSgIeIcmpRule] = useState<TSgSgIeIcmpRuleWithId>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
@@ -37,7 +40,7 @@ export const RulesListSgSgIeIcmp: FC = () => {
     getSgSgIeIcmpRules()
       .then(({ data }) => {
         setIsLoading(false)
-        setSgSgIeIcmpRules(data.rules)
+        setSgSgIeIcmpRules(data.rules.map(entry => ({ ...entry, id: nanoid() })))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -51,10 +54,19 @@ export const RulesListSgSgIeIcmp: FC = () => {
       })
   }, [])
 
-  const removeSgSgIeIcmpRuleFromList = (sgFrom: string, sgTo: string) => {
-    removeSgSgIeIcmpRule(sgFrom, sgTo)
+  const removeSgSgIeIcmpRuleFromList = (id: string) => {
+    deleteRules(
+      [],
+      [],
+      [],
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      [...sgSgIeIcmpRules].filter(el => el.id === id).map(({ id, ...entry }) => entry),
+      [],
+      [],
+      [],
+    )
       .then(() => {
-        setSgSgIeIcmpRules([...sgSgIeIcmpRules].filter(el => el.SgLocal !== sgFrom || el.Sg !== sgTo))
+        setSgSgIeIcmpRules([...sgSgIeIcmpRules].filter(el => el.id !== id))
         setIsModalOpenSgSgIeIcmp(false)
         setPendingToDeleteSgSgIeIcmpRule(undefined)
         setDeleteErrorSgSgIeIcmp(undefined)
@@ -71,8 +83,8 @@ export const RulesListSgSgIeIcmp: FC = () => {
       })
   }
 
-  const openRemoveSgSgIeIcmpRuleModal = (sgFrom: string, sgTo: string) => {
-    setPendingToDeleteSgSgIeIcmpRule({ sgFrom, sgTo })
+  const openRemoveSgSgIeIcmpRuleModal = (record: TSgSgIeIcmpRuleWithId) => {
+    setPendingToDeleteSgSgIeIcmpRule(record)
     setIsModalOpenSgSgIeIcmp(true)
   }
 
@@ -164,11 +176,12 @@ export const RulesListSgSgIeIcmp: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
-      render: (_, record: TSgSgIeIcmpRule) => (
-        <TextAlignContainer $align="center">
-          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.SgLocal}`)} />
-          <CustomIcons.DeleteIcon onClick={() => openRemoveSgSgIeIcmpRuleModal(record.SgLocal, record.Sg)} />
+      render: (_, record: TSgSgIeIcmpRuleWithId) => (
+        <TextAlignContainer $align="right">
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.SgLocal}`)} />
+          <CustomIcons.DeleteIcon onClick={() => openRemoveSgSgIeIcmpRuleModal(record)} />
         </TextAlignContainer>
       ),
     },
@@ -180,21 +193,22 @@ export const RulesListSgSgIeIcmp: FC = () => {
         <TitleWithNoTopMargin level={2}>Rules: SG-SG-IE-ICMP</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Styled.FiltersContainer>
+          {sgSgIeIcmpRules.length > 0 && (
+            <div>
+              <Input
+                allowClear
+                placeholder="Filter by SG name"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                onBlur={() => handleSearch(searchText)}
+                onPressEnter={() => handleSearch(searchText)}
+              />
+            </div>
+          )}
           <div>
-            <Input
-              allowClear
-              placeholder="Filter by SG name"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onPressEnter={() => handleSearch(searchText)}
-            />
-          </div>
-          <div>
-            <Styled.ButtonWithMarginLeft
-              onClick={() => handleSearch(searchText)}
-              icon={<SearchOutlined />}
-              type="primary"
-            />
+            <Styled.ButtonWithMarginLeft type="primary" onClick={() => history.push('/rules-editor')}>
+              Add
+            </Styled.ButtonWithMarginLeft>
           </div>
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
@@ -216,18 +230,11 @@ export const RulesListSgSgIeIcmp: FC = () => {
             size="small"
           />
         )}
-        <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
-          Add
-        </Button>
       </Card>
       <Modal
         title="Delete sgSgIeIcmp rule"
         open={isModalOpenSgSgIeIcmp}
-        onOk={() =>
-          pendingToDeleteSgSgIeIcmpRule &&
-          removeSgSgIeIcmpRuleFromList(pendingToDeleteSgSgIeIcmpRule.sgFrom, pendingToDeleteSgSgIeIcmpRule.sgTo)
-        }
+        onOk={() => pendingToDeleteSgSgIeIcmpRule && removeSgSgIeIcmpRuleFromList(pendingToDeleteSgSgIeIcmpRule.id)}
         confirmLoading={isLoading}
         onCancel={() => {
           setIsModalOpenSgSgIeIcmp(false)
@@ -235,8 +242,8 @@ export const RulesListSgSgIeIcmp: FC = () => {
         }}
       >
         <p>
-          Are you sure you want to delete sgSgIeIcmp rule: {pendingToDeleteSgSgIeIcmpRule?.sgFrom} -{' '}
-          {pendingToDeleteSgSgIeIcmpRule?.sgTo}
+          Are you sure you want to delete sgSgIeIcmp rule: {pendingToDeleteSgSgIeIcmpRule?.SgLocal} -{' '}
+          {pendingToDeleteSgSgIeIcmpRule?.Sg}
         </p>
         {deleteErrorSgSgIeIcmp && (
           <Result status="error" title={deleteErrorSgSgIeIcmp.status} subTitle={deleteErrorSgSgIeIcmp.data?.message} />

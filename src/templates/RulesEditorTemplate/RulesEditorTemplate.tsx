@@ -1,5 +1,5 @@
-import React, { FC, ReactNode, useState } from 'react'
-import { useHistory } from 'react-router-dom'
+import React, { FC, ReactNode, useState, useEffect } from 'react'
+import { useLocation, useHistory } from 'react-router-dom'
 import { Menu } from 'antd'
 import { Header } from 'components'
 import { mainPageLeftList } from 'mocks'
@@ -10,8 +10,13 @@ type TRulesEditorTemplateProps = {
 }
 
 export const RulesEditorTemplate: FC<TRulesEditorTemplateProps> = ({ children }) => {
+  const location = useLocation()
   const history = useHistory()
-  const [currentSection, setCurrentSection] = useState<string>('')
+  const [currentSection, setCurrentSection] = useState<string>(`/${location.pathname.split('/')[1]}`)
+
+  useEffect(() => {
+    setCurrentSection(`/${location.pathname.split('/')[1]}`)
+  }, [location, history])
 
   return (
     <>

@@ -16,16 +16,6 @@ import {
   TComposedForSubmitRules,
 } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
-import { mergePorts, findPortsInPortsArr } from './portUtils'
-import {
-  findSgSgRuleInResultArr,
-  findSgSgIcmpRuleInResultArr,
-  findSgSgIeRuleInResultArr,
-  findSgSgIeIcmpRuleInResultArr,
-  findSgFqdnRuleInResultArr,
-  findSgCidrRuleInResultArr,
-  findSgCidrIcmpRuleInResultArr,
-} from './findRuleInArr'
 
 export const composeAllTypesOfSgSgRules = (
   centerSg: string,
@@ -37,93 +27,47 @@ export const composeAllTypesOfSgSgRules = (
     rulesToDelete: [],
   }
 
-  rulesSgFrom.forEach(({ sg, portsSource, portsDestination, transport, logs, formChanges, action, prioritySome }) => {
+  rulesSgFrom.forEach(({ sg, ports, transport, logs, formChanges, action, prioritySome }) => {
     const rule = {
       sgFrom: sg,
       sgTo: centerSg,
-      logs: !!logs,
       transport,
-      ports:
-        (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
-          ? [{ s: portsSource, d: portsDestination }]
-          : [],
+      ports: ports || [],
+      logs: !!logs,
       action,
       priority: prioritySome ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
-      const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rules)
-      if (ruleInRulesArr) {
-        if (
-          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-        ) {
-          ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-        }
-      } else {
-        result.rules.push(rule)
-      }
+      result.rules.push(rule)
       /* cuz transport + sg === alt key (primary is internal on backend) */
       if (formChanges?.modifiedFields?.includes('transport')) {
         result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
       }
     } else {
-      const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rulesToDelete)
-      if (ruleInRulesArr) {
-        if (
-          !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-          ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-        ) {
-          ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-        }
-      } else {
-        result.rulesToDelete.push(rule)
-      }
+      result.rulesToDelete.push(rule)
     }
   })
 
   rulesSgTo
     .filter(({ sg }) => sg !== centerSg)
-    .forEach(({ sg, portsSource, portsDestination, transport, logs, formChanges, action, prioritySome }) => {
+    .forEach(({ sg, ports, transport, logs, formChanges, action, prioritySome }) => {
       const rule = {
         sgFrom: centerSg,
         sgTo: sg,
-        logs: !!logs,
         transport,
-        ports:
-          (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
-            ? [{ s: portsSource, d: portsDestination }]
-            : [],
+        ports: ports || [],
+        logs: !!logs,
         action,
         priority: prioritySome ? { some: prioritySome } : undefined,
       }
       if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rules)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rules.push(rule)
-        }
+        result.rules.push(rule)
         /* cuz transport + sg === alt key (primary is internal on backend) */
         if (formChanges?.modifiedFields?.includes('transport')) {
           result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
         }
       } else {
-        const ruleInRulesArr = findSgSgRuleInResultArr(rule, result.rulesToDelete)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rulesToDelete.push(rule)
-        }
+        result.rulesToDelete.push(rule)
       }
     })
 
@@ -151,15 +95,13 @@ export const composeAllTypesOfSgSgIcmpRules = (
       priority: prioritySome ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
-      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
-      if (!ruleInRulesArr) {
-        result.rules.push(rule)
+      result.rules.push(rule)
+      /* cuz ipv + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('ipv')) {
+        result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
-      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
-      if (!ruleInRulesArr) {
-        result.rulesToDelete.push(rule)
-      }
+      result.rulesToDelete.push(rule)
     }
   })
 
@@ -174,15 +116,13 @@ export const composeAllTypesOfSgSgIcmpRules = (
       priority: prioritySome ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
-      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rules)
-      if (!ruleInRulesArr) {
-        result.rules.push(rule)
+      result.rules.push(rule)
+      /* cuz ipv + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('ipv')) {
+        result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
-      const ruleInRulesArr = findSgSgIcmpRuleInResultArr(rule, result.rulesToDelete)
-      if (!ruleInRulesArr) {
-        result.rulesToDelete.push(rule)
-      }
+      result.rulesToDelete.push(rule)
     }
   })
 
@@ -200,53 +140,28 @@ export const composeAllTypesOfSgSgIeRules = (
   }
 
   const sgSgIeRules = [...rulesSgSgIeFrom, ...rulesSgSgIeTo]
-  sgSgIeRules.forEach(
-    ({ sg, portsSource, portsDestination, transport, logs, trace, traffic, formChanges, action, prioritySome }) => {
-      const rule = {
-        SgLocal: centerSg,
-        Sg: sg,
-        logs: !!logs,
-        trace: !!trace,
-        transport,
-        traffic,
-        ports:
-          (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
-            ? [{ s: portsSource, d: portsDestination }]
-            : [],
-        action,
-        priority: prioritySome ? { some: prioritySome } : undefined,
+  sgSgIeRules.forEach(({ sg, ports, transport, logs, trace, traffic, formChanges, action, prioritySome }) => {
+    const rule = {
+      SgLocal: centerSg,
+      Sg: sg,
+      transport,
+      ports: ports || [],
+      traffic,
+      logs: !!logs,
+      trace: !!trace,
+      action,
+      priority: prioritySome ? { some: prioritySome } : undefined,
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      result.rules.push(rule)
+      /* cuz transport + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('transport')) {
+        result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
       }
-      if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findSgSgIeRuleInResultArr(rule, result.rules)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rules.push(rule)
-        }
-        /* cuz transport + sg === alt key (primary is internal on backend) */
-        if (formChanges?.modifiedFields?.includes('transport')) {
-          result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
-        }
-      } else {
-        const ruleInRulesArr = findSgSgIeRuleInResultArr(rule, result.rulesToDelete)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rulesToDelete.push(rule)
-        }
-      }
-    },
-  )
+    } else {
+      result.rulesToDelete.push(rule)
+    }
+  })
 
   return result
 }
@@ -267,22 +182,20 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
       SgLocal: centerSg,
       Sg: sg,
       ICMP: { IPv, Types: types },
+      traffic,
       logs: !!logs,
       trace: !!trace,
-      traffic,
       action,
       priority: prioritySome ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
-      const ruleInRulesArr = findSgSgIeIcmpRuleInResultArr(rule, result.rules)
-      if (!ruleInRulesArr) {
-        result.rules.push(rule)
+      result.rules.push(rule)
+      /* cuz ipv + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('ipv')) {
+        result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
-      const ruleInRulesArr = findSgSgIeIcmpRuleInResultArr(rule, result.rulesToDelete)
-      if (!ruleInRulesArr) {
-        result.rulesToDelete.push(rule)
-      }
+      result.rulesToDelete.push(rule)
     }
   })
 
@@ -298,51 +211,26 @@ export const composeAllTypesOfSgFqdnRules = (
     rulesToDelete: [],
   }
 
-  rulesSgFqdnTo.forEach(
-    ({ fqdn, portsSource, portsDestination, transport, logs, formChanges, action, prioritySome }) => {
-      const rule = {
-        FQDN: fqdn,
-        sgFrom: centerSg,
-        logs: !!logs,
-        transport,
-        ports:
-          (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
-            ? [{ s: portsSource, d: portsDestination }]
-            : [],
-        action,
-        priority: prioritySome ? { some: prioritySome } : undefined,
+  rulesSgFqdnTo.forEach(({ fqdn, ports, transport, logs, formChanges, action, prioritySome }) => {
+    const rule = {
+      FQDN: fqdn,
+      sgFrom: centerSg,
+      logs: !!logs,
+      transport,
+      ports: ports || [],
+      action,
+      priority: prioritySome ? { some: prioritySome } : undefined,
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      result.rules.push(rule)
+      /* cuz transport + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('transport')) {
+        result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
       }
-      if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findSgFqdnRuleInResultArr(rule, result.rules)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rules.push(rule)
-        }
-        /* cuz transport + sg === alt key (primary is internal on backend) */
-        if (formChanges?.modifiedFields?.includes('transport')) {
-          result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
-        }
-      } else {
-        const ruleInRulesArr = findSgFqdnRuleInResultArr(rule, result.rulesToDelete)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rulesToDelete.push(rule)
-        }
-      }
-    },
-  )
+    } else {
+      result.rulesToDelete.push(rule)
+    }
+  })
 
   return result
 }
@@ -358,53 +246,28 @@ export const composeAllTypesOfSgCidrRules = (
   }
 
   const sgCidrRules = [...rulesCidrSgFrom, ...rulesCidrSgTo]
-  sgCidrRules.forEach(
-    ({ cidr, portsSource, portsDestination, transport, logs, trace, traffic, formChanges, action, prioritySome }) => {
-      const rule = {
-        CIDR: cidr,
-        SG: centerSg,
-        logs: !!logs,
-        trace: !!trace,
-        transport,
-        traffic,
-        ports:
-          (portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0)
-            ? [{ s: portsSource, d: portsDestination }]
-            : [],
-        action,
-        priority: prioritySome ? { some: prioritySome } : undefined,
+  sgCidrRules.forEach(({ cidr, ports, transport, logs, trace, traffic, formChanges, action, prioritySome }) => {
+    const rule = {
+      CIDR: cidr,
+      SG: centerSg,
+      transport,
+      ports: ports || [],
+      traffic,
+      logs: !!logs,
+      trace: !!trace,
+      action,
+      priority: prioritySome ? { some: prioritySome } : undefined,
+    }
+    if (formChanges?.status !== STATUSES.deleted) {
+      result.rules.push(rule)
+      /* cuz transport + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('transport')) {
+        result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
       }
-      if (formChanges?.status !== STATUSES.deleted) {
-        const ruleInRulesArr = findSgCidrRuleInResultArr(rule, result.rules)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rules.push(rule)
-        }
-        /* cuz transport + sg === alt key (primary is internal on backend) */
-        if (formChanges?.modifiedFields?.includes('transport')) {
-          result.rulesToDelete.push({ ...rule, transport: rule.transport === 'TCP' ? 'UDP' : 'TCP' })
-        }
-      } else {
-        const ruleInRulesArr = findSgCidrRuleInResultArr(rule, result.rulesToDelete)
-        if (ruleInRulesArr) {
-          if (
-            !findPortsInPortsArr({ s: portsSource, d: portsDestination }, ruleInRulesArr.ports) &&
-            ((portsSource && portsSource.length > 0) || (portsDestination && portsDestination.length > 0))
-          ) {
-            ruleInRulesArr.ports = mergePorts([...ruleInRulesArr.ports, { s: portsSource, d: portsDestination }])
-          }
-        } else {
-          result.rulesToDelete.push(rule)
-        }
-      }
-    },
-  )
+    } else {
+      result.rulesToDelete.push(rule)
+    }
+  })
 
   return result
 }
@@ -425,22 +288,20 @@ export const composeAllTypesOfSgCidrIcmpRules = (
       SG: centerSg,
       CIDR: cidr,
       ICMP: { IPv, Types: types },
+      traffic,
       logs: !!logs,
       trace: !!trace,
-      traffic,
       action,
       priority: prioritySome ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
-      const ruleInRulesArr = findSgCidrIcmpRuleInResultArr(rule, result.rules)
-      if (!ruleInRulesArr) {
-        result.rules.push(rule)
+      result.rules.push(rule)
+      /* cuz ipv + sg === alt key (primary is internal on backend) */
+      if (formChanges?.modifiedFields?.includes('ipv')) {
+        result.rulesToDelete.push({ ...rule, ICMP: { ...rule.ICMP, IPv: rule.ICMP.IPv === 'IPv6' ? 'IPv4' : 'IPv6' } })
       }
     } else {
-      const ruleInRulesArr = findSgCidrIcmpRuleInResultArr(rule, result.rulesToDelete)
-      if (!ruleInRulesArr) {
-        result.rulesToDelete.push(rule)
-      }
+      result.rulesToDelete.push(rule)
     }
   })
 

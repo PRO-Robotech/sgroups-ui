@@ -1,18 +1,21 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
+import { nanoid } from 'nanoid'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined, CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
+import { CheckOutlined, CloseOutlined, LikeOutlined, DislikeOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getSgSgRules, removeSgSgRule } from 'api/rules'
+import { getSgSgRules, deleteRules } from 'api/rules'
 import { DEFAULT_PRIORITIES, ITEMS_PER_PAGE } from 'constants/rules'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSgSgRule } from 'localTypes/rules'
 import { Styled } from './styled'
 
-type TSgRuleColumn = TSgSgRule & {
+type TSgSgRuleWithId = TSgSgRule & { id: string }
+
+type TSgRuleColumn = TSgSgRuleWithId & {
   key: string
 }
 
@@ -21,12 +24,12 @@ type OnChange = NonNullable<TableProps<TSgRuleColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const RulesListSgSg: FC = () => {
-  const [rules, setRules] = useState<TSgSgRule[]>([])
+  const [rules, setRules] = useState<TSgSgRuleWithId[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  const [pendingToDeleteRule, setPendingToDeleteRule] = useState<{ sgFrom: string; sgTo: string }>()
+  const [pendingToDeleteRule, setPendingToDeleteRule] = useState<TSgSgRuleWithId>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const history = useHistory()
@@ -37,7 +40,7 @@ export const RulesListSgSg: FC = () => {
     getSgSgRules()
       .then(({ data }) => {
         setIsLoading(false)
-        setRules(data.rules)
+        setRules(data.rules.map(entry => ({ ...entry, id: nanoid() })))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -51,10 +54,19 @@ export const RulesListSgSg: FC = () => {
       })
   }, [])
 
-  const removeRuleFromList = (sgFrom: string, sgTo: string) => {
-    removeSgSgRule(sgFrom, sgTo)
+  const removeRuleFromList = (id: string) => {
+    deleteRules(
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      [...rules].filter(el => el.id === id).map(({ id, ...entry }) => entry),
+      [],
+      [],
+      [],
+      [],
+      [],
+      [],
+    )
       .then(() => {
-        setRules([...rules].filter(el => el.sgFrom !== sgFrom || el.sgTo !== sgTo))
+        setRules([...rules].filter(el => el.id !== id))
         setIsModalOpen(false)
         setPendingToDeleteRule(undefined)
         setDeleteError(undefined)
@@ -71,8 +83,8 @@ export const RulesListSgSg: FC = () => {
       })
   }
 
-  const openRemoveRuleModal = (sgFrom: string, sgTo: string) => {
-    setPendingToDeleteRule({ sgFrom, sgTo })
+  const openRemoveRuleModal = (record: TSgSgRuleWithId) => {
+    setPendingToDeleteRule(record)
     setIsModalOpen(true)
   }
 
@@ -145,10 +157,10 @@ export const RulesListSgSg: FC = () => {
       width: 100,
       render: (_, { ports }) => (
         <Styled.PortsContainer>
-          {ports.length === 0 ? (
+          {ports?.length === 0 ? (
             <div>any : any</div>
           ) : (
-            ports.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
+            ports?.map(({ s, d }) => <div key={`${s}-${d}`}>{`${s || 'any'} : ${d || 'any'}`}</div>)
           )}
         </Styled.PortsContainer>
       ),
@@ -156,11 +168,12 @@ export const RulesListSgSg: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
-      render: (_, record: TSgSgRule) => (
-        <TextAlignContainer $align="center">
-          <CustomIcons.EditIcon onClick={() => history.push(`/rules/editor/${record.sgFrom}`)} />
-          <CustomIcons.DeleteIcon onClick={() => openRemoveRuleModal(record.sgFrom, record.sgTo)} />
+      render: (_, record: TSgSgRuleWithId) => (
+        <TextAlignContainer $align="right">
+          <CustomIcons.EditIcon onClick={() => history.push(`/rules-editor/${record.sgFrom}`)} />
+          <CustomIcons.DeleteIcon onClick={() => openRemoveRuleModal(record)} />
         </TextAlignContainer>
       ),
     },
@@ -172,21 +185,22 @@ export const RulesListSgSg: FC = () => {
         <TitleWithNoTopMargin level={2}>Rules: SG-SG</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Styled.FiltersContainer>
+          {rules.length > 0 && (
+            <div>
+              <Input
+                allowClear
+                placeholder="Filter by SG name"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                onBlur={() => handleSearch(searchText)}
+                onPressEnter={() => handleSearch(searchText)}
+              />
+            </div>
+          )}
           <div>
-            <Input
-              allowClear
-              placeholder="Filter by SG name"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onPressEnter={() => handleSearch(searchText)}
-            />
-          </div>
-          <div>
-            <Styled.ButtonWithMarginLeft
-              onClick={() => handleSearch(searchText)}
-              icon={<SearchOutlined />}
-              type="primary"
-            />
+            <Styled.ButtonWithMarginLeft type="primary" onClick={() => history.push('/rules-editor')}>
+              Add
+            </Styled.ButtonWithMarginLeft>
           </div>
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
@@ -208,15 +222,11 @@ export const RulesListSgSg: FC = () => {
             size="small"
           />
         )}
-        <Spacer $space={15} $samespace />
-        <Button type="primary" onClick={() => history.push('/rules/editor')}>
-          Add
-        </Button>
       </Card>
       <Modal
         title="Delete rule"
         open={isModalOpen}
-        onOk={() => pendingToDeleteRule && removeRuleFromList(pendingToDeleteRule.sgFrom, pendingToDeleteRule.sgTo)}
+        onOk={() => pendingToDeleteRule && removeRuleFromList(pendingToDeleteRule.id)}
         confirmLoading={isLoading}
         onCancel={() => {
           setIsModalOpen(false)

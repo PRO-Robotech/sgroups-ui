@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react'
+import React, { FC } from 'react'
 import { TooltipPlacement } from 'antd/es/tooltip'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
@@ -17,6 +17,8 @@ import {
   TFormSgFqdnRule,
   TFormSgCidrRule,
   TFormSgCidrIcmpRule,
+  TRulesTypes,
+  TRulesSubTypes,
 } from 'localTypes/rules'
 import { DEFAULT_PRIORITIES } from 'constants/rules'
 import {
@@ -34,9 +36,9 @@ import { RulesBlock } from './molecules'
 type TRulesBlockFactoryProps = {
   popoverPosition: TooltipPlacement
   title: string
-  type: 'sgSg' | 'sgSgIcmp' | 'sgSgIe' | 'sgSgIeIcmp' | 'sgFqdn' | 'sgCidr' | 'sgCidrIcmp'
-  subtype: 'from' | 'to'
-  isDisabled?: boolean
+  type: TRulesTypes
+  subtype: TRulesSubTypes
+  isDisabledDefault?: boolean
   forceArrowsUpdate?: () => void
   inTransformBlock?: boolean
   addpopoverPosition?: TooltipPlacement
@@ -47,13 +49,11 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
   title,
   popoverPosition,
   addpopoverPosition,
-  isDisabled,
+  isDisabledDefault,
   inTransformBlock,
   type,
   subtype,
 }) => {
-  const [editOpen, setEditOpen] = useState<boolean[]>([])
-
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
@@ -69,6 +69,8 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
   const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
   const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
 
+  const isDisabled = isDisabledDefault || !centerSg
+
   if (type === 'sgSg') {
     return (
       <RulesBlock<TFormSgSgRule>
@@ -77,16 +79,10 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgTable
+            direction={subtype}
             isChangesMode={false}
-            rulesAll={subtype === 'from' ? rulesSgSgFrom : rulesSgSgTo}
             rulesData={subtype === 'from' ? rulesSgSgFrom : rulesSgSgTo}
-            setRules={subtype === 'from' ? setRulesSgSgFrom : setRulesSgSgTo}
-            rulesOtherside={subtype === 'from' ? rulesSgSgTo : rulesSgSgFrom}
-            setRulesOtherside={subtype === 'from' ? setRulesSgSgTo : setRulesSgSgFrom}
             popoverPosition={popoverPosition}
-            setEditOpen={setEditOpen}
-            editOpen={editOpen}
-            centerSg={centerSg}
             isDisabled={isDisabled}
             forceArrowsUpdate={forceArrowsUpdate}
           />
@@ -113,16 +109,10 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIcmpTable
+            direction={subtype}
             isChangesMode={false}
             popoverPosition={popoverPosition}
-            rulesAll={subtype === 'from' ? rulesSgSgIcmpFrom : rulesSgSgIcmpTo}
             rulesData={subtype === 'from' ? rulesSgSgIcmpFrom : rulesSgSgIcmpTo}
-            setRules={subtype === 'from' ? setRulesSgSgIcmpFrom : setRulesSgSgIcmpTo}
-            rulesOtherside={subtype === 'from' ? rulesSgSgIcmpTo : rulesSgSgIcmpFrom}
-            setRulesOtherside={subtype === 'from' ? setRulesSgSgIcmpTo : setRulesSgSgIcmpFrom}
-            editOpen={editOpen}
-            setEditOpen={setEditOpen}
-            centerSg={centerSg}
             isDisabled={isDisabled}
             forceArrowsUpdate={forceArrowsUpdate}
           />
@@ -149,14 +139,10 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIeTable
+            direction={subtype}
             isChangesMode={false}
             popoverPosition={popoverPosition}
-            defaultTraffic={subtype === 'from' ? 'Ingress' : 'Egress'}
-            rulesAll={subtype === 'from' ? rulesSgSgIeFrom : rulesSgSgIeTo}
             rulesData={subtype === 'from' ? rulesSgSgIeFrom : rulesSgSgIeTo}
-            setRules={subtype === 'from' ? setRulesSgSgIeFrom : setRulesSgSgIeTo}
-            setEditOpen={setEditOpen}
-            editOpen={editOpen}
             isDisabled={isDisabled}
             forceArrowsUpdate={forceArrowsUpdate}
           />
@@ -179,14 +165,10 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgSgIeIcmpTable
+            direction={subtype}
             isChangesMode={false}
             popoverPosition={popoverPosition}
-            defaultTraffic={subtype === 'from' ? 'Ingress' : 'Egress'}
-            rulesAll={subtype === 'from' ? rulesSgSgIeIcmpFrom : rulesSgSgIeIcmpTo}
             rulesData={subtype === 'from' ? rulesSgSgIeIcmpFrom : rulesSgSgIeIcmpTo}
-            setRules={subtype === 'from' ? setRulesSgSgIeIcmpFrom : setRulesSgSgIeIcmpTo}
-            setEditOpen={setEditOpen}
-            editOpen={editOpen}
             isDisabled={isDisabled}
             forceArrowsUpdate={forceArrowsUpdate}
           />
@@ -209,12 +191,9 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgFqdnTable
+            direction={subtype}
             isChangesMode={false}
-            rulesAll={subtype === 'from' ? [] : rulesSgFqdnTo}
             rulesData={subtype === 'from' ? [] : rulesSgFqdnTo}
-            setRules={subtype === 'from' ? setRulesSgFqdnTo : setRulesSgFqdnTo}
-            editOpen={editOpen}
-            setEditOpen={setEditOpen}
             popoverPosition={popoverPosition}
             forceArrowsUpdate={forceArrowsUpdate}
             isDisabled={isDisabled}
@@ -237,13 +216,9 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
         popoverPosition={addpopoverPosition || popoverPosition}
         table={
           <SgCidrTable
+            direction={subtype}
             isChangesMode={false}
-            rulesAll={subtype === 'from' ? rulesSgCidrFrom : rulesSgCidrTo}
             rulesData={subtype === 'from' ? rulesSgCidrFrom : rulesSgCidrTo}
-            setRules={subtype === 'from' ? setRulesSgCidrFrom : setRulesSgCidrTo}
-            editOpen={editOpen}
-            setEditOpen={setEditOpen}
-            defaultTraffic={subtype === 'from' ? 'Ingress' : 'Egress'}
             popoverPosition={popoverPosition}
             forceArrowsUpdate={forceArrowsUpdate}
             isDisabled={isDisabled}
@@ -266,14 +241,10 @@ export const RulesBlockFactory: FC<TRulesBlockFactoryProps> = ({
       popoverPosition={addpopoverPosition || popoverPosition}
       table={
         <SgCidrIcmpTable
+          direction={subtype}
           isChangesMode={false}
           popoverPosition={popoverPosition}
-          defaultTraffic={subtype === 'from' ? 'Ingress' : 'Egress'}
-          rulesAll={subtype === 'from' ? rulesSgCidrIcmpFrom : rulesSgCidrIcmpTo}
           rulesData={subtype === 'from' ? rulesSgCidrIcmpFrom : rulesSgCidrIcmpTo}
-          setRules={subtype === 'from' ? setRulesSgCidrIcmpFrom : setRulesSgCidrIcmpTo}
-          setEditOpen={setEditOpen}
-          editOpen={editOpen}
           isDisabled={isDisabled}
           forceArrowsUpdate={forceArrowsUpdate}
         />

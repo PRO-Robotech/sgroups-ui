@@ -19,10 +19,18 @@ const mainPageLeftListData = [
       { key: '/rules-sg-sg-icmp', label: 'sg-sg-icmp' },
       { key: '/rules-sg-sg-ie', label: 'sg-sg-ie' },
       { key: '/rules-sg-sg-ie-icmp', label: 'sg-sg-ie-icmp' },
-      { key: '/rules-sg-fqdn', label: 'fqdn' },
-      { key: '/rules-sg-cidr', label: 'cidr' },
-      { key: '/rules-sg-cidr-icmp', label: 'cidr-icmp' },
+      { key: '/rules-sg-fqdn', label: 'sg-fqdn' },
+      { key: '/rules-sg-cidr', label: 'sg-cidr-ie' },
+      { key: '/rules-sg-cidr-icmp', label: 'sg-cidr-ie-icmp' },
     ],
+  },
+  {
+    key: 'divider',
+    type: 'divider',
+  },
+  {
+    key: '/rules-editor',
+    label: 'Rules Editor',
   },
 ]
 

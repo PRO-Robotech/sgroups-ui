@@ -1,9 +1,8 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getNetworks, removeNetwork } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
@@ -110,9 +109,10 @@ export const NetworksList: FC = () => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 100,
       render: (_, record: { name: string; cidr: string }) => (
-        <TextAlignContainer $align="center">
+        <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => history.push(`/networks/edit/${record.name}`)} />{' '}
           <CustomIcons.DeleteIcon onClick={() => openRemoveNetworkModal(record.name)} />
         </TextAlignContainer>
@@ -126,21 +126,22 @@ export const NetworksList: FC = () => {
         <TitleWithNoTopMargin level={2}>Networks</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Styled.FiltersContainer>
+          {networks.length > 0 && (
+            <div>
+              <Input
+                allowClear
+                placeholder="Filter by NW name"
+                value={searchText}
+                onChange={e => setSearchText(e.target.value)}
+                onBlur={() => handleSearch(searchText)}
+                onPressEnter={() => handleSearch(searchText)}
+              />
+            </div>
+          )}
           <div>
-            <Input
-              allowClear
-              placeholder="Filter by SG name"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onPressEnter={() => handleSearch(searchText)}
-            />
-          </div>
-          <div>
-            <Styled.ButtonWithMarginLeft
-              onClick={() => handleSearch(searchText)}
-              icon={<SearchOutlined />}
-              type="primary"
-            />
+            <Styled.ButtonWithMarginLeft onClick={() => history.push('/networks/add')} type="primary">
+              Add
+            </Styled.ButtonWithMarginLeft>
           </div>
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
@@ -162,10 +163,6 @@ export const NetworksList: FC = () => {
             onChange={handleChange}
           />
         )}
-        <Spacer $space={15} $samespace />
-        <Button onClick={() => history.push('/networks/add')} type="primary">
-          Add
-        </Button>
       </Card>
       <Modal
         title="Delete network"

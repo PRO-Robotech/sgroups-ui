@@ -1,34 +1,19 @@
 import React, { FC } from 'react'
-import { useSelector } from 'react-redux'
-import type { RootState } from 'store/store'
 import { TcpUdpAndIcmpSwitcher } from '../../../../atoms'
 import { RulesBlockFactory } from '../../../../organisms'
+import { RULES_CONFIGS_FOR_FACTORY } from '../../../../constants'
 
 export const SgSgTo: FC = () => {
-  const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
-
   return (
     <TcpUdpAndIcmpSwitcher
       notInTransformBlock
       tcpUdpComponent={
-        <RulesBlockFactory
-          title="SG To"
-          popoverPosition="left"
-          addpopoverPosition="top"
-          type="sgSg"
-          subtype="to"
-          isDisabled={!centerSg}
-          inTransformBlock={false}
-        />
+        <RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSg.to} addpopoverPosition="top" inTransformBlock={false} />
       }
       icmpComponent={
         <RulesBlockFactory
-          title="SG To"
-          popoverPosition="left"
+          {...RULES_CONFIGS_FOR_FACTORY.sgSgIcmp.to}
           addpopoverPosition="top"
-          type="sgSgIcmp"
-          subtype="to"
-          isDisabled={!centerSg}
           inTransformBlock={false}
         />
       }

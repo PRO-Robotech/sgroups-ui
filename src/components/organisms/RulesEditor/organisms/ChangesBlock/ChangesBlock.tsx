@@ -44,6 +44,8 @@ type TChangesBlockProps = {
 }
 
 export const ChangesBlock: FC<TChangesBlockProps> = ({ centerSg, onClose, onSubmit }) => {
+  const dispatch = useDispatch()
+
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [isSubmitDisabled, setIsSubmitDisabled] = useState<boolean>(true)
@@ -62,24 +64,22 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({ centerSg, onClose, onSubm
   const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
   const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
 
-  const dispatch = useDispatch()
-
   useEffect(() => {
-    const isSomeChangesMarked = checkIfSomeChangesMarked({
-      rulesSgSgFrom,
-      rulesSgSgTo,
-      rulesSgFqdnTo,
-      rulesSgCidrFrom,
-      rulesSgCidrTo,
-      rulesSgSgIcmpFrom,
-      rulesSgSgIcmpTo,
-      rulesSgSgIeFrom,
-      rulesSgSgIeTo,
-      rulesSgSgIeIcmpFrom,
-      rulesSgSgIeIcmpTo,
-      rulesSgCidrIcmpFrom,
-      rulesSgCidrIcmpTo,
-    })
+    const isSomeChangesMarked = checkIfSomeChangesMarked([
+      ...rulesSgSgFrom,
+      ...rulesSgSgTo,
+      ...rulesSgFqdnTo,
+      ...rulesSgCidrFrom,
+      ...rulesSgCidrTo,
+      ...rulesSgSgIcmpFrom,
+      ...rulesSgSgIcmpTo,
+      ...rulesSgSgIeFrom,
+      ...rulesSgSgIeTo,
+      ...rulesSgSgIeIcmpFrom,
+      ...rulesSgSgIeIcmpTo,
+      ...rulesSgCidrIcmpFrom,
+      ...rulesSgCidrIcmpTo,
+    ])
     if (isSomeChangesMarked) {
       setIsSubmitDisabled(false)
     } else {
@@ -235,176 +235,130 @@ export const ChangesBlock: FC<TChangesBlockProps> = ({ centerSg, onClose, onSubm
         {changesResultSgSgFromResult && (
           <RulesDiff
             title="SG From"
+            direction="from"
             compareResult={{
               type: 'sgSg',
               data: changesResultSgSgFromResult,
-              rules: rulesSgSgFrom,
-              setRules: setRulesSgSgFrom,
-              rulesOtherside: rulesSgSgTo,
-              setRulesOtherside: setRulesSgSgTo,
-              popoverPosition: 'right',
-              centerSg,
             }}
           />
         )}
         {changesResultSgSgToResult && (
           <RulesDiff
             title="SG To"
+            direction="to"
             compareResult={{
               type: 'sgSg',
               data: changesResultSgSgToResult,
-              rules: rulesSgSgTo,
-              setRules: setRulesSgSgTo,
-              rulesOtherside: rulesSgSgFrom,
-              setRulesOtherside: setRulesSgSgFrom,
-              popoverPosition: 'right',
-              centerSg,
             }}
           />
         )}
         {changesResultSgSgIcmpFrom && (
           <RulesDiff
             title="SG-SG-ICMP From"
+            direction="from"
             compareResult={{
               type: 'sgSgIcmp',
               data: changesResultSgSgIcmpFrom,
-              popoverPosition: 'left',
-              rules: rulesSgSgIcmpFrom,
-              setRules: setRulesSgSgIcmpFrom,
-              rulesOtherside: rulesSgSgIcmpTo,
-              setRulesOtherside: setRulesSgSgIcmpTo,
-              centerSg,
             }}
           />
         )}
         {changesResultSgSgIcmpTo && (
           <RulesDiff
             title="SG-SG-ICMP To"
+            direction="to"
             compareResult={{
               type: 'sgSgIcmp',
               data: changesResultSgSgIcmpTo,
-              popoverPosition: 'left',
-              rules: rulesSgSgIcmpTo,
-              setRules: setRulesSgSgIcmpTo,
-              rulesOtherside: rulesSgSgIcmpFrom,
-              setRulesOtherside: setRulesSgSgIcmpFrom,
-              centerSg,
             }}
           />
         )}
         {changesResultSgSgIeFrom && (
           <RulesDiff
             title="SG-SG-IE From"
+            direction="from"
             compareResult={{
               type: 'sgSgIe',
               data: changesResultSgSgIeFrom,
-              popoverPosition: 'left',
-              defaultTraffic: 'Ingress',
-              rules: rulesSgSgIeFrom,
-              setRules: setRulesSgSgIeFrom,
             }}
           />
         )}
         {changesResultSgSgIeTo && (
           <RulesDiff
             title="SG-SG-IE To"
+            direction="to"
             compareResult={{
               type: 'sgSgIe',
               data: changesResultSgSgIeTo,
-              popoverPosition: 'left',
-              defaultTraffic: 'Egress',
-              rules: rulesSgSgIeTo,
-              setRules: setRulesSgSgIeTo,
             }}
           />
         )}
         {changesResultSgSgIeIcmpFrom && (
           <RulesDiff
             title="SG-SG-IE-ICMP From"
+            direction="from"
             compareResult={{
               type: 'sgSgIeIcmp',
               data: changesResultSgSgIeIcmpFrom,
-              popoverPosition: 'left',
-              defaultTraffic: 'Ingress',
-              rules: rulesSgSgIeIcmpFrom,
-              setRules: setRulesSgSgIeIcmpFrom,
             }}
           />
         )}
         {changesResultSgSgIeIcmpTo && (
           <RulesDiff
             title="SG-SG-IE-ICMP To"
+            direction="to"
             compareResult={{
               type: 'sgSgIeIcmp',
               data: changesResultSgSgIeIcmpTo,
-              popoverPosition: 'left',
-              defaultTraffic: 'Egress',
-              rules: rulesSgSgIeIcmpTo,
-              setRules: setRulesSgSgIeIcmpTo,
             }}
           />
         )}
         {changesResultSgFqdnTo && (
           <RulesDiff
             title="FQDN To"
+            direction="to"
             compareResult={{
               type: 'sgFqdn',
               data: changesResultSgFqdnTo,
-              rules: rulesSgFqdnTo,
-              setRules: setRulesSgFqdnTo,
-              popoverPosition: 'left',
             }}
           />
         )}
         {changesResultSgCidrFrom && (
           <RulesDiff
             title="CIDR-SG From"
+            direction="from"
             compareResult={{
               type: 'sgCidr',
               data: changesResultSgCidrFrom,
-              defaultTraffic: 'Ingress',
-              rules: rulesSgCidrFrom,
-              setRules: setRulesSgCidrFrom,
-              popoverPosition: 'left',
             }}
           />
         )}
         {changesResultSgCidrTo && (
           <RulesDiff
             title="CIDR-SG To"
+            direction="to"
             compareResult={{
               type: 'sgCidr',
               data: changesResultSgCidrTo,
-              defaultTraffic: 'Egress',
-              rules: rulesSgCidrTo,
-              setRules: setRulesSgCidrTo,
-              popoverPosition: 'left',
             }}
           />
         )}
         {changesResultSgCidrIcmpFrom && (
           <RulesDiff
             title="CIDR-ICMP From"
+            direction="from"
             compareResult={{
               type: 'sgCidrIcmp',
               data: changesResultSgCidrIcmpFrom,
-              popoverPosition: 'left',
-              defaultTraffic: 'Ingress',
-              rules: rulesSgCidrIcmpFrom,
-              setRules: setRulesSgCidrIcmpFrom,
             }}
           />
         )}
         {changesResultSgCidrIcmpTo && (
           <RulesDiff
             title="CIDR-ICMP To"
+            direction="to"
             compareResult={{
               type: 'sgCidrIcmp',
               data: changesResultSgCidrIcmpTo,
-              popoverPosition: 'left',
-              defaultTraffic: 'Egress',
-              rules: rulesSgCidrIcmpTo,
-              setRules: setRulesSgCidrIcmpTo,
             }}
           />
         )}

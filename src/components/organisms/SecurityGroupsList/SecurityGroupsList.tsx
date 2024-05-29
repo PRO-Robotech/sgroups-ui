@@ -1,9 +1,8 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Tag, Button, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Tag, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined } from '@ant-design/icons'
 import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
 import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
@@ -37,7 +36,9 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
 
   useEffect(() => {
     setFilteredInfo({ name: id ? [id] : null })
-    setSearchText(id || '')
+    if (id) {
+      setSearchText(id)
+    }
   }, [id])
 
   useEffect(() => {
@@ -152,9 +153,10 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
     {
       title: 'Controls',
       key: 'controls',
+      align: 'right',
       width: 150,
       render: (_, record: TSecurityGroup) => (
-        <TextAlignContainer $align="center">
+        <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => history.push(`/security-groups/edit/${record.name}`)} />{' '}
           <CustomIcons.DeleteIcon onClick={() => openRemoveSGModal(record.name)} />
         </TextAlignContainer>
@@ -168,21 +170,27 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
         <TitleWithNoTopMargin level={2}>Security Groups</TitleWithNoTopMargin>
         <Spacer $space={15} $samespace />
         <Styled.FiltersContainer>
+          {securityGroups.length > 0 && (
+            <div>
+              <Input
+                allowClear
+                placeholder="Filter by SG name"
+                value={searchText}
+                onChange={e => {
+                  if (id) {
+                    history.push('/security-groups', { replace: true })
+                  }
+                  setSearchText(e.target.value)
+                }}
+                onBlur={() => handleSearch(searchText)}
+                onPressEnter={() => handleSearch(searchText)}
+              />
+            </div>
+          )}
           <div>
-            <Input
-              allowClear
-              placeholder="Filter by SG name"
-              value={searchText}
-              onChange={e => setSearchText(e.target.value)}
-              onPressEnter={() => handleSearch(searchText)}
-            />
-          </div>
-          <div>
-            <Styled.ButtonWithMarginLeft
-              onClick={() => handleSearch(searchText)}
-              icon={<SearchOutlined />}
-              type="primary"
-            />
+            <Styled.ButtonWithMarginLeft onClick={() => history.push('/security-groups/add')} type="primary">
+              Add
+            </Styled.ButtonWithMarginLeft>
           </div>
         </Styled.FiltersContainer>
         <Spacer $space={15} $samespace />
@@ -204,10 +212,6 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
             onChange={handleChange}
           />
         )}
-        <Spacer $space={15} $samespace />
-        <Button onClick={() => history.push('/security-groups/add')} type="primary">
-          Add
-        </Button>
       </Card>
       <Modal
         title="Delete security group"
