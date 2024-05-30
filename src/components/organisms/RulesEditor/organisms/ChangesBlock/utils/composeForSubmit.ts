@@ -35,7 +35,7 @@ export const composeAllTypesOfSgSgRules = (
       ports: ports || [],
       logs: !!logs,
       action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
+      priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
@@ -58,7 +58,7 @@ export const composeAllTypesOfSgSgRules = (
         ports: ports || [],
         logs: !!logs,
         action,
-        priority: prioritySome ? { some: prioritySome } : undefined,
+        priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
       }
       if (formChanges?.status !== STATUSES.deleted) {
         result.rules.push(rule)
@@ -92,7 +92,7 @@ export const composeAllTypesOfSgSgIcmpRules = (
       logs: !!logs,
       trace: !!trace,
       action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
+      priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
@@ -113,7 +113,7 @@ export const composeAllTypesOfSgSgIcmpRules = (
       logs: !!logs,
       trace: !!trace,
       action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
+      priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
@@ -150,7 +150,7 @@ export const composeAllTypesOfSgSgIeRules = (
       logs: !!logs,
       trace: !!trace,
       action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
+      priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
@@ -186,7 +186,7 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
       logs: !!logs,
       trace: !!trace,
       action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
+      priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
@@ -219,7 +219,7 @@ export const composeAllTypesOfSgFqdnRules = (
       transport,
       ports: ports || [],
       action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
+      priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
@@ -256,7 +256,7 @@ export const composeAllTypesOfSgCidrRules = (
       logs: !!logs,
       trace: !!trace,
       action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
+      priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)
@@ -292,7 +292,7 @@ export const composeAllTypesOfSgCidrIcmpRules = (
       logs: !!logs,
       trace: !!trace,
       action,
-      priority: prioritySome ? { some: prioritySome } : undefined,
+      priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
     if (formChanges?.status !== STATUSES.deleted) {
       result.rules.push(rule)

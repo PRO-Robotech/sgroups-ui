@@ -8,7 +8,7 @@ const mainPageLeftListData = [
     label: 'Security Groups',
   },
   {
-    key: 'divider',
+    key: 'divider-1',
     type: 'divider',
   },
   {
@@ -25,7 +25,7 @@ const mainPageLeftListData = [
     ],
   },
   {
-    key: 'divider',
+    key: 'divider-2',
     type: 'divider',
   },
   {
@@ -39,7 +39,7 @@ export const mainPageLeftList =
     ? [
         ...mainPageLeftListData,
         {
-          key: 'divider',
+          key: 'divider-3',
           type: 'divider',
         },
         {

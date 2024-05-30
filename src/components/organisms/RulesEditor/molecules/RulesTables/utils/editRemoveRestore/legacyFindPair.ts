@@ -26,7 +26,7 @@ export const findSgSgIcmpPair = (
     ({ sg, IPv, types, logs, trace, action, prioritySome }) =>
       sg === centerSg &&
       IPv === values.IPv &&
-      JSON.stringify(types.sort()) === JSON.stringify(values.types.sort()) &&
+      JSON.stringify([...types].sort()) === JSON.stringify([...values.types].sort()) &&
       logs === values.logs &&
       trace === values.trace &&
       action === values.action &&

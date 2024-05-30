@@ -141,14 +141,37 @@ export const restore = (
 ): void => {
   const newSgRules = [...rulesAll]
   const index = newSgRules.findIndex(({ id }) => id === oldValues.id)
-  const newSgRulesOtherside = [...rulesOtherside]
-  /* legacy */
-  const newSgRulesOthersideIndex = findSgSgPair(centerSg, oldValues, rulesOtherside)
-  newSgRules[index] = { ...newSgRules[index], formChanges: { status: STATUSES.modified }, checked: false }
-  newSgRulesOtherside[newSgRulesOthersideIndex] = {
-    ...newSgRulesOtherside[newSgRulesOthersideIndex],
-    formChanges: { status: STATUSES.modified },
+  const values = newSgRules[index]
+  newSgRules[index] = {
+    ...values,
     checked: false,
+    formChanges: undefined,
+  }
+  const newSgRulesOtherside = [...rulesOtherside]
+  const newSgRulesOthersideIndex = findSgSgPair(centerSg, oldValues, rulesOtherside)
+  const valuesOtherside = newSgRulesOtherside[newSgRulesOthersideIndex]
+  newSgRulesOtherside[newSgRulesOthersideIndex] = {
+    ...valuesOtherside,
+    checked: false,
+    formChanges: undefined,
+  }
+  if (values.formChanges && values.formChanges.modifiedFields && values.formChanges.modifiedFields.length > 0) {
+    newSgRules[index] = {
+      ...newSgRules[index],
+      formChanges: {
+        status: STATUSES.modified,
+        modifiedFields: values.formChanges?.modifiedFields,
+      },
+    }
+  }
+  if (values.formChanges && values.formChanges.modifiedFields && values.formChanges.modifiedFields.length > 0) {
+    newSgRulesOtherside[index] = {
+      ...newSgRulesOtherside[index],
+      formChanges: {
+        status: STATUSES.modified,
+        modifiedFields: valuesOtherside.formChanges?.modifiedFields,
+      },
+    }
   }
   dispatch(setRules(newSgRules))
   dispatch(setRulesOtherside(newSgRulesOtherside))
