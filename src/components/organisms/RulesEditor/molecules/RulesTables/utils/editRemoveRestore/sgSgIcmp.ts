@@ -141,14 +141,37 @@ export const restore = (
 ): void => {
   const newSgSgIcmpRules = [...rulesAll]
   const index = newSgSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
-  const newSgSgIcmpRulesOtherside = [...rulesOtherside]
-  /* legacy */
-  const newSgSgSgIcmpRulesOthersideIndex = findSgSgIcmpPair(centerSg, oldValues, rulesOtherside)
-  newSgSgIcmpRules[index] = { ...newSgSgIcmpRules[index], formChanges: { status: STATUSES.modified }, checked: false }
-  newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
-    ...newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex],
-    formChanges: { status: STATUSES.modified },
+  const values = newSgSgIcmpRules[index]
+  newSgSgIcmpRules[index] = {
+    ...values,
     checked: false,
+    formChanges: undefined,
+  }
+  const newSgSgIcmpRulesOtherside = [...rulesOtherside]
+  const newSgSgSgIcmpRulesOthersideIndex = findSgSgIcmpPair(centerSg, oldValues, rulesOtherside)
+  const valuesOtherside = newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex]
+  newSgSgIcmpRulesOtherside[newSgSgSgIcmpRulesOthersideIndex] = {
+    ...valuesOtherside,
+    checked: false,
+    formChanges: undefined,
+  }
+  if (values.formChanges && values.formChanges.modifiedFields && values.formChanges.modifiedFields.length > 0) {
+    newSgSgIcmpRules[index] = {
+      ...newSgSgIcmpRules[index],
+      formChanges: {
+        status: STATUSES.modified,
+        modifiedFields: values.formChanges?.modifiedFields,
+      },
+    }
+  }
+  if (values.formChanges && values.formChanges.modifiedFields && values.formChanges.modifiedFields.length > 0) {
+    newSgSgIcmpRulesOtherside[index] = {
+      ...newSgSgIcmpRulesOtherside[index],
+      formChanges: {
+        status: STATUSES.modified,
+        modifiedFields: valuesOtherside.formChanges?.modifiedFields,
+      },
+    }
   }
   dispatch(setRules(newSgSgIcmpRules))
   dispatch(setRulesOtherside(newSgSgIcmpRulesOtherside))

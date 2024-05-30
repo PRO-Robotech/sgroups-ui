@@ -87,10 +87,20 @@ export const restore = (
 ): void => {
   const newCidrSgIcmpRules = [...rulesAll]
   const index = newCidrSgIcmpRules.findIndex(({ id }) => id === oldValues.id)
+  const values = newCidrSgIcmpRules[index]
   newCidrSgIcmpRules[index] = {
-    ...newCidrSgIcmpRules[index],
-    formChanges: { status: STATUSES.modified },
+    ...values,
     checked: false,
+    formChanges: undefined,
+  }
+  if (values.formChanges && values.formChanges.modifiedFields && values.formChanges.modifiedFields.length > 0) {
+    newCidrSgIcmpRules[index] = {
+      ...newCidrSgIcmpRules[index],
+      formChanges: {
+        status: STATUSES.modified,
+        modifiedFields: values.formChanges?.modifiedFields,
+      },
+    }
   }
   dispatch(setRules(newCidrSgIcmpRules))
 }

@@ -81,6 +81,20 @@ export const restore = (
 ): void => {
   const newFqdnRules = [...rulesAll]
   const index = newFqdnRules.findIndex(({ id }) => id === oldValues.id)
-  newFqdnRules[index] = { ...newFqdnRules[index], formChanges: { status: STATUSES.modified }, checked: false }
+  const values = newFqdnRules[index]
+  newFqdnRules[index] = {
+    ...values,
+    checked: false,
+    formChanges: undefined,
+  }
+  if (values.formChanges && values.formChanges.modifiedFields && values.formChanges.modifiedFields.length > 0) {
+    newFqdnRules[index] = {
+      ...newFqdnRules[index],
+      formChanges: {
+        status: STATUSES.modified,
+        modifiedFields: values.formChanges?.modifiedFields,
+      },
+    }
+  }
   dispatch(setRules(newFqdnRules))
 }

@@ -178,27 +178,29 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
               Restore
             </Button>
           )}
-          <Popover
-            content={
-              <EditPopover<TFormSgSgRule>
-                values={oldValues}
-                remove={() => removeRule(oldValues)}
-                hide={() => toggleEditPopover(index)}
-                edit={values => editRule(oldValues, values)}
-                {...RULES_CONFIGS.sgSg}
-                defaultPrioritySome={DEFAULT_PRIORITIES.sgToSg}
-                isDisabled={isDisabled}
-              />
-            }
-            title="SG"
-            trigger="click"
-            open={editOpen[index]}
-            onOpenChange={() => toggleEditPopover(index)}
-            placement={popoverPosition}
-            className="no-scroll"
-          >
-            <Button type="primary">Edit</Button>
-          </Popover>
+          {!isRestoreButtonActive && (
+            <Popover
+              content={
+                <EditPopover<TFormSgSgRule>
+                  values={oldValues}
+                  remove={() => removeRule(oldValues)}
+                  hide={() => toggleEditPopover(index)}
+                  edit={values => editRule(oldValues, values)}
+                  {...RULES_CONFIGS.sgSg}
+                  defaultPrioritySome={DEFAULT_PRIORITIES.sgToSg}
+                  isDisabled={isDisabled}
+                />
+              }
+              title="SG"
+              trigger="click"
+              open={editOpen[index]}
+              onOpenChange={() => toggleEditPopover(index)}
+              placement={popoverPosition}
+              className="no-scroll"
+            >
+              <Button type="primary">Edit</Button>
+            </Popover>
+          )}
         </>
       ),
     },

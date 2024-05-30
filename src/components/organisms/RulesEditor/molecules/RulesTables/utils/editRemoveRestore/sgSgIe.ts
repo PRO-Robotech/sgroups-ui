@@ -87,10 +87,20 @@ export const restore = (
 ): void => {
   const newSgSgIeRules = [...rulesAll]
   const index = newSgSgIeRules.findIndex(({ id }) => id === oldValues.id)
+  const values = newSgSgIeRules[index]
   newSgSgIeRules[index] = {
-    ...newSgSgIeRules[index],
-    formChanges: { status: STATUSES.modified },
+    ...values,
     checked: false,
+    formChanges: undefined,
+  }
+  if (values.formChanges && values.formChanges.modifiedFields && values.formChanges.modifiedFields.length > 0) {
+    newSgSgIeRules[index] = {
+      ...newSgSgIeRules[index],
+      formChanges: {
+        status: STATUSES.modified,
+        modifiedFields: values.formChanges?.modifiedFields,
+      },
+    }
   }
   dispatch(setRules(newSgSgIeRules))
 }

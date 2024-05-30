@@ -152,27 +152,29 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
               Restore
             </Button>
           )}
-          <Popover
-            content={
-              <EditPopover<TFormSgFqdnRule>
-                values={oldValues}
-                remove={() => removeRule(oldValues)}
-                hide={() => toggleEditPopover(index)}
-                edit={values => editRule(oldValues, values)}
-                {...RULES_CONFIGS.sgFqdn}
-                defaultPrioritySome={DEFAULT_PRIORITIES.sgToFqdn}
-                isDisabled={isDisabled}
-              />
-            }
-            title="FQDN"
-            trigger="click"
-            open={editOpen[index]}
-            onOpenChange={() => toggleEditPopover(index)}
-            placement={popoverPosition}
-            className="no-scroll"
-          >
-            <Button type="primary">Edit</Button>
-          </Popover>
+          {!isRestoreButtonActive && (
+            <Popover
+              content={
+                <EditPopover<TFormSgFqdnRule>
+                  values={oldValues}
+                  remove={() => removeRule(oldValues)}
+                  hide={() => toggleEditPopover(index)}
+                  edit={values => editRule(oldValues, values)}
+                  {...RULES_CONFIGS.sgFqdn}
+                  defaultPrioritySome={DEFAULT_PRIORITIES.sgToFqdn}
+                  isDisabled={isDisabled}
+                />
+              }
+              title="FQDN"
+              trigger="click"
+              open={editOpen[index]}
+              onOpenChange={() => toggleEditPopover(index)}
+              placement={popoverPosition}
+              className="no-scroll"
+            >
+              <Button type="primary">Edit</Button>
+            </Popover>
+          )}
         </>
       ),
     },
