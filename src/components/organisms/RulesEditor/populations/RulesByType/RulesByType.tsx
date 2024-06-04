@@ -1,4 +1,5 @@
-import React, { FC, useState } from 'react'
+import React, { FC, useState, useEffect } from 'react'
+import { useHistory } from 'react-router-dom'
 import { Segmented } from 'antd'
 import { SelectCenterSg } from '../../molecules'
 import {
@@ -20,10 +21,18 @@ import { Styled } from './styled'
 
 type TRulesSimplifiedProps = {
   onSelectCenterSg: (value?: string) => void
+  byTypeId?: string
 }
 
-export const RulesByType: FC<TRulesSimplifiedProps> = ({ onSelectCenterSg }) => {
-  const [currentSection, setCurrentSection] = useState<string>('sgSg')
+export const RulesByType: FC<TRulesSimplifiedProps> = ({ onSelectCenterSg, byTypeId }) => {
+  const history = useHistory()
+  const [currentSection, setCurrentSection] = useState<string>(byTypeId || 'sgSg')
+
+  useEffect(() => {
+    if (byTypeId) {
+      setCurrentSection(byTypeId)
+    }
+  }, [byTypeId])
 
   return (
     <Styled.Container>
@@ -59,9 +68,10 @@ export const RulesByType: FC<TRulesSimplifiedProps> = ({ onSelectCenterSg }) => 
               value: 'sgFqdn',
             },
           ]}
-          defaultValue="sgSg"
+          value={currentSection}
           onChange={value => {
             if (typeof value === 'string') {
+              history.push(`/rules-editor/by-type/${value}`)
               setCurrentSection(value)
             }
           }}

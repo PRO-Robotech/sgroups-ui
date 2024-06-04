@@ -127,10 +127,6 @@ export const BottomBar: FC<TBottomBarProps> = ({ onSubmit, viewType, onViewTypeC
                 value: VIEW_TYPE.simple,
               },
               {
-                label: VIEW_TYPE.type,
-                value: VIEW_TYPE.type,
-              },
-              {
                 label: VIEW_TYPE.overview,
                 value: VIEW_TYPE.overview,
               },

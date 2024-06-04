@@ -43,9 +43,10 @@ import { Styled } from './styled'
 
 type TRulesEditorProps = {
   id?: string
+  byTypeId?: string
 }
 
-export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
+export const RulesEditor: FC<TRulesEditorProps> = ({ id, byTypeId }) => {
   const dispatch = useDispatch()
 
   const lsViewtype = localStorage.getItem('viewType')
@@ -252,10 +253,14 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      {viewType === VIEW_TYPE.overview && specificOpen && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
-      {viewType === VIEW_TYPE.overview && !specificOpen && <TransformBlock onSelectCenterSg={onSelectCenterSg} />}
-      {viewType === VIEW_TYPE.type && <RulesByType onSelectCenterSg={onSelectCenterSg} />}
-      {viewType === VIEW_TYPE.simple && <RulesSimplified onSelectCenterSg={onSelectCenterSg} />}
+      {!byTypeId && viewType === VIEW_TYPE.overview && specificOpen && (
+        <RulesSpecific onSelectCenterSg={onSelectCenterSg} />
+      )}
+      {!byTypeId && viewType === VIEW_TYPE.overview && !specificOpen && (
+        <TransformBlock onSelectCenterSg={onSelectCenterSg} />
+      )}
+      {!byTypeId && viewType === VIEW_TYPE.simple && <RulesSimplified onSelectCenterSg={onSelectCenterSg} />}
+      {byTypeId && <RulesByType onSelectCenterSg={onSelectCenterSg} byTypeId={byTypeId} />}
       <BottomBar onSubmit={() => fetchData()} viewType={viewType} onViewTypeChange={setViewType} />
       {isLoading && (
         <Styled.Loader>

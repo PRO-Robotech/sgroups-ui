@@ -1,7 +1,0 @@
-export * from './RulesListSgSg'
-export * from './RulesListSgSgIcmp'
-export * from './RulesListSgSgIe'
-export * from './RulesListSgSgIeIcmp'
-export * from './RulesListSgFqdn'
-export * from './RulesListSgCidr'
-export * from './RulesListSgCidrIcmp'
