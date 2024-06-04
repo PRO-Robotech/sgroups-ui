@@ -3,6 +3,7 @@ import { TRulesTypes, TRulesSubTypes } from 'localTypes/rules'
 
 export const VIEW_TYPE = {
   simple: 'Simple',
+  type: 'By type',
   overview: 'Overview',
 }
 
