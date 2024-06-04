@@ -1,7 +1,7 @@
 import React, { FC } from 'react'
-import { TcpUdpAndIcmpSwitcher } from '../../../../atoms'
-import { RulesBlockFactory } from '../../../../organisms'
-import { RULES_CONFIGS_FOR_FACTORY } from '../../../../constants'
+import { TcpUdpAndIcmpSwitcher } from '../../../atoms'
+import { RulesBlockFactory } from '../../../organisms'
+import { RULES_CONFIGS_FOR_FACTORY } from '../../../constants'
 
 export const SgCidrTo: FC = () => {
   return (

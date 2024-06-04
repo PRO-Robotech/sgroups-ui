@@ -1,23 +1,22 @@
 import React, { FC } from 'react'
-import { TcpUdpAndIcmpSwitcher } from '../../../../atoms'
-import { RulesBlockFactory } from '../../../../organisms'
-import { RULES_CONFIGS_FOR_FACTORY } from '../../../../constants'
+import { TcpUdpAndIcmpSwitcher } from '../../../atoms'
+import { RulesBlockFactory } from '../../../organisms'
+import { RULES_CONFIGS_FOR_FACTORY } from '../../../constants'
 
-export const SgSgFrom: FC = () => {
+export const SgCidrFrom: FC = () => {
   return (
     <TcpUdpAndIcmpSwitcher
       notInTransformBlock
       tcpUdpComponent={
         <RulesBlockFactory
-          {...RULES_CONFIGS_FOR_FACTORY.sgSg.from}
+          {...RULES_CONFIGS_FOR_FACTORY.sgCidr.from}
           addpopoverPosition="top"
           inTransformBlock={false}
-          isDisabledDefault
         />
       }
       icmpComponent={
         <RulesBlockFactory
-          {...RULES_CONFIGS_FOR_FACTORY.sgSgIcmp.from}
+          {...RULES_CONFIGS_FOR_FACTORY.sgCidrIcmp.from}
           addpopoverPosition="top"
           inTransformBlock={false}
         />
