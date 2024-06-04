@@ -261,7 +261,7 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id, byTypeId }) => {
       )}
       {!byTypeId && viewType === VIEW_TYPE.simple && <RulesSimplified onSelectCenterSg={onSelectCenterSg} />}
       {byTypeId && <RulesByType onSelectCenterSg={onSelectCenterSg} byTypeId={byTypeId} />}
-      <BottomBar onSubmit={() => fetchData()} viewType={viewType} onViewTypeChange={setViewType} />
+      <BottomBar onSubmit={() => fetchData()} viewType={viewType} onViewTypeChange={setViewType} byTypeId={byTypeId} />
       {isLoading && (
         <Styled.Loader>
           <Spin size="large" />
