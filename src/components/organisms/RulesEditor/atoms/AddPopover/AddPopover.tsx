@@ -5,6 +5,7 @@ import { PlusCircleOutlined, CloseOutlined, PlusOutlined, MinusOutlined } from '
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { filterSgName } from 'utils/filterSgName'
+import { isCidrValid } from 'utils/isCidrValid'
 import { Styled } from './styled'
 
 type TAddPopoverProps<T> = {
@@ -81,11 +82,14 @@ export const AddPopover = <T,>({
           name="cidr"
           rules={[
             { required: true, message: 'Missing CIDR' },
-            {
-              required: true,
-              pattern: /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/,
-              message: 'Please input valid CIDR',
-            },
+            () => ({
+              validator(_, value: string) {
+                if (isCidrValid(value)) {
+                  return Promise.resolve()
+                }
+                return Promise.reject(new Error('Please enter valid type'))
+              },
+            }),
           ]}
         >
           <Input placeholder="CIDR" />

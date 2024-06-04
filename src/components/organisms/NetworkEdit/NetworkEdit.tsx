@@ -5,6 +5,7 @@ import { Card, Form, Input, Breadcrumb, Result, Spin, Alert } from 'antd'
 import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
 import { BASEPREFIX } from 'constants/basePrefix'
 import { getNetworkByName, editNetwork } from 'api/networks'
+import { isCidrValid } from 'utils/isCidrValid'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork } from 'localTypes/networks'
 import { Styled } from './styled'
@@ -101,11 +102,14 @@ export const NetworkEdit: FC<TNetworkEditProps> = ({ id }) => {
                 name="cidr"
                 label="CIDR"
                 rules={[
-                  {
-                    required: true,
-                    pattern: /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/,
-                    message: 'Please input valid CIDR',
-                  },
+                  () => ({
+                    validator(_, value: string) {
+                      if (isCidrValid(value)) {
+                        return Promise.resolve()
+                      }
+                      return Promise.reject(new Error('Please enter valid type'))
+                    },
+                  }),
                 ]}
               >
                 <Input allowClear />

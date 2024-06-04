@@ -1,6 +1,7 @@
 import React, { FC } from 'react'
 import { Card, Form, Input, Button } from 'antd'
 import { Spacer } from 'components'
+import { isCidrValid } from 'utils/isCidrValid'
 import { TNetworkForm } from 'localTypes/networks'
 import { Styled } from './styled'
 
@@ -42,11 +43,14 @@ export const SingleNetworkAdd: FC<TSingleNetworkAdd> = ({ onFormChange, removeNw
             hasFeedback
             validateTrigger="onBlur"
             rules={[
-              {
-                required: true,
-                pattern: /^((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}(\/([0-9]|[1-2][0-9]|3[0-2]))?$/,
-                message: 'Please input valid CIDR',
-              },
+              () => ({
+                validator(_, value: string) {
+                  if (isCidrValid(value)) {
+                    return Promise.resolve()
+                  }
+                  return Promise.reject(new Error('Please enter valid type'))
+                },
+              }),
             ]}
           >
             <Input allowClear />
