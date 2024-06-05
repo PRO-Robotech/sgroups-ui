@@ -1,6 +1,6 @@
 import React, { FC } from 'react'
 import { SelectCenterSg } from '../../molecules'
-import { SgSgFrom, SgSgTo, SgSgIeFrom, SgSgIeTo, SgFqdnTo, SgCidrFrom, SgCidrTo } from '../RulesSpecific/organisms'
+import { SgSgFrom, SgSgTo, SgSgIeFrom, SgSgIeTo, SgFqdnTo, SgCidrFrom, SgCidrTo } from '../../organisms'
 import { Styled } from './styled'
 
 type TRulesSimplifiedProps = {

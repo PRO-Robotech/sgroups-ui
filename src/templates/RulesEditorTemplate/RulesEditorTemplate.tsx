@@ -15,7 +15,7 @@ export const RulesEditorTemplate: FC<TRulesEditorTemplateProps> = ({ children })
   const [currentSection, setCurrentSection] = useState<string>(`/${location.pathname.split('/')[1]}`)
 
   useEffect(() => {
-    setCurrentSection(`/${location.pathname.split('/')[1]}`)
+    setCurrentSection(location.pathname)
   }, [location, history])
 
   return (
@@ -23,7 +23,6 @@ export const RulesEditorTemplate: FC<TRulesEditorTemplateProps> = ({ children })
       <Styled.HeaderContainer>
         <Header />
       </Styled.HeaderContainer>
-
       <Styled.SidebarContainer>
         <Menu
           theme="dark"
