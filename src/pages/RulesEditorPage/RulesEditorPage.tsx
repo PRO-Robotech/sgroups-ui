@@ -4,11 +4,11 @@ import { RulesEditorTemplate } from 'templates'
 import { RulesEditor } from 'components'
 
 export const RulesEditorPage: FC = () => {
-  const { securityGroupId } = useParams<{ securityGroupId?: string }>()
+  const { securityGroupId, byTypeId } = useParams<{ securityGroupId?: string; byTypeId?: string }>()
 
   return (
     <RulesEditorTemplate>
-      <RulesEditor id={securityGroupId} />
+      <RulesEditor id={securityGroupId} byTypeId={byTypeId} />
     </RulesEditorTemplate>
   )
 }
