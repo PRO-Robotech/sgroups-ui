@@ -12,7 +12,7 @@ const Container = styled.div`
 
 const Card = styled.div`
   margin-bottom: 40px;
-  padding: 24px;
+  padding: 16px;
   background: white;
   border-radius: 10px;
   box-shadow: 0 0 24px rgba(23, 49, 65, 0.13);

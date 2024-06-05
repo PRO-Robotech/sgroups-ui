@@ -1,1 +1,0 @@
-export { RulesPageSpecific } from './RulesPageSpecific'

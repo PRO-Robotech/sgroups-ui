@@ -38,14 +38,15 @@ import {
 } from './utils'
 import { VIEW_TYPE } from './constants'
 import { SelectCenterSgModal } from './atoms'
-import { TransformBlock, BottomBar, RulesSpecific, RulesSimplified } from './populations'
+import { TransformBlock, BottomBar, RulesSpecific, RulesSimplified, RulesByType } from './populations'
 import { Styled } from './styled'
 
 type TRulesEditorProps = {
   id?: string
+  byTypeId?: string
 }
 
-export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
+export const RulesEditor: FC<TRulesEditorProps> = ({ id, byTypeId }) => {
   const dispatch = useDispatch()
 
   const lsViewtype = localStorage.getItem('viewType')
@@ -252,10 +253,15 @@ export const RulesEditor: FC<TRulesEditorProps> = ({ id }) => {
 
   return (
     <Styled.Container>
-      {viewType === VIEW_TYPE.overview && specificOpen && <RulesSpecific onSelectCenterSg={onSelectCenterSg} />}
-      {viewType === VIEW_TYPE.overview && !specificOpen && <TransformBlock onSelectCenterSg={onSelectCenterSg} />}
-      {viewType === VIEW_TYPE.simple && <RulesSimplified onSelectCenterSg={onSelectCenterSg} />}
-      <BottomBar onSubmit={() => fetchData()} viewType={viewType} onViewTypeChange={setViewType} />
+      {!byTypeId && viewType === VIEW_TYPE.overview && specificOpen && (
+        <RulesSpecific onSelectCenterSg={onSelectCenterSg} />
+      )}
+      {!byTypeId && viewType === VIEW_TYPE.overview && !specificOpen && (
+        <TransformBlock onSelectCenterSg={onSelectCenterSg} />
+      )}
+      {!byTypeId && viewType === VIEW_TYPE.simple && <RulesSimplified onSelectCenterSg={onSelectCenterSg} />}
+      {byTypeId && <RulesByType onSelectCenterSg={onSelectCenterSg} byTypeId={byTypeId} />}
+      <BottomBar onSubmit={() => fetchData()} viewType={viewType} onViewTypeChange={setViewType} byTypeId={byTypeId} />
       {isLoading && (
         <Styled.Loader>
           <Spin size="large" />
