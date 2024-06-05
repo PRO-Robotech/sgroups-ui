@@ -16,7 +16,7 @@ export const LeftMenuTemplate: FC<TLeftMenuTemplateProps> = ({ children }) => {
   const [currentSection, setCurrentSection] = useState<string>(`/${location.pathname.split('/')[1]}`)
 
   useEffect(() => {
-    setCurrentSection(`/${location.pathname.split('/')[1]}`)
+    setCurrentSection(location.pathname)
   }, [location, history])
 
   return (

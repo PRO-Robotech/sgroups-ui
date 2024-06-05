@@ -5,8 +5,8 @@ import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from 'store/store'
 import { setSpecific } from 'store/editor/specific/specific'
 import { SelectCenterSg } from '../../molecules'
+import { SgSgFrom, SgSgTo, SgSgIeFrom, SgSgIeTo, SgFqdnTo, SgCidrFrom, SgCidrTo } from '../../organisms'
 import { Styled } from './styled'
-import { SgSgFrom, SgSgTo, SgSgIeFrom, SgSgIeTo, SgFqdnTo, SgCidrFrom, SgCidrTo } from './organisms'
 
 type TRulesSpecificProps = {
   onSelectCenterSg: (value?: string) => void
