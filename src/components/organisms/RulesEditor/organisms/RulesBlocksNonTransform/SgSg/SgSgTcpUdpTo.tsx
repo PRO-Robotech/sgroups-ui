@@ -6,7 +6,7 @@ import { RULES_CONFIGS_FOR_FACTORY } from '../../../constants'
 export const SgSgTcpUdpTo: FC = () => {
   return (
     <GroupRulesNodeWrapper $notInTransformBlock>
-      <RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSgIcmp.to} addpopoverPosition="top" inTransformBlock={false} />
+      <RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSg.to} addpopoverPosition="top" inTransformBlock={false} />
     </GroupRulesNodeWrapper>
   )
 }
