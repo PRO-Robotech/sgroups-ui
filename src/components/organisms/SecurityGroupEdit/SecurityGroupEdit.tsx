@@ -2,7 +2,6 @@ import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Form, Select, Switch, Breadcrumb, Result, Spin, Alert } from 'antd'
-import type { SelectProps } from 'antd'
 import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
 import { BASEPREFIX } from 'constants/basePrefix'
 import { getSecurityGroupByName, editSecurityGroup, getSecurityGroups } from 'api/securityGroups'
@@ -19,11 +18,14 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
   const [form] = Form.useForm()
   const history = useHistory()
   const [securityGroup, setSecurityGroup] = useState<TSecurityGroup>()
-  const [networksOptions, setNetworkOptions] = useState<SelectProps['options']>()
+  const [networksOptions, setNetworkOptions] = useState<{ label: string; value: string }[]>()
   const [error, setError] = useState<TRequestError | undefined>()
   const [editError, setEditError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [success, setSuccess] = useState<boolean>()
+
+  const filterOption = (input: string, option?: { label: string; value: string }) =>
+    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
 
   useEffect(() => {
     setIsLoading(true)
@@ -146,7 +148,13 @@ export const SecurityGroupEdit: FC<TSecurityGroupEditProps> = ({ id }) => {
                 />
               </Styled.FormItem>
               <Styled.FormItem name="networks" label="Networks">
-                <Select mode="multiple" placeholder="Networks" options={networksOptions} />
+                <Select
+                  mode="multiple"
+                  placeholder="Networks"
+                  options={networksOptions}
+                  showSearch
+                  filterOption={filterOption}
+                />
               </Styled.FormItem>
               <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
                 <Switch />

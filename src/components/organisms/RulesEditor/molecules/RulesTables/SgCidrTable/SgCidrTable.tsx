@@ -109,7 +109,8 @@ export const SgCidrTable: FC<TSgCidrTableProps> = ({
         />
       ),
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
-      onFilter: (value, { cidr }) => ipRangeCheck(value as string, cidr),
+      onFilter: (value, { cidr }) =>
+        ipRangeCheck(value as string, cidr) || cidr.toLowerCase().includes((value as string).toLowerCase()),
     },
 
     {
