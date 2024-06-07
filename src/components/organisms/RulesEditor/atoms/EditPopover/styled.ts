@@ -1,6 +1,10 @@
 import styled from 'styled-components'
 import { Form } from 'antd'
 
+const Container = styled.div`
+  width: 360px;
+`
+
 const FormItem = styled(Form.Item)`
   margin-bottom: 5px;
 
@@ -32,6 +36,7 @@ const ButtonWithRightMargin = styled.div`
 `
 
 export const Styled = {
+  Container,
   FormItem,
   PortsEditContainer,
   PortFormItemsContainer,

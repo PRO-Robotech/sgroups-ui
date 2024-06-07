@@ -2,7 +2,6 @@ import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Form, Input, Select, Switch, Breadcrumb, Result, Alert, Spin } from 'antd'
-import type { SelectProps } from 'antd'
 import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
 import { BASEPREFIX } from 'constants/basePrefix'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -13,13 +12,16 @@ import { Styled } from './styled'
 
 export const SecurityGroupAdd: FC = () => {
   const [form] = Form.useForm()
-  const [networksOptions, setNetworkOptions] = useState<SelectProps['options']>()
+  const [networksOptions, setNetworkOptions] = useState<{ label: string; value: string }[]>()
   const [unavailableSGNames, setUnavailableSGNames] = useState<string[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [addError, setAddError] = useState<TRequestError | undefined>()
   const [success, setSuccess] = useState<boolean>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const history = useHistory()
+
+  const filterOption = (input: string, option?: { label: string; value: string }) =>
+    (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
 
   useEffect(() => {
     setIsLoading(true)
@@ -146,7 +148,13 @@ export const SecurityGroupAdd: FC = () => {
               />
             </Styled.FormItem>
             <Styled.FormItem name="networks" label="Networks">
-              <Select mode="multiple" placeholder="Networks" options={networksOptions} />
+              <Select
+                mode="multiple"
+                placeholder="Networks"
+                options={networksOptions}
+                showSearch
+                filterOption={filterOption}
+              />
             </Styled.FormItem>
             <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
               <Switch />
