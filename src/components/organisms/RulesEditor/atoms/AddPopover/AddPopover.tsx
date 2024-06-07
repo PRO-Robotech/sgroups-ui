@@ -186,8 +186,9 @@ export const AddPopover = <T,>({
                 allowClear
                 tokenSeparators={[',', ' ']}
                 getPopupContainer={node => node.parentNode}
-                dropdownStyle={{ display: 'none' }}
                 suffixIcon={null}
+                // dropdownStyle={{ display: 'none' }}
+                maxTagCount="responsive"
               />
             </Styled.FormItem>
           </>

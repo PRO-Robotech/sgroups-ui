@@ -200,8 +200,9 @@ export const EditPopover = <T,>({
                 tokenSeparators={[',', ' ']}
                 getPopupContainer={node => node.parentNode}
                 disabled={isDisabled}
-                dropdownStyle={{ display: 'none' }}
                 suffixIcon={null}
+                // dropdownStyle={{ display: 'none' }}
+                maxTagCount="responsive"
               />
             </Styled.FormItem>
           </>
