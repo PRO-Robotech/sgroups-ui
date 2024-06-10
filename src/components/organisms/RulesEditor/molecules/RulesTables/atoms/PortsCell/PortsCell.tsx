@@ -5,7 +5,7 @@ import { Styled as CommonStyled } from '../../styled'
 import { Styled } from './styled'
 
 type TPortsCellProps = {
-  ports?: TPortGroup[]
+  ports?: TPortGroup[] | null
   changesMarker: string
   formChanges?: TFormChanges
 }
