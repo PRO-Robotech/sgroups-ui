@@ -28,13 +28,13 @@ export const RulesSpecific: FC<TRulesSpecificProps> = ({ onSelectCenterSg }) => 
         </Button>
       </Styled.ExitModalContainer>
       <SelectCenterSg onSelectCenterSg={onSelectCenterSg} notInTransformBlock />
-      {specificValue === 'sgSg-from' && <SgSgFrom />}
-      {specificValue === 'sgSgIe-from' && <SgSgIeFrom />}
-      {specificValue === 'sgCidr-from' && <SgCidrFrom />}
-      {specificValue === 'sgSg-to' && <SgSgTo />}
-      {specificValue === 'sgSgIe-to' && <SgSgIeTo />}
+      {(specificValue === 'sgSg-from' || specificValue === 'sgSgIcmp-from') && <SgSgFrom />}
+      {(specificValue === 'sgSgIe-from' || specificValue === 'sgSgIeIcmp-from') && <SgSgIeFrom />}
+      {(specificValue === 'sgCidr-from' || specificValue === 'sgCidrIcmp-from') && <SgCidrFrom />}
+      {(specificValue === 'sgSg-to' || specificValue === 'sgSgIcmp-to') && <SgSgTo />}
+      {(specificValue === 'sgSgIe-to' || specificValue === 'sgSgIeIcmp-to') && <SgSgIeTo />}
       {specificValue === 'sgFqdn-to' && <SgFqdnTo />}
-      {specificValue === 'sgCidr-to' && <SgCidrTo />}
+      {(specificValue === 'sgCidr-to' || specificValue === 'sgCidrIcmp-to') && <SgCidrTo />}
     </Styled.Container>
   )
 }
