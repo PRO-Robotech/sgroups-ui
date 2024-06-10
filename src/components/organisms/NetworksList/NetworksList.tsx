@@ -51,9 +51,9 @@ export const NetworksList: FC = () => {
       })
   }, [])
 
-  const handleSearch = (searchText: string) => {
+  useEffect(() => {
     setFilteredInfo({ name: searchText ? [searchText] : null })
-  }
+  }, [searchText])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChange: OnChange = (pagination, filters, sorter, extra) => {
@@ -132,9 +132,9 @@ export const NetworksList: FC = () => {
                 allowClear
                 placeholder="Filter by NW name"
                 value={searchText}
-                onChange={e => setSearchText(e.target.value)}
-                onBlur={() => handleSearch(searchText)}
-                onPressEnter={() => handleSearch(searchText)}
+                onChange={e => {
+                  setSearchText(e.target.value)
+                }}
               />
             </div>
           )}

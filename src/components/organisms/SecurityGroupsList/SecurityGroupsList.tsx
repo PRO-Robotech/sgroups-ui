@@ -35,7 +35,6 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   const history = useHistory()
 
   useEffect(() => {
-    setFilteredInfo({ name: id ? [id] : null })
     if (id) {
       setSearchText(id)
     }
@@ -68,9 +67,9 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       })
   }, [])
 
-  const handleSearch = (searchText: string) => {
+  useEffect(() => {
     setFilteredInfo({ name: searchText ? [searchText] : null })
-  }
+  }, [searchText])
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChange: OnChange = (pagination, filters, sorter, extra) => {
@@ -182,8 +181,6 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
                   }
                   setSearchText(e.target.value)
                 }}
-                onBlur={() => handleSearch(searchText)}
-                onPressEnter={() => handleSearch(searchText)}
               />
             </div>
           )}

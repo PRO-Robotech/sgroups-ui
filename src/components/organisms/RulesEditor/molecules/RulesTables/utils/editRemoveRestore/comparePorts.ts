@@ -1,6 +1,6 @@
 import { TPortGroup } from 'localTypes/rules'
 
-export const comparePorts = (portsOne?: TPortGroup[], portsTwo?: TPortGroup[]): boolean => {
+export const comparePorts = (portsOne?: TPortGroup[] | null, portsTwo?: TPortGroup[] | null): boolean => {
   if (portsOne && portsTwo) {
     if (portsOne.length !== portsTwo.length) {
       return false
