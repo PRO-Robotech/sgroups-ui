@@ -14,8 +14,24 @@ import {
   TFormSgCidrRule,
   TFormSgCidrIcmpRule,
   TComposedForSubmitRules,
+  TPortGroup,
 } from 'localTypes/rules'
 import { STATUSES } from 'constants/rules'
+
+export const composePorts = (ports: TPortGroup[] | undefined | null): TPortGroup[] | null => {
+  if (!ports) {
+    return null
+  }
+  const isAllEmpty = !ports.some(({ s, d }) => s !== undefined || d !== undefined)
+  if (isAllEmpty) {
+    return null
+  }
+  return ports.map(({ s, d }) => {
+    const newS = s === undefined ? null : s
+    const newD = d === undefined ? null : d
+    return { s: newS, d: newD }
+  })
+}
 
 export const composeAllTypesOfSgSgRules = (
   centerSg: string,
@@ -32,7 +48,7 @@ export const composeAllTypesOfSgSgRules = (
       sgFrom: sg,
       sgTo: centerSg,
       transport,
-      ports: ports || [],
+      ports: composePorts(ports),
       logs: !!logs,
       action,
       priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
@@ -55,7 +71,7 @@ export const composeAllTypesOfSgSgRules = (
         sgFrom: centerSg,
         sgTo: sg,
         transport,
-        ports: ports || [],
+        ports: composePorts(ports),
         logs: !!logs,
         action,
         priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
@@ -145,7 +161,7 @@ export const composeAllTypesOfSgSgIeRules = (
       SgLocal: centerSg,
       Sg: sg,
       transport,
-      ports: ports || [],
+      ports: composePorts(ports),
       traffic,
       logs: !!logs,
       trace: !!trace,
@@ -217,7 +233,7 @@ export const composeAllTypesOfSgFqdnRules = (
       sgFrom: centerSg,
       logs: !!logs,
       transport,
-      ports: ports || [],
+      ports: composePorts(ports),
       action,
       priority: prioritySome || prioritySome === 0 ? { some: prioritySome } : undefined,
     }
@@ -251,7 +267,7 @@ export const composeAllTypesOfSgCidrRules = (
       CIDR: cidr,
       SG: centerSg,
       transport,
-      ports: ports || [],
+      ports: composePorts(ports),
       traffic,
       logs: !!logs,
       trace: !!trace,
