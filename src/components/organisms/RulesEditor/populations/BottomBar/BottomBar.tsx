@@ -1,8 +1,7 @@
-import React, { FC, useState, useEffect, useCallback, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { Button, Segmented } from 'antd'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
-import { Spacer } from 'components'
 import { ChangesBlock } from '../../organisms'
 import { isChangesExist } from './utils'
 import { Styled } from './styled'
@@ -19,9 +18,6 @@ export const BottomBar: FC<TBottomBarProps> = ({ onSubmit, viewType, onViewTypeC
   const [isOpen, setIsOpen] = useState(false)
   const [isSubmitButtonActive, setSubmitButtonActive] = useState(false)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
-
-  const [isResizable, setIsResizable] = useState(false)
-  const [containerHeight, setContainerHeight] = useState<number>()
 
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
@@ -75,38 +71,8 @@ export const BottomBar: FC<TBottomBarProps> = ({ onSubmit, viewType, onViewTypeC
     rulesSgCidrIcmpTo,
   ])
 
-  const handleResize = () => {
-    setIsResizable(true)
-  }
-
-  const handleMouseUp = () => {
-    setIsResizable(false)
-  }
-
-  const handleMouseMove = useCallback(
-    (event: MouseEventInit) => {
-      if (isResizable) {
-        if (event.clientY) {
-          setContainerHeight(document.documentElement.clientHeight - event.clientY)
-        }
-      }
-    },
-    [isResizable],
-  )
-
-  useEffect(() => {
-    document.addEventListener('mousemove', handleMouseMove)
-    document.addEventListener('mouseup', handleMouseUp)
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove)
-      document.removeEventListener('mouseup', handleMouseUp)
-    }
-  }, [isResizable, handleMouseMove])
-
   return (
-    <Styled.Container $isOpen={isOpen} $containerHeight={containerHeight}>
-      {isOpen ? <Spacer $space={15} $samespace /> : <Styled.Resizer onMouseDown={() => handleResize()} />}
+    <Styled.Container $isOpen={isOpen}>
       <Styled.FlexContainer>
         <Styled.FlexContainerItem>
           {!isOpen && (

@@ -2,11 +2,10 @@ import styled from 'styled-components'
 
 const Container = styled.div`
   position: absolute;
-  top: 100px;
-  left: 250px;
+  left: 240px;
   z-index: 2;
-  width: calc(100vw - 300px);
-  max-height: calc(100vh - 200px);
+  width: calc(100vw - 240px);
+  max-height: calc(100vh - 74px);
   overflow-y: auto;
 `
 

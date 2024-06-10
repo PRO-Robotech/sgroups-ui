@@ -1,9 +1,9 @@
 import React, { FC } from 'react'
-import { LeftMenuTemplate } from 'templates'
+import { BaseTemplate } from 'templates'
 import { SecurityGroupAdd } from 'components'
 
 export const SecurityGroupsAddPage: FC = () => (
-  <LeftMenuTemplate>
+  <BaseTemplate>
     <SecurityGroupAdd />
-  </LeftMenuTemplate>
+  </BaseTemplate>
 )

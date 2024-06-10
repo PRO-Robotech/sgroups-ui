@@ -1,4 +1,3 @@
-export * from './Header'
 export * from './SecurityGroupsList'
 export * from './SecurityGroupAdd'
 export * from './SecurityGroupEdit'

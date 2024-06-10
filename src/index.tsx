@@ -12,6 +12,20 @@ root.render(
     theme={{
       token: {
         fontFamily: '"Lato", sans-serif',
+        colorText: '#222222',
+      },
+      components: {
+        Layout: {
+          siderBg: '#F0F0F0',
+        },
+        Menu: {
+          itemBg: '#F0F0F0',
+          itemActiveBg: 'rgba(0, 0, 0, 0.06)',
+          itemSelectedColor: '#222222',
+          itemSelectedBg: 'rgba(0, 0, 0, 0.06)',
+          subMenuItemBg: '#F0F0F0',
+          iconMarginInlineEnd: 16,
+        },
       },
     }}
   >
