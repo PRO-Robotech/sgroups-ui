@@ -20,8 +20,8 @@ export type TRulesTables<T> = {
 export type TTransport = 'TCP' | 'UDP'
 
 export type TPortGroup = {
-  d?: string
-  s?: string
+  d?: string | null
+  s?: string | null
 }
 
 export type TTraffic = 'Ingress' | 'Egress'
@@ -71,7 +71,7 @@ type TId = {
 export type TSgSgRule = {
   sgFrom: string
   sgTo: string
-  ports: TPortGroup[]
+  ports: TPortGroup[] | null
   logs: boolean
   transport: TTransport
 } & TPriority &
@@ -98,7 +98,7 @@ export type TSgSgIeRule = {
   Sg: string
   SgLocal: string
   traffic: TTraffic
-  ports: TPortGroup[]
+  ports: TPortGroup[] | null
   logs: boolean
   trace: boolean
   transport: TTransport
@@ -127,7 +127,7 @@ export type TSgFqdnRule = {
   sgFrom: string
   FQDN: string
   logs: boolean
-  ports: TPortGroup[]
+  ports: TPortGroup[] | null
   transport: TTransport
 } & TPriority &
   TAction
@@ -140,7 +140,7 @@ export type TSgCidrRule = {
   SG: string
   CIDR: string
   traffic: TTraffic
-  ports: TPortGroup[]
+  ports: TPortGroup[] | null
   logs: boolean
   trace: boolean
   transport: TTransport
@@ -170,7 +170,7 @@ export type TSgCidrIcmpRulesResponse = {
 export type TFormSgSgRuleBase = {
   sg: string
   transport: TTransport
-  ports?: TPortGroup[]
+  ports?: TPortGroup[] | null
   logs: boolean
 } & TAction &
   TPrioritySome
@@ -198,7 +198,7 @@ export type TFormSgSgIcmpRule = TFormSgSgIcmpRuleBase & {
 
 export type TFormSgSgIeRuleBase = {
   sg: string
-  ports?: TPortGroup[]
+  ports?: TPortGroup[] | null
   transport: TTransport
   traffic: TTraffic
   logs: boolean
@@ -230,7 +230,7 @@ export type TFormSgSgIeIcmpRule = TFormSgSgIeIcmpRuleBase & {
 
 export type TFormSgFqdnRuleBase = {
   fqdn: string
-  ports?: TPortGroup[]
+  ports?: TPortGroup[] | null
   transport: TTransport
   logs: boolean
 } & TAction &
@@ -244,7 +244,7 @@ export type TFormSgFqdnRule = TFormSgFqdnRuleBase & {
 
 export type TFormSgCidrRuleBase = {
   cidr: string
-  ports?: TPortGroup[]
+  ports?: TPortGroup[] | null
   transport: TTransport
   traffic: TTraffic
   logs: boolean
