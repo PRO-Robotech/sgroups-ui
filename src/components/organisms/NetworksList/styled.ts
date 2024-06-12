@@ -1,16 +1,66 @@
 import styled from 'styled-components'
-import { Button } from 'antd'
+import { Input } from 'antd'
 
-const ButtonWithMarginLeft = styled(Button)`
-  margin-left: 10px;
+const HeaderRow = styled.div`
+  padding: 16px 24px;
+  border-bottom: 1px solid #0000000f;
 `
 
-const FiltersContainer = styled.div`
+const ControlsRow = styled.div`
+  padding: 12px 24px;
   display: grid;
-  grid-template-columns: 200px 50px;
+  grid-template-columns: repeat(2, 1fr);
+  border-bottom: 1px solid #0000000f;
+`
+
+const ControlsRightSide = styled.div`
+  display: flex;
+`
+
+const Separator = styled.div`
+  margin: 0 16px;
+  width: 1px;
+  height: 24pcx;
+  background: #0000000f;
+`
+
+const ControlsLeftSide = styled.div`
+  display: flex;
+  justify-content: flex-end;
+`
+
+const SearchControl = styled.div`
+  width: 240px;
+`
+
+const InputWithCustomPreffixMargin = styled(Input)`
+  && .ant-input-prefix {
+    margin-inline-end: 10px;
+  }
+`
+
+const TableContainer = styled.div`
+  padding: 24px;
+`
+
+const HideableControls = styled.div`
+  && .ant-table-row .hideable {
+    display: none;
+  }
+
+  && .ant-table-row:hover .hideable {
+    display: block;
+  }
 `
 
 export const Styled = {
-  ButtonWithMarginLeft,
-  FiltersContainer,
+  HeaderRow,
+  ControlsRow,
+  ControlsRightSide,
+  Separator,
+  ControlsLeftSide,
+  SearchControl,
+  InputWithCustomPreffixMargin,
+  TableContainer,
+  HideableControls,
 }
