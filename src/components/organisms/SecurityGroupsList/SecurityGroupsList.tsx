@@ -3,7 +3,7 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Tag, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
+import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer, SecurityGroupAdd } from 'components'
 import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
@@ -29,6 +29,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [isModalAddOpen, setIsModalAddOpen] = useState<boolean>(false)
   const [pendingToDeleteSG, setPendingToDeleteSG] = useState<string>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
@@ -185,7 +186,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
             </div>
           )}
           <div>
-            <Styled.ButtonWithMarginLeft onClick={() => history.push('/security-groups/add')} type="primary">
+            <Styled.ButtonWithMarginLeft onClick={() => setIsModalAddOpen(true)} type="primary">
               Add
             </Styled.ButtonWithMarginLeft>
           </div>
@@ -222,6 +223,14 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       >
         <p>Are you sure you want to delete {pendingToDeleteSG}</p>
         {deleteError && <Result status="error" title={deleteError.status} subTitle={deleteError.data?.message} />}
+      </Modal>
+      <Modal
+        title="Add networks"
+        open={isModalAddOpen}
+        onOk={() => setIsModalAddOpen(false)}
+        onCancel={() => setIsModalAddOpen(false)}
+      >
+        <SecurityGroupAdd />
       </Modal>
     </>
   )

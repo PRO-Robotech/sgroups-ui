@@ -3,7 +3,6 @@ import { BrowserRouter, Switch, Route } from 'react-router-dom'
 import {
   MainPage,
   SecurityGroupsPage,
-  SecurityGroupsAddPage,
   SecurityGroupsEditPage,
   NetworksPage,
   NetworksEditPage,
@@ -17,9 +16,6 @@ export const App: FC = () => (
     <Switch>
       <Route exact path="/">
         <MainPage />
-      </Route>
-      <Route exact path="/security-groups/add">
-        <SecurityGroupsAddPage />
       </Route>
       <Route path="/security-groups/edit/:securityGroupId">
         <SecurityGroupsEditPage />

@@ -1,5 +1,4 @@
 export * from './SecurityGroupsList'
-export * from './SecurityGroupAdd'
 export * from './SecurityGroupEdit'
 export * from './NetworksList'
 export * from './NetworkEdit'
