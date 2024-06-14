@@ -3,7 +3,14 @@ import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Card, Table, TableProps, Tag, Result, Spin, Empty, Modal, Input } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer, SecurityGroupAdd } from 'components'
+import {
+  TitleWithNoTopMargin,
+  Spacer,
+  CustomIcons,
+  TextAlignContainer,
+  SecurityGroupAdd,
+  SecurityGroupEdit,
+} from 'components'
 import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
@@ -30,6 +37,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState<boolean>(false)
+  const [isModalEditOpen, setIsModalEditOpen] = useState<string | boolean>(false)
   const [pendingToDeleteSG, setPendingToDeleteSG] = useState<string>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
@@ -157,7 +165,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       width: 150,
       render: (_, record: TSecurityGroup) => (
         <TextAlignContainer $align="right">
-          <CustomIcons.EditIcon onClick={() => history.push(`/security-groups/edit/${record.name}`)} />{' '}
+          <CustomIcons.EditIcon onClick={() => setIsModalEditOpen(record.name)} />{' '}
           <CustomIcons.DeleteIcon onClick={() => openRemoveSGModal(record.name)} />
         </TextAlignContainer>
       ),
@@ -225,12 +233,20 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
         {deleteError && <Result status="error" title={deleteError.status} subTitle={deleteError.data?.message} />}
       </Modal>
       <Modal
-        title="Add networks"
+        title="Add security group"
         open={isModalAddOpen}
         onOk={() => setIsModalAddOpen(false)}
         onCancel={() => setIsModalAddOpen(false)}
       >
         <SecurityGroupAdd />
+      </Modal>
+      <Modal
+        title="Edit security groups"
+        open={isModalEditOpen !== false}
+        onOk={() => setIsModalEditOpen(false)}
+        onCancel={() => setIsModalEditOpen(false)}
+      >
+        {typeof isModalEditOpen === 'string' && <SecurityGroupEdit id={isModalEditOpen} />}
       </Modal>
     </>
   )

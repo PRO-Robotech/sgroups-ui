@@ -1,5 +1,4 @@
 import React, { FC, useState, useEffect } from 'react'
-import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
 import { Button, Table, TableProps, Result, Spin, Modal } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
@@ -12,6 +11,7 @@ import {
   MiddleContainer,
   TinyButton,
   NetworkAdd,
+  NetworkEdit,
 } from 'components'
 import { getNetworks, removeNetwork } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
@@ -36,10 +36,10 @@ export const NetworksList: FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState(false)
+  const [isModalEditOpen, setIsModalEditOpen] = useState<string | boolean>(false)
   const [pendingToDeleteNW, setPendingToDeleteNW] = useState<string>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
-  const history = useHistory()
 
   useEffect(() => {
     setIsLoading(true)
@@ -128,7 +128,7 @@ export const NetworksList: FC = () => {
           <TinyButton
             type="text"
             size="small"
-            onClick={() => history.push(`/networks/edit/${record.name}`)}
+            onClick={() => setIsModalEditOpen(record.name)}
             icon={<PencilSimpleLine size={16} />}
           />
           <TinyButton
@@ -216,6 +216,14 @@ export const NetworksList: FC = () => {
         onCancel={() => setIsModalAddOpen(false)}
       >
         <NetworkAdd />
+      </Modal>
+      <Modal
+        title="Edit network"
+        open={isModalEditOpen !== false}
+        onOk={() => setIsModalEditOpen(false)}
+        onCancel={() => setIsModalEditOpen(false)}
+      >
+        {typeof isModalEditOpen === 'string' && <NetworkEdit id={isModalEditOpen} />}
       </Modal>
     </>
   )
