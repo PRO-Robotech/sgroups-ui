@@ -5,7 +5,14 @@ import { Button, Table, TableProps, Result, Spin, Modal } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { PlusOutlined } from '@ant-design/icons'
 import { TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
-import { TitleWithNoMargins, CustomEmpty, TextAlignContainer, MiddleContainer, TinyButton } from 'components'
+import {
+  TitleWithNoMargins,
+  CustomEmpty,
+  TextAlignContainer,
+  MiddleContainer,
+  TinyButton,
+  NetworkAdd,
+} from 'components'
 import { getNetworks, removeNetwork } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -28,6 +35,7 @@ export const NetworksList: FC = () => {
   const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+  const [isModalAddOpen, setIsModalAddOpen] = useState(false)
   const [pendingToDeleteNW, setPendingToDeleteNW] = useState<string>()
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
@@ -141,7 +149,7 @@ export const NetworksList: FC = () => {
       </Styled.HeaderRow>
       <Styled.ControlsRow>
         <Styled.ControlsRightSide>
-          <Button onClick={() => history.push('/networks/add')} type="primary">
+          <Button onClick={() => setIsModalAddOpen(true)} type="primary">
             <PlusOutlined /> Add
           </Button>
           <Styled.Separator />
@@ -200,6 +208,14 @@ export const NetworksList: FC = () => {
       >
         <p>Are you sure you want to delete {pendingToDeleteNW}</p>
         {deleteError && <Result status="error" title={deleteError.status} subTitle={deleteError.data?.message} />}
+      </Modal>
+      <Modal
+        title="Add networks"
+        open={isModalAddOpen}
+        onOk={() => setIsModalAddOpen(false)}
+        onCancel={() => setIsModalAddOpen(false)}
+      >
+        <NetworkAdd />
       </Modal>
     </>
   )

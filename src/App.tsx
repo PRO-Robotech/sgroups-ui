@@ -6,7 +6,6 @@ import {
   SecurityGroupsAddPage,
   SecurityGroupsEditPage,
   NetworksPage,
-  NetworksAddPage,
   NetworksEditPage,
   RulesEditorPage,
   GraphPage,
@@ -30,9 +29,6 @@ export const App: FC = () => (
       </Route>
       <Route exact path="/networks">
         <NetworksPage />
-      </Route>
-      <Route exact path="/networks/add">
-        <NetworksAddPage />
       </Route>
       <Route path="/networks/edit/:networkId">
         <NetworksEditPage />

@@ -7,9 +7,9 @@ const HeaderRow = styled.div`
 `
 
 const ControlsRow = styled.div`
-  padding: 12px 24px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
+  padding: 12px 24px;
   border-bottom: 1px solid #0000000f;
 `
 
@@ -18,9 +18,9 @@ const ControlsRightSide = styled.div`
 `
 
 const Separator = styled.div`
-  margin: 0 16px;
   width: 1px;
   height: 24pcx;
+  margin: 0 16px;
   background: #0000000f;
 `
 
