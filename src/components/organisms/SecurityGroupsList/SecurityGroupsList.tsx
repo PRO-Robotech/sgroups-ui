@@ -1,17 +1,18 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Tag, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Card, Table, TableProps, Tag, Result, Spin, Empty, Input, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import {
   TitleWithNoTopMargin,
   Spacer,
   CustomIcons,
   TextAlignContainer,
-  SecurityGroupAdd,
-  SecurityGroupEdit,
+  SecurityGroupAddModal,
+  SecurityGroupEditModal,
+  SecurityGroupDeleteModal,
 } from 'components'
-import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
+import { getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -31,16 +32,19 @@ type OnChange = NonNullable<TableProps<TColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
+  const [api, contextHolder] = notification.useNotification()
+
   const [securityGroups, setSecurityGroups] = useState<TSecurityGroup[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
-  const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<string | boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState<boolean>(false)
   const [isModalEditOpen, setIsModalEditOpen] = useState<string | boolean>(false)
-  const [pendingToDeleteSG, setPendingToDeleteSG] = useState<string>()
+
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
+
   const history = useHistory()
 
   useEffect(() => {
@@ -85,29 +89,11 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
     setFilteredInfo(filters)
   }
 
-  const removeSgFromList = (name: string) => {
-    removeSecurityGroup(name)
-      .then(() => {
-        setSecurityGroups([...securityGroups].filter(el => el.name !== name))
-        setIsModalOpen(false)
-        setPendingToDeleteSG(undefined)
-        setDeleteError(undefined)
-      })
-      .catch((error: AxiosError<TRequestErrorData>) => {
-        setIsLoading(false)
-        if (error.response) {
-          setDeleteError({ status: error.response.status, data: error.response.data })
-        } else if (error.status) {
-          setDeleteError({ status: error.status })
-        } else {
-          setDeleteError({ status: 'Error while fetching' })
-        }
-      })
-  }
-
-  const openRemoveSGModal = (name: string) => {
-    setPendingToDeleteSG(name)
-    setIsModalOpen(true)
+  const openNotification = (msg: string) => {
+    api.success({
+      message: msg,
+      placement: 'topRight',
+    })
   }
 
   if (error) {
@@ -166,7 +152,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       render: (_, record: TSecurityGroup) => (
         <TextAlignContainer $align="right">
           <CustomIcons.EditIcon onClick={() => setIsModalEditOpen(record.name)} />{' '}
-          <CustomIcons.DeleteIcon onClick={() => openRemoveSGModal(record.name)} />
+          <CustomIcons.DeleteIcon onClick={() => setIsModalDeleteOpen(record.name)} />
         </TextAlignContainer>
       ),
     },
@@ -219,35 +205,24 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
           />
         )}
       </Card>
-      <Modal
-        title="Delete security group"
-        open={isModalOpen}
-        onOk={() => pendingToDeleteSG && removeSgFromList(pendingToDeleteSG)}
-        confirmLoading={isLoading}
-        onCancel={() => {
-          setIsModalOpen(false)
-          setDeleteError(undefined)
-        }}
-      >
-        <p>Are you sure you want to delete {pendingToDeleteSG}</p>
-        {deleteError && <Result status="error" title={deleteError.status} subTitle={deleteError.data?.message} />}
-      </Modal>
-      <Modal
-        title="Add security group"
-        open={isModalAddOpen}
-        onOk={() => setIsModalAddOpen(false)}
-        onCancel={() => setIsModalAddOpen(false)}
-      >
-        <SecurityGroupAdd />
-      </Modal>
-      <Modal
-        title="Edit security groups"
-        open={isModalEditOpen !== false}
-        onOk={() => setIsModalEditOpen(false)}
-        onCancel={() => setIsModalEditOpen(false)}
-      >
-        {typeof isModalEditOpen === 'string' && <SecurityGroupEdit id={isModalEditOpen} />}
-      </Modal>
+      <SecurityGroupDeleteModal
+        externalOpenInfo={isModalDeleteOpen}
+        setExternalOpenInfo={setIsModalDeleteOpen}
+        openNotification={openNotification}
+        securityGroups={securityGroups}
+        setSecurityGroups={setSecurityGroups}
+      />
+      <SecurityGroupAddModal
+        externalOpenInfo={isModalAddOpen}
+        setExternalOpenInfo={setIsModalAddOpen}
+        openNotification={openNotification}
+      />
+      <SecurityGroupEditModal
+        externalOpenInfo={isModalEditOpen}
+        setExternalOpenInfo={setIsModalEditOpen}
+        openNotification={openNotification}
+      />
+      {contextHolder}
     </>
   )
 }

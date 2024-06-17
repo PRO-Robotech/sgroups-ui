@@ -1,24 +1,32 @@
-import React, { FC, Fragment, useState, useEffect } from 'react'
+import React, { FC, Fragment, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Button, notification, Spin, Result } from 'antd'
+import { Button, Spin, Result, Modal } from 'antd'
 import { TitleWithNoTopMargin, Spacer } from 'components'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetworkForm } from 'localTypes/networks'
 import { addNetworks } from 'api/networks'
 import { SingleNetworkAdd } from './molecules'
 
-export const NetworkAdd: FC = () => {
-  const [api, contextHolder] = notification.useNotification()
-  const [error, setError] = useState<TRequestError | undefined>()
+type TNetworkAddModalProps = {
+  externalOpenInfo: boolean
+  setExternalOpenInfo: Dispatch<SetStateAction<boolean>>
+  openNotification?: (msg: string) => void
+}
+
+export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
+  externalOpenInfo,
+  setExternalOpenInfo,
+  openNotification,
+}) => {
   const [networks, setNetworks] = useState<TNetworkForm[]>([])
+  const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const openNotification = (isMany: boolean) => {
-    api.success({
-      message: isMany ? 'Networks added' : 'Network added',
-      placement: 'topRight',
-    })
-  }
+  useEffect(() => {
+    if (networks.length === 0) {
+      setNetworks([{ id: 0, name: '', CIDR: '', validateResult: false }])
+    }
+  }, [networks])
 
   const addAnotherNetwork = () => {
     setNetworks([...networks, { id: networks[networks.length - 1].id + 1, name: '', CIDR: '', validateResult: false }])
@@ -28,11 +36,11 @@ export const NetworkAdd: FC = () => {
     setNetworks([...networks].filter(el => el.id !== id))
   }
 
-  useEffect(() => {
-    if (networks.length === 0) {
-      setNetworks([{ id: 0, name: '', CIDR: '', validateResult: false }])
+  const openNwNotification = (isMany: boolean) => {
+    if (openNotification) {
+      openNotification(isMany ? 'Networks added' : 'Network added')
     }
-  }, [networks])
+  }
 
   const onFormChange = (id: number, name: string, CIDR: string, validateResult: boolean) => {
     const index = networks.findIndex(el => el.id === id)
@@ -47,7 +55,7 @@ export const NetworkAdd: FC = () => {
     addNetworks(networks)
       .then(() => {
         setIsLoading(false)
-        openNotification(networks.length > 1)
+        openNwNotification(networks.length > 1)
         setNetworks([])
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
@@ -63,7 +71,12 @@ export const NetworkAdd: FC = () => {
   }
 
   return (
-    <>
+    <Modal
+      title="Add networks"
+      open={externalOpenInfo}
+      onOk={() => setExternalOpenInfo(false)}
+      onCancel={() => setExternalOpenInfo(false)}
+    >
       {isLoading && <Spin />}
       {error && (
         <Result
@@ -96,7 +109,6 @@ export const NetworkAdd: FC = () => {
       >
         Submit all
       </Button>
-      {contextHolder}
-    </>
+    </Modal>
   )
 }

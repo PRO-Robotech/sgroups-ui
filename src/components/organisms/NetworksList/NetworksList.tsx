@@ -1,6 +1,6 @@
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
-import { Button, Table, TableProps, Result, Spin, Modal } from 'antd'
+import { Button, Table, TableProps, Result, Spin, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { PlusOutlined } from '@ant-design/icons'
 import { TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
@@ -10,10 +10,11 @@ import {
   TextAlignContainer,
   MiddleContainer,
   TinyButton,
-  NetworkAdd,
-  NetworkEdit,
+  NetworkAddModal,
+  NetworkEditModal,
+  NetworkDeleteModal,
 } from 'components'
-import { getNetworks, removeNetwork } from 'api/networks'
+import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork } from 'localTypes/networks'
@@ -30,14 +31,16 @@ type OnChange = NonNullable<TableProps<TColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const NetworksList: FC = () => {
+  const [api, contextHolder] = notification.useNotification()
+
   const [networks, setNetworks] = useState<TNetwork[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
-  const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
+
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<string | boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState(false)
   const [isModalEditOpen, setIsModalEditOpen] = useState<string | boolean>(false)
-  const [pendingToDeleteNW, setPendingToDeleteNW] = useState<string>()
+
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
 
@@ -70,29 +73,11 @@ export const NetworksList: FC = () => {
     setFilteredInfo(filters)
   }
 
-  const removeNetworkFromList = (name: string) => {
-    removeNetwork(name)
-      .then(() => {
-        setNetworks([...networks].filter(el => el.name !== name))
-        setIsModalOpen(false)
-        setPendingToDeleteNW(undefined)
-        setDeleteError(undefined)
-      })
-      .catch((error: AxiosError<TRequestErrorData>) => {
-        setIsLoading(false)
-        if (error.response) {
-          setDeleteError({ status: error.response.status, data: error.response.data })
-        } else if (error.status) {
-          setDeleteError({ status: error.status })
-        } else {
-          setDeleteError({ status: 'Error while fetching' })
-        }
-      })
-  }
-
-  const openRemoveNetworkModal = (name: string) => {
-    setPendingToDeleteNW(name)
-    setIsModalOpen(true)
+  const openNotification = (msg: string) => {
+    api.success({
+      message: msg,
+      placement: 'topRight',
+    })
   }
 
   if (error) {
@@ -134,7 +119,7 @@ export const NetworksList: FC = () => {
           <TinyButton
             type="text"
             size="small"
-            onClick={() => openRemoveNetworkModal(record.name)}
+            onClick={() => setIsModalDeleteOpen(record.name)}
             icon={<TrashSimple size={16} />}
           />
         </TextAlignContainer>
@@ -196,35 +181,24 @@ export const NetworksList: FC = () => {
           </Styled.HideableControls>
         </Styled.TableContainer>
       )}
-      <Modal
-        title="Delete network"
-        open={isModalOpen}
-        onOk={() => pendingToDeleteNW && removeNetworkFromList(pendingToDeleteNW)}
-        confirmLoading={isLoading}
-        onCancel={() => {
-          setIsModalOpen(false)
-          setDeleteError(undefined)
-        }}
-      >
-        <p>Are you sure you want to delete {pendingToDeleteNW}</p>
-        {deleteError && <Result status="error" title={deleteError.status} subTitle={deleteError.data?.message} />}
-      </Modal>
-      <Modal
-        title="Add networks"
-        open={isModalAddOpen}
-        onOk={() => setIsModalAddOpen(false)}
-        onCancel={() => setIsModalAddOpen(false)}
-      >
-        <NetworkAdd />
-      </Modal>
-      <Modal
-        title="Edit network"
-        open={isModalEditOpen !== false}
-        onOk={() => setIsModalEditOpen(false)}
-        onCancel={() => setIsModalEditOpen(false)}
-      >
-        {typeof isModalEditOpen === 'string' && <NetworkEdit id={isModalEditOpen} />}
-      </Modal>
+      <NetworkDeleteModal
+        externalOpenInfo={isModalDeleteOpen}
+        setExternalOpenInfo={setIsModalDeleteOpen}
+        openNotification={openNotification}
+        networks={networks}
+        setNetworks={setNetworks}
+      />
+      <NetworkAddModal
+        externalOpenInfo={isModalAddOpen}
+        setExternalOpenInfo={setIsModalAddOpen}
+        openNotification={openNotification}
+      />
+      <NetworkEditModal
+        externalOpenInfo={isModalEditOpen}
+        setExternalOpenInfo={setIsModalEditOpen}
+        openNotification={openNotification}
+      />
+      {contextHolder}
     </>
   )
 }
