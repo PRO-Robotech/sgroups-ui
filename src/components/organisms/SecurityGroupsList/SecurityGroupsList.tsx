@@ -1,13 +1,16 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Tag, Result, Spin, Empty, Input, notification } from 'antd'
+import { Button, Table, TableProps, Tag, Result, Spin, notification } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import { TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
 import type { ColumnsType } from 'antd/es/table'
 import {
-  TitleWithNoTopMargin,
-  Spacer,
-  CustomIcons,
+  TitleWithNoMargins,
+  CustomEmpty,
   TextAlignContainer,
+  MiddleContainer,
+  TinyButton,
   SecurityGroupAddModal,
   SecurityGroupEditModal,
   SecurityGroupDeleteModal,
@@ -150,9 +153,19 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       align: 'right',
       width: 150,
       render: (_, record: TSecurityGroup) => (
-        <TextAlignContainer $align="right">
-          <CustomIcons.EditIcon onClick={() => setIsModalEditOpen(record.name)} />{' '}
-          <CustomIcons.DeleteIcon onClick={() => setIsModalDeleteOpen(record.name)} />
+        <TextAlignContainer $align="right" className="hideable">
+          <TinyButton
+            type="text"
+            size="small"
+            onClick={() => setIsModalEditOpen(record.name)}
+            icon={<PencilSimpleLine size={16} />}
+          />
+          <TinyButton
+            type="text"
+            size="small"
+            onClick={() => setIsModalDeleteOpen(record.name)}
+            icon={<TrashSimple size={16} />}
+          />
         </TextAlignContainer>
       ),
     },
@@ -160,51 +173,61 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
 
   return (
     <>
-      <Card>
-        <TitleWithNoTopMargin level={2}>Security Groups</TitleWithNoTopMargin>
-        <Spacer $space={15} $samespace />
-        <Styled.FiltersContainer>
-          {securityGroups.length > 0 && (
-            <div>
-              <Input
-                allowClear
-                placeholder="Filter by SG name"
-                value={searchText}
-                onChange={e => {
-                  if (id) {
-                    history.push('/security-groups', { replace: true })
-                  }
-                  setSearchText(e.target.value)
-                }}
-              />
-            </div>
-          )}
-          <div>
-            <Styled.ButtonWithMarginLeft onClick={() => setIsModalAddOpen(true)} type="primary">
-              Add
-            </Styled.ButtonWithMarginLeft>
-          </div>
-        </Styled.FiltersContainer>
-        <Spacer $space={15} $samespace />
-        {!securityGroups.length && !error && !isLoading && <Empty />}
-        {securityGroups.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: {
-                goButton: <Styled.ButtonWithMarginLeft size="small">Go</Styled.ButtonWithMarginLeft>,
-              },
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-              hideOnSinglePage: true,
-            }}
-            dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
-            columns={columns}
-            scroll={{ x: 'max-content' }}
-            onChange={handleChange}
-          />
-        )}
-      </Card>
+      <Styled.HeaderRow>
+        <TitleWithNoMargins level={3}>Security Groups</TitleWithNoMargins>
+      </Styled.HeaderRow>
+      <Styled.ControlsRow>
+        <Styled.ControlsRightSide>
+          <Button onClick={() => setIsModalAddOpen(true)} type="primary">
+            <PlusOutlined /> Add
+          </Button>
+          <Styled.Separator />
+          <Button type="text" icon={<TrashSimple color="#00000040" size={18} />} />
+        </Styled.ControlsRightSide>
+        <Styled.ControlsLeftSide>
+          <Styled.SearchControl>
+            <Styled.InputWithCustomPreffixMargin
+              allowClear
+              placeholder="Search"
+              prefix={<MagnifyingGlass />}
+              value={searchText}
+              onChange={e => {
+                if (id) {
+                  history.push('/security-groups', { replace: true })
+                }
+                setSearchText(e.target.value)
+              }}
+            />
+          </Styled.SearchControl>
+        </Styled.ControlsLeftSide>
+      </Styled.ControlsRow>
+      {isLoading && (
+        <MiddleContainer>
+          <Spin />
+        </MiddleContainer>
+      )}
+      {!securityGroups.length && !error && !isLoading && <CustomEmpty />}
+      {securityGroups.length > 0 && (
+        <Styled.TableContainer>
+          <Styled.HideableControls>
+            <Table
+              pagination={{
+                position: ['bottomCenter'],
+                showQuickJumper: {
+                  goButton: <Button size="small">Go</Button>,
+                },
+                showSizeChanger: false,
+                defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: true,
+              }}
+              dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
+              columns={columns}
+              scroll={{ x: 'max-content' }}
+              onChange={handleChange}
+            />
+          </Styled.HideableControls>
+        </Styled.TableContainer>
+      )}
       <SecurityGroupDeleteModal
         externalOpenInfo={isModalDeleteOpen}
         setExternalOpenInfo={setIsModalDeleteOpen}
