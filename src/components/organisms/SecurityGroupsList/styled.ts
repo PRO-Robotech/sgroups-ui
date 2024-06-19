@@ -41,6 +41,20 @@ const InputWithCustomPreffixMargin = styled(Input)`
 
 const TableContainer = styled.div`
   padding: 24px;
+
+  && .ant-table-cell {
+    font-size: 14px;
+    line-height: 22px;
+    padding: 8px 16px;
+  }
+
+  && thead .ant-table-cell {
+    padding: 13px 16px;
+  }
+
+  && .controls {
+    padding: 6px 16px;
+  }
 `
 
 const HideableControls = styled.div`
@@ -49,7 +63,9 @@ const HideableControls = styled.div`
   }
 
   && .ant-table-row:hover .hideable {
-    display: block;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    column-gap: 4px;
   }
 `
 

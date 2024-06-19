@@ -148,23 +148,24 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
     },
     {
-      title: 'Controls',
+      title: '',
       key: 'controls',
       align: 'right',
-      width: 150,
+      className: 'controls',
+      width: 84,
       render: (_, record: TSecurityGroup) => (
         <TextAlignContainer $align="right" className="hideable">
           <TinyButton
             type="text"
             size="small"
             onClick={() => setIsModalEditOpen(record.name)}
-            icon={<PencilSimpleLine size={16} />}
+            icon={<PencilSimpleLine size={14} />}
           />
           <TinyButton
             type="text"
             size="small"
             onClick={() => setIsModalDeleteOpen(record.name)}
-            icon={<TrashSimple size={16} />}
+            icon={<TrashSimple size={14} />}
           />
         </TextAlignContainer>
       ),
@@ -189,7 +190,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
             <Styled.InputWithCustomPreffixMargin
               allowClear
               placeholder="Search"
-              prefix={<MagnifyingGlass />}
+              prefix={<MagnifyingGlass color="#00000073" />}
               value={searchText}
               onChange={e => {
                 if (id) {
