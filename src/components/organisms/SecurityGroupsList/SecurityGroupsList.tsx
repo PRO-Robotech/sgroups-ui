@@ -14,6 +14,8 @@ import {
   SecurityGroupAddModal,
   SecurityGroupEditModal,
   SecurityGroupDeleteModal,
+  TableComponents,
+  Layouts,
 } from 'components'
 import { getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
@@ -174,20 +176,20 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
 
   return (
     <>
-      <Styled.HeaderRow>
+      <Layouts.HeaderRow>
         <TitleWithNoMargins level={3}>Security Groups</TitleWithNoMargins>
-      </Styled.HeaderRow>
-      <Styled.ControlsRow>
-        <Styled.ControlsRightSide>
+      </Layouts.HeaderRow>
+      <Layouts.ControlsRow>
+        <Layouts.ControlsRightSide>
           <Button onClick={() => setIsModalAddOpen(true)} type="primary">
             <PlusOutlined /> Add
           </Button>
-          <Styled.Separator />
+          <Layouts.Separator />
           <Button type="text" icon={<TrashSimple color="#00000040" size={18} />} />
-        </Styled.ControlsRightSide>
-        <Styled.ControlsLeftSide>
-          <Styled.SearchControl>
-            <Styled.InputWithCustomPreffixMargin
+        </Layouts.ControlsRightSide>
+        <Layouts.ControlsLeftSide>
+          <Layouts.SearchControl>
+            <Layouts.InputWithCustomPreffixMargin
               allowClear
               placeholder="Search"
               prefix={<MagnifyingGlass color="#00000073" />}
@@ -199,9 +201,9 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
                 setSearchText(e.target.value)
               }}
             />
-          </Styled.SearchControl>
-        </Styled.ControlsLeftSide>
-      </Styled.ControlsRow>
+          </Layouts.SearchControl>
+        </Layouts.ControlsLeftSide>
+      </Layouts.ControlsRow>
       {isLoading && (
         <MiddleContainer>
           <Spin />
@@ -209,8 +211,8 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       )}
       {!securityGroups.length && !error && !isLoading && <CustomEmpty />}
       {securityGroups.length > 0 && (
-        <Styled.TableContainer>
-          <Styled.HideableControls>
+        <TableComponents.TableContainer>
+          <TableComponents.HideableControls>
             <Table
               pagination={{
                 position: ['bottomCenter'],
@@ -221,13 +223,16 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
                 defaultPageSize: ITEMS_PER_PAGE,
                 hideOnSinglePage: true,
               }}
+              rowSelection={{
+                type: 'checkbox',
+              }}
               dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
               columns={columns}
               scroll={{ x: 'max-content' }}
               onChange={handleChange}
             />
-          </Styled.HideableControls>
-        </Styled.TableContainer>
+          </TableComponents.HideableControls>
+        </TableComponents.TableContainer>
       )}
       <SecurityGroupDeleteModal
         externalOpenInfo={isModalDeleteOpen}

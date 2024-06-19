@@ -1,6 +1,6 @@
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
-import { Button, Table, TableProps, Result, Spin, notification } from 'antd'
+import { Button, Table, TableProps, PaginationProps, Result, Spin, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { PlusOutlined } from '@ant-design/icons'
 import { TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
@@ -13,12 +13,13 @@ import {
   NetworkAddModal,
   NetworkEditModal,
   NetworkDeleteModal,
+  TableComponents,
+  Layouts,
 } from 'components'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork } from 'localTypes/networks'
-import { Styled } from './styled'
 
 type TColumn = {
   name: string
@@ -128,22 +129,24 @@ export const NetworksList: FC = () => {
     },
   ]
 
+  const showTotal: PaginationProps['showTotal'] = total => `Total: ${total}`
+
   return (
     <>
-      <Styled.HeaderRow>
+      <Layouts.HeaderRow>
         <TitleWithNoMargins level={3}>Networks</TitleWithNoMargins>
-      </Styled.HeaderRow>
-      <Styled.ControlsRow>
-        <Styled.ControlsRightSide>
+      </Layouts.HeaderRow>
+      <Layouts.ControlsRow>
+        <Layouts.ControlsRightSide>
           <Button onClick={() => setIsModalAddOpen(true)} type="primary">
             <PlusOutlined /> Add
           </Button>
-          <Styled.Separator />
+          <Layouts.Separator />
           <Button type="text" icon={<TrashSimple color="#00000040" size={18} />} />
-        </Styled.ControlsRightSide>
-        <Styled.ControlsLeftSide>
-          <Styled.SearchControl>
-            <Styled.InputWithCustomPreffixMargin
+        </Layouts.ControlsRightSide>
+        <Layouts.ControlsLeftSide>
+          <Layouts.SearchControl>
+            <Layouts.InputWithCustomPreffixMargin
               allowClear
               placeholder="Search"
               prefix={<MagnifyingGlass color="#00000073" />}
@@ -152,9 +155,9 @@ export const NetworksList: FC = () => {
                 setSearchText(e.target.value)
               }}
             />
-          </Styled.SearchControl>
-        </Styled.ControlsLeftSide>
-      </Styled.ControlsRow>
+          </Layouts.SearchControl>
+        </Layouts.ControlsLeftSide>
+      </Layouts.ControlsRow>
       {isLoading && (
         <MiddleContainer>
           <Spin />
@@ -162,25 +165,26 @@ export const NetworksList: FC = () => {
       )}
       {!networks.length && !error && !isLoading && <CustomEmpty />}
       {networks.length > 0 && (
-        <Styled.TableContainer>
-          <Styled.HideableControls>
+        <TableComponents.TableContainer>
+          <TableComponents.HideableControls>
             <Table
               pagination={{
-                position: ['bottomCenter'],
-                showQuickJumper: {
-                  goButton: <Button size="small">Go</Button>,
-                },
-                showSizeChanger: false,
+                position: ['bottomLeft'],
+                showSizeChanger: true,
                 defaultPageSize: ITEMS_PER_PAGE,
-                hideOnSinglePage: true,
+                hideOnSinglePage: false,
+                showTotal,
+              }}
+              rowSelection={{
+                type: 'checkbox',
               }}
               dataSource={networks.map(row => ({ name: row.name, cidr: row.network.CIDR, key: row.name }))}
               columns={columns}
               scroll={{ x: 'max-content' }}
               onChange={handleChange}
             />
-          </Styled.HideableControls>
-        </Styled.TableContainer>
+          </TableComponents.HideableControls>
+        </TableComponents.TableContainer>
       )}
       <NetworkDeleteModal
         externalOpenInfo={isModalDeleteOpen}

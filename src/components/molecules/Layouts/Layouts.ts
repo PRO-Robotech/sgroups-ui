@@ -39,7 +39,7 @@ const InputWithCustomPreffixMargin = styled(Input)`
   }
 `
 
-export const Styled = {
+export const Layouts = {
   HeaderRow,
   ControlsRow,
   ControlsRightSide,
