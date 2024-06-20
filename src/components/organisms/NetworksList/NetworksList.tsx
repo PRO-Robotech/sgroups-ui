@@ -19,11 +19,11 @@ import {
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TNetwork } from 'localTypes/networks'
+import { TNetwork, TNetworkForm } from 'localTypes/networks'
 
 type TColumn = {
   name: string
-  cidr: string
+  CIDR: string
   key: string
 }
 
@@ -40,7 +40,7 @@ export const NetworksList: FC = () => {
 
   const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<string | boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState(false)
-  const [isModalEditOpen, setIsModalEditOpen] = useState<string | boolean>(false)
+  const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkForm | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
@@ -100,8 +100,8 @@ export const NetworksList: FC = () => {
     },
     {
       title: 'CIDR',
-      dataIndex: 'cidr',
-      key: 'cidr',
+      dataIndex: 'CIDR',
+      key: 'CIDR',
       width: 'auto',
     },
     {
@@ -110,12 +110,12 @@ export const NetworksList: FC = () => {
       align: 'right',
       className: 'controls',
       width: 84,
-      render: (_, record: { name: string; cidr: string }) => (
+      render: (_, record: { name: string; CIDR: string }) => (
         <TextAlignContainer $align="right" className="hideable">
           <TinyButton
             type="text"
             size="small"
-            onClick={() => setIsModalEditOpen(record.name)}
+            onClick={() => setIsModalEditOpen(record)}
             icon={<PencilSimpleLine size={14} />}
           />
           <TinyButton
@@ -178,7 +178,7 @@ export const NetworksList: FC = () => {
               rowSelection={{
                 type: 'checkbox',
               }}
-              dataSource={networks.map(row => ({ name: row.name, cidr: row.network.CIDR, key: row.name }))}
+              dataSource={networks.map(row => ({ name: row.name, CIDR: row.network.CIDR, key: row.name }))}
               columns={columns}
               scroll={{ x: 'max-content' }}
               onChange={handleChange}
@@ -186,13 +186,6 @@ export const NetworksList: FC = () => {
           </TableComponents.HideableControls>
         </TableComponents.TableContainer>
       )}
-      <NetworkDeleteModal
-        externalOpenInfo={isModalDeleteOpen}
-        setExternalOpenInfo={setIsModalDeleteOpen}
-        openNotification={openNotification}
-        networks={networks}
-        setNetworks={setNetworks}
-      />
       <NetworkAddModal
         externalOpenInfo={isModalAddOpen}
         setExternalOpenInfo={setIsModalAddOpen}
@@ -204,6 +197,15 @@ export const NetworksList: FC = () => {
         externalOpenInfo={isModalEditOpen}
         setExternalOpenInfo={setIsModalEditOpen}
         openNotification={openNotification}
+        initNetworks={networks}
+        setInitNetworks={setNetworks}
+      />
+      <NetworkDeleteModal
+        externalOpenInfo={isModalDeleteOpen}
+        setExternalOpenInfo={setIsModalDeleteOpen}
+        openNotification={openNotification}
+        networks={networks}
+        setNetworks={setNetworks}
       />
       {contextHolder}
     </>

@@ -94,7 +94,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
           CIDR<Typography.Text type="danger">*</Typography.Text>
         </Typography.Text>
       </Styled.CustomLabelsContainer>
-      <Form<{ networks: TNetworkForm[] }> form={addForm} initialValues={{ networks: [{ name: '', cidr: '' }] }}>
+      <Form<{ networks: TNetworkForm[] }> form={addForm} initialValues={{ networks: [{ name: '', CIDR: '' }] }}>
         <Form.List name="networks">
           {(fields, { add, remove }) => (
             <>
