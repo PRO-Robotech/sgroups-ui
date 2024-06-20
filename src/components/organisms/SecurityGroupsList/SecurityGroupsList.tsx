@@ -1,9 +1,9 @@
 import React, { FC, useState, useEffect } from 'react'
 import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Button, Table, TableProps, Tag, Result, Spin, notification } from 'antd'
-import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
+import { Button, Table, TableProps, PaginationProps, Tag, Result, Spin, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
 import {
   TitleWithNoMargins,
   CustomEmpty,
@@ -102,11 +102,11 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
   }
 
   if (error) {
-    return <Result status="error" title={error.status} subTitle={error.data?.message} />
-  }
-
-  if (isLoading) {
-    return <Spin />
+    return (
+      <MiddleContainer>
+        <Result status="error" title={error.status} subTitle={error.data?.message} />
+      </MiddleContainer>
+    )
   }
 
   const columns: ColumnsType<TColumn> = [
@@ -174,6 +174,8 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
     },
   ]
 
+  const showTotal: PaginationProps['showTotal'] = total => `Total: ${total}`
+
   return (
     <>
       <Layouts.HeaderRow>
@@ -215,13 +217,11 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
           <TableComponents.HideableControls>
             <Table
               pagination={{
-                position: ['bottomCenter'],
-                showQuickJumper: {
-                  goButton: <Button size="small">Go</Button>,
-                },
-                showSizeChanger: false,
+                position: ['bottomLeft'],
+                showSizeChanger: true,
                 defaultPageSize: ITEMS_PER_PAGE,
-                hideOnSinglePage: true,
+                hideOnSinglePage: false,
+                showTotal,
               }}
               rowSelection={{
                 type: 'checkbox',
