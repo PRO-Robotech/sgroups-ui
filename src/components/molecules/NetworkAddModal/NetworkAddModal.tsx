@@ -5,7 +5,7 @@ import { TrashSimple, Plus } from '@phosphor-icons/react'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { addNetworks } from 'api/networks'
 import { isCidrValid } from 'utils/isCidrValid'
-import { TNetworkForm } from 'localTypes/networks'
+import { TNetworkForm, TNetwork } from 'localTypes/networks'
 import { Spacer, FlexButton } from 'components'
 import { Styled } from './styled'
 
@@ -13,12 +13,16 @@ type TNetworkAddModalProps = {
   externalOpenInfo: boolean
   setExternalOpenInfo: Dispatch<SetStateAction<boolean>>
   openNotification?: (msg: string) => void
+  initNetworks: TNetwork[]
+  setInitNetworks: Dispatch<SetStateAction<TNetwork[]>>
 }
 
 export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
   externalOpenInfo,
   setExternalOpenInfo,
   openNotification,
+  initNetworks,
+  setInitNetworks,
 }) => {
   const [addForm] = Form.useForm()
   const networks = Form.useWatch<TNetworkForm[]>('networks', addForm)
@@ -44,6 +48,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
             setExternalOpenInfo(false)
             addForm.resetFields()
             openNwNotification(networks.length > 1)
+            setInitNetworks([...networks.map(({ name, CIDR }) => ({ name, network: { CIDR } })), ...initNetworks])
           })
           .catch((error: AxiosError<TRequestErrorData>) => {
             setIsLoading(false)

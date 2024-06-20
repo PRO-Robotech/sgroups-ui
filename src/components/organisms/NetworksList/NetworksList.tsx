@@ -197,6 +197,8 @@ export const NetworksList: FC = () => {
         externalOpenInfo={isModalAddOpen}
         setExternalOpenInfo={setIsModalAddOpen}
         openNotification={openNotification}
+        initNetworks={networks}
+        setInitNetworks={setNetworks}
       />
       <NetworkEditModal
         externalOpenInfo={isModalEditOpen}
