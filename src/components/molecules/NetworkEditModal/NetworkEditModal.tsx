@@ -1,6 +1,6 @@
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input } from 'antd'
+import { Result, Modal, Form, Input, Typography } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { editNetwork } from 'api/networks'
 import { isCidrValid } from 'utils/isCidrValid'
@@ -25,7 +25,6 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
 }) => {
   const [form] = Form.useForm()
   const CIDR = Form.useWatch<string>('CIDR', form)
-  console.log(CIDR)
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -99,6 +98,10 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
         />
       )}
       <Form<TNetworkForm> form={form}>
+        <Typography.Text>
+          Name<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+        <Spacer $space={4} $samespace />
         <Styled.ResetedFormItem
           name="name"
           hasFeedback
@@ -107,6 +110,11 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
         >
           <Input size="large" allowClear disabled />
         </Styled.ResetedFormItem>
+        <Spacer $space={16} $samespace />
+        <Typography.Text>
+          CIDR<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+        <Spacer $space={4} $samespace />
         <Styled.ResetedFormItem
           name="CIDR"
           hasFeedback
