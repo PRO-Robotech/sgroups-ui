@@ -108,7 +108,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
           validateTrigger="onBlur"
           rules={[{ required: true, message: 'Please input network name' }]}
         >
-          <Input size="large" allowClear disabled />
+          <Input placeholder="Enter name" size="large" allowClear disabled />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
         <Typography.Text>
@@ -130,7 +130,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
             }),
           ]}
         >
-          <Input size="large" allowClear />
+          <Input placeholder="Enter CIDR" size="large" allowClear />
         </Styled.ResetedFormItem>
       </Form>
       <Spacer $space={20} $samespace />

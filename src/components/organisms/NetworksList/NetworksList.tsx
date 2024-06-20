@@ -42,9 +42,9 @@ export const NetworksList: FC = () => {
   const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkForm | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [selectedRowsData, setSelectedRowsData] = useState<TNetworkForm[]>([])
-  const [filteredInfo, setFilteredInfo] = useState<Filters>({})
 
   useEffect(() => {
     setIsLoading(true)

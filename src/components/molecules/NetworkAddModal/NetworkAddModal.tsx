@@ -1,4 +1,4 @@
-import React, { FC, Fragment, useState, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Modal, Form, Input, Button, Typography } from 'antd'
 import { TrashSimple, Plus } from '@phosphor-icons/react'
@@ -107,7 +107,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                     validateTrigger="onBlur"
                     rules={[{ required: true, message: 'Please input network name' }]}
                   >
-                    <Input size="large" allowClear />
+                    <Input placeholder="Enter name" size="large" allowClear />
                   </Styled.ResetedFormItem>
                   <Styled.ResetedFormItem
                     {...restField}
@@ -125,7 +125,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                       }),
                     ]}
                   >
-                    <Input size="large" allowClear />
+                    <Input placeholder="Enter CIDR" size="large" allowClear />
                   </Styled.ResetedFormItem>
                   <Button
                     disabled={!networks || networks.length === 1}

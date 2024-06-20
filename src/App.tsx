@@ -9,7 +9,7 @@ export const App: FC = () => (
       <Route exact path="/">
         <MainPage />
       </Route>
-      <Route exact path="/security-groups/:securityGroupId?">
+      <Route exact path="/security-groups/">
         <SecurityGroupsPage />
       </Route>
       <Route exact path="/networks">

@@ -1,9 +1,8 @@
 import React, { FC, useState, useEffect } from 'react'
-import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Button, Table, TableProps, PaginationProps, Tag, Result, Spin, notification } from 'antd'
+import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
+import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
 import {
   TitleWithNoMargins,
   CustomEmpty,
@@ -24,10 +23,6 @@ import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { Styled } from './styled'
 
-type TSecurityGroupsListProps = {
-  id?: string
-}
-
 type TColumn = TSecurityGroup & {
   key: string
 }
@@ -36,27 +31,21 @@ type OnChange = NonNullable<TableProps<TColumn>['onChange']>
 
 type Filters = Parameters<OnChange>[1]
 
-export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
+export const SecurityGroupsList: FC = () => {
   const [api, contextHolder] = notification.useNotification()
 
   const [securityGroups, setSecurityGroups] = useState<TSecurityGroup[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<string | boolean>(false)
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<TSecurityGroup[] | boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState<boolean>(false)
-  const [isModalEditOpen, setIsModalEditOpen] = useState<string | boolean>(false)
+  const [isModalEditOpen, setIsModalEditOpen] = useState<TSecurityGroup | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
-
-  const history = useHistory()
-
-  useEffect(() => {
-    if (id) {
-      setSearchText(id)
-    }
-  }, [id])
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+  const [selectedRowsData, setSelectedRowsData] = useState<TSecurityGroup[]>([])
 
   useEffect(() => {
     setIsLoading(true)
@@ -116,6 +105,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       key: 'name',
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
+      width: 350,
     },
     {
       title: 'Networks',
@@ -128,25 +118,26 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
           ))}
         </Styled.NetworksContainer>
       ),
+      width: 'auto',
     },
     {
-      title: 'Default action',
+      title: 'Action',
       dataIndex: 'defaultAction',
       key: 'defaultAction',
-      width: 150,
+      width: 140,
     },
     {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 50,
+      width: 140,
       render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
     },
     {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
-      width: 50,
+      width: 140,
       render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
     },
     {
@@ -160,13 +151,13 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
           <TinyButton
             type="text"
             size="small"
-            onClick={() => setIsModalEditOpen(record.name)}
+            onClick={() => setIsModalEditOpen(record)}
             icon={<PencilSimpleLine size={14} />}
           />
           <TinyButton
             type="text"
             size="small"
-            onClick={() => setIsModalDeleteOpen(record.name)}
+            onClick={() => setIsModalDeleteOpen([record])}
             icon={<TrashSimple size={14} />}
           />
         </TextAlignContainer>
@@ -176,6 +167,11 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
 
   const showTotal: PaginationProps['showTotal'] = total => `Total: ${total}`
 
+  const clearSelected = () => {
+    setSelectedRowKeys([])
+    setSelectedRowsData([])
+  }
+
   return (
     <>
       <Layouts.HeaderRow>
@@ -183,11 +179,23 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       </Layouts.HeaderRow>
       <Layouts.ControlsRow>
         <Layouts.ControlsRightSide>
-          <FlexButton onClick={() => setIsModalAddOpen(true)} type="primary" icon={<Plus size={20} />}>
-            Add
-          </FlexButton>
+          {selectedRowsData.length > 0 ? (
+            <>
+              <Styled.SelectedItemsText>Selected Items: {selectedRowsData.length}</Styled.SelectedItemsText>
+              <Button type="text" icon={<X size={16} color="#00000073" />} onClick={clearSelected} />
+            </>
+          ) : (
+            <FlexButton onClick={() => setIsModalAddOpen(true)} type="primary" icon={<Plus size={20} />}>
+              Add
+            </FlexButton>
+          )}
           <Layouts.Separator />
-          <Button type="text" icon={<TrashSimple color="#00000040" size={18} />} />
+          <Button
+            disabled={selectedRowsData.length === 0}
+            type="text"
+            icon={<TrashSimple size={18} />}
+            onClick={() => setIsModalDeleteOpen(selectedRowsData)}
+          />
         </Layouts.ControlsRightSide>
         <Layouts.ControlsLeftSide>
           <Layouts.SearchControl>
@@ -197,9 +205,6 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
               prefix={<MagnifyingGlass color="#00000073" />}
               value={searchText}
               onChange={e => {
-                if (id) {
-                  history.push('/security-groups', { replace: true })
-                }
                 setSearchText(e.target.value)
               }}
             />
@@ -225,6 +230,11 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
               }}
               rowSelection={{
                 type: 'checkbox',
+                selectedRowKeys,
+                onChange: (selectedRowKeys: React.Key[], selectedRows: TColumn[]) => {
+                  setSelectedRowKeys(selectedRowKeys)
+                  setSelectedRowsData(selectedRows)
+                },
               }}
               dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
               columns={columns}
@@ -238,18 +248,22 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
         externalOpenInfo={isModalDeleteOpen}
         setExternalOpenInfo={setIsModalDeleteOpen}
         openNotification={openNotification}
-        securityGroups={securityGroups}
-        setSecurityGroups={setSecurityGroups}
+        initSecurityGroups={securityGroups}
+        setInitSecurityGroups={setSecurityGroups}
       />
       <SecurityGroupAddModal
         externalOpenInfo={isModalAddOpen}
         setExternalOpenInfo={setIsModalAddOpen}
         openNotification={openNotification}
+        initSecurityGroups={securityGroups}
+        setInitSecurityGroups={setSecurityGroups}
       />
       <SecurityGroupEditModal
         externalOpenInfo={isModalEditOpen}
         setExternalOpenInfo={setIsModalEditOpen}
         openNotification={openNotification}
+        initSecurityGroups={securityGroups}
+        setInitSecurityGroups={setSecurityGroups}
       />
       {contextHolder}
     </>

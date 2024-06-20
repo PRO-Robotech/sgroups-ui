@@ -1,16 +1,18 @@
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Modal, Form, Input, Select, Switch, Result, Spin } from 'antd'
-import { TitleWithNoTopMargin, Spacer, SubmitButton } from 'components'
+import { Result, Modal, Form, Input, Typography, Select, Switch } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TSecurityGroup } from 'localTypes/securityGroups'
 import { getNetworks } from 'api/networks'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
+import { TSecurityGroup } from 'localTypes/securityGroups'
+import { Spacer } from 'components'
 import { Styled } from './styled'
 
 type TSecurityGroupAddModalProps = {
   externalOpenInfo: boolean
   setExternalOpenInfo: Dispatch<SetStateAction<boolean>>
+  initSecurityGroups: TSecurityGroup[]
+  setInitSecurityGroups: Dispatch<SetStateAction<TSecurityGroup[]>>
   openNotification?: (msg: string) => void
 }
 
@@ -18,12 +20,12 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
   externalOpenInfo,
   setExternalOpenInfo,
   openNotification,
+  initSecurityGroups,
+  setInitSecurityGroups,
 }) => {
-  const [form] = Form.useForm()
-
-  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [form] = Form.useForm<TSecurityGroup>()
   const [error, setError] = useState<TRequestError | undefined>()
-
+  const [isLoading, setIsLoading] = useState<boolean>(false)
   const [networksOptions, setNetworkOptions] = useState<{ label: string; value: string }[]>()
   const [unavailableSGNames, setUnavailableSGNames] = useState<string[]>([])
 
@@ -58,106 +60,134 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
       })
   }, [])
 
-  const onFinish = ({ name, defaultAction, networks, logs, trace }: TSecurityGroup) => {
-    setIsLoading(true)
-    setError(undefined)
-    addSecurityGroup(name, defaultAction, networks, logs, trace)
+  const submit = () => {
+    form
+      .validateFields()
       .then(() => {
-        setIsLoading(false)
-        if (openNotification) {
-          openNotification('Security group added')
-        }
+        setIsLoading(true)
+        setError(undefined)
+        const values: TSecurityGroup = form.getFieldsValue()
+        addSecurityGroup(values.name, values.defaultAction, values.networks, values.logs, values.trace)
+          .then(() => {
+            setIsLoading(false)
+            setError(undefined)
+            setExternalOpenInfo(false)
+            form.resetFields()
+            if (openNotification) {
+              openNotification('Security Group Added')
+            }
+            setInitSecurityGroups([values, ...initSecurityGroups])
+          })
+          .catch((error: AxiosError<TRequestErrorData>) => {
+            setIsLoading(false)
+            if (error.response) {
+              setError({ status: error.response.status, data: error.response.data })
+            } else if (error.status) {
+              setError({ status: error.status })
+            } else {
+              setError({ status: 'Error occured while adding' })
+            }
+          })
       })
-      .catch((error: AxiosError<TRequestErrorData>) => {
-        setIsLoading(false)
-        if (error.response) {
-          setError({ status: error.response.status, data: error.response.data })
-        } else if (error.status) {
-          setError({ status: error.status })
-        } else {
-          setError({ status: 'Error occured while adding' })
-        }
-      })
+      .catch(() => setError({ status: 'Error while validating' }))
   }
 
   return (
     <Modal
-      title="Add security group"
+      title="Add Security Group"
       open={externalOpenInfo}
-      onOk={() => setExternalOpenInfo(false)}
-      onCancel={() => setExternalOpenInfo(false)}
+      onOk={() => submit()}
+      onCancel={() => {
+        setExternalOpenInfo(false)
+        setIsLoading(false)
+        setError(undefined)
+        form.resetFields()
+      }}
+      okText="Add"
+      confirmLoading={isLoading}
     >
-      {isLoading && <Spin />}
+      <Spacer $space={16} $samespace />
       {error && (
         <Result
           status="error"
           title={error.status}
-          subTitle={`Code:${error.data?.code}. Message: ${error.data?.message}`}
+          subTitle={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
         />
       )}
-      <TitleWithNoTopMargin level={2}>Add a security group</TitleWithNoTopMargin>
-      <Spacer $space={15} $samespace />
-      <Form
-        form={form}
-        name="control-hooks"
-        onFinish={onFinish}
-        initialValues={{ networks: [], logs: false, trace: false }}
-      >
-        <Styled.Container>
-          <Styled.FormItem
-            name="name"
-            label="Name"
-            hasFeedback
-            validateTrigger="onBlur"
-            rules={[
-              { required: true, message: 'Please input SG name' },
-              () => ({
-                validator(_, value) {
-                  if (!value || !unavailableSGNames.includes(value)) {
-                    return Promise.resolve()
-                  }
-                  return Promise.reject(new Error('Please enter unique SG name'))
-                },
-              }),
+      <Form form={form} name="control-hooks" initialValues={{ networks: [], logs: false, trace: false }}>
+        <Typography.Text>
+          Name<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+        <Styled.ResetedFormItem
+          name="name"
+          hasFeedback
+          validateTrigger="onBlur"
+          rules={[
+            { required: true, message: 'Please input SG name' },
+            () => ({
+              validator(_, value) {
+                if (!value || !unavailableSGNames.includes(value)) {
+                  return Promise.resolve()
+                }
+                return Promise.reject(new Error('Please enter unique SG name'))
+              },
+            }),
+          ]}
+        >
+          <Input allowClear size="large" placeholder="Enter name" />
+        </Styled.ResetedFormItem>
+        <Spacer $space={16} $samespace />
+        <Typography.Text>
+          Action<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+        <Spacer $space={4} $samespace />
+        <Styled.ResetedFormItem
+          name="defaultAction"
+          hasFeedback
+          validateTrigger="onBlur"
+          rules={[{ required: true, message: 'Please choose default action' }]}
+        >
+          <Select
+            allowClear
+            placeholder="Action"
+            options={[
+              { label: 'DROP', value: 'DROP' },
+              { label: 'ACCEPT', value: 'ACCEPT' },
             ]}
-          >
-            <Input allowClear />
-          </Styled.FormItem>
-          <Styled.FormItem
-            name="defaultAction"
-            label="Default action"
-            hasFeedback
-            validateTrigger="onBlur"
-            rules={[{ required: true, message: 'Please choose default action' }]}
-          >
-            <Select
-              allowClear
-              placeholder="Action"
-              options={[
-                { label: 'DROP', value: 'DROP' },
-                { label: 'ACCEPT', value: 'ACCEPT' },
-              ]}
-            />
-          </Styled.FormItem>
-          <Styled.FormItem name="networks" label="Networks">
-            <Select
-              mode="multiple"
-              placeholder="Networks"
-              options={networksOptions}
-              showSearch
-              filterOption={filterOption}
-            />
-          </Styled.FormItem>
-          <Styled.FormItem valuePropName="checked" name="logs" label="Logs">
-            <Switch />
-          </Styled.FormItem>
-          <Styled.FormItem valuePropName="checked" name="trace" label="Trace">
-            <Switch />
-          </Styled.FormItem>
-          <Styled.ButtonFormItem>
-            <SubmitButton form={form}>Submit</SubmitButton>
-          </Styled.ButtonFormItem>
-        </Styled.Container>
+            size="large"
+          />
+        </Styled.ResetedFormItem>
+        <Spacer $space={16} $samespace />
+        <Typography.Text>
+          Network<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+        <Spacer $space={4} $samespace />
+        <Styled.ResetedFormItem name="networks" label="Networks">
+          <Select
+            mode="multiple"
+            placeholder="Select network"
+            options={networksOptions}
+            showSearch
+            filterOption={filterOption}
+            size="large"
+          />
+        </Styled.ResetedFormItem>
+        <Spacer $space={16} $samespace />
+        <Typography.Text>
+          Logs<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+        <Spacer $space={4} $samespace />
+        <Styled.ResetedFormItem valuePropName="checked" name="logs" label="Logs">
+          <Switch />
+        </Styled.ResetedFormItem>
+        <Spacer $space={16} $samespace />
+        <Typography.Text>
+          Trace<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+        <Spacer $space={4} $samespace />
+        <Styled.ResetedFormItem valuePropName="checked" name="trace" label="Trace">
+          <Switch />
+        </Styled.ResetedFormItem>
       </Form>
     </Modal>
   )

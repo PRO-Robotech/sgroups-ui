@@ -1,39 +1,42 @@
 import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Spin, Modal } from 'antd'
+import { Result, Modal } from 'antd'
 import { removeSecurityGroup } from 'api/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 
 type TSecurityGroupDeleteModalProps = {
-  externalOpenInfo: string | boolean
-  setExternalOpenInfo: Dispatch<SetStateAction<string | boolean>>
-  securityGroups: TSecurityGroup[]
-  setSecurityGroups: Dispatch<SetStateAction<TSecurityGroup[]>>
+  externalOpenInfo: TSecurityGroup[] | boolean
+  setExternalOpenInfo: Dispatch<SetStateAction<TSecurityGroup[] | boolean>>
+  initSecurityGroups: TSecurityGroup[]
+  setInitSecurityGroups: Dispatch<SetStateAction<TSecurityGroup[]>>
   openNotification?: (msg: string) => void
 }
 
 export const SecurityGroupDeleteModal: FC<TSecurityGroupDeleteModalProps> = ({
   externalOpenInfo,
   setExternalOpenInfo,
-  securityGroups,
-  setSecurityGroups,
   openNotification,
+  initSecurityGroups,
+  setInitSecurityGroups,
 }) => {
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
-  const removeSgFromList = () => {
-    if (typeof externalOpenInfo === 'string') {
+  const removeSecurityGroupFromList = () => {
+    if (typeof externalOpenInfo !== 'boolean') {
       setIsLoading(true)
-      removeSecurityGroup(externalOpenInfo)
+      setError(undefined)
+      const names = externalOpenInfo.map(({ name }) => name)
+      removeSecurityGroup(names)
         .then(() => {
-          setSecurityGroups([...securityGroups].filter(el => el.name !== externalOpenInfo))
-          if (openNotification) {
-            openNotification('Network deleted')
-          }
+          setIsLoading(false)
           setError(undefined)
           setExternalOpenInfo(false)
+          if (openNotification) {
+            openNotification(names.length === 1 ? `${names[0]} Deleted` : 'Networks Deleted')
+          }
+          setInitSecurityGroups([...initSecurityGroups].filter(el => !names.includes(el.name)))
         })
         .catch((error: AxiosError<TRequestErrorData>) => {
           setIsLoading(false)
@@ -48,19 +51,24 @@ export const SecurityGroupDeleteModal: FC<TSecurityGroupDeleteModalProps> = ({
     }
   }
 
+  if (typeof externalOpenInfo === 'boolean') {
+    return null
+  }
+
   return (
     <Modal
-      title="Delete security group"
-      open={externalOpenInfo !== false}
-      onOk={() => removeSgFromList()}
-      confirmLoading={isLoading}
+      title={externalOpenInfo.length === 1 ? `Delete ${externalOpenInfo[0].name}` : 'Delete Selected Security Grops'}
+      open={typeof externalOpenInfo !== 'boolean'}
+      onOk={() => removeSecurityGroupFromList()}
       onCancel={() => {
         setExternalOpenInfo(false)
+        setIsLoading(false)
         setError(undefined)
       }}
+      okText="Delete"
+      confirmLoading={isLoading}
+      okButtonProps={{ danger: true }}
     >
-      <p>Are you sure you want to delete {externalOpenInfo}</p>
-      {isLoading && <Spin />}
       {error && <Result status="error" title={error.status} subTitle={error.data?.message} />}
     </Modal>
   )
