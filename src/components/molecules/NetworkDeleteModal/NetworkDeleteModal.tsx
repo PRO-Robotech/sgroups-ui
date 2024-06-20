@@ -1,39 +1,42 @@
 import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Spin, Modal } from 'antd'
+import { Result, Modal } from 'antd'
 import { removeNetwork } from 'api/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TNetwork } from 'localTypes/networks'
+import { TNetwork, TNetworkForm } from 'localTypes/networks'
 
 type TNetworkDeleteModalProps = {
-  externalOpenInfo: string | boolean
-  setExternalOpenInfo: Dispatch<SetStateAction<string | boolean>>
-  networks: TNetwork[]
-  setNetworks: Dispatch<SetStateAction<TNetwork[]>>
+  externalOpenInfo: TNetworkForm[] | boolean
+  setExternalOpenInfo: Dispatch<SetStateAction<TNetworkForm[] | boolean>>
+  initNetworks: TNetwork[]
+  setInitNetworks: Dispatch<SetStateAction<TNetwork[]>>
   openNotification?: (msg: string) => void
 }
 
 export const NetworkDeleteModal: FC<TNetworkDeleteModalProps> = ({
   externalOpenInfo,
   setExternalOpenInfo,
-  networks,
-  setNetworks,
+  initNetworks,
+  setInitNetworks,
   openNotification,
 }) => {
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   const removeNetworkFromList = () => {
-    if (typeof externalOpenInfo === 'string') {
+    if (typeof externalOpenInfo !== 'boolean') {
       setIsLoading(true)
-      removeNetwork(externalOpenInfo)
+      setError(undefined)
+      const names = externalOpenInfo.map(({ name }) => name)
+      removeNetwork(names)
         .then(() => {
-          setNetworks([...networks].filter(el => el.name !== externalOpenInfo))
-          if (openNotification) {
-            openNotification('Network deleted')
-          }
+          setIsLoading(false)
           setError(undefined)
           setExternalOpenInfo(false)
+          if (openNotification) {
+            openNotification(names.length === 1 ? `${names[0]} Deleted` : 'Networks Deleted')
+          }
+          setInitNetworks([...initNetworks].filter(el => !names.includes(el.name)))
         })
         .catch((error: AxiosError<TRequestErrorData>) => {
           setIsLoading(false)
@@ -48,19 +51,24 @@ export const NetworkDeleteModal: FC<TNetworkDeleteModalProps> = ({
     }
   }
 
+  if (typeof externalOpenInfo === 'boolean') {
+    return null
+  }
+
   return (
     <Modal
-      title="Delete network"
-      open={externalOpenInfo !== false}
+      title={externalOpenInfo.length === 1 ? `Delete ${externalOpenInfo[0].name}` : 'Delete Selected Networks'}
+      open={typeof externalOpenInfo !== 'boolean'}
       onOk={() => removeNetworkFromList()}
-      confirmLoading={isLoading}
       onCancel={() => {
         setExternalOpenInfo(false)
+        setIsLoading(false)
         setError(undefined)
       }}
+      okText="Delete"
+      confirmLoading={isLoading}
+      okButtonProps={{ danger: true }}
     >
-      <p>Are you sure you want to delete {externalOpenInfo}</p>
-      {isLoading && <Spin />}
       {error && <Result status="error" title={error.status} subTitle={error.data?.message} />}
     </Modal>
   )

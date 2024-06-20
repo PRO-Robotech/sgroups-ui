@@ -12,9 +12,9 @@ import { Styled } from './styled'
 type TNetworkAddModalProps = {
   externalOpenInfo: boolean
   setExternalOpenInfo: Dispatch<SetStateAction<boolean>>
-  openNotification?: (msg: string) => void
   initNetworks: TNetwork[]
   setInitNetworks: Dispatch<SetStateAction<TNetwork[]>>
+  openNotification?: (msg: string) => void
 }
 
 export const NetworkAddModal: FC<TNetworkAddModalProps> = ({

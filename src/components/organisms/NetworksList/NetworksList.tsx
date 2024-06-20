@@ -38,7 +38,7 @@ export const NetworksList: FC = () => {
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<string | boolean>(false)
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<TNetworkForm[] | boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState(false)
   const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkForm | boolean>(false)
 
@@ -121,7 +121,7 @@ export const NetworksList: FC = () => {
           <TinyButton
             type="text"
             size="small"
-            onClick={() => setIsModalDeleteOpen(record.name)}
+            onClick={() => setIsModalDeleteOpen([record])}
             icon={<TrashSimple size={14} />}
           />
         </TextAlignContainer>
@@ -204,8 +204,8 @@ export const NetworksList: FC = () => {
         externalOpenInfo={isModalDeleteOpen}
         setExternalOpenInfo={setIsModalDeleteOpen}
         openNotification={openNotification}
-        networks={networks}
-        setNetworks={setNetworks}
+        initNetworks={networks}
+        setInitNetworks={setNetworks}
       />
       {contextHolder}
     </>
