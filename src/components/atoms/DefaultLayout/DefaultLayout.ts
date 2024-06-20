@@ -9,6 +9,7 @@ const Layout = styled.div`
 const ContentContainer = styled.div`
   min-height: 280px;
   margin: 0;
+  max-width: calc(100vw - 240px) !important;
 `
 
 export const DefaultLayout = {

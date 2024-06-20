@@ -3,7 +3,7 @@ import styled from 'styled-components'
 const TableContainer = styled.div`
   padding: 24px;
 
-  && table {
+  && .ant-table-container {
     border: 1px solid #f0f0f0;
     border-bottom: 0;
   }
