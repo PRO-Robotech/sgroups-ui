@@ -1,11 +1,13 @@
-import React, { FC, Fragment, useState, useEffect, Dispatch, SetStateAction } from 'react'
+import React, { FC, Fragment, useState, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Button, Spin, Result, Modal } from 'antd'
-import { TitleWithNoTopMargin, Spacer } from 'components'
+import { Result, Modal, Form, Input, Button, Typography } from 'antd'
+import { TrashSimple, Plus } from '@phosphor-icons/react'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TNetworkForm } from 'localTypes/networks'
 import { addNetworks } from 'api/networks'
-import { SingleNetworkAdd } from './molecules'
+import { isCidrValid } from 'utils/isCidrValid'
+import { TNetworkForm } from 'localTypes/networks'
+import { Spacer, FlexButton } from 'components'
+import { Styled } from './styled'
 
 type TNetworkAddModalProps = {
   externalOpenInfo: boolean
@@ -18,23 +20,10 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
   setExternalOpenInfo,
   openNotification,
 }) => {
-  const [networks, setNetworks] = useState<TNetworkForm[]>([])
+  const [addForm] = Form.useForm()
+  const networks = Form.useWatch<TNetworkForm[]>('networks', addForm)
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
-
-  useEffect(() => {
-    if (networks.length === 0) {
-      setNetworks([{ id: 0, name: '', CIDR: '', validateResult: false }])
-    }
-  }, [networks])
-
-  const addAnotherNetwork = () => {
-    setNetworks([...networks, { id: networks[networks.length - 1].id + 1, name: '', CIDR: '', validateResult: false }])
-  }
-
-  const removeNwCard = (id: number) => {
-    setNetworks([...networks].filter(el => el.id !== id))
-  }
 
   const openNwNotification = (isMany: boolean) => {
     if (openNotification) {
@@ -42,73 +31,116 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
     }
   }
 
-  const onFormChange = (id: number, name: string, CIDR: string, validateResult: boolean) => {
-    const index = networks.findIndex(el => el.id === id)
-    const newNetworks = [...networks]
-    newNetworks[index] = { id, name, CIDR, validateResult }
-    setNetworks(newNetworks)
-  }
-
   const submit = () => {
-    setIsLoading(true)
-    setError(undefined)
-    addNetworks(networks)
+    addForm
+      .validateFields()
       .then(() => {
-        setIsLoading(false)
-        openNwNotification(networks.length > 1)
-        setNetworks([])
+        setIsLoading(true)
+        setError(undefined)
+        addNetworks(networks)
+          .then(() => {
+            setIsLoading(false)
+            setError(undefined)
+            setExternalOpenInfo(false)
+            addForm.resetFields()
+            openNwNotification(networks.length > 1)
+          })
+          .catch((error: AxiosError<TRequestErrorData>) => {
+            setIsLoading(false)
+            if (error.response) {
+              setError({ status: error.response.status, data: error.response.data })
+            } else if (error.status) {
+              setError({ status: error.status })
+            } else {
+              setError({ status: 'Error occured while adding' })
+            }
+          })
       })
-      .catch((error: AxiosError<TRequestErrorData>) => {
-        setIsLoading(false)
-        if (error.response) {
-          setError({ status: error.response.status, data: error.response.data })
-        } else if (error.status) {
-          setError({ status: error.status })
-        } else {
-          setError({ status: 'Error occured while adding' })
-        }
-      })
+      .catch(() => setError({ status: 'Error while validating' }))
   }
 
   return (
     <Modal
-      title="Add networks"
+      title="Add Network"
       open={externalOpenInfo}
-      onOk={() => setExternalOpenInfo(false)}
-      onCancel={() => setExternalOpenInfo(false)}
+      onOk={() => submit()}
+      onCancel={() => {
+        setExternalOpenInfo(false)
+        setIsLoading(false)
+        setError(undefined)
+        addForm.resetFields()
+      }}
+      okText="Add"
+      confirmLoading={isLoading}
     >
-      {isLoading && <Spin />}
+      <Spacer $space={16} $samespace />
       {error && (
         <Result
           status="error"
           title={error.status}
-          subTitle={`Code:${error.data?.code}. Message: ${error.data?.message}`}
+          subTitle={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
         />
       )}
-      <TitleWithNoTopMargin level={2}>Add a network</TitleWithNoTopMargin>
-      {networks.map(({ id }) => (
-        <Fragment key={id}>
-          <SingleNetworkAdd
-            onFormChange={(values: Pick<TNetworkForm, 'name' | 'CIDR'>, validateResult: boolean) =>
-              onFormChange(id, values.name, values.CIDR, validateResult)
-            }
-            removeNwCard={() => removeNwCard(id)}
-            isDeleteButtonDisabled={networks.length < 2}
-          />
-          <Spacer $space={15} $samespace />
-        </Fragment>
-      ))}
-      <Button onClick={addAnotherNetwork} type="dashed">
-        Add another
-      </Button>
-      <Spacer $space={15} $samespace />
-      <Button
-        onClick={submit}
-        type="primary"
-        disabled={networks.some(({ validateResult }) => validateResult === false)}
-      >
-        Submit all
-      </Button>
+      <Styled.CustomLabelsContainer>
+        <Typography.Text>
+          Name<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+        <Typography.Text>
+          CIDR<Typography.Text type="danger">*</Typography.Text>
+        </Typography.Text>
+      </Styled.CustomLabelsContainer>
+      <Form<{ networks: TNetworkForm[] }> form={addForm} initialValues={{ networks: [{ name: '', cidr: '' }] }}>
+        <Form.List name="networks">
+          {(fields, { add, remove }) => (
+            <>
+              {fields.map(({ key, name, ...restField }) => (
+                <Styled.FormItemsContainer key={key}>
+                  <Styled.ResetedFormItem
+                    {...restField}
+                    name={[name, 'name']}
+                    hasFeedback
+                    validateTrigger="onBlur"
+                    rules={[{ required: true, message: 'Please input network name' }]}
+                  >
+                    <Input size="large" allowClear />
+                  </Styled.ResetedFormItem>
+                  <Styled.ResetedFormItem
+                    {...restField}
+                    name={[name, 'CIDR']}
+                    hasFeedback
+                    validateTrigger="onBlur"
+                    rules={[
+                      () => ({
+                        validator(_, value: string) {
+                          if (isCidrValid(value)) {
+                            return Promise.resolve()
+                          }
+                          return Promise.reject(new Error('Please enter valid type'))
+                        },
+                      }),
+                    ]}
+                  >
+                    <Input size="large" allowClear />
+                  </Styled.ResetedFormItem>
+                  <Button
+                    disabled={!networks || networks.length === 1}
+                    type="text"
+                    size="large"
+                    onClick={() => remove(name)}
+                    block
+                    icon={<TrashSimple size={18} />}
+                  />
+                </Styled.FormItemsContainer>
+              ))}
+              <Form.Item>
+                <FlexButton size="large" type="dashed" onClick={() => add()} block icon={<Plus size={24} />}>
+                  Add More
+                </FlexButton>
+              </Form.Item>
+            </>
+          )}
+        </Form.List>
+      </Form>
     </Modal>
   )
 }

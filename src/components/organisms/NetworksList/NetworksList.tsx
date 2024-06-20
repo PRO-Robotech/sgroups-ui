@@ -2,8 +2,7 @@ import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Table, TableProps, PaginationProps, Result, Spin, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { PlusOutlined } from '@ant-design/icons'
-import { TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
+import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
 import {
   TitleWithNoMargins,
   CustomEmpty,
@@ -15,6 +14,7 @@ import {
   NetworkDeleteModal,
   TableComponents,
   Layouts,
+  FlexButton,
 } from 'components'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
@@ -138,9 +138,9 @@ export const NetworksList: FC = () => {
       </Layouts.HeaderRow>
       <Layouts.ControlsRow>
         <Layouts.ControlsRightSide>
-          <Button onClick={() => setIsModalAddOpen(true)} type="primary">
-            <PlusOutlined /> Add
-          </Button>
+          <FlexButton onClick={() => setIsModalAddOpen(true)} type="primary" icon={<Plus size={20} />}>
+            Add
+          </FlexButton>
           <Layouts.Separator />
           <Button type="text" icon={<TrashSimple color="#00000040" size={18} />} />
         </Layouts.ControlsRightSide>
