@@ -21,9 +21,7 @@ import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork, TNetworkForm } from 'localTypes/networks'
 
-type TColumn = {
-  name: string
-  CIDR: string
+type TColumn = TNetworkForm & {
   key: string
 }
 
@@ -43,6 +41,7 @@ export const NetworksList: FC = () => {
   const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkForm | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
+  const [selectedRowsData, setSelectedRowsData] = useState<TNetworkForm[]>([])
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
 
   useEffect(() => {
@@ -110,7 +109,7 @@ export const NetworksList: FC = () => {
       align: 'right',
       className: 'controls',
       width: 84,
-      render: (_, record: { name: string; CIDR: string }) => (
+      render: (_, record: TNetworkForm) => (
         <TextAlignContainer $align="right" className="hideable">
           <TinyButton
             type="text"
@@ -142,7 +141,7 @@ export const NetworksList: FC = () => {
             Add
           </FlexButton>
           <Layouts.Separator />
-          <Button type="text" icon={<TrashSimple color="#00000040" size={18} />} />
+          <Button disabled={selectedRowsData.length === 0} type="text" icon={<TrashSimple size={18} />} />
         </Layouts.ControlsRightSide>
         <Layouts.ControlsLeftSide>
           <Layouts.SearchControl>
@@ -177,6 +176,9 @@ export const NetworksList: FC = () => {
               }}
               rowSelection={{
                 type: 'checkbox',
+                onChange: (_: React.Key[], selectedRows: TColumn[]) => {
+                  setSelectedRowsData(selectedRows)
+                },
               }}
               dataSource={networks.map(row => ({ name: row.name, CIDR: row.network.CIDR, key: row.name }))}
               columns={columns}
