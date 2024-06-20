@@ -2,7 +2,7 @@ import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Table, TableProps, PaginationProps, Result, Spin, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine } from '@phosphor-icons/react'
+import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
 import {
   TitleWithNoMargins,
   CustomEmpty,
@@ -20,6 +20,7 @@ import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork, TNetworkForm } from 'localTypes/networks'
+import { Styled } from './styled'
 
 type TColumn = TNetworkForm & {
   key: string
@@ -41,6 +42,7 @@ export const NetworksList: FC = () => {
   const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkForm | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [selectedRowsData, setSelectedRowsData] = useState<TNetworkForm[]>([])
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
 
@@ -130,6 +132,11 @@ export const NetworksList: FC = () => {
 
   const showTotal: PaginationProps['showTotal'] = total => `Total: ${total}`
 
+  const clearSelected = () => {
+    setSelectedRowKeys([])
+    setSelectedRowsData([])
+  }
+
   return (
     <>
       <Layouts.HeaderRow>
@@ -137,11 +144,23 @@ export const NetworksList: FC = () => {
       </Layouts.HeaderRow>
       <Layouts.ControlsRow>
         <Layouts.ControlsRightSide>
-          <FlexButton onClick={() => setIsModalAddOpen(true)} type="primary" icon={<Plus size={20} />}>
-            Add
-          </FlexButton>
+          {selectedRowsData.length > 0 ? (
+            <>
+              <Styled.SelectedItemsText>Selected Items: {selectedRowsData.length}</Styled.SelectedItemsText>
+              <Button type="text" icon={<X size={16} color="#00000073" />} onClick={clearSelected} />
+            </>
+          ) : (
+            <FlexButton onClick={() => setIsModalAddOpen(true)} type="primary" icon={<Plus size={20} />}>
+              Add
+            </FlexButton>
+          )}
           <Layouts.Separator />
-          <Button disabled={selectedRowsData.length === 0} type="text" icon={<TrashSimple size={18} />} />
+          <Button
+            disabled={selectedRowsData.length === 0}
+            type="text"
+            icon={<TrashSimple size={18} />}
+            onClick={() => setIsModalDeleteOpen(selectedRowsData)}
+          />
         </Layouts.ControlsRightSide>
         <Layouts.ControlsLeftSide>
           <Layouts.SearchControl>
@@ -176,7 +195,9 @@ export const NetworksList: FC = () => {
               }}
               rowSelection={{
                 type: 'checkbox',
-                onChange: (_: React.Key[], selectedRows: TColumn[]) => {
+                selectedRowKeys,
+                onChange: (selectedRowKeys: React.Key[], selectedRows: TColumn[]) => {
+                  setSelectedRowKeys(selectedRowKeys)
                   setSelectedRowsData(selectedRows)
                 },
               }}
