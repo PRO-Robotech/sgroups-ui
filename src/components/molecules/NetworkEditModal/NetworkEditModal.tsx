@@ -55,9 +55,9 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
         editNetwork(formName, formCidr)
           .then(() => {
             /* API moment */
-            /* now rebind nw if sg changed */
+            /* check if sg has been changed */
             if (typeof externalOpenInfo !== 'boolean' && securityGroup !== externalOpenInfo.securityGroup) {
-              /* unbind */
+              /* if initial sg existed, unbind and then bind new one */
               if (externalOpenInfo.securityGroup) {
                 const initialSg = options.find(({ name }) => name === externalOpenInfo.securityGroup)
                 if (initialSg) {
@@ -69,7 +69,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
                     initialSg.trace,
                   )
                     .then(() => {
-                      /* bind new one */
+                      /* bind new one if new one exists */
                       if (securityGroup) {
                         const selectedSg = options.find(({ name }) => name === securityGroup)
                         if (selectedSg) {
@@ -107,6 +107,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
                           setError({ status: 'Error while finding security group' })
                         }
                       } else {
+                        /* or just make result */
                         setIsLoading(false)
                         setError(undefined)
                         setExternalOpenInfo(false)
@@ -133,9 +134,8 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
                 } else {
                   setError({ status: 'Error while finding initial security group' })
                 }
-              }
-              /* or just bind new one */
-              if (securityGroup) {
+              } else if (securityGroup) {
+                /* no initial sg: just bind new one */
                 const selectedSg = options.find(({ name }) => name === securityGroup)
                 if (selectedSg) {
                   addSecurityGroup(
@@ -173,6 +173,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
                 }
               }
             } else {
+              /* end of API moment and editing sg logic */
               setIsLoading(false)
               setError(undefined)
               setExternalOpenInfo(false)
