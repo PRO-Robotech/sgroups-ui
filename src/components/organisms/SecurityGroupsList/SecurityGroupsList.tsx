@@ -140,6 +140,7 @@ export const SecurityGroupsList: FC = () => {
             return null
           }}
           suffixIcon={null}
+          tagRender={({ label }) => <Tag>{label}</Tag>}
         />
       ),
       width: 'auto',

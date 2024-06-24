@@ -16,13 +16,22 @@ import {
   Layouts,
   FlexButton,
 } from 'components'
+import { getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork, TNetworkForm } from 'localTypes/networks'
 import { Styled } from './styled'
 
-type TColumn = TNetworkForm & {
+type TNetworkEnriched = TNetwork & {
+  securityGroup?: string
+}
+
+type TNetworkFormEnriched = TNetworkForm & {
+  securityGroup?: string
+}
+
+type TColumn = TNetworkFormEnriched & {
   key: string
 }
 
@@ -33,26 +42,31 @@ type Filters = Parameters<OnChange>[1]
 export const NetworksList: FC = () => {
   const [api, contextHolder] = notification.useNotification()
 
-  const [networks, setNetworks] = useState<TNetwork[]>([])
+  const [networks, setNetworks] = useState<TNetworkEnriched[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<TNetworkForm[] | boolean>(false)
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<TNetworkFormEnriched[] | boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState(false)
-  const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkForm | boolean>(false)
+  const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkFormEnriched | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
-  const [selectedRowsData, setSelectedRowsData] = useState<TNetworkForm[]>([])
+  const [selectedRowsData, setSelectedRowsData] = useState<TNetworkFormEnriched[]>([])
 
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
-    getNetworks()
-      .then(({ data }) => {
+
+    Promise.all([getSecurityGroups(), getNetworks()])
+      .then(([sgsResponse, nwResponse]) => {
         setIsLoading(false)
-        setNetworks(data.networks)
+        const enrichedWithSgNetworks = nwResponse.data.networks.map(el => ({
+          ...el,
+          securityGroup: sgsResponse.data.groups.find(({ networks }) => networks.includes(el.name))?.name,
+        }))
+        setNetworks(enrichedWithSgNetworks)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -97,12 +111,18 @@ export const NetworksList: FC = () => {
       key: 'name',
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
-      width: '50%',
+      width: '33%',
     },
     {
       title: 'CIDR',
       dataIndex: 'CIDR',
       key: 'CIDR',
+      width: '33%',
+    },
+    {
+      title: 'SecurityGroup',
+      dataIndex: 'securityGroup',
+      key: 'securityGroup',
       width: 'auto',
     },
     {
@@ -111,7 +131,7 @@ export const NetworksList: FC = () => {
       align: 'right',
       className: 'controls',
       width: 84,
-      render: (_, record: TNetworkForm) => (
+      render: (_, record: TNetworkFormEnriched) => (
         <TextAlignContainer $align="right" className="hideable">
           <TinyButton
             type="text"
@@ -201,7 +221,12 @@ export const NetworksList: FC = () => {
                   setSelectedRowsData(selectedRows)
                 },
               }}
-              dataSource={networks.map(row => ({ name: row.name, CIDR: row.network.CIDR, key: row.name }))}
+              dataSource={networks.map(row => ({
+                name: row.name,
+                CIDR: row.network.CIDR,
+                securityGroup: row.securityGroup,
+                key: row.name,
+              }))}
               columns={columns}
               scroll={{ x: 'max-content' }}
               onChange={handleChange}
