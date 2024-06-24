@@ -1,7 +1,8 @@
+/* eslint-disable react/no-unstable-nested-components */
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
-import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag, Switch } from 'antd'
+import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag, Switch, Popover } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
 import {
@@ -116,11 +117,30 @@ export const SecurityGroupsList: FC = () => {
       dataIndex: 'networks',
       key: 'networks',
       render: (_, { networks }) => (
-        <Styled.NetworksContainer>
-          {networks.map(name => (
-            <Tag key={name}>{name}</Tag>
-          ))}
-        </Styled.NetworksContainer>
+        <Styled.UncontrolledSelect
+          mode="multiple"
+          maxTagCount="responsive"
+          defaultValue={networks.map(el => ({ label: el, value: el }))}
+          options={networks.map(el => ({ label: el, value: el }))}
+          dropdownStyle={{ display: 'none' }}
+          open={false}
+          showSearch={false}
+          maxTagPlaceholder={omittedValues => (
+            <Popover
+              overlayStyle={{ pointerEvents: 'none' }}
+              title=""
+              content={omittedValues.map(({ label }) => (
+                <div key={label?.toString() || 'impossible'}>{label}</div>
+              ))}
+            >
+              <span>+{omittedValues.length}</span>
+            </Popover>
+          )}
+          removeIcon={() => {
+            return null
+          }}
+          suffixIcon={null}
+        />
       ),
       width: 'auto',
     },
