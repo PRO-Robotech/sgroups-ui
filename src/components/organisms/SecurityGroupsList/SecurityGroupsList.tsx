@@ -18,7 +18,7 @@ import {
   Layouts,
   FlexButton,
 } from 'components'
-import { getSecurityGroups } from 'api/securityGroups'
+import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
@@ -95,6 +95,39 @@ export const SecurityGroupsList: FC = () => {
     })
   }
 
+  const openErrorNotification = (msg: string) => {
+    api.error({
+      message: msg,
+      placement: 'topRight',
+    })
+  }
+
+  const changeLogsValueInSg = (sg: TSecurityGroup, logs: boolean) => {
+    addSecurityGroup(
+      sg.name,
+      sg.defaultAction,
+      sg.networks.map(el => el.split(' : ')[0]),
+      logs,
+      sg.trace,
+    )
+      .then(() => {
+        openNotification('Changes Saved')
+        const newSecurityGroups = [...securityGroups]
+        const editedIndex = newSecurityGroups.findIndex(({ name }) => name === sg.name)
+        newSecurityGroups[editedIndex] = { ...newSecurityGroups[editedIndex], logs }
+        setSecurityGroups(newSecurityGroups)
+      })
+      .catch((error: AxiosError<TRequestErrorData>) => {
+        if (error.response) {
+          openErrorNotification(`status: ${error.response.status}, data: ${JSON.stringify(error.response.data)}`)
+        } else if (error.status) {
+          openErrorNotification(`status: ${error.status}`)
+        } else {
+          openErrorNotification(`status: 'Error occured while adding'`)
+        }
+      })
+  }
+
   if (error) {
     return (
       <MiddleContainer>
@@ -159,7 +192,7 @@ export const SecurityGroupsList: FC = () => {
       dataIndex: 'logs',
       key: 'logs',
       width: 140,
-      render: (_, { logs }) => <Switch value={logs} disabled />,
+      render: (_, record) => <Switch value={record.logs} onChange={checked => changeLogsValueInSg(record, checked)} />,
     },
     {
       title: 'Trace',
