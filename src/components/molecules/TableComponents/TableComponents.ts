@@ -34,6 +34,10 @@ const TableContainer = styled.div`
     position: absolute;
     right: 16px;
   }
+
+  && .ant-table-expanded-row-fixed {
+    width: auto !important;
+  }
 `
 
 const HideableControls = styled.div`

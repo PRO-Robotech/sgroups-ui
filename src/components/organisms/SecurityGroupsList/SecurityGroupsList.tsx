@@ -1,6 +1,7 @@
+/* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
-import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag } from 'antd'
+import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag, Switch } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
 import {
@@ -21,6 +22,7 @@ import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
+import { TNetwork } from 'localTypes/networks'
 import { Styled } from './styled'
 
 type TColumn = TSecurityGroup & {
@@ -35,6 +37,7 @@ export const SecurityGroupsList: FC = () => {
   const [api, contextHolder] = notification.useNotification()
 
   const [securityGroups, setSecurityGroups] = useState<TSecurityGroup[]>([])
+  const [nwResponse, setNwResponse] = useState<TNetwork[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
@@ -53,6 +56,7 @@ export const SecurityGroupsList: FC = () => {
     Promise.all([getSecurityGroups(), getNetworks()])
       .then(([sgsResponse, nwResponse]) => {
         setIsLoading(false)
+        setNwResponse(nwResponse.data.networks)
         const enrichedWithCidrsSgData = sgsResponse.data.groups.map(el => ({
           ...el,
           networks: el.networks.map(nw => {
@@ -125,20 +129,23 @@ export const SecurityGroupsList: FC = () => {
       dataIndex: 'defaultAction',
       key: 'defaultAction',
       width: 140,
+      render: (_, { defaultAction }) => (
+        <Tag color={defaultAction === 'ACCEPT' ? 'success' : 'error'}>{defaultAction}</Tag>
+      ),
     },
     {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
       width: 140,
-      render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
+      render: (_, { logs }) => <Switch defaultChecked={logs} disabled />,
     },
     {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
       width: 140,
-      render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
+      render: (_, { trace }) => <Switch defaultChecked={trace} disabled />,
     },
     {
       title: '',
@@ -257,6 +264,7 @@ export const SecurityGroupsList: FC = () => {
         openNotification={openNotification}
         initSecurityGroups={securityGroups}
         setInitSecurityGroups={setSecurityGroups}
+        nwResponse={nwResponse}
       />
       <SecurityGroupEditModal
         externalOpenInfo={isModalEditOpen}

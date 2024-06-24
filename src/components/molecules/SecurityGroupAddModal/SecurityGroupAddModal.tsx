@@ -1,10 +1,11 @@
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography, Select, Switch } from 'antd'
+import { Result, Modal, Form, Input, Typography, Radio, Select, Switch } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getNetworks } from 'api/networks'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { TSecurityGroup } from 'localTypes/securityGroups'
+import { TNetwork } from 'localTypes/networks'
 import { Spacer } from 'components'
 import { Styled } from './styled'
 
@@ -13,6 +14,7 @@ type TSecurityGroupAddModalProps = {
   setExternalOpenInfo: Dispatch<SetStateAction<boolean>>
   initSecurityGroups: TSecurityGroup[]
   setInitSecurityGroups: Dispatch<SetStateAction<TSecurityGroup[]>>
+  nwResponse: TNetwork[]
   openNotification?: (msg: string) => void
 }
 
@@ -22,6 +24,7 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
   openNotification,
   initSecurityGroups,
   setInitSecurityGroups,
+  nwResponse,
 }) => {
   const [form] = Form.useForm<TSecurityGroup>()
   const [error, setError] = useState<TRequestError | undefined>()
@@ -76,7 +79,14 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
             if (openNotification) {
               openNotification('Security Group Added')
             }
-            setInitSecurityGroups([values, ...initSecurityGroups])
+            const enrichedWithNWNameValues = {
+              ...values,
+              networks: values.networks.map(nw => {
+                const nwData = nwResponse.find(entry => entry.name === nw)
+                return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
+              }),
+            }
+            setInitSecurityGroups([enrichedWithNWNameValues, ...initSecurityGroups])
           })
           .catch((error: AxiosError<TRequestErrorData>) => {
             setIsLoading(false)
@@ -147,22 +157,15 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
           validateTrigger="onBlur"
           rules={[{ required: true, message: 'Please choose default action' }]}
         >
-          <Select
-            allowClear
-            placeholder="Action"
-            options={[
-              { label: 'DROP', value: 'DROP' },
-              { label: 'ACCEPT', value: 'ACCEPT' },
-            ]}
-            size="large"
-          />
+          <Radio.Group defaultValue="DROP">
+            <Radio value="DROP">DROP</Radio>
+            <Radio value="ACCEPT">ACCEPT</Radio>
+          </Radio.Group>
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Typography.Text>
-          Network<Typography.Text type="danger">*</Typography.Text>
-        </Typography.Text>
+        <Typography.Text>Network</Typography.Text>
         <Spacer $space={4} $samespace />
-        <Styled.ResetedFormItem name="networks" label="Networks">
+        <Styled.ResetedFormItem name="networks">
           <Select
             mode="multiple"
             placeholder="Select network"
@@ -173,19 +176,13 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
           />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Typography.Text>
-          Logs<Typography.Text type="danger">*</Typography.Text>
-        </Typography.Text>
         <Spacer $space={4} $samespace />
-        <Styled.ResetedFormItem valuePropName="checked" name="logs" label="Logs">
+        <Styled.ResetedFormItem valuePropName="checked" name="logs" label="Logs" colon={false}>
           <Switch />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Typography.Text>
-          Trace<Typography.Text type="danger">*</Typography.Text>
-        </Typography.Text>
         <Spacer $space={4} $samespace />
-        <Styled.ResetedFormItem valuePropName="checked" name="trace" label="Trace">
+        <Styled.ResetedFormItem valuePropName="checked" name="trace" label="Trace" colon={false}>
           <Switch />
         </Styled.ResetedFormItem>
       </Form>
