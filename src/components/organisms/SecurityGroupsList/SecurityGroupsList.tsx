@@ -138,14 +138,14 @@ export const SecurityGroupsList: FC = () => {
       dataIndex: 'logs',
       key: 'logs',
       width: 140,
-      render: (_, { logs }) => <Switch defaultChecked={logs} disabled />,
+      render: (_, { logs }) => <Switch value={logs} disabled />,
     },
     {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
       width: 140,
-      render: (_, { trace }) => <Switch defaultChecked={trace} disabled />,
+      render: (_, { trace }) => <Switch value={trace} disabled />,
     },
     {
       title: '',

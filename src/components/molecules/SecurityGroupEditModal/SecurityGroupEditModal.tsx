@@ -188,11 +188,11 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
           />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Styled.ResetedFormItem valuePropName="checked" name="logs" label="Logs" colon={false}>
+        <Styled.ResetedFormItem name="logs" label="Logs" colon={false}>
           <Switch />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Styled.ResetedFormItem valuePropName="checked" name="trace" label="Trace" colon={false}>
+        <Styled.ResetedFormItem name="trace" label="Trace" colon={false}>
           <Switch />
         </Styled.ResetedFormItem>
       </Form>
