@@ -13,3 +13,11 @@ export type TNetworkForm = {
   name: string
   CIDR: string
 }
+
+export type TNetworkWithSg = TNetwork & {
+  securityGroup?: string
+}
+
+export type TNetworkFormWithSg = TNetworkForm & {
+  securityGroup?: string
+}

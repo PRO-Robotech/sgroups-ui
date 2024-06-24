@@ -20,18 +20,11 @@ import { getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TNetwork, TNetworkForm } from 'localTypes/networks'
+import { TNetworkWithSg, TNetworkFormWithSg } from 'localTypes/networks'
+import { TSecurityGroup } from 'localTypes/securityGroups'
 import { Styled } from './styled'
 
-type TNetworkEnriched = TNetwork & {
-  securityGroup?: string
-}
-
-type TNetworkFormEnriched = TNetworkForm & {
-  securityGroup?: string
-}
-
-type TColumn = TNetworkFormEnriched & {
+type TColumn = TNetworkFormWithSg & {
   key: string
 }
 
@@ -42,18 +35,19 @@ type Filters = Parameters<OnChange>[1]
 export const NetworksList: FC = () => {
   const [api, contextHolder] = notification.useNotification()
 
-  const [networks, setNetworks] = useState<TNetworkEnriched[]>([])
+  const [networks, setNetworks] = useState<TNetworkWithSg[]>([])
+  const [securityGroups, setSecurityGroups] = useState<TSecurityGroup[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
 
-  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<TNetworkFormEnriched[] | boolean>(false)
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<TNetworkFormWithSg[] | boolean>(false)
   const [isModalAddOpen, setIsModalAddOpen] = useState(false)
-  const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkFormEnriched | boolean>(false)
+  const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkFormWithSg | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
-  const [selectedRowsData, setSelectedRowsData] = useState<TNetworkFormEnriched[]>([])
+  const [selectedRowsData, setSelectedRowsData] = useState<TNetworkFormWithSg[]>([])
 
   useEffect(() => {
     setIsLoading(true)
@@ -62,6 +56,7 @@ export const NetworksList: FC = () => {
     Promise.all([getSecurityGroups(), getNetworks()])
       .then(([sgsResponse, nwResponse]) => {
         setIsLoading(false)
+        setSecurityGroups(sgsResponse.data.groups)
         const enrichedWithSgNetworks = nwResponse.data.networks.map(el => ({
           ...el,
           securityGroup: sgsResponse.data.groups.find(({ networks }) => networks.includes(el.name))?.name,
@@ -131,7 +126,7 @@ export const NetworksList: FC = () => {
       align: 'right',
       className: 'controls',
       width: 84,
-      render: (_, record: TNetworkFormEnriched) => (
+      render: (_, record: TNetworkFormWithSg) => (
         <TextAlignContainer $align="right" className="hideable">
           <TinyButton
             type="text"
@@ -240,6 +235,7 @@ export const NetworksList: FC = () => {
         openNotification={openNotification}
         initNetworks={networks}
         setInitNetworks={setNetworks}
+        options={securityGroups}
       />
       <NetworkEditModal
         externalOpenInfo={isModalEditOpen}
@@ -247,6 +243,7 @@ export const NetworksList: FC = () => {
         openNotification={openNotification}
         initNetworks={networks}
         setInitNetworks={setNetworks}
+        options={securityGroups}
       />
       <NetworkDeleteModal
         externalOpenInfo={isModalDeleteOpen}
@@ -254,6 +251,7 @@ export const NetworksList: FC = () => {
         openNotification={openNotification}
         initNetworks={networks}
         setInitNetworks={setNetworks}
+        clearSelected={clearSelected}
       />
       {contextHolder}
     </>

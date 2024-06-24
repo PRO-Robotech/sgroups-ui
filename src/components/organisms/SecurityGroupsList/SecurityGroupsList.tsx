@@ -272,13 +272,6 @@ export const SecurityGroupsList: FC = () => {
           </TableComponents.HideableControls>
         </TableComponents.TableContainer>
       )}
-      <SecurityGroupDeleteModal
-        externalOpenInfo={isModalDeleteOpen}
-        setExternalOpenInfo={setIsModalDeleteOpen}
-        openNotification={openNotification}
-        initSecurityGroups={securityGroups}
-        setInitSecurityGroups={setSecurityGroups}
-      />
       <SecurityGroupAddModal
         externalOpenInfo={isModalAddOpen}
         setExternalOpenInfo={setIsModalAddOpen}
@@ -294,6 +287,14 @@ export const SecurityGroupsList: FC = () => {
         initSecurityGroups={securityGroups}
         setInitSecurityGroups={setSecurityGroups}
         nwResponse={nwResponse}
+      />
+      <SecurityGroupDeleteModal
+        externalOpenInfo={isModalDeleteOpen}
+        setExternalOpenInfo={setIsModalDeleteOpen}
+        openNotification={openNotification}
+        initSecurityGroups={securityGroups}
+        setInitSecurityGroups={setSecurityGroups}
+        clearSelected={clearSelected}
       />
       {contextHolder}
     </>

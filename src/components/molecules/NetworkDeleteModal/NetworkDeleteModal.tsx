@@ -10,6 +10,7 @@ type TNetworkDeleteModalProps = {
   setExternalOpenInfo: Dispatch<SetStateAction<TNetworkForm[] | boolean>>
   initNetworks: TNetwork[]
   setInitNetworks: Dispatch<SetStateAction<TNetwork[]>>
+  clearSelected: () => void
   openNotification?: (msg: string) => void
 }
 
@@ -17,6 +18,7 @@ export const NetworkDeleteModal: FC<TNetworkDeleteModalProps> = ({
   externalOpenInfo,
   setExternalOpenInfo,
   initNetworks,
+  clearSelected,
   setInitNetworks,
   openNotification,
 }) => {
@@ -33,6 +35,7 @@ export const NetworkDeleteModal: FC<TNetworkDeleteModalProps> = ({
           setIsLoading(false)
           setError(undefined)
           setExternalOpenInfo(false)
+          clearSelected()
           if (openNotification) {
             openNotification(names.length === 1 ? `${names[0]} Deleted` : 'Networks Deleted')
           }

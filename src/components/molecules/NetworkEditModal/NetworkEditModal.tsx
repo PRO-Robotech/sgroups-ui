@@ -1,18 +1,22 @@
+/* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography } from 'antd'
+import { Result, Modal, Form, Input, Typography, Select } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { editNetwork } from 'api/networks'
+import { addSecurityGroup } from 'api/securityGroups'
 import { isCidrValid } from 'utils/isCidrValid'
-import { TNetworkForm, TNetwork } from 'localTypes/networks'
+import { TNetworkFormWithSg, TNetworkWithSg } from 'localTypes/networks'
+import { TSecurityGroup } from 'localTypes/securityGroups'
 import { Spacer } from 'components'
 import { Styled } from './styled'
 
 type TNetworkEditModalProps = {
-  externalOpenInfo: TNetworkForm | boolean
-  setExternalOpenInfo: Dispatch<SetStateAction<TNetworkForm | boolean>>
-  initNetworks: TNetwork[]
-  setInitNetworks: Dispatch<SetStateAction<TNetwork[]>>
+  externalOpenInfo: TNetworkFormWithSg | boolean
+  setExternalOpenInfo: Dispatch<SetStateAction<TNetworkFormWithSg | boolean>>
+  initNetworks: TNetworkWithSg[]
+  setInitNetworks: Dispatch<SetStateAction<TNetworkWithSg[]>>
+  options: TSecurityGroup[]
   openNotification?: (msg: string) => void
 }
 
@@ -22,15 +26,21 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
   openNotification,
   initNetworks,
   setInitNetworks,
+  options,
 }) => {
-  const [form] = Form.useForm()
+  const [form] = Form.useForm<TNetworkFormWithSg>()
   const CIDR = Form.useWatch<string>('CIDR', form)
+  const securityGroup = Form.useWatch<string>('securityGroup', form)
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   useEffect(() => {
     if (typeof externalOpenInfo !== 'boolean') {
-      form.setFieldsValue({ name: externalOpenInfo.name, CIDR: externalOpenInfo.CIDR })
+      form.setFieldsValue({
+        name: externalOpenInfo.name,
+        CIDR: externalOpenInfo.CIDR,
+        securityGroup: externalOpenInfo.securityGroup,
+      })
     }
   }, [externalOpenInfo, form])
 
@@ -44,17 +54,137 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
         setError(undefined)
         editNetwork(formName, formCidr)
           .then(() => {
-            setIsLoading(false)
-            setError(undefined)
-            setExternalOpenInfo(false)
-            form.resetFields()
-            if (openNotification) {
-              openNotification('Changes Saved')
+            /* API moment */
+            /* now rebind nw if sg changed */
+            if (typeof externalOpenInfo !== 'boolean' && securityGroup !== externalOpenInfo.securityGroup) {
+              /* unbind */
+              if (externalOpenInfo.securityGroup) {
+                const initialSg = options.find(({ name }) => name === externalOpenInfo.securityGroup)
+                if (initialSg) {
+                  addSecurityGroup(
+                    initialSg.name,
+                    initialSg.defaultAction,
+                    [...initialSg.networks.filter(el => el !== formName)],
+                    initialSg.logs,
+                    initialSg.trace,
+                  )
+                    .then(() => {
+                      /* bind new one */
+                      if (securityGroup) {
+                        const selectedSg = options.find(({ name }) => name === securityGroup)
+                        if (selectedSg) {
+                          addSecurityGroup(
+                            selectedSg.name,
+                            selectedSg.defaultAction,
+                            [...selectedSg.networks, formName],
+                            selectedSg.logs,
+                            selectedSg.trace,
+                          )
+                            .then(() => {
+                              setIsLoading(false)
+                              setError(undefined)
+                              setExternalOpenInfo(false)
+                              form.resetFields()
+                              if (openNotification) {
+                                openNotification('Changes Saved')
+                              }
+                              const newNetworks = [...initNetworks]
+                              const index = newNetworks.findIndex(el => el.name === formName)
+                              newNetworks[index] = { ...newNetworks[index], network: { CIDR: formCidr }, securityGroup }
+                              setInitNetworks([...newNetworks])
+                            })
+                            .catch((error: AxiosError<TRequestErrorData>) => {
+                              setIsLoading(false)
+                              if (error.response) {
+                                setError({ status: error.response.status, data: error.response.data })
+                              } else if (error.status) {
+                                setError({ status: error.status })
+                              } else {
+                                setError({ status: 'Error occured while adding' })
+                              }
+                            })
+                        } else {
+                          setError({ status: 'Error while finding security group' })
+                        }
+                      } else {
+                        setIsLoading(false)
+                        setError(undefined)
+                        setExternalOpenInfo(false)
+                        form.resetFields()
+                        if (openNotification) {
+                          openNotification('Changes Saved')
+                        }
+                        const newNetworks = [...initNetworks]
+                        const index = newNetworks.findIndex(el => el.name === formName)
+                        newNetworks[index] = { ...newNetworks[index], network: { CIDR: formCidr }, securityGroup }
+                        setInitNetworks([...newNetworks])
+                      }
+                    })
+                    .catch((error: AxiosError<TRequestErrorData>) => {
+                      setIsLoading(false)
+                      if (error.response) {
+                        setError({ status: error.response.status, data: error.response.data })
+                      } else if (error.status) {
+                        setError({ status: error.status })
+                      } else {
+                        setError({ status: 'Error occured while adding' })
+                      }
+                    })
+                } else {
+                  setError({ status: 'Error while finding initial security group' })
+                }
+              }
+              /* or just bind new one */
+              if (securityGroup) {
+                const selectedSg = options.find(({ name }) => name === securityGroup)
+                if (selectedSg) {
+                  addSecurityGroup(
+                    selectedSg.name,
+                    selectedSg.defaultAction,
+                    [...selectedSg.networks, formName],
+                    selectedSg.logs,
+                    selectedSg.trace,
+                  )
+                    .then(() => {
+                      setIsLoading(false)
+                      setError(undefined)
+                      setExternalOpenInfo(false)
+                      form.resetFields()
+                      if (openNotification) {
+                        openNotification('Changes Saved')
+                      }
+                      const newNetworks = [...initNetworks]
+                      const index = newNetworks.findIndex(el => el.name === formName)
+                      newNetworks[index] = { ...newNetworks[index], network: { CIDR: formCidr }, securityGroup }
+                      setInitNetworks([...newNetworks])
+                    })
+                    .catch((error: AxiosError<TRequestErrorData>) => {
+                      setIsLoading(false)
+                      if (error.response) {
+                        setError({ status: error.response.status, data: error.response.data })
+                      } else if (error.status) {
+                        setError({ status: error.status })
+                      } else {
+                        setError({ status: 'Error occured while adding' })
+                      }
+                    })
+                } else {
+                  setError({ status: 'Error while finding security group' })
+                }
+              }
+            } else {
+              setIsLoading(false)
+              setError(undefined)
+              setExternalOpenInfo(false)
+              form.resetFields()
+              if (openNotification) {
+                openNotification('Changes Saved')
+              }
+              const newNetworks = [...initNetworks]
+              const index = newNetworks.findIndex(el => el.name === formName)
+              newNetworks[index] = { ...newNetworks[index], network: { CIDR: formCidr }, securityGroup }
+              setInitNetworks([...newNetworks])
             }
-            const newNetworks = [...initNetworks]
-            const index = newNetworks.findIndex(el => el.name === formName)
-            newNetworks[index] = { ...newNetworks[index], network: { CIDR: formCidr } }
-            setInitNetworks([...newNetworks])
           })
           .catch((error: AxiosError<TRequestErrorData>) => {
             setIsLoading(false)
@@ -87,7 +217,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
       }}
       okText="Save"
       confirmLoading={isLoading}
-      okButtonProps={{ disabled: CIDR === externalOpenInfo.CIDR }}
+      okButtonProps={{ disabled: CIDR === externalOpenInfo.CIDR && securityGroup === externalOpenInfo.securityGroup }}
     >
       <Spacer $space={16} $samespace />
       {error && (
@@ -97,7 +227,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
           subTitle={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
         />
       )}
-      <Form<TNetworkForm> form={form}>
+      <Form<TNetworkFormWithSg> form={form}>
         <Typography.Text>
           Name<Typography.Text type="danger">*</Typography.Text>
         </Typography.Text>
@@ -131,6 +261,17 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
           ]}
         >
           <Input placeholder="Enter CIDR" size="large" allowClear />
+        </Styled.ResetedFormItem>
+        <Spacer $space={16} $samespace />
+        <Typography.Text>Security Group</Typography.Text>
+        <Spacer $space={4} $samespace />
+        <Styled.ResetedFormItem name="securityGroup" validateTrigger="onBlur">
+          <Select
+            options={options.map(({ name }) => ({ label: name, value: name }))}
+            placeholder="Select security group"
+            size="large"
+            allowClear
+          />
         </Styled.ResetedFormItem>
       </Form>
       <Spacer $space={20} $samespace />

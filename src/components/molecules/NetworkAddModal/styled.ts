@@ -15,6 +15,10 @@ export const FormItemsContainer = styled.div`
   margin-bottom: 12px;
 `
 
+export const ResetedFormList = styled(Form.List)`
+  margin-bottom: 0;
+`
+
 export const ResetedFormItem = styled(Form.Item)`
   margin-bottom: 0;
 `
@@ -22,5 +26,6 @@ export const ResetedFormItem = styled(Form.Item)`
 export const Styled = {
   CustomLabelsContainer,
   FormItemsContainer,
+  ResetedFormList,
   ResetedFormItem,
 }

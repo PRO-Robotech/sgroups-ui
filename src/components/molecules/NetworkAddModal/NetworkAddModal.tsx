@@ -1,19 +1,22 @@
 import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Button, Typography } from 'antd'
+import { Result, Modal, Form, Input, Button, Typography, Select } from 'antd'
 import { TrashSimple, Plus } from '@phosphor-icons/react'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { addNetworks } from 'api/networks'
+import { addSecurityGroup } from 'api/securityGroups'
 import { isCidrValid } from 'utils/isCidrValid'
-import { TNetworkForm, TNetwork } from 'localTypes/networks'
+import { TNetworkWithSg, TNetworkForm } from 'localTypes/networks'
+import { TSecurityGroup } from 'localTypes/securityGroups'
 import { Spacer, FlexButton } from 'components'
 import { Styled } from './styled'
 
 type TNetworkAddModalProps = {
   externalOpenInfo: boolean
   setExternalOpenInfo: Dispatch<SetStateAction<boolean>>
-  initNetworks: TNetwork[]
-  setInitNetworks: Dispatch<SetStateAction<TNetwork[]>>
+  initNetworks: TNetworkWithSg[]
+  setInitNetworks: Dispatch<SetStateAction<TNetworkWithSg[]>>
+  options: TSecurityGroup[]
   openNotification?: (msg: string) => void
 }
 
@@ -23,9 +26,11 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
   openNotification,
   initNetworks,
   setInitNetworks,
+  options,
 }) => {
-  const [addForm] = Form.useForm()
+  const [addForm] = Form.useForm<{ networks: TNetworkForm[]; securityGroup: string }>()
   const networks = Form.useWatch<TNetworkForm[]>('networks', addForm)
+  const securityGroup = Form.useWatch<string>('securityGroup', addForm)
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
@@ -43,12 +48,51 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
         setError(undefined)
         addNetworks(networks)
           .then(() => {
-            setIsLoading(false)
-            setError(undefined)
-            setExternalOpenInfo(false)
-            addForm.resetFields()
-            openNwNotification(networks.length > 1)
-            setInitNetworks([...networks.map(({ name, CIDR }) => ({ name, network: { CIDR } })), ...initNetworks])
+            if (securityGroup) {
+              const selectedSg = options.find(({ name }) => name === securityGroup)
+              if (selectedSg) {
+                addSecurityGroup(
+                  selectedSg.name,
+                  selectedSg.defaultAction,
+                  [...selectedSg.networks, ...networks.map(({ name }) => name)],
+                  selectedSg.logs,
+                  selectedSg.trace,
+                )
+                  .then(() => {
+                    setIsLoading(false)
+                    setError(undefined)
+                    setExternalOpenInfo(false)
+                    addForm.resetFields()
+                    openNwNotification(networks.length > 1)
+                    setInitNetworks([
+                      ...networks.map(({ name, CIDR }) => ({ name, network: { CIDR }, securityGroup })),
+                      ...initNetworks,
+                    ])
+                  })
+                  .catch((error: AxiosError<TRequestErrorData>) => {
+                    setIsLoading(false)
+                    if (error.response) {
+                      setError({ status: error.response.status, data: error.response.data })
+                    } else if (error.status) {
+                      setError({ status: error.status })
+                    } else {
+                      setError({ status: 'Error occured while adding' })
+                    }
+                  })
+              } else {
+                setError({ status: 'Error while finding security group' })
+              }
+            } else {
+              setIsLoading(false)
+              setError(undefined)
+              setExternalOpenInfo(false)
+              addForm.resetFields()
+              openNwNotification(networks.length > 1)
+              setInitNetworks([
+                ...networks.map(({ name, CIDR }) => ({ name, network: { CIDR }, securityGroup })),
+                ...initNetworks,
+              ])
+            }
           })
           .catch((error: AxiosError<TRequestErrorData>) => {
             setIsLoading(false)
@@ -103,7 +147,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
         </Typography.Text>
       </Styled.CustomLabelsContainer>
       <Form<{ networks: TNetworkForm[] }> form={addForm} initialValues={{ networks: [{ name: '', CIDR: '' }] }}>
-        <Form.List name="networks">
+        <Styled.ResetedFormList name="networks">
           {(fields, { add, remove }) => (
             <>
               {fields.map(({ key, name, ...restField }) => (
@@ -145,15 +189,27 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                   />
                 </Styled.FormItemsContainer>
               ))}
-              <Form.Item>
+              <Styled.ResetedFormItem>
                 <FlexButton size="large" type="dashed" onClick={() => add()} block icon={<Plus size={24} />}>
                   Add More
                 </FlexButton>
-              </Form.Item>
+              </Styled.ResetedFormItem>
             </>
           )}
-        </Form.List>
+        </Styled.ResetedFormList>
+        <Spacer $space={16} $samespace />
+        <Typography.Text>Security Group</Typography.Text>
+        <Spacer $space={4} $samespace />
+        <Styled.ResetedFormItem name="securityGroup" validateTrigger="onBlur">
+          <Select
+            options={options.map(({ name }) => ({ label: name, value: name }))}
+            placeholder="Select security group"
+            size="large"
+            allowClear
+          />
+        </Styled.ResetedFormItem>
       </Form>
+      <Spacer $space={20} $samespace />
     </Modal>
   )
 }

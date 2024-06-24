@@ -10,6 +10,7 @@ type TSecurityGroupDeleteModalProps = {
   setExternalOpenInfo: Dispatch<SetStateAction<TSecurityGroup[] | boolean>>
   initSecurityGroups: TSecurityGroup[]
   setInitSecurityGroups: Dispatch<SetStateAction<TSecurityGroup[]>>
+  clearSelected: () => void
   openNotification?: (msg: string) => void
 }
 
@@ -17,6 +18,7 @@ export const SecurityGroupDeleteModal: FC<TSecurityGroupDeleteModalProps> = ({
   externalOpenInfo,
   setExternalOpenInfo,
   openNotification,
+  clearSelected,
   initSecurityGroups,
   setInitSecurityGroups,
 }) => {
@@ -33,6 +35,7 @@ export const SecurityGroupDeleteModal: FC<TSecurityGroupDeleteModalProps> = ({
           setIsLoading(false)
           setError(undefined)
           setExternalOpenInfo(false)
+          clearSelected()
           if (openNotification) {
             openNotification(names.length === 1 ? `${names[0]} Deleted` : 'Networks Deleted')
           }
