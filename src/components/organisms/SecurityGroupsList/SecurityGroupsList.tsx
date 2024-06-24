@@ -272,6 +272,7 @@ export const SecurityGroupsList: FC = () => {
         openNotification={openNotification}
         initSecurityGroups={securityGroups}
         setInitSecurityGroups={setSecurityGroups}
+        nwResponse={nwResponse}
       />
       {contextHolder}
     </>

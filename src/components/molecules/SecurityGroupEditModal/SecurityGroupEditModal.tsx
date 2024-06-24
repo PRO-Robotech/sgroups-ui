@@ -1,10 +1,11 @@
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography, Select, Switch } from 'antd'
+import { Result, Modal, Form, Input, Typography, Radio, Select, Switch } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getNetworks } from 'api/networks'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { TSecurityGroup } from 'localTypes/securityGroups'
+import { TNetwork } from 'localTypes/networks'
 import { Spacer } from 'components'
 import { Styled } from './styled'
 
@@ -13,6 +14,7 @@ type TSecurityGroupEditModalProps = {
   setExternalOpenInfo: Dispatch<SetStateAction<TSecurityGroup | boolean>>
   initSecurityGroups: TSecurityGroup[]
   setInitSecurityGroups: Dispatch<SetStateAction<TSecurityGroup[]>>
+  nwResponse: TNetwork[]
   openNotification?: (msg: string) => void
 }
 
@@ -22,6 +24,7 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
   openNotification,
   initSecurityGroups,
   setInitSecurityGroups,
+  nwResponse,
 }) => {
   const [form] = Form.useForm<TSecurityGroup>()
   const defaultAction = Form.useWatch<string>('defaultAction', form)
@@ -31,7 +34,6 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [networksOptions, setNetworkOptions] = useState<{ label: string; value: string }[]>()
-  const [unavailableSGNames, setUnavailableSGNames] = useState<string[]>([])
 
   useEffect(() => {
     if (typeof externalOpenInfo !== 'boolean') {
@@ -54,8 +56,6 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
         const unavailableNetworksName = allSgsResponse.data.groups.flatMap(({ networks }) => networks)
         const availableNetworks = allNetworksNameAndCidrs.filter(el => !unavailableNetworksName.includes(el.name))
         setNetworkOptions(availableNetworks.map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name })))
-        const unavailableSGName = allSgsResponse.data.groups.map(({ name }) => name)
-        setUnavailableSGNames(unavailableSGName)
         setIsLoading(false)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
@@ -77,7 +77,13 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
         setIsLoading(true)
         setError(undefined)
         const values: TSecurityGroup = form.getFieldsValue()
-        addSecurityGroup(values.name, values.defaultAction, values.networks, values.logs, values.trace)
+        addSecurityGroup(
+          values.name,
+          values.defaultAction,
+          values.networks.map(el => el.split(' : ')[0]),
+          values.logs,
+          values.trace,
+        )
           .then(() => {
             setIsLoading(false)
             setError(undefined)
@@ -88,7 +94,14 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
             }
             const newSecurityGroups = [...initSecurityGroups]
             const index = newSecurityGroups.findIndex(el => el.name === values.name)
-            newSecurityGroups[index] = { ...newSecurityGroups[index], ...values }
+            const enrichedWithNWNameValues = {
+              ...values,
+              networks: values.networks.map(nw => {
+                const nwData = nwResponse.find(entry => entry.name === nw)
+                return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
+              }),
+            }
+            newSecurityGroups[index] = { ...newSecurityGroups[index], ...enrichedWithNWNameValues }
             setInitSecurityGroups([...newSecurityGroups])
           })
           .catch((error: AxiosError<TRequestErrorData>) => {
@@ -142,22 +155,7 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
         <Typography.Text>
           Name<Typography.Text type="danger">*</Typography.Text>
         </Typography.Text>
-        <Styled.ResetedFormItem
-          name="name"
-          hasFeedback
-          validateTrigger="onBlur"
-          rules={[
-            { required: true, message: 'Please input SG name' },
-            () => ({
-              validator(_, value) {
-                if (!value || !unavailableSGNames.includes(value)) {
-                  return Promise.resolve()
-                }
-                return Promise.reject(new Error('Please enter unique SG name'))
-              },
-            }),
-          ]}
-        >
+        <Styled.ResetedFormItem name="name" hasFeedback validateTrigger="onBlur">
           <Input disabled allowClear size="large" placeholder="Enter name" />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
@@ -171,22 +169,15 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
           validateTrigger="onBlur"
           rules={[{ required: true, message: 'Please choose default action' }]}
         >
-          <Select
-            allowClear
-            placeholder="Action"
-            options={[
-              { label: 'DROP', value: 'DROP' },
-              { label: 'ACCEPT', value: 'ACCEPT' },
-            ]}
-            size="large"
-          />
+          <Radio.Group>
+            <Radio value="DROP">DROP</Radio>
+            <Radio value="ACCEPT">ACCEPT</Radio>
+          </Radio.Group>
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Typography.Text>
-          Network<Typography.Text type="danger">*</Typography.Text>
-        </Typography.Text>
+        <Typography.Text>Network</Typography.Text>
         <Spacer $space={4} $samespace />
-        <Styled.ResetedFormItem name="networks" label="Networks">
+        <Styled.ResetedFormItem name="networks">
           <Select
             mode="multiple"
             placeholder="Select network"
@@ -197,19 +188,11 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
           />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Typography.Text>
-          Logs<Typography.Text type="danger">*</Typography.Text>
-        </Typography.Text>
-        <Spacer $space={4} $samespace />
-        <Styled.ResetedFormItem valuePropName="checked" name="logs" label="Logs">
+        <Styled.ResetedFormItem valuePropName="checked" name="logs" label="Logs" colon={false}>
           <Switch />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Typography.Text>
-          Trace<Typography.Text type="danger">*</Typography.Text>
-        </Typography.Text>
-        <Spacer $space={4} $samespace />
-        <Styled.ResetedFormItem valuePropName="checked" name="trace" label="Trace">
+        <Styled.ResetedFormItem valuePropName="checked" name="trace" label="Trace" colon={false}>
           <Switch />
         </Styled.ResetedFormItem>
       </Form>

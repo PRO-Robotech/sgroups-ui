@@ -27,6 +27,7 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
   nwResponse,
 }) => {
   const [form] = Form.useForm<TSecurityGroup>()
+  const name = Form.useWatch<string>('name', form)
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
   const [networksOptions, setNetworkOptions] = useState<{ label: string; value: string }[]>()
@@ -115,6 +116,9 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
       }}
       okText="Add"
       confirmLoading={isLoading}
+      okButtonProps={{
+        disabled: !name || name === undefined || name.length === 0,
+      }}
     >
       <Spacer $space={16} $samespace />
       {error && (
@@ -124,7 +128,11 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
           subTitle={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
         />
       )}
-      <Form form={form} name="control-hooks" initialValues={{ networks: [], logs: false, trace: false }}>
+      <Form
+        form={form}
+        name="control-hooks"
+        initialValues={{ networks: [], defaultAction: 'DROP', logs: false, trace: false }}
+      >
         <Typography.Text>
           Name<Typography.Text type="danger">*</Typography.Text>
         </Typography.Text>
@@ -157,7 +165,7 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
           validateTrigger="onBlur"
           rules={[{ required: true, message: 'Please choose default action' }]}
         >
-          <Radio.Group defaultValue="DROP">
+          <Radio.Group>
             <Radio value="DROP">DROP</Radio>
             <Radio value="ACCEPT">ACCEPT</Radio>
           </Radio.Group>
@@ -176,12 +184,10 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
           />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Spacer $space={4} $samespace />
         <Styled.ResetedFormItem valuePropName="checked" name="logs" label="Logs" colon={false}>
           <Switch />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
-        <Spacer $space={4} $samespace />
         <Styled.ResetedFormItem valuePropName="checked" name="trace" label="Trace" colon={false}>
           <Switch />
         </Styled.ResetedFormItem>

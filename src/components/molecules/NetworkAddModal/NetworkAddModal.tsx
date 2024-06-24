@@ -77,6 +77,14 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
       }}
       okText="Add"
       confirmLoading={isLoading}
+      okButtonProps={{
+        disabled:
+          !networks ||
+          networks.length === 0 ||
+          networks.some(
+            ({ name, CIDR }) => name === undefined || name.length === 0 || CIDR === undefined || CIDR.length === 0,
+          ),
+      }}
     >
       <Spacer $space={16} $samespace />
       {error && (
