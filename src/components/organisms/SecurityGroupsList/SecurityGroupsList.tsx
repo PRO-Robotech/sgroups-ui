@@ -1,19 +1,30 @@
+/* eslint-disable react/no-unstable-nested-components */
+/* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
-import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Tag, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag, Switch, Popover } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getSecurityGroups, removeSecurityGroup } from 'api/securityGroups'
+import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
+import {
+  TitleWithNoMargins,
+  CustomEmpty,
+  TextAlignContainer,
+  MiddleContainer,
+  TinyButton,
+  SecurityGroupAddModal,
+  SecurityGroupEditModal,
+  SecurityGroupDeleteModal,
+  TableComponents,
+  Layouts,
+  FlexButton,
+} from 'components'
+import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
+import { TNetwork } from 'localTypes/networks'
 import { Styled } from './styled'
-
-type TSecurityGroupsListProps = {
-  id?: string
-}
 
 type TColumn = TSecurityGroup & {
   key: string
@@ -23,22 +34,22 @@ type OnChange = NonNullable<TableProps<TColumn>['onChange']>
 
 type Filters = Parameters<OnChange>[1]
 
-export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
+export const SecurityGroupsList: FC = () => {
+  const [api, contextHolder] = notification.useNotification()
+
   const [securityGroups, setSecurityGroups] = useState<TSecurityGroup[]>([])
+  const [nwResponse, setNwResponse] = useState<TNetwork[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
-  const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  const [pendingToDeleteSG, setPendingToDeleteSG] = useState<string>()
+
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<TSecurityGroup[] | boolean>(false)
+  const [isModalAddOpen, setIsModalAddOpen] = useState<boolean>(false)
+  const [isModalEditOpen, setIsModalEditOpen] = useState<TSecurityGroup | boolean>(false)
+
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
-  const history = useHistory()
-
-  useEffect(() => {
-    if (id) {
-      setSearchText(id)
-    }
-  }, [id])
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+  const [selectedRowsData, setSelectedRowsData] = useState<TSecurityGroup[]>([])
 
   useEffect(() => {
     setIsLoading(true)
@@ -46,6 +57,7 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
     Promise.all([getSecurityGroups(), getNetworks()])
       .then(([sgsResponse, nwResponse]) => {
         setIsLoading(false)
+        setNwResponse(nwResponse.data.networks)
         const enrichedWithCidrsSgData = sgsResponse.data.groups.map(el => ({
           ...el,
           networks: el.networks.map(nw => {
@@ -76,37 +88,52 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
     setFilteredInfo(filters)
   }
 
-  const removeSgFromList = (name: string) => {
-    removeSecurityGroup(name)
+  const openNotification = (msg: string) => {
+    api.success({
+      message: msg,
+      placement: 'topRight',
+    })
+  }
+
+  const openErrorNotification = (msg: string) => {
+    api.error({
+      message: msg,
+      placement: 'topRight',
+    })
+  }
+
+  const changeLogsValueInSg = (sg: TSecurityGroup, logs: boolean) => {
+    addSecurityGroup(
+      sg.name,
+      sg.defaultAction,
+      sg.networks.map(el => el.split(' : ')[0]),
+      logs,
+      sg.trace,
+    )
       .then(() => {
-        setSecurityGroups([...securityGroups].filter(el => el.name !== name))
-        setIsModalOpen(false)
-        setPendingToDeleteSG(undefined)
-        setDeleteError(undefined)
+        openNotification('Changes Saved')
+        const newSecurityGroups = [...securityGroups]
+        const editedIndex = newSecurityGroups.findIndex(({ name }) => name === sg.name)
+        newSecurityGroups[editedIndex] = { ...newSecurityGroups[editedIndex], logs }
+        setSecurityGroups(newSecurityGroups)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
-        setIsLoading(false)
         if (error.response) {
-          setDeleteError({ status: error.response.status, data: error.response.data })
+          openErrorNotification(`status: ${error.response.status}, data: ${JSON.stringify(error.response.data)}`)
         } else if (error.status) {
-          setDeleteError({ status: error.status })
+          openErrorNotification(`status: ${error.status}`)
         } else {
-          setDeleteError({ status: 'Error while fetching' })
+          openErrorNotification(`status: 'Error occured while adding'`)
         }
       })
   }
 
-  const openRemoveSGModal = (name: string) => {
-    setPendingToDeleteSG(name)
-    setIsModalOpen(true)
-  }
-
   if (error) {
-    return <Result status="error" title={error.status} subTitle={error.data?.message} />
-  }
-
-  if (isLoading) {
-    return <Spin />
+    return (
+      <MiddleContainer>
+        <Result status="error" title={error.status} subTitle={error.data?.message} />
+      </MiddleContainer>
+    )
   }
 
   const columns: ColumnsType<TColumn> = [
@@ -116,113 +143,193 @@ export const SecurityGroupsList: FC<TSecurityGroupsListProps> = ({ id }) => {
       key: 'name',
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
+      width: 350,
     },
     {
       title: 'Networks',
       dataIndex: 'networks',
       key: 'networks',
       render: (_, { networks }) => (
-        <Styled.NetworksContainer>
-          {networks.map(name => (
-            <Tag key={name}>{name}</Tag>
-          ))}
-        </Styled.NetworksContainer>
+        <Styled.UncontrolledSelect
+          mode="multiple"
+          maxTagCount="responsive"
+          defaultValue={networks.map(el => ({ label: el, value: el }))}
+          options={networks.map(el => ({ label: el, value: el }))}
+          dropdownStyle={{ display: 'none' }}
+          open={false}
+          showSearch={false}
+          maxTagPlaceholder={omittedValues => (
+            <Popover
+              overlayStyle={{ pointerEvents: 'none' }}
+              title=""
+              content={omittedValues.map(({ label }) => (
+                <div key={label?.toString() || 'impossible'}>{label}</div>
+              ))}
+            >
+              <span>+{omittedValues.length}</span>
+            </Popover>
+          )}
+          removeIcon={() => {
+            return null
+          }}
+          suffixIcon={null}
+          tagRender={({ label }) => <Tag>{label}</Tag>}
+        />
       ),
+      width: 'auto',
     },
     {
-      title: 'Default action',
+      title: 'Action',
       dataIndex: 'defaultAction',
       key: 'defaultAction',
-      width: 150,
+      width: 140,
+      render: (_, { defaultAction }) => (
+        <Tag color={defaultAction === 'ACCEPT' ? 'success' : 'error'}>{defaultAction}</Tag>
+      ),
     },
     {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
-      width: 50,
-      render: (_, { logs }) => <div>{logs ? 'true' : 'false'}</div>,
+      width: 140,
+      render: (_, record) => <Switch value={record.logs} onChange={checked => changeLogsValueInSg(record, checked)} />,
     },
     {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
-      width: 50,
-      render: (_, { trace }) => <div>{trace ? 'true' : 'false'}</div>,
+      width: 140,
+      render: (_, { trace }) => <Switch value={trace} disabled />,
     },
     {
-      title: 'Controls',
+      title: '',
       key: 'controls',
       align: 'right',
-      width: 150,
+      className: 'controls',
+      width: 84,
       render: (_, record: TSecurityGroup) => (
-        <TextAlignContainer $align="right">
-          <CustomIcons.EditIcon onClick={() => history.push(`/security-groups/edit/${record.name}`)} />{' '}
-          <CustomIcons.DeleteIcon onClick={() => openRemoveSGModal(record.name)} />
+        <TextAlignContainer $align="right" className="hideable">
+          <TinyButton
+            type="text"
+            size="small"
+            onClick={() => setIsModalEditOpen(record)}
+            icon={<PencilSimpleLine size={14} />}
+          />
+          <TinyButton
+            type="text"
+            size="small"
+            onClick={() => setIsModalDeleteOpen([record])}
+            icon={<TrashSimple size={14} />}
+          />
         </TextAlignContainer>
       ),
     },
   ]
 
+  const showTotal: PaginationProps['showTotal'] = total => `Total: ${total}`
+
+  const clearSelected = () => {
+    setSelectedRowKeys([])
+    setSelectedRowsData([])
+  }
+
   return (
     <>
-      <Card>
-        <TitleWithNoTopMargin level={2}>Security Groups</TitleWithNoTopMargin>
-        <Spacer $space={15} $samespace />
-        <Styled.FiltersContainer>
-          {securityGroups.length > 0 && (
-            <div>
-              <Input
-                allowClear
-                placeholder="Filter by SG name"
-                value={searchText}
-                onChange={e => {
-                  if (id) {
-                    history.push('/security-groups', { replace: true })
-                  }
-                  setSearchText(e.target.value)
-                }}
-              />
-            </div>
-          )}
-          <div>
-            <Styled.ButtonWithMarginLeft onClick={() => history.push('/security-groups/add')} type="primary">
+      <Layouts.HeaderRow>
+        <TitleWithNoMargins level={3}>Security Groups</TitleWithNoMargins>
+      </Layouts.HeaderRow>
+      <Layouts.ControlsRow>
+        <Layouts.ControlsRightSide>
+          {selectedRowsData.length > 0 ? (
+            <>
+              <Styled.SelectedItemsText>Selected Items: {selectedRowsData.length}</Styled.SelectedItemsText>
+              <Button type="text" icon={<X size={16} color="#00000073" />} onClick={clearSelected} />
+            </>
+          ) : (
+            <FlexButton onClick={() => setIsModalAddOpen(true)} type="primary" icon={<Plus size={20} />}>
               Add
-            </Styled.ButtonWithMarginLeft>
-          </div>
-        </Styled.FiltersContainer>
-        <Spacer $space={15} $samespace />
-        {!securityGroups.length && !error && !isLoading && <Empty />}
-        {securityGroups.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: {
-                goButton: <Styled.ButtonWithMarginLeft size="small">Go</Styled.ButtonWithMarginLeft>,
-              },
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-              hideOnSinglePage: true,
-            }}
-            dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
-            columns={columns}
-            scroll={{ x: 'max-content' }}
-            onChange={handleChange}
+            </FlexButton>
+          )}
+          <Layouts.Separator />
+          <Button
+            disabled={selectedRowsData.length === 0}
+            type="text"
+            icon={<TrashSimple size={18} />}
+            onClick={() => setIsModalDeleteOpen(selectedRowsData)}
           />
-        )}
-      </Card>
-      <Modal
-        title="Delete security group"
-        open={isModalOpen}
-        onOk={() => pendingToDeleteSG && removeSgFromList(pendingToDeleteSG)}
-        confirmLoading={isLoading}
-        onCancel={() => {
-          setIsModalOpen(false)
-          setDeleteError(undefined)
-        }}
-      >
-        <p>Are you sure you want to delete {pendingToDeleteSG}</p>
-        {deleteError && <Result status="error" title={deleteError.status} subTitle={deleteError.data?.message} />}
-      </Modal>
+        </Layouts.ControlsRightSide>
+        <Layouts.ControlsLeftSide>
+          <Layouts.SearchControl>
+            <Layouts.InputWithCustomPreffixMargin
+              allowClear
+              placeholder="Search"
+              prefix={<MagnifyingGlass color="#00000073" />}
+              value={searchText}
+              onChange={e => {
+                setSearchText(e.target.value)
+              }}
+            />
+          </Layouts.SearchControl>
+        </Layouts.ControlsLeftSide>
+      </Layouts.ControlsRow>
+      {isLoading && (
+        <MiddleContainer>
+          <Spin />
+        </MiddleContainer>
+      )}
+      {!securityGroups.length && !error && !isLoading && <CustomEmpty />}
+      {securityGroups.length > 0 && (
+        <TableComponents.TableContainer>
+          <TableComponents.HideableControls>
+            <Table
+              pagination={{
+                position: ['bottomLeft'],
+                showSizeChanger: true,
+                defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: false,
+                showTotal,
+              }}
+              rowSelection={{
+                type: 'checkbox',
+                selectedRowKeys,
+                onChange: (selectedRowKeys: React.Key[], selectedRows: TColumn[]) => {
+                  setSelectedRowKeys(selectedRowKeys)
+                  setSelectedRowsData(selectedRows)
+                },
+              }}
+              dataSource={securityGroups.map(row => ({ ...row, key: row.name }))}
+              columns={columns}
+              scroll={{ x: 'max-content' }}
+              onChange={handleChange}
+            />
+          </TableComponents.HideableControls>
+        </TableComponents.TableContainer>
+      )}
+      <SecurityGroupAddModal
+        externalOpenInfo={isModalAddOpen}
+        setExternalOpenInfo={setIsModalAddOpen}
+        openNotification={openNotification}
+        initSecurityGroups={securityGroups}
+        setInitSecurityGroups={setSecurityGroups}
+        nwResponse={nwResponse}
+      />
+      <SecurityGroupEditModal
+        externalOpenInfo={isModalEditOpen}
+        setExternalOpenInfo={setIsModalEditOpen}
+        openNotification={openNotification}
+        initSecurityGroups={securityGroups}
+        setInitSecurityGroups={setSecurityGroups}
+        nwResponse={nwResponse}
+      />
+      <SecurityGroupDeleteModal
+        externalOpenInfo={isModalDeleteOpen}
+        setExternalOpenInfo={setIsModalDeleteOpen}
+        openNotification={openNotification}
+        initSecurityGroups={securityGroups}
+        setInitSecurityGroups={setSecurityGroups}
+        clearSelected={clearSelected}
+      />
+      {contextHolder}
     </>
   )
 }

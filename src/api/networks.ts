@@ -67,9 +67,9 @@ export const addNetworks = async (nws: TNetworkForm[]): Promise<AxiosResponse> =
   )
 }
 
-export const removeNetwork = async (name: string): Promise<AxiosResponse> => {
+export const removeNetwork = async (names: string[]): Promise<AxiosResponse> => {
   const currentNetworks = (await getNetworks()).data.networks
-  const deletedNetworks = [...currentNetworks].filter(el => el.name === name)
+  const deletedNetworks = [...currentNetworks].filter(el => names.includes(el.name))
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {

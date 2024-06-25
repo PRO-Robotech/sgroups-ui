@@ -1,18 +1,30 @@
 import React, { FC, useState, useEffect } from 'react'
-import { useHistory } from 'react-router-dom'
 import { AxiosError } from 'axios'
-import { Card, Table, TableProps, Result, Spin, Empty, Modal, Input } from 'antd'
+import { Button, Table, TableProps, PaginationProps, Result, Spin, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { TitleWithNoTopMargin, Spacer, CustomIcons, TextAlignContainer } from 'components'
-import { getNetworks, removeNetwork } from 'api/networks'
+import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
+import {
+  TitleWithNoMargins,
+  CustomEmpty,
+  TextAlignContainer,
+  MiddleContainer,
+  TinyButton,
+  NetworkAddModal,
+  NetworkEditModal,
+  NetworkDeleteModal,
+  TableComponents,
+  Layouts,
+  FlexButton,
+} from 'components'
+import { getSecurityGroups } from 'api/securityGroups'
+import { getNetworks } from 'api/networks'
 import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
-import { TNetwork } from 'localTypes/networks'
+import { TNetworkWithSg, TNetworkFormWithSg } from 'localTypes/networks'
+import { TSecurityGroup } from 'localTypes/securityGroups'
 import { Styled } from './styled'
 
-type TColumn = {
-  name: string
-  cidr: string
+type TColumn = TNetworkFormWithSg & {
   key: string
 }
 
@@ -21,23 +33,35 @@ type OnChange = NonNullable<TableProps<TColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const NetworksList: FC = () => {
-  const [networks, setNetworks] = useState<TNetwork[]>([])
+  const [api, contextHolder] = notification.useNotification()
+
+  const [networks, setNetworks] = useState<TNetworkWithSg[]>([])
+  const [securityGroups, setSecurityGroups] = useState<TSecurityGroup[]>([])
   const [error, setError] = useState<TRequestError | undefined>()
-  const [deleteError, setDeleteError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(true)
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  const [pendingToDeleteNW, setPendingToDeleteNW] = useState<string>()
+
+  const [isModalDeleteOpen, setIsModalDeleteOpen] = useState<TNetworkFormWithSg[] | boolean>(false)
+  const [isModalAddOpen, setIsModalAddOpen] = useState(false)
+  const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkFormWithSg | boolean>(false)
+
   const [searchText, setSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
-  const history = useHistory()
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
+  const [selectedRowsData, setSelectedRowsData] = useState<TNetworkFormWithSg[]>([])
 
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
-    getNetworks()
-      .then(({ data }) => {
+
+    Promise.all([getSecurityGroups(), getNetworks()])
+      .then(([sgsResponse, nwResponse]) => {
         setIsLoading(false)
-        setNetworks(data.networks)
+        setSecurityGroups(sgsResponse.data.groups)
+        const enrichedWithSgNetworks = nwResponse.data.networks.map(el => ({
+          ...el,
+          securityGroup: sgsResponse.data.groups.find(({ networks }) => networks.includes(el.name))?.name,
+        }))
+        setNetworks(enrichedWithSgNetworks)
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -60,37 +84,19 @@ export const NetworksList: FC = () => {
     setFilteredInfo(filters)
   }
 
-  const removeNetworkFromList = (name: string) => {
-    removeNetwork(name)
-      .then(() => {
-        setNetworks([...networks].filter(el => el.name !== name))
-        setIsModalOpen(false)
-        setPendingToDeleteNW(undefined)
-        setDeleteError(undefined)
-      })
-      .catch((error: AxiosError<TRequestErrorData>) => {
-        setIsLoading(false)
-        if (error.response) {
-          setDeleteError({ status: error.response.status, data: error.response.data })
-        } else if (error.status) {
-          setDeleteError({ status: error.status })
-        } else {
-          setDeleteError({ status: 'Error while fetching' })
-        }
-      })
-  }
-
-  const openRemoveNetworkModal = (name: string) => {
-    setPendingToDeleteNW(name)
-    setIsModalOpen(true)
+  const openNotification = (msg: string) => {
+    api.success({
+      message: msg,
+      placement: 'topRight',
+    })
   }
 
   if (error) {
-    return <Result status="error" title={error.status} subTitle={error.data?.message} />
-  }
-
-  if (isLoading) {
-    return <Spin />
+    return (
+      <MiddleContainer>
+        <Result status="error" title={error.status} subTitle={error.data?.message} />
+      </MiddleContainer>
+    )
   }
 
   const columns: ColumnsType<TColumn> = [
@@ -100,83 +106,154 @@ export const NetworksList: FC = () => {
       key: 'name',
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
+      width: '33%',
     },
     {
       title: 'CIDR',
-      dataIndex: 'cidr',
-      key: 'cidr',
+      dataIndex: 'CIDR',
+      key: 'CIDR',
+      width: '33%',
     },
     {
-      title: 'Controls',
+      title: 'SecurityGroup',
+      dataIndex: 'securityGroup',
+      key: 'securityGroup',
+      width: 'auto',
+    },
+    {
+      title: '',
       key: 'controls',
       align: 'right',
-      width: 100,
-      render: (_, record: { name: string; cidr: string }) => (
-        <TextAlignContainer $align="right">
-          <CustomIcons.EditIcon onClick={() => history.push(`/networks/edit/${record.name}`)} />{' '}
-          <CustomIcons.DeleteIcon onClick={() => openRemoveNetworkModal(record.name)} />
+      className: 'controls',
+      width: 84,
+      render: (_, record: TNetworkFormWithSg) => (
+        <TextAlignContainer $align="right" className="hideable">
+          <TinyButton
+            type="text"
+            size="small"
+            onClick={() => setIsModalEditOpen(record)}
+            icon={<PencilSimpleLine size={14} />}
+          />
+          <TinyButton
+            type="text"
+            size="small"
+            onClick={() => setIsModalDeleteOpen([record])}
+            icon={<TrashSimple size={14} />}
+          />
         </TextAlignContainer>
       ),
     },
   ]
 
+  const showTotal: PaginationProps['showTotal'] = total => `Total: ${total}`
+
+  const clearSelected = () => {
+    setSelectedRowKeys([])
+    setSelectedRowsData([])
+  }
+
   return (
     <>
-      <Card>
-        <TitleWithNoTopMargin level={2}>Networks</TitleWithNoTopMargin>
-        <Spacer $space={15} $samespace />
-        <Styled.FiltersContainer>
-          {networks.length > 0 && (
-            <div>
-              <Input
-                allowClear
-                placeholder="Filter by NW name"
-                value={searchText}
-                onChange={e => {
-                  setSearchText(e.target.value)
-                }}
-              />
-            </div>
-          )}
-          <div>
-            <Styled.ButtonWithMarginLeft onClick={() => history.push('/networks/add')} type="primary">
+      <Layouts.HeaderRow>
+        <TitleWithNoMargins level={3}>Networks</TitleWithNoMargins>
+      </Layouts.HeaderRow>
+      <Layouts.ControlsRow>
+        <Layouts.ControlsRightSide>
+          {selectedRowsData.length > 0 ? (
+            <>
+              <Styled.SelectedItemsText>Selected Items: {selectedRowsData.length}</Styled.SelectedItemsText>
+              <Button type="text" icon={<X size={16} color="#00000073" />} onClick={clearSelected} />
+            </>
+          ) : (
+            <FlexButton onClick={() => setIsModalAddOpen(true)} type="primary" icon={<Plus size={20} />}>
               Add
-            </Styled.ButtonWithMarginLeft>
-          </div>
-        </Styled.FiltersContainer>
-        <Spacer $space={15} $samespace />
-        {!networks.length && !error && !isLoading && <Empty />}
-        {networks.length > 0 && (
-          <Table
-            pagination={{
-              position: ['bottomCenter'],
-              showQuickJumper: {
-                goButton: <Styled.ButtonWithMarginLeft size="small">Go</Styled.ButtonWithMarginLeft>,
-              },
-              showSizeChanger: false,
-              defaultPageSize: ITEMS_PER_PAGE,
-              hideOnSinglePage: true,
-            }}
-            dataSource={networks.map(row => ({ name: row.name, cidr: row.network.CIDR, key: row.name }))}
-            columns={columns}
-            scroll={{ x: 'max-content' }}
-            onChange={handleChange}
+            </FlexButton>
+          )}
+          <Layouts.Separator />
+          <Button
+            disabled={selectedRowsData.length === 0}
+            type="text"
+            icon={<TrashSimple size={18} />}
+            onClick={() => setIsModalDeleteOpen(selectedRowsData)}
           />
-        )}
-      </Card>
-      <Modal
-        title="Delete network"
-        open={isModalOpen}
-        onOk={() => pendingToDeleteNW && removeNetworkFromList(pendingToDeleteNW)}
-        confirmLoading={isLoading}
-        onCancel={() => {
-          setIsModalOpen(false)
-          setDeleteError(undefined)
-        }}
-      >
-        <p>Are you sure you want to delete {pendingToDeleteNW}</p>
-        {deleteError && <Result status="error" title={deleteError.status} subTitle={deleteError.data?.message} />}
-      </Modal>
+        </Layouts.ControlsRightSide>
+        <Layouts.ControlsLeftSide>
+          <Layouts.SearchControl>
+            <Layouts.InputWithCustomPreffixMargin
+              allowClear
+              placeholder="Search"
+              prefix={<MagnifyingGlass color="#00000073" />}
+              value={searchText}
+              onChange={e => {
+                setSearchText(e.target.value)
+              }}
+            />
+          </Layouts.SearchControl>
+        </Layouts.ControlsLeftSide>
+      </Layouts.ControlsRow>
+      {isLoading && (
+        <MiddleContainer>
+          <Spin />
+        </MiddleContainer>
+      )}
+      {!networks.length && !error && !isLoading && <CustomEmpty />}
+      {networks.length > 0 && (
+        <TableComponents.TableContainer>
+          <TableComponents.HideableControls>
+            <Table
+              pagination={{
+                position: ['bottomLeft'],
+                showSizeChanger: true,
+                defaultPageSize: ITEMS_PER_PAGE,
+                hideOnSinglePage: false,
+                showTotal,
+              }}
+              rowSelection={{
+                type: 'checkbox',
+                selectedRowKeys,
+                onChange: (selectedRowKeys: React.Key[], selectedRows: TColumn[]) => {
+                  setSelectedRowKeys(selectedRowKeys)
+                  setSelectedRowsData(selectedRows)
+                },
+              }}
+              dataSource={networks.map(row => ({
+                name: row.name,
+                CIDR: row.network.CIDR,
+                securityGroup: row.securityGroup,
+                key: row.name,
+              }))}
+              columns={columns}
+              scroll={{ x: 'max-content' }}
+              onChange={handleChange}
+            />
+          </TableComponents.HideableControls>
+        </TableComponents.TableContainer>
+      )}
+      <NetworkAddModal
+        externalOpenInfo={isModalAddOpen}
+        setExternalOpenInfo={setIsModalAddOpen}
+        openNotification={openNotification}
+        initNetworks={networks}
+        setInitNetworks={setNetworks}
+        options={securityGroups}
+      />
+      <NetworkEditModal
+        externalOpenInfo={isModalEditOpen}
+        setExternalOpenInfo={setIsModalEditOpen}
+        openNotification={openNotification}
+        initNetworks={networks}
+        setInitNetworks={setNetworks}
+        options={securityGroups}
+      />
+      <NetworkDeleteModal
+        externalOpenInfo={isModalDeleteOpen}
+        setExternalOpenInfo={setIsModalDeleteOpen}
+        openNotification={openNotification}
+        initNetworks={networks}
+        setInitNetworks={setNetworks}
+        clearSelected={clearSelected}
+      />
+      {contextHolder}
     </>
   )
 }
