@@ -1,3 +1,4 @@
+/* eslint-disable max-lines-per-function */
 /* eslint-disable react/no-unstable-nested-components */
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
@@ -51,6 +52,8 @@ export const NetworksList: FC = () => {
   const [searchText, setSearchText] = useState('')
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [cidrSearchText, setCidrSearchText] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sgSearchText, setSgSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [selectedRowsData, setSelectedRowsData] = useState<TNetworkFormWithSg[]>([])
@@ -135,6 +138,20 @@ export const NetworksList: FC = () => {
       dataIndex: 'securityGroup',
       key: 'securityGroup',
       width: 'auto',
+      filteredValue: filteredInfo.securityGroup || null,
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        <FilterDropdown
+          setSelectedKeys={setSelectedKeys}
+          selectedKeys={selectedKeys}
+          confirm={confirm}
+          clearFilters={clearFilters}
+          close={close}
+          setSearchText={setSgSearchText}
+        />
+      ),
+      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      onFilter: (value, { securityGroup }) =>
+        securityGroup ? securityGroup?.toLowerCase().includes((value as string).toLowerCase()) : false,
     },
     {
       title: '',
