@@ -1,10 +1,15 @@
 import styled from 'styled-components'
-import { Layout } from 'antd'
+import { PositionSticky } from 'components'
 
-const Container = styled(Layout)`
+const Container = styled.div`
   min-height: 100vh;
+`
+
+const PositionStickyWithNoUserSelect = styled(PositionSticky)`
+  user-select: none;
 `
 
 export const Styled = {
   Container,
+  PositionStickyWithNoUserSelect,
 }

@@ -1,9 +1,9 @@
 import React, { FC } from 'react'
-import { LeftMenuTemplate } from 'templates'
+import { BaseTemplate } from 'templates'
 import { NetworksList } from 'components'
 
 export const NetworksPage: FC = () => (
-  <LeftMenuTemplate>
+  <BaseTemplate>
     <NetworksList />
-  </LeftMenuTemplate>
+  </BaseTemplate>
 )

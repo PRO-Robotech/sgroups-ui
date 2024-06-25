@@ -1,22 +1,35 @@
 import styled from 'styled-components'
-import { Button } from 'antd'
+import { Select } from 'antd'
 
-const NetworksContainer = styled.div`
-  max-height: 75px;
-  overflow-y: auto;
+const SelectedItemsText = styled.div`
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  font-size: 16px;
+  line-height: 24px;
 `
 
-const ButtonWithMarginLeft = styled(Button)`
-  margin-left: 10px;
-`
+const UncontrolledSelect = styled(Select)`
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  margin: 0;
 
-const FiltersContainer = styled.div`
-  display: grid;
-  grid-template-columns: 200px 50px;
+  && .ant-select-selector {
+    border: 0;
+    background: none;
+    cursor: default;
+  }
+
+  && .ant-select-selection-overflow-item-rest .ant-select-selection-item {
+    border: 0;
+    background: 0;
+    color: #366af3;
+  }
 `
 
 export const Styled = {
-  NetworksContainer,
-  ButtonWithMarginLeft,
-  FiltersContainer,
+  SelectedItemsText,
+  UncontrolledSelect,
 }
