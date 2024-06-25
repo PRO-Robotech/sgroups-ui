@@ -1,16 +1,13 @@
 import styled from 'styled-components'
-import { Button } from 'antd'
 
-const ButtonWithMarginLeft = styled(Button)`
-  margin-left: 10px;
-`
-
-const FiltersContainer = styled.div`
-  display: grid;
-  grid-template-columns: 200px 50px;
+const SelectedItemsText = styled.div`
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  font-size: 16px;
+  line-height: 24px;
 `
 
 export const Styled = {
-  ButtonWithMarginLeft,
-  FiltersContainer,
+  SelectedItemsText,
 }
