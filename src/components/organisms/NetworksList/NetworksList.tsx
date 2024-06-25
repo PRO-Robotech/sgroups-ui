@@ -1,8 +1,11 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Table, TableProps, PaginationProps, Result, Spin, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import { SearchOutlined } from '@ant-design/icons'
 import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
+import ipRangeCheck from 'ip-range-check'
 import {
   TitleWithNoMargins,
   CustomEmpty,
@@ -22,6 +25,7 @@ import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetworkWithSg, TNetworkFormWithSg } from 'localTypes/networks'
 import { TSecurityGroup } from 'localTypes/securityGroups'
+import { FilterDropdown } from './atoms'
 import { Styled } from './styled'
 
 type TColumn = TNetworkFormWithSg & {
@@ -45,6 +49,8 @@ export const NetworksList: FC = () => {
   const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkFormWithSg | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [cidrSearchText, setCidrSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [selectedRowsData, setSelectedRowsData] = useState<TNetworkFormWithSg[]>([])
@@ -75,13 +81,9 @@ export const NetworksList: FC = () => {
       })
   }, [])
 
-  useEffect(() => {
-    setFilteredInfo({ name: searchText ? [searchText] : null })
-  }, [searchText])
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChange: OnChange = (pagination, filters, sorter, extra) => {
-    setFilteredInfo(filters)
+    setFilteredInfo({ ...filters, name: searchText ? [searchText] : null })
   }
 
   const openNotification = (msg: string) => {
@@ -113,6 +115,20 @@ export const NetworksList: FC = () => {
       dataIndex: 'CIDR',
       key: 'CIDR',
       width: '33%',
+      filteredValue: filteredInfo.CIDR || null,
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        <FilterDropdown
+          setSelectedKeys={setSelectedKeys}
+          selectedKeys={selectedKeys}
+          confirm={confirm}
+          clearFilters={clearFilters}
+          close={close}
+          setSearchText={setCidrSearchText}
+        />
+      ),
+      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      onFilter: (value, { CIDR }) =>
+        ipRangeCheck(value as string, CIDR) || CIDR.toLowerCase().includes((value as string).toLowerCase()),
     },
     {
       title: 'SecurityGroup',
@@ -186,6 +202,7 @@ export const NetworksList: FC = () => {
               value={searchText}
               onChange={e => {
                 setSearchText(e.target.value)
+                setFilteredInfo({ ...filteredInfo, name: e.target.value ? [e.target.value] : null })
               }}
             />
           </Layouts.SearchControl>
