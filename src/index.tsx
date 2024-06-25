@@ -26,6 +26,9 @@ root.render(
           subMenuItemBg: '#F0F0F0',
           iconMarginInlineEnd: 16,
         },
+        Modal: {
+          titleFontSize: 20,
+        },
       },
     }}
   >

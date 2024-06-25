@@ -16,9 +16,9 @@ export const BaseTemplate: FC<TBaseTemplateProps> = ({ children }) => (
           <Menu />
         </Styled.PositionStickyWithNoUserSelect>
       </Layout.Sider>
-      <DefaultLayout.LayoutWithPadding>
+      <DefaultLayout.Layout>
         <DefaultLayout.ContentContainer>{children}</DefaultLayout.ContentContainer>
-      </DefaultLayout.LayoutWithPadding>
+      </DefaultLayout.Layout>
     </Layout>
   </Styled.Container>
 )

@@ -49,9 +49,9 @@ export const addSecurityGroup = async (
   )
 }
 
-export const removeSecurityGroup = async (name: string): Promise<AxiosResponse> => {
+export const removeSecurityGroup = async (names: string[]): Promise<AxiosResponse> => {
   const currentSecurityGroups = (await getSecurityGroups()).data.groups
-  const deletedSecurityGroups = [...currentSecurityGroups].filter(el => el.name === name)
+  const deletedSecurityGroups = [...currentSecurityGroups].filter(el => names.includes(el.name))
   return axios.post(
     `${getBaseEndpoint()}/v1/sync`,
     {

@@ -10,8 +10,14 @@ export type TNwResponse = {
 }
 
 export type TNetworkForm = {
-  id: number
   name: string
   CIDR: string
-  validateResult: boolean
+}
+
+export type TNetworkWithSg = TNetwork & {
+  securityGroup?: string
+}
+
+export type TNetworkFormWithSg = TNetworkForm & {
+  securityGroup?: string
 }
