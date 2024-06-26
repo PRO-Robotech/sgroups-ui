@@ -163,7 +163,17 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                     name={[name, 'name']}
                     hasFeedback
                     validateTrigger="onBlur"
-                    rules={[{ required: true, message: 'Please input network name' }]}
+                    rules={[
+                      { required: true, message: 'Please input network name' },
+                      () => ({
+                        validator(_, value: string) {
+                          if (!initNetworks.some(({ name }) => name === value)) {
+                            return Promise.resolve()
+                          }
+                          return Promise.reject(new Error('Please enter unique name'))
+                        },
+                      }),
+                    ]}
                   >
                     <Input placeholder="Enter name" size="large" allowClear />
                   </Styled.ResetedFormItem>

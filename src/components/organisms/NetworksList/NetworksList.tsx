@@ -70,7 +70,7 @@ export const NetworksList: FC = () => {
           ...el,
           securityGroup: sgsResponse.data.groups.find(({ networks }) => networks.includes(el.name))?.name,
         }))
-        setNetworks(enrichedWithSgNetworks)
+        setNetworks(enrichedWithSgNetworks.sort((a, b) => a.name.localeCompare(b.name)))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)

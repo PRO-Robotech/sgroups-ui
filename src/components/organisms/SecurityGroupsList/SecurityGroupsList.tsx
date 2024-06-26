@@ -70,7 +70,7 @@ export const SecurityGroupsList: FC = () => {
             return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
           }),
         }))
-        setSecurityGroups(enrichedWithCidrsSgData)
+        setSecurityGroups(enrichedWithCidrsSgData.sort((a, b) => a.name.localeCompare(b.name)))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
