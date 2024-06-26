@@ -1,13 +1,13 @@
 /* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography, Radio, Select, Switch } from 'antd'
+import { Result, Modal, Form, Input, Typography, Radio, Select } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getNetworks } from 'api/networks'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { TNetwork } from 'localTypes/networks'
-import { Spacer } from 'components'
+import { CustomMiddleSwitch, Spacer } from 'components'
 import { Styled } from './styled'
 
 type TSecurityGroupEditModalProps = {
@@ -192,11 +192,11 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
         <Styled.ResetedFormItem name="logs" label="Logs" colon={false}>
-          <Switch />
+          <CustomMiddleSwitch />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
         <Styled.ResetedFormItem name="trace" label="Trace" colon={false}>
-          <Switch />
+          <CustomMiddleSwitch />
         </Styled.ResetedFormItem>
       </Form>
     </Modal>

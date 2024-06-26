@@ -2,7 +2,7 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
-import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag, Switch, Popover } from 'antd'
+import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag, Popover } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined } from '@ant-design/icons'
 import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
@@ -20,6 +20,7 @@ import {
   Layouts,
   FlexButton,
   FilterDropdown,
+  CustomMiddleSwitch,
 } from 'components'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
@@ -231,7 +232,9 @@ export const SecurityGroupsList: FC = () => {
       dataIndex: 'logs',
       key: 'logs',
       width: 140,
-      render: (_, record) => <Switch value={record.logs} onChange={checked => changeLogsValueInSg(record, checked)} />,
+      render: (_, record) => (
+        <CustomMiddleSwitch value={record.logs} onChange={checked => changeLogsValueInSg(record, checked)} />
+      ),
       sorter: (a, b) => {
         if (a.logs === b.logs) {
           return 0
@@ -244,7 +247,7 @@ export const SecurityGroupsList: FC = () => {
       dataIndex: 'trace',
       key: 'trace',
       width: 140,
-      render: (_, { trace }) => <Switch value={trace} disabled />,
+      render: (_, { trace }) => <CustomMiddleSwitch value={trace} disabled />,
       sorter: (a, b) => {
         if (a.trace === b.trace) {
           return 0
