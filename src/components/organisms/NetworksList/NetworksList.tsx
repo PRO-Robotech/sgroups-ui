@@ -19,6 +19,7 @@ import {
   TableComponents,
   Layouts,
   FlexButton,
+  FilterDropdown,
 } from 'components'
 import { getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
@@ -26,7 +27,6 @@ import { ITEMS_PER_PAGE } from 'constants/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetworkWithSg, TNetworkFormWithSg } from 'localTypes/networks'
 import { TSecurityGroup } from 'localTypes/securityGroups'
-import { FilterDropdown } from './atoms'
 import { Styled } from './styled'
 
 type TColumn = TNetworkFormWithSg & {
@@ -112,6 +112,7 @@ export const NetworksList: FC = () => {
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
       width: '33%',
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: 'CIDR',
@@ -132,6 +133,7 @@ export const NetworksList: FC = () => {
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
       onFilter: (value, { CIDR }) =>
         ipRangeCheck(value as string, CIDR) || CIDR.toLowerCase().includes((value as string).toLowerCase()),
+      sorter: (a, b) => a.CIDR.localeCompare(b.CIDR),
     },
     {
       title: 'SecurityGroup',
@@ -152,6 +154,12 @@ export const NetworksList: FC = () => {
       filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
       onFilter: (value, { securityGroup }) =>
         securityGroup ? securityGroup?.toLowerCase().includes((value as string).toLowerCase()) : false,
+      sorter: (a, b) => {
+        if (a.securityGroup && b.securityGroup) {
+          return a.securityGroup.localeCompare(b.securityGroup)
+        }
+        return a.securityGroup ? 1 : -1
+      },
     },
     {
       title: '',
