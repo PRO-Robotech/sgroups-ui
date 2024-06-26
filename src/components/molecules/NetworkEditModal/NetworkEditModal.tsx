@@ -1,4 +1,5 @@
 /* eslint-disable max-lines-per-function */
+/* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Modal, Form, Input, Typography, Select } from 'antd'
@@ -17,6 +18,7 @@ type TNetworkEditModalProps = {
   initNetworks: TNetworkWithSg[]
   setInitNetworks: Dispatch<SetStateAction<TNetworkWithSg[]>>
   options: TSecurityGroup[]
+  setOptions: Dispatch<SetStateAction<TSecurityGroup[]>>
   openNotification?: (msg: string) => void
 }
 
@@ -27,6 +29,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
   initNetworks,
   setInitNetworks,
   options,
+  setOptions,
 }) => {
   const [form] = Form.useForm<TNetworkFormWithSg>()
   const CIDR = Form.useWatch<string>('CIDR', form)
@@ -60,6 +63,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
               /* if initial sg existed, unbind and then bind new one */
               if (externalOpenInfo.securityGroup) {
                 const initialSg = options.find(({ name }) => name === externalOpenInfo.securityGroup)
+                const initialSgIndex = options.findIndex(({ name }) => name === externalOpenInfo.securityGroup)
                 if (initialSg) {
                   addSecurityGroup(
                     initialSg.name,
@@ -69,9 +73,16 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
                     initialSg.trace,
                   )
                     .then(() => {
+                      const newOptions = [...options]
+                      newOptions[initialSgIndex] = {
+                        ...newOptions[initialSgIndex],
+                        networks: newOptions[initialSgIndex].networks.filter(el => el !== formName),
+                      }
+                      setOptions(newOptions)
                       /* bind new one if new one exists */
                       if (securityGroup) {
                         const selectedSg = options.find(({ name }) => name === securityGroup)
+                        const selectedSgIndex = options.findIndex(({ name }) => name === securityGroup)
                         if (selectedSg) {
                           addSecurityGroup(
                             selectedSg.name,
@@ -81,6 +92,12 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
                             selectedSg.trace,
                           )
                             .then(() => {
+                              const newOptions = [...options]
+                              newOptions[selectedSgIndex] = {
+                                ...newOptions[selectedSgIndex],
+                                networks: [...newOptions[selectedSgIndex].networks, formName],
+                              }
+                              setOptions(newOptions)
                               setIsLoading(false)
                               setError(undefined)
                               setExternalOpenInfo(false)
@@ -137,6 +154,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
               } else if (securityGroup) {
                 /* no initial sg: just bind new one */
                 const selectedSg = options.find(({ name }) => name === securityGroup)
+                const selectedSgIndex = options.findIndex(({ name }) => name === securityGroup)
                 if (selectedSg) {
                   addSecurityGroup(
                     selectedSg.name,
@@ -146,6 +164,12 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
                     selectedSg.trace,
                   )
                     .then(() => {
+                      const newOptions = [...options]
+                      newOptions[selectedSgIndex] = {
+                        ...newOptions[selectedSgIndex],
+                        networks: [...newOptions[selectedSgIndex].networks, formName],
+                      }
+                      setOptions(newOptions)
                       setIsLoading(false)
                       setError(undefined)
                       setExternalOpenInfo(false)

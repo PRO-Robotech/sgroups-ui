@@ -278,6 +278,7 @@ export const NetworksList: FC = () => {
         initNetworks={networks}
         setInitNetworks={setNetworks}
         options={securityGroups}
+        setOptions={setSecurityGroups}
       />
       <NetworkEditModal
         externalOpenInfo={isModalEditOpen}
@@ -286,6 +287,7 @@ export const NetworksList: FC = () => {
         initNetworks={networks}
         setInitNetworks={setNetworks}
         options={securityGroups}
+        setOptions={setSecurityGroups}
       />
       <NetworkDeleteModal
         externalOpenInfo={isModalDeleteOpen}
@@ -294,6 +296,8 @@ export const NetworksList: FC = () => {
         initNetworks={networks}
         setInitNetworks={setNetworks}
         clearSelected={clearSelected}
+        securityGroups={securityGroups}
+        setSecurityGroups={setSecurityGroups}
       />
       {contextHolder}
     </>

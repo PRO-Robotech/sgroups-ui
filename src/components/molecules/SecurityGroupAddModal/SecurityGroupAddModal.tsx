@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Modal, Form, Input, Typography, Radio, Select, Switch } from 'antd'

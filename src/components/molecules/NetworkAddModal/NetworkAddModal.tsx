@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Modal, Form, Input, Button, Typography, Select } from 'antd'
@@ -17,6 +18,7 @@ type TNetworkAddModalProps = {
   initNetworks: TNetworkWithSg[]
   setInitNetworks: Dispatch<SetStateAction<TNetworkWithSg[]>>
   options: TSecurityGroup[]
+  setOptions: Dispatch<SetStateAction<TSecurityGroup[]>>
   openNotification?: (msg: string) => void
 }
 
@@ -27,6 +29,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
   initNetworks,
   setInitNetworks,
   options,
+  setOptions,
 }) => {
   const [addForm] = Form.useForm<{ networks: TNetworkForm[]; securityGroup: string }>()
   const networks = Form.useWatch<TNetworkForm[]>('networks', addForm)
@@ -61,6 +64,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
           .then(() => {
             if (securityGroup) {
               const selectedSg = options.find(({ name }) => name === securityGroup)
+              const selectedSgIndex = options.findIndex(({ name }) => name === securityGroup)
               if (selectedSg) {
                 addSecurityGroup(
                   selectedSg.name,
@@ -70,6 +74,12 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                   selectedSg.trace,
                 )
                   .then(() => {
+                    const newOptions = [...options]
+                    newOptions[selectedSgIndex] = {
+                      ...newOptions[selectedSgIndex],
+                      networks: [...newOptions[selectedSgIndex].networks, ...networks.map(({ name }) => name)],
+                    }
+                    setOptions(newOptions)
                     setIsLoading(false)
                     setError(undefined)
                     setExternalOpenInfo(false)
