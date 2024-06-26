@@ -198,7 +198,7 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
             }
           })
       })
-      .catch(() => setError({ status: 'Error while validating' }))
+      .catch(() => console.log('Validating error'))
   }
 
   if (typeof externalOpenInfo === 'boolean') {

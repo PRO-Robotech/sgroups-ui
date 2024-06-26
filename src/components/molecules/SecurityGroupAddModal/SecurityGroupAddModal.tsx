@@ -100,7 +100,7 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
             }
           })
       })
-      .catch(() => setError({ status: 'Error while validating' }))
+      .catch(() => console.log('Validating error'))
   }
 
   return (

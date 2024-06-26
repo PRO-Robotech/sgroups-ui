@@ -1,4 +1,4 @@
-import React, { FC, useState, Dispatch, SetStateAction } from 'react'
+import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Modal, Form, Input, Button, Typography, Select } from 'antd'
 import { TrashSimple, Plus } from '@phosphor-icons/react'
@@ -33,6 +33,17 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
   const securityGroup = Form.useWatch<string>('securityGroup', addForm)
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isOkButtonDisabled, setIsOkButtonDisabled] = useState<boolean>(true)
+
+  useEffect(() => {
+    setIsOkButtonDisabled(
+      !networks ||
+        networks.length === 0 ||
+        networks.some(
+          ({ name, CIDR }) => name === undefined || name.length === 0 || CIDR === undefined || CIDR.length === 0,
+        ),
+    )
+  }, [networks])
 
   const openNwNotification = (isMany: boolean) => {
     if (openNotification) {
@@ -105,7 +116,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
             }
           })
       })
-      .catch(() => setError({ status: 'Error while validating' }))
+      .catch(() => console.log('Validating error'))
   }
 
   return (
@@ -122,12 +133,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
       okText="Add"
       confirmLoading={isLoading}
       okButtonProps={{
-        disabled:
-          !networks ||
-          networks.length === 0 ||
-          networks.some(
-            ({ name, CIDR }) => name === undefined || name.length === 0 || CIDR === undefined || CIDR.length === 0,
-          ),
+        disabled: isOkButtonDisabled,
       }}
     >
       <Spacer $space={16} $samespace />
