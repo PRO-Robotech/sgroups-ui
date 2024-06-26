@@ -96,10 +96,12 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
             const index = newSecurityGroups.findIndex(el => el.name === values.name)
             const enrichedWithNWNameValues = {
               ...values,
-              networks: values.networks.map(nw => {
-                const nwData = nwResponse.find(entry => entry.name === nw)
-                return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
-              }),
+              networks: values.networks
+                .map(el => el.split(' : ')[0])
+                .map(nw => {
+                  const nwData = nwResponse.find(entry => entry.name === nw)
+                  return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
+                }),
             }
             newSecurityGroups[index] = { ...newSecurityGroups[index], ...enrichedWithNWNameValues }
             setInitSecurityGroups([...newSecurityGroups])

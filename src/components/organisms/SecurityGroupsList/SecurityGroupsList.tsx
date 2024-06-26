@@ -186,7 +186,7 @@ export const SecurityGroupsList: FC = () => {
         <Styled.UncontrolledSelect
           mode="multiple"
           maxTagCount="responsive"
-          defaultValue={networks.map(el => ({ label: el, value: el }))}
+          value={networks.map(el => ({ label: el, value: el }))}
           options={networks.map(el => ({ label: el, value: el }))}
           dropdownStyle={{ display: 'none' }}
           open={false}
