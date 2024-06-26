@@ -190,7 +190,13 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                 </Styled.FormItemsContainer>
               ))}
               <Styled.ResetedFormItem>
-                <FlexButton size="large" type="dashed" onClick={() => add()} block icon={<Plus size={24} />}>
+                <FlexButton
+                  size="large"
+                  type="dashed"
+                  onClick={() => add({ name: '', CIDR: '' })}
+                  block
+                  icon={<Plus size={24} />}
+                >
                   Add More
                 </FlexButton>
               </Styled.ResetedFormItem>
