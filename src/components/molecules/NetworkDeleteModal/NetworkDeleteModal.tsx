@@ -4,12 +4,15 @@ import { Result, Modal } from 'antd'
 import { removeNetwork } from 'api/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork, TNetworkForm } from 'localTypes/networks'
+import { TSecurityGroup } from 'localTypes/securityGroups'
 
 type TNetworkDeleteModalProps = {
   externalOpenInfo: TNetworkForm[] | boolean
   setExternalOpenInfo: Dispatch<SetStateAction<TNetworkForm[] | boolean>>
   initNetworks: TNetwork[]
   setInitNetworks: Dispatch<SetStateAction<TNetwork[]>>
+  securityGroups: TSecurityGroup[]
+  setSecurityGroups: Dispatch<SetStateAction<TSecurityGroup[]>>
   clearSelected: () => void
   openNotification?: (msg: string) => void
 }
@@ -20,6 +23,8 @@ export const NetworkDeleteModal: FC<TNetworkDeleteModalProps> = ({
   initNetworks,
   clearSelected,
   setInitNetworks,
+  securityGroups,
+  setSecurityGroups,
   openNotification,
 }) => {
   const [error, setError] = useState<TRequestError | undefined>()
@@ -32,6 +37,11 @@ export const NetworkDeleteModal: FC<TNetworkDeleteModalProps> = ({
       const names = externalOpenInfo.map(({ name }) => name)
       removeNetwork(names)
         .then(() => {
+          const newSecurityGroups = [...securityGroups].map(el => ({
+            ...el,
+            networks: el.networks.filter(nw => !names.includes(nw)),
+          }))
+          setSecurityGroups(newSecurityGroups)
           setIsLoading(false)
           setError(undefined)
           setExternalOpenInfo(false)
