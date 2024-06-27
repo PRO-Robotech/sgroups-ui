@@ -1,8 +1,12 @@
+/* eslint-disable max-lines-per-function */
+/* eslint-disable react/no-unstable-nested-components */
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
 import { Button, Table, TableProps, PaginationProps, Result, Spin, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import { SearchOutlined } from '@ant-design/icons'
 import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
+import ipRangeCheck from 'ip-range-check'
 import {
   TitleWithNoMargins,
   CustomEmpty,
@@ -15,6 +19,7 @@ import {
   TableComponents,
   Layouts,
   FlexButton,
+  FilterDropdown,
 } from 'components'
 import { getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
@@ -45,6 +50,10 @@ export const NetworksList: FC = () => {
   const [isModalEditOpen, setIsModalEditOpen] = useState<TNetworkFormWithSg | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [cidrSearchText, setCidrSearchText] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [sgSearchText, setSgSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [selectedRowsData, setSelectedRowsData] = useState<TNetworkFormWithSg[]>([])
@@ -61,7 +70,7 @@ export const NetworksList: FC = () => {
           ...el,
           securityGroup: sgsResponse.data.groups.find(({ networks }) => networks.includes(el.name))?.name,
         }))
-        setNetworks(enrichedWithSgNetworks)
+        setNetworks(enrichedWithSgNetworks.sort((a, b) => a.name.localeCompare(b.name)))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -75,13 +84,9 @@ export const NetworksList: FC = () => {
       })
   }, [])
 
-  useEffect(() => {
-    setFilteredInfo({ name: searchText ? [searchText] : null })
-  }, [searchText])
-
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleChange: OnChange = (pagination, filters, sorter, extra) => {
-    setFilteredInfo(filters)
+    setFilteredInfo({ ...filters, name: searchText ? [searchText] : null })
   }
 
   const openNotification = (msg: string) => {
@@ -107,18 +112,54 @@ export const NetworksList: FC = () => {
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
       width: '33%',
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: 'CIDR',
       dataIndex: 'CIDR',
       key: 'CIDR',
       width: '33%',
+      filteredValue: filteredInfo.CIDR || null,
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        <FilterDropdown
+          setSelectedKeys={setSelectedKeys}
+          selectedKeys={selectedKeys}
+          confirm={confirm}
+          clearFilters={clearFilters}
+          close={close}
+          setSearchText={setCidrSearchText}
+        />
+      ),
+      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      onFilter: (value, { CIDR }) =>
+        ipRangeCheck(value as string, CIDR) || CIDR.toLowerCase().includes((value as string).toLowerCase()),
+      sorter: (a, b) => a.CIDR.localeCompare(b.CIDR),
     },
     {
       title: 'SecurityGroup',
       dataIndex: 'securityGroup',
       key: 'securityGroup',
       width: 'auto',
+      filteredValue: filteredInfo.securityGroup || null,
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        <FilterDropdown
+          setSelectedKeys={setSelectedKeys}
+          selectedKeys={selectedKeys}
+          confirm={confirm}
+          clearFilters={clearFilters}
+          close={close}
+          setSearchText={setSgSearchText}
+        />
+      ),
+      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      onFilter: (value, { securityGroup }) =>
+        securityGroup ? securityGroup?.toLowerCase().includes((value as string).toLowerCase()) : false,
+      sorter: (a, b) => {
+        if (a.securityGroup && b.securityGroup) {
+          return a.securityGroup.localeCompare(b.securityGroup)
+        }
+        return a.securityGroup ? 1 : -1
+      },
     },
     {
       title: '',
@@ -186,6 +227,7 @@ export const NetworksList: FC = () => {
               value={searchText}
               onChange={e => {
                 setSearchText(e.target.value)
+                setFilteredInfo({ ...filteredInfo, name: e.target.value ? [e.target.value] : null })
               }}
             />
           </Layouts.SearchControl>
@@ -236,6 +278,7 @@ export const NetworksList: FC = () => {
         initNetworks={networks}
         setInitNetworks={setNetworks}
         options={securityGroups}
+        setOptions={setSecurityGroups}
       />
       <NetworkEditModal
         externalOpenInfo={isModalEditOpen}
@@ -244,6 +287,7 @@ export const NetworksList: FC = () => {
         initNetworks={networks}
         setInitNetworks={setNetworks}
         options={securityGroups}
+        setOptions={setSecurityGroups}
       />
       <NetworkDeleteModal
         externalOpenInfo={isModalDeleteOpen}
@@ -252,6 +296,8 @@ export const NetworksList: FC = () => {
         initNetworks={networks}
         setInitNetworks={setNetworks}
         clearSelected={clearSelected}
+        securityGroups={securityGroups}
+        setSecurityGroups={setSecurityGroups}
       />
       {contextHolder}
     </>

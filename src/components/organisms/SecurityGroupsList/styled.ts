@@ -15,6 +15,23 @@ const UncontrolledSelect = styled(Select)`
   border: 0;
   padding: 0;
   margin: 0;
+  cursor: default;
+
+  && input {
+    cursor: default !important;
+  }
+
+  && .ant-select-selector,
+  && .ant-select-focused .ant-select-selector,
+  && .ant-select-selector:focus,
+  && .ant-select-selector:active,
+  && .ant-select-open .ant-select-selector {
+    outline: none !important;
+    outline-color: transparent !important;
+    box-shadow: none !important;
+    border-color: transparent !important;
+    border: 0 !important;
+  }
 
   && .ant-select-selector {
     border: 0;

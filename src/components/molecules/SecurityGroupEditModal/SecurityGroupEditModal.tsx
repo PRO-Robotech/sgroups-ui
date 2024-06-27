@@ -1,12 +1,13 @@
+/* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography, Radio, Select, Switch } from 'antd'
+import { Result, Modal, Form, Input, Typography, Radio, Select } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getNetworks } from 'api/networks'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { TNetwork } from 'localTypes/networks'
-import { Spacer } from 'components'
+import { CustomMiddleSwitch, Spacer } from 'components'
 import { Styled } from './styled'
 
 type TSecurityGroupEditModalProps = {
@@ -96,10 +97,12 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
             const index = newSecurityGroups.findIndex(el => el.name === values.name)
             const enrichedWithNWNameValues = {
               ...values,
-              networks: values.networks.map(nw => {
-                const nwData = nwResponse.find(entry => entry.name === nw)
-                return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
-              }),
+              networks: values.networks
+                .map(el => el.split(' : ')[0])
+                .map(nw => {
+                  const nwData = nwResponse.find(entry => entry.name === nw)
+                  return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
+                }),
             }
             newSecurityGroups[index] = { ...newSecurityGroups[index], ...enrichedWithNWNameValues }
             setInitSecurityGroups([...newSecurityGroups])
@@ -115,7 +118,7 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
             }
           })
       })
-      .catch(() => setError({ status: 'Error while validating' }))
+      .catch(() => console.log('Validating error'))
   }
 
   if (typeof externalOpenInfo === 'boolean') {
@@ -189,11 +192,11 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
         <Styled.ResetedFormItem name="logs" label="Logs" colon={false}>
-          <Switch />
+          <CustomMiddleSwitch />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
         <Styled.ResetedFormItem name="trace" label="Trace" colon={false}>
-          <Switch />
+          <CustomMiddleSwitch />
         </Styled.ResetedFormItem>
       </Form>
     </Modal>

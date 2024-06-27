@@ -1,12 +1,13 @@
+/* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography, Radio, Select, Switch } from 'antd'
+import { Result, Modal, Form, Input, Typography, Radio, Select } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getNetworks } from 'api/networks'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { TSecurityGroup } from 'localTypes/securityGroups'
 import { TNetwork } from 'localTypes/networks'
-import { Spacer } from 'components'
+import { Spacer, CustomMiddleSwitch } from 'components'
 import { Styled } from './styled'
 
 type TSecurityGroupAddModalProps = {
@@ -100,7 +101,7 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
             }
           })
       })
-      .catch(() => setError({ status: 'Error while validating' }))
+      .catch(() => console.log('Validating error'))
   }
 
   return (
@@ -185,11 +186,11 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
         <Styled.ResetedFormItem valuePropName="checked" name="logs" label="Logs" colon={false}>
-          <Switch />
+          <CustomMiddleSwitch />
         </Styled.ResetedFormItem>
         <Spacer $space={16} $samespace />
         <Styled.ResetedFormItem valuePropName="checked" name="trace" label="Trace" colon={false}>
-          <Switch />
+          <CustomMiddleSwitch />
         </Styled.ResetedFormItem>
       </Form>
     </Modal>
