@@ -2,9 +2,11 @@
 /* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect } from 'react'
 import { AxiosError } from 'axios'
-import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag, Switch, Popover } from 'antd'
+import { Button, Table, TableProps, PaginationProps, Result, Spin, notification, Tag, Popover } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
+import { SearchOutlined } from '@ant-design/icons'
 import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
+import ipRangeCheck from 'ip-range-check'
 import {
   TitleWithNoMargins,
   CustomEmpty,
@@ -17,6 +19,8 @@ import {
   TableComponents,
   Layouts,
   FlexButton,
+  FilterDropdown,
+  CustomMiddleSwitch,
 } from 'components'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
 import { getNetworks } from 'api/networks'
@@ -47,6 +51,8 @@ export const SecurityGroupsList: FC = () => {
   const [isModalEditOpen, setIsModalEditOpen] = useState<TSecurityGroup | boolean>(false)
 
   const [searchText, setSearchText] = useState('')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [nwSearchText, setNwSearchText] = useState('')
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([])
   const [selectedRowsData, setSelectedRowsData] = useState<TSecurityGroup[]>([])
@@ -65,7 +71,7 @@ export const SecurityGroupsList: FC = () => {
             return nwData ? `${nwData.name} : ${nwData.network.CIDR}` : `${nw} : null`
           }),
         }))
-        setSecurityGroups(enrichedWithCidrsSgData)
+        setSecurityGroups(enrichedWithCidrsSgData.sort((a, b) => a.name.localeCompare(b.name)))
       })
       .catch((error: AxiosError<TRequestErrorData>) => {
         setIsLoading(false)
@@ -141,19 +147,47 @@ export const SecurityGroupsList: FC = () => {
       title: 'Name',
       dataIndex: 'name',
       key: 'name',
+      width: 350,
       filteredValue: filteredInfo.name || null,
       onFilter: (value, { name }) => name.toLowerCase().includes((value as string).toLowerCase()),
-      width: 350,
+      sorter: (a, b) => a.name.localeCompare(b.name),
     },
     {
       title: 'Networks',
       dataIndex: 'networks',
       key: 'networks',
+      sorter: (a, b) => {
+        if (a.networks.length === b.networks.length) {
+          return 0
+        }
+        return a.networks.length > b.networks.length ? -1 : 1
+      },
+      filteredValue: filteredInfo.networks || null,
+      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+        <FilterDropdown
+          setSelectedKeys={setSelectedKeys}
+          selectedKeys={selectedKeys}
+          confirm={confirm}
+          clearFilters={clearFilters}
+          close={close}
+          setSearchText={setNwSearchText}
+        />
+      ),
+      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      onFilter: (value, { networks }) => {
+        const nwsName = networks.map(el => el.split(' : ')[0])
+        const nws = networks.map(el => el.split(' : ')[1])
+        return (
+          nws.some(
+            el => ipRangeCheck(value as string, el) || el.toLowerCase().includes((value as string).toLowerCase()),
+          ) || nwsName.some(el => el.toLowerCase().includes((value as string).toLowerCase()))
+        )
+      },
       render: (_, { networks }) => (
         <Styled.UncontrolledSelect
           mode="multiple"
           maxTagCount="responsive"
-          defaultValue={networks.map(el => ({ label: el, value: el }))}
+          value={networks.map(el => ({ label: el, value: el }))}
           options={networks.map(el => ({ label: el, value: el }))}
           dropdownStyle={{ display: 'none' }}
           open={false}
@@ -186,20 +220,40 @@ export const SecurityGroupsList: FC = () => {
       render: (_, { defaultAction }) => (
         <Tag color={defaultAction === 'ACCEPT' ? 'success' : 'error'}>{defaultAction}</Tag>
       ),
+      sorter: (a, b) => {
+        if (a.defaultAction === b.defaultAction) {
+          return 0
+        }
+        return a.defaultAction === 'DROP' ? -1 : 1
+      },
     },
     {
       title: 'Logs',
       dataIndex: 'logs',
       key: 'logs',
       width: 140,
-      render: (_, record) => <Switch value={record.logs} onChange={checked => changeLogsValueInSg(record, checked)} />,
+      render: (_, record) => (
+        <CustomMiddleSwitch value={record.logs} onChange={checked => changeLogsValueInSg(record, checked)} />
+      ),
+      sorter: (a, b) => {
+        if (a.logs === b.logs) {
+          return 0
+        }
+        return a.logs ? -1 : 1
+      },
     },
     {
       title: 'Trace',
       dataIndex: 'trace',
       key: 'trace',
       width: 140,
-      render: (_, { trace }) => <Switch value={trace} disabled />,
+      render: (_, { trace }) => <CustomMiddleSwitch value={trace} disabled />,
+      sorter: (a, b) => {
+        if (a.trace === b.trace) {
+          return 0
+        }
+        return a.trace ? -1 : 1
+      },
     },
     {
       title: '',
