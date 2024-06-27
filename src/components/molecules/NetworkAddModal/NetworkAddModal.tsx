@@ -1,4 +1,5 @@
-import React, { FC, useState, Dispatch, SetStateAction } from 'react'
+/* eslint-disable no-console */
+import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
 import { Result, Modal, Form, Input, Button, Typography, Select } from 'antd'
 import { TrashSimple, Plus } from '@phosphor-icons/react'
@@ -17,6 +18,7 @@ type TNetworkAddModalProps = {
   initNetworks: TNetworkWithSg[]
   setInitNetworks: Dispatch<SetStateAction<TNetworkWithSg[]>>
   options: TSecurityGroup[]
+  setOptions: Dispatch<SetStateAction<TSecurityGroup[]>>
   openNotification?: (msg: string) => void
 }
 
@@ -27,12 +29,24 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
   initNetworks,
   setInitNetworks,
   options,
+  setOptions,
 }) => {
   const [addForm] = Form.useForm<{ networks: TNetworkForm[]; securityGroup: string }>()
   const networks = Form.useWatch<TNetworkForm[]>('networks', addForm)
   const securityGroup = Form.useWatch<string>('securityGroup', addForm)
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [isOkButtonDisabled, setIsOkButtonDisabled] = useState<boolean>(true)
+
+  useEffect(() => {
+    setIsOkButtonDisabled(
+      !networks ||
+        networks.length === 0 ||
+        networks.some(
+          ({ name, CIDR }) => name === undefined || name.length === 0 || CIDR === undefined || CIDR.length === 0,
+        ),
+    )
+  }, [networks])
 
   const openNwNotification = (isMany: boolean) => {
     if (openNotification) {
@@ -50,6 +64,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
           .then(() => {
             if (securityGroup) {
               const selectedSg = options.find(({ name }) => name === securityGroup)
+              const selectedSgIndex = options.findIndex(({ name }) => name === securityGroup)
               if (selectedSg) {
                 addSecurityGroup(
                   selectedSg.name,
@@ -59,6 +74,12 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                   selectedSg.trace,
                 )
                   .then(() => {
+                    const newOptions = [...options]
+                    newOptions[selectedSgIndex] = {
+                      ...newOptions[selectedSgIndex],
+                      networks: [...newOptions[selectedSgIndex].networks, ...networks.map(({ name }) => name)],
+                    }
+                    setOptions(newOptions)
                     setIsLoading(false)
                     setError(undefined)
                     setExternalOpenInfo(false)
@@ -105,7 +126,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
             }
           })
       })
-      .catch(() => setError({ status: 'Error while validating' }))
+      .catch(() => console.log('Validating error'))
   }
 
   return (
@@ -122,12 +143,7 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
       okText="Add"
       confirmLoading={isLoading}
       okButtonProps={{
-        disabled:
-          !networks ||
-          networks.length === 0 ||
-          networks.some(
-            ({ name, CIDR }) => name === undefined || name.length === 0 || CIDR === undefined || CIDR.length === 0,
-          ),
+        disabled: isOkButtonDisabled,
       }}
     >
       <Spacer $space={16} $samespace />
@@ -157,7 +173,17 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                     name={[name, 'name']}
                     hasFeedback
                     validateTrigger="onBlur"
-                    rules={[{ required: true, message: 'Please input network name' }]}
+                    rules={[
+                      { required: true, message: 'Please input network name' },
+                      () => ({
+                        validator(_, value: string) {
+                          if (!initNetworks.some(({ name }) => name === value)) {
+                            return Promise.resolve()
+                          }
+                          return Promise.reject(new Error('Please enter unique name'))
+                        },
+                      }),
+                    ]}
                   >
                     <Input placeholder="Enter name" size="large" allowClear />
                   </Styled.ResetedFormItem>
@@ -190,7 +216,13 @@ export const NetworkAddModal: FC<TNetworkAddModalProps> = ({
                 </Styled.FormItemsContainer>
               ))}
               <Styled.ResetedFormItem>
-                <FlexButton size="large" type="dashed" onClick={() => add()} block icon={<Plus size={24} />}>
+                <FlexButton
+                  size="large"
+                  type="dashed"
+                  onClick={() => add({ name: '', CIDR: '' })}
+                  block
+                  icon={<Plus size={24} />}
+                >
                   Add More
                 </FlexButton>
               </Styled.ResetedFormItem>
