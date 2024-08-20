@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography, Radio, Select } from 'antd'
+import { Alert, Modal, Form, Input, Typography, Radio, Select } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getNetworks } from 'api/networks'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
@@ -48,7 +48,11 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
         }))
         const unavailableNetworksName = allSgsResponse.data.groups.flatMap(({ networks }) => networks)
         const availableNetworks = allNetworksNameAndCidrs.filter(el => !unavailableNetworksName.includes(el.name))
-        setNetworkOptions(availableNetworks.map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name })))
+        setNetworkOptions(
+          availableNetworks
+            .map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name }))
+            .sort((a, b) => a.label.localeCompare(b.label)),
+        )
         const unavailableSGName = allSgsResponse.data.groups.map(({ name }) => name)
         setUnavailableSGNames(unavailableSGName)
         setIsLoading(false)
@@ -123,10 +127,12 @@ export const SecurityGroupAddModal: FC<TSecurityGroupAddModalProps> = ({
     >
       <Spacer $space={16} $samespace />
       {error && (
-        <Result
-          status="error"
-          title={error.status}
-          subTitle={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
+        <Alert
+          message={error.status}
+          description={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
+          type="error"
+          showIcon
+          closable
         />
       )}
       <Form

@@ -7,7 +7,7 @@ const Container = styled.div`
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 100%;
+  margin-top: calc((100vh - 65px - 57px) / 2 - 26px);
 `
 
 const Icon = styled(InfoCircleOutlined)`

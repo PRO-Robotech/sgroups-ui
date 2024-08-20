@@ -117,7 +117,7 @@ export const SecurityGroupsList: FC = () => {
       sg.trace,
     )
       .then(() => {
-        openNotification('Changes Saved')
+        // openNotification('Changes Saved')
         const newSecurityGroups = [...securityGroups]
         const editedIndex = newSecurityGroups.findIndex(({ name }) => name === sg.name)
         newSecurityGroups[editedIndex] = { ...newSecurityGroups[editedIndex], logs }

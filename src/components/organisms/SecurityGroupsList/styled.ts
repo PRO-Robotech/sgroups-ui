@@ -12,12 +12,13 @@ const SelectedItemsText = styled.div`
 const UncontrolledSelect = styled(Select)`
   width: 100%;
   height: 100%;
-  border: 0;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  border: 0;
   cursor: default;
 
   && input {
+    /* stylelint-disable declaration-no-important */
     cursor: default !important;
   }
 
@@ -26,23 +27,23 @@ const UncontrolledSelect = styled(Select)`
   && .ant-select-selector:focus,
   && .ant-select-selector:active,
   && .ant-select-open .ant-select-selector {
+    border: 0 !important;
+    border-color: transparent !important;
     outline: none !important;
     outline-color: transparent !important;
     box-shadow: none !important;
-    border-color: transparent !important;
-    border: 0 !important;
   }
 
   && .ant-select-selector {
-    border: 0;
     background: none;
+    border: 0;
     cursor: default;
   }
 
   && .ant-select-selection-overflow-item-rest .ant-select-selection-item {
-    border: 0;
-    background: 0;
     color: #366af3;
+    background: 0;
+    border: 0;
   }
 `
 

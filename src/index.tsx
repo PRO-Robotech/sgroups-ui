@@ -16,14 +16,14 @@ root.render(
       },
       components: {
         Layout: {
-          siderBg: '#F0F0F0',
+          siderBg: '#F9F9F9',
         },
         Menu: {
-          itemBg: '#F0F0F0',
+          itemBg: '#F9F9F9',
           itemActiveBg: 'rgba(0, 0, 0, 0.06)',
           itemSelectedColor: '#222222',
-          itemSelectedBg: 'rgba(0, 0, 0, 0.06)',
-          subMenuItemBg: '#F0F0F0',
+          itemSelectedBg: '#E6EBF8',
+          subMenuItemBg: '#F9F9F9',
           iconMarginInlineEnd: 16,
         },
         Modal: {

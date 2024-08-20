@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography, Radio, Select } from 'antd'
+import { Alert, Modal, Form, Input, Typography, Radio, Select } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getNetworks } from 'api/networks'
 import { addSecurityGroup, getSecurityGroups } from 'api/securityGroups'
@@ -38,7 +38,7 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
 
   useEffect(() => {
     if (typeof externalOpenInfo !== 'boolean') {
-      form.setFieldsValue(externalOpenInfo)
+      form.setFieldsValue({ ...externalOpenInfo, networks: externalOpenInfo.networks.map(el => el.split(' : ')[0]) })
     }
   }, [externalOpenInfo, form])
 
@@ -46,30 +46,37 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
     (option?.label ?? '').toLowerCase().includes(input.toLowerCase())
 
   useEffect(() => {
-    setIsLoading(true)
-    setError(undefined)
-    Promise.all([getNetworks(), getSecurityGroups()])
-      .then(([nwResponse, allSgsResponse]) => {
-        const allNetworksNameAndCidrs = nwResponse.data.networks.map(({ name, network }) => ({
-          name,
-          cidr: network.CIDR,
-        }))
-        const unavailableNetworksName = allSgsResponse.data.groups.flatMap(({ networks }) => networks)
-        const availableNetworks = allNetworksNameAndCidrs.filter(el => !unavailableNetworksName.includes(el.name))
-        setNetworkOptions(availableNetworks.map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name })))
-        setIsLoading(false)
-      })
-      .catch((error: AxiosError<TRequestErrorData>) => {
-        setIsLoading(false)
-        if (error.response) {
-          setError({ status: error.response.status, data: error.response.data })
-        } else if (error.status) {
-          setError({ status: error.status })
-        } else {
-          setError({ status: 'Error while fetching' })
-        }
-      })
-  }, [])
+    if (typeof externalOpenInfo !== 'boolean') {
+      setIsLoading(true)
+      setError(undefined)
+      Promise.all([getNetworks(), getSecurityGroups()])
+        .then(([nwResponse, allSgsResponse]) => {
+          const allNetworksNameAndCidrs = nwResponse.data.networks.map(({ name, network }) => ({
+            name,
+            cidr: network.CIDR,
+          }))
+          const allSgsExceptSelf = allSgsResponse.data.groups.filter(({ name }) => name !== externalOpenInfo.name)
+          const unavailableNetworksName = allSgsExceptSelf.flatMap(({ networks }) => networks)
+          const availableNetworks = allNetworksNameAndCidrs.filter(el => !unavailableNetworksName.includes(el.name))
+          setNetworkOptions(
+            availableNetworks
+              .map(({ name, cidr }) => ({ label: `${name}:${cidr}`, value: name }))
+              .sort((a, b) => a.label.localeCompare(b.label)),
+          )
+          setIsLoading(false)
+        })
+        .catch((error: AxiosError<TRequestErrorData>) => {
+          setIsLoading(false)
+          if (error.response) {
+            setError({ status: error.response.status, data: error.response.data })
+          } else if (error.status) {
+            setError({ status: error.status })
+          } else {
+            setError({ status: 'Error while fetching' })
+          }
+        })
+    }
+  }, [externalOpenInfo])
 
   const submit = () => {
     form
@@ -148,10 +155,12 @@ export const SecurityGroupEditModal: FC<TSecurityGroupEditModalProps> = ({
     >
       <Spacer $space={16} $samespace />
       {error && (
-        <Result
-          status="error"
-          title={error.status}
-          subTitle={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
+        <Alert
+          message={error.status}
+          description={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
+          type="error"
+          showIcon
+          closable
         />
       )}
       <Form form={form} name="control-hooks" initialValues={{ networks: [], logs: false, trace: false }}>

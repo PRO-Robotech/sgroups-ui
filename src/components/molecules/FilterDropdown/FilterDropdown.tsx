@@ -1,7 +1,6 @@
 import React, { FC, Key, Dispatch, SetStateAction } from 'react'
 import { Button, Input, Space } from 'antd'
 import { FilterConfirmProps, FilterDropdownProps } from 'antd/es/table/interface'
-import { SearchOutlined } from '@ant-design/icons'
 
 type TFilterDropdownProps = {
   setSelectedKeys: (selectedKeys: React.Key[]) => void
@@ -21,7 +20,7 @@ export const FilterDropdown: FC<TFilterDropdownProps> = ({
   setSearchText,
 }) => {
   const handleSearch = (searchText: string[], confirm: FilterDropdownProps['confirm']) => {
-    confirm()
+    confirm({ closeDropdown: false })
     setSearchText(searchText[0])
   }
 
@@ -35,21 +34,25 @@ export const FilterDropdown: FC<TFilterDropdownProps> = ({
       <Input
         placeholder="search"
         value={selectedKeys[0]}
-        onChange={e => setSelectedKeys(e.target.value ? [e.target.value] : [])}
+        onChange={e => {
+          setSelectedKeys(e.target.value ? [e.target.value] : [])
+          handleSearch(e.target.value ? [e.target.value] : ([] as string[]), confirm)
+        }}
         onPressEnter={() => handleSearch(selectedKeys as string[], confirm)}
         style={{ marginBottom: 8, display: 'block' }}
       />
       <Space>
         <Button
-          type="primary"
-          onClick={() => handleSearch(selectedKeys as string[], confirm)}
-          icon={<SearchOutlined />}
+          onClick={() => {
+            if (clearFilters) {
+              clearFilters()
+              handleReset(clearFilters)
+            }
+            handleSearch([], confirm)
+          }}
           size="small"
           style={{ width: 90 }}
         >
-          Search
-        </Button>
-        <Button onClick={() => clearFilters && handleReset(clearFilters)} size="small" style={{ width: 90 }}>
           Reset
         </Button>
         <Button

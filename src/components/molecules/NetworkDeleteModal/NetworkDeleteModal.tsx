@@ -1,6 +1,6 @@
 import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal } from 'antd'
+import { Alert, Modal } from 'antd'
 import { removeNetwork } from 'api/networks'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TNetwork, TNetworkForm } from 'localTypes/networks'
@@ -70,7 +70,7 @@ export const NetworkDeleteModal: FC<TNetworkDeleteModalProps> = ({
 
   return (
     <Modal
-      title={externalOpenInfo.length === 1 ? `Delete ${externalOpenInfo[0].name}` : 'Delete Selected Networks'}
+      title={externalOpenInfo.length === 1 ? `Delete ${externalOpenInfo[0].name}?` : 'Delete Selected Networks?'}
       open={typeof externalOpenInfo !== 'boolean'}
       onOk={() => removeNetworkFromList()}
       onCancel={() => {
@@ -82,7 +82,15 @@ export const NetworkDeleteModal: FC<TNetworkDeleteModalProps> = ({
       confirmLoading={isLoading}
       okButtonProps={{ danger: true }}
     >
-      {error && <Result status="error" title={error.status} subTitle={error.data?.message} />}
+      {error && (
+        <Alert
+          message={error.status}
+          description={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
+          type="error"
+          showIcon
+          closable
+        />
+      )}
     </Modal>
   )
 }

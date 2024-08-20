@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 import React, { FC, useState, useEffect, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal, Form, Input, Typography, Select } from 'antd'
+import { Alert, Modal, Form, Input, Typography, Select } from 'antd'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { editNetwork } from 'api/networks'
 import { addSecurityGroup } from 'api/securityGroups'
@@ -246,10 +246,12 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
     >
       <Spacer $space={16} $samespace />
       {error && (
-        <Result
-          status="error"
-          title={error.status}
-          subTitle={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
+        <Alert
+          message={error.status}
+          description={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
+          type="error"
+          showIcon
+          closable
         />
       )}
       <Form<TNetworkFormWithSg> form={form}>
@@ -292,7 +294,9 @@ export const NetworkEditModal: FC<TNetworkEditModalProps> = ({
         <Spacer $space={4} $samespace />
         <Styled.ResetedFormItem name="securityGroup" validateTrigger="onBlur">
           <Select
-            options={options.map(({ name }) => ({ label: name, value: name }))}
+            options={options
+              .map(({ name }) => ({ label: name, value: name }))
+              .sort((a, b) => a.label.localeCompare(b.label))}
             placeholder="Select security group"
             size="large"
             allowClear

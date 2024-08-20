@@ -1,6 +1,6 @@
 import React, { FC, useState, Dispatch, SetStateAction } from 'react'
 import { AxiosError } from 'axios'
-import { Result, Modal } from 'antd'
+import { Alert, Modal } from 'antd'
 import { removeSecurityGroup } from 'api/securityGroups'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { TSecurityGroup } from 'localTypes/securityGroups'
@@ -60,7 +60,7 @@ export const SecurityGroupDeleteModal: FC<TSecurityGroupDeleteModalProps> = ({
 
   return (
     <Modal
-      title={externalOpenInfo.length === 1 ? `Delete ${externalOpenInfo[0].name}` : 'Delete Selected Security Grops'}
+      title={externalOpenInfo.length === 1 ? `Delete ${externalOpenInfo[0].name}?` : 'Delete Selected Security Grops?'}
       open={typeof externalOpenInfo !== 'boolean'}
       onOk={() => removeSecurityGroupFromList()}
       onCancel={() => {
@@ -72,7 +72,15 @@ export const SecurityGroupDeleteModal: FC<TSecurityGroupDeleteModalProps> = ({
       confirmLoading={isLoading}
       okButtonProps={{ danger: true }}
     >
-      {error && <Result status="error" title={error.status} subTitle={error.data?.message} />}
+      {error && (
+        <Alert
+          message={error.status}
+          description={error.data ? `Code:${error.data.code}. Message: ${error.data.message}` : undefined}
+          type="error"
+          showIcon
+          closable
+        />
+      )}
     </Modal>
   )
 }

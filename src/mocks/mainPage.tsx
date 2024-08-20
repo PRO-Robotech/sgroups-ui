@@ -16,11 +16,11 @@ const mainPageLeftListData = [
     key: '/rules',
     label: 'Rules',
     children: [
-      { key: '/rules-editor/by-type/sgSg', label: 'SG-SG' },
-      { key: '/rules-editor/by-type/sgSgIe', label: 'SG-SG (I/E)' },
-      { key: '/rules-editor/by-type/sgCidr', label: 'SG-CIDR-(I/E)' },
-      { key: '/rules-editor/by-type/sgFqdn', label: 'SG-FQDN (E)' },
-      { key: '/rules-editor', label: 'Diagram' },
+      { key: '/rules/sgSg', label: 'SG-SG' },
+      { key: '/rules/sgSgIe', label: 'SG-SG (I/E)' },
+      { key: '/rules/sgCidr', label: 'SG-CIDR (I/E)' },
+      { key: '/rules/sgFqdn', label: 'SG-FQDN (E)' },
+      { key: '/rules/diagram', label: 'Diagram' },
     ],
   },
 ]

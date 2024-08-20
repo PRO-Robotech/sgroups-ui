@@ -9,7 +9,8 @@ const CustomMenu = styled(Menu)`
   border-inline-end: 0 !important;
   /* stylelint-enable declaration-no-important */
 
-  && .ant-menu-item-selected svg {
+  && .ant-menu-item-selected svg,
+  && .ant-menu-submenu-selected svg {
     color: #366af3;
   }
 
