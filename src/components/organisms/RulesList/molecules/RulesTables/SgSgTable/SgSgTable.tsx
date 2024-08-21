@@ -4,9 +4,8 @@ import React, { FC, Key, useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
-import { Table, notification } from 'antd'
+import { Table, TableProps, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined } from '@ant-design/icons'
 import { TrashSimple, PencilSimpleLine } from '@phosphor-icons/react'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TRulesTables, TFormSgSgRule } from 'localTypes/rules'
@@ -21,13 +20,17 @@ import {
 import { EditModal, DeleteOneModal } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgSg'
-import { FilterDropdown, ActionCell, PortsCell, StatusCell } from '../atoms'
+import { ActionCell, PortsCell, StatusCell } from '../atoms'
 import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgSgTableProps = TRulesTables<TFormSgSgRule>
 
 type TColumn = TFormSgSgRule & { key: string }
+
+type OnChange = NonNullable<TableProps<TColumn>['onChange']>
+
+type Filters = Parameters<OnChange>[1]
 
 export const SgSgTable: FC<TSgSgTableProps> = ({
   direction,
@@ -38,12 +41,12 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
 }) => {
   const [api, contextHolder] = notification.useNotification()
   const dispatch = useDispatch()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchText, setSearchText] = useState('')
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
   const [editOpen, setEditOpen] = useState<TColumn | boolean>(false)
   const [deleteOpen, setDeleteOpen] = useState<TFormSgSgRule | boolean>(false)
 
+  const searchText = useSelector((state: RootState) => state.searchText.searchText)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
@@ -52,6 +55,10 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
   const setRules = direction === 'from' ? setRulesSgSgFrom : setRulesSgSgTo
   const rulesOtherside = direction === 'from' ? rulesSgSgTo : rulesSgSgFrom
   const setRulesOtherside = direction === 'from' ? setRulesSgSgTo : setRulesSgSgFrom
+
+  useEffect(() => {
+    setFilteredInfo({ name: searchText ? [searchText] : null })
+  }, [searchText])
 
   useEffect(() => {
     if (!(rulesSgSgFrom.some(el => el.checked === true) || rulesSgSgTo.some(el => el.checked === true))) {
@@ -114,17 +121,7 @@ export const SgSgTable: FC<TSgSgTableProps> = ({
           <ShortenedTextWithTooltip text={sg} />
         </Styled.RulesEntrySg>
       ),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-        <FilterDropdown
-          setSelectedKeys={setSelectedKeys}
-          selectedKeys={selectedKeys}
-          confirm={confirm}
-          clearFilters={clearFilters}
-          close={close}
-          setSearchText={setSearchText}
-        />
-      ),
-      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      filteredValue: filteredInfo.name || null,
       onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
     },
     {

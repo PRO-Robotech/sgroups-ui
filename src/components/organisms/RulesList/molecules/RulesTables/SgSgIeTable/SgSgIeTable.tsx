@@ -4,9 +4,9 @@ import React, { FC, Key, useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
-import { Table, notification } from 'antd'
+import { Table, TableProps, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined } from '@ant-design/icons'
+// import { SearchOutlined } from '@ant-design/icons'
 import { TrashSimple, PencilSimpleLine } from '@phosphor-icons/react'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TRulesTables, TFormSgSgIeRule } from 'localTypes/rules'
@@ -21,13 +21,18 @@ import {
 import { EditModal, DeleteOneModal } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgSgIe'
-import { FilterDropdown, ActionCell, PortsCell, StatusCell } from '../atoms'
+// import { FilterDropdown, ActionCell, PortsCell, StatusCell } from '../atoms'
+import { ActionCell, PortsCell, StatusCell } from '../atoms'
 import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgSgIeTableProps = TRulesTables<TFormSgSgIeRule>
 
 type TColumn = TFormSgSgIeRule & { key: string }
+
+type OnChange = NonNullable<TableProps<TColumn>['onChange']>
+
+type Filters = Parameters<OnChange>[1]
 
 export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   direction,
@@ -39,17 +44,23 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   const [api, contextHolder] = notification.useNotification()
   const dispatch = useDispatch()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchText, setSearchText] = useState('')
+  // const [searchText, setSearchText] = useState('')
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
   const [editOpen, setEditOpen] = useState<TColumn | boolean>(false)
   const [deleteOpen, setDeleteOpen] = useState<TFormSgSgIeRule | boolean>(false)
 
+  const searchText = useSelector((state: RootState) => state.searchText.searchText)
   const rulesSgSgIeFrom = useSelector((state: RootState) => state.rulesSgSgIe.rulesFrom)
   const rulesSgSgIeTo = useSelector((state: RootState) => state.rulesSgSgIe.rulesTo)
 
   const rulesAll = direction === 'from' ? rulesSgSgIeFrom : rulesSgSgIeTo
   const setRules = direction === 'from' ? setRulesSgSgIeFrom : setRulesSgSgIeTo
   const defaultTraffic = direction === 'from' ? 'Ingress' : 'Egress'
+
+  useEffect(() => {
+    setFilteredInfo({ name: searchText ? [searchText] : null })
+  }, [searchText])
 
   useEffect(() => {
     if (!(rulesSgSgIeFrom.some(el => el.checked === true) || rulesSgSgIeTo.some(el => el.checked === true))) {
@@ -106,17 +117,18 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
           <ShortenedTextWithTooltip text={sg} />
         </Styled.RulesEntrySg>
       ),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-        <FilterDropdown
-          setSelectedKeys={setSelectedKeys}
-          selectedKeys={selectedKeys}
-          confirm={confirm}
-          clearFilters={clearFilters}
-          close={close}
-          setSearchText={setSearchText}
-        />
-      ),
-      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      filteredValue: filteredInfo.name || null,
+      // filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
+      //   <FilterDropdown
+      //     setSelectedKeys={setSelectedKeys}
+      //     selectedKeys={selectedKeys}
+      //     confirm={confirm}
+      //     clearFilters={clearFilters}
+      //     close={close}
+      //     setSearchText={setLocalSearchText}
+      //   />
+      // ),
+      // filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
       onFilter: (value, { sg }) => sg.toLowerCase().includes((value as string).toLowerCase()),
     },
     {

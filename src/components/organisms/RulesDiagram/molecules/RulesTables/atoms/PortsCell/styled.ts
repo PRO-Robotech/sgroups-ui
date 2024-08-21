@@ -1,24 +1,44 @@
 import styled from 'styled-components'
-import { Tag } from 'antd'
+import { Select } from 'antd'
 
-export const InlineContainerWidthMaxWidth = styled.div`
-  display: flex;
-  flex-flow: row;
-  max-width: 75px;
-  overflow-x: hidden;
-`
+const UncontrolledSelect = styled(Select)`
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  cursor: default;
 
-export const PortsEntry = styled(Tag)`
-  display: flex;
-`
+  && input {
+    /* stylelint-disable declaration-no-important */
+    cursor: default !important;
+  }
 
-const PopoverContainer = styled.div`
-  display: grid;
-  grid-row-gap: 5px;
+  && .ant-select-selector,
+  && .ant-select-focused .ant-select-selector,
+  && .ant-select-selector:focus,
+  && .ant-select-selector:active,
+  && .ant-select-open .ant-select-selector {
+    border: 0 !important;
+    border-color: transparent !important;
+    outline: none !important;
+    outline-color: transparent !important;
+    box-shadow: none !important;
+  }
+
+  && .ant-select-selector {
+    background: none;
+    border: 0;
+    cursor: default;
+  }
+
+  && .ant-select-selection-overflow-item-rest .ant-select-selection-item {
+    color: #366af3;
+    background: 0;
+    border: 0;
+  }
 `
 
 export const Styled = {
-  InlineContainerWidthMaxWidth,
-  PortsEntry,
-  PopoverContainer,
+  UncontrolledSelect,
 }

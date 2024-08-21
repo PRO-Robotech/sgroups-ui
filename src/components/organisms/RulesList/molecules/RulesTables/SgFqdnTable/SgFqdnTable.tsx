@@ -4,9 +4,8 @@ import React, { FC, Key, useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
-import { Table, notification } from 'antd'
+import { Table, TableProps, notification } from 'antd'
 import type { ColumnsType } from 'antd/es/table'
-import { SearchOutlined } from '@ant-design/icons'
 import { TrashSimple, PencilSimpleLine } from '@phosphor-icons/react'
 import { DEFAULT_PRIORITIES, STATUSES } from 'constants/rules'
 import { TRulesTables, TFormSgFqdnRule } from 'localTypes/rules'
@@ -21,13 +20,17 @@ import {
 import { EditModal, DeleteOneModal } from '../../../atoms'
 import { getRowSelection, getDefaultTableProps } from '../utils'
 import { edit, remove, restore } from '../utils/editRemoveRestore/sgFqdn'
-import { FilterDropdown, ActionCell, PortsCell, StatusCell } from '../atoms'
+import { ActionCell, PortsCell, StatusCell } from '../atoms'
 import { RULES_CONFIGS } from '../../../constants'
 import { Styled } from '../styled'
 
 type TSgFqdnTableProps = TRulesTables<TFormSgFqdnRule>
 
 type TColumn = TFormSgFqdnRule & { key: string }
+
+type OnChange = NonNullable<TableProps<TColumn>['onChange']>
+
+type Filters = Parameters<OnChange>[1]
 
 export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
   direction,
@@ -38,16 +41,20 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
 }) => {
   const [api, contextHolder] = notification.useNotification()
   const dispatch = useDispatch()
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [searchText, setSearchText] = useState('')
+  const [filteredInfo, setFilteredInfo] = useState<Filters>({})
   const [selectedRowKeys, setSelectedRowKeys] = useState<Key[]>([])
   const [editOpen, setEditOpen] = useState<TColumn | boolean>(false)
   const [deleteOpen, setDeleteOpen] = useState<TFormSgFqdnRule | boolean>(false)
 
+  const searchText = useSelector((state: RootState) => state.searchText.searchText)
   const rulesSgFqdnTo = useSelector((state: RootState) => state.rulesSgFqdn.rulesTo)
 
   const rulesAll = direction === 'from' ? [] : rulesSgFqdnTo
   const setRules = direction === 'from' ? setRulesSgFqdnTo : setRulesSgFqdnTo
+
+  useEffect(() => {
+    setFilteredInfo({ name: searchText ? [searchText] : null })
+  }, [searchText])
 
   useEffect(() => {
     if (!rulesSgFqdnTo.some(el => el.checked === true)) {
@@ -100,17 +107,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({
           <ShortenedTextWithTooltip text={fqdn} />
         </Styled.RulesEntrySg>
       ),
-      filterDropdown: ({ setSelectedKeys, selectedKeys, confirm, clearFilters, close }) => (
-        <FilterDropdown
-          setSelectedKeys={setSelectedKeys}
-          selectedKeys={selectedKeys}
-          confirm={confirm}
-          clearFilters={clearFilters}
-          close={close}
-          setSearchText={setSearchText}
-        />
-      ),
-      filterIcon: (filtered: boolean) => <SearchOutlined style={{ color: filtered ? '#1677ff' : undefined }} />,
+      filteredValue: filteredInfo.name || null,
       onFilter: (value, { fqdn }) => fqdn.toLowerCase().includes((value as string).toLowerCase()),
     },
     {

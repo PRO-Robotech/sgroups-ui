@@ -1,5 +1,7 @@
+/* eslint-disable max-lines-per-function */
 import React, { FC, useState, useEffect, useCallback } from 'react'
-import { Result, Spin } from 'antd'
+import { Result, Spin, Tabs } from 'antd'
+import { MagnifyingGlass } from '@phosphor-icons/react'
 import { AxiosError } from 'axios'
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from 'store/store'
@@ -12,6 +14,7 @@ import { setRulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpTo } from 'store/editor/rules
 import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
 import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/rulesSgCidr'
 import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
+import { setSearchText } from 'store/editor/searchText/searchText'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getSecurityGroups } from 'api/securityGroups'
 import {
@@ -25,6 +28,7 @@ import {
   getSgCidrRulesBySg,
   getSgCidrIcmpRulesBySg,
 } from 'api/rules'
+import { TitleWithNoMargins, Layouts, MiddleContainer } from 'components'
 import {
   mapRulesSgSg,
   mapRulesSgSgIcmp,
@@ -33,72 +37,36 @@ import {
   mapRulesSgFqdn,
   mapRulesSgCidr,
   mapRulesSgCidrIcmp,
-  checkIfChangesExist,
 } from './utils'
-import { SelectCenterSgModal } from './atoms'
-import { TransformBlock, BottomBar } from './populations'
+import { SgSelectAndTypeSwitcher } from './organisms'
+import { TransformBlock } from './populations'
 import { Styled } from './styled'
 
 export const RulesDiagram: FC = () => {
   const dispatch = useDispatch()
 
-  const [isChangeCenterSgModalVisible, setChangeCenterSgModalVisible] = useState<boolean>(false)
-  const [pendingSg, setPendingSg] = useState<string>()
-
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
+  const [typeId, setTypeId] = useState<string>('all')
+  const [subType, setSubType] = useState<string>('TCP/UDP')
+
+  // const [searchText, setSearchText] = useState('')
+
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
-  const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
-  const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
-  const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
-  const rulesSgSgIcmpTo = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesTo)
-  const rulesSgSgIeFrom = useSelector((state: RootState) => state.rulesSgSgIe.rulesFrom)
-  const rulesSgSgIeTo = useSelector((state: RootState) => state.rulesSgSgIe.rulesTo)
-  const rulesSgSgIeIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesFrom)
-  const rulesSgSgIeIcmpTo = useSelector((state: RootState) => state.rulesSgSgIeIcmp.rulesTo)
-  const rulesSgFqdnTo = useSelector((state: RootState) => state.rulesSgFqdn.rulesTo)
-  const rulesSgCidrFrom = useSelector((state: RootState) => state.rulesSgCidr.rulesFrom)
-  const rulesSgCidrTo = useSelector((state: RootState) => state.rulesSgCidr.rulesTo)
-  const rulesSgCidrIcmpFrom = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesFrom)
-  const rulesSgCidrIcmpTo = useSelector((state: RootState) => state.rulesSgCidrIcmp.rulesTo)
+  const searchText = useSelector((state: RootState) => state.searchText.searchText)
 
-  /* clean even if trying to dispatch rules when center sg is no longer provided */
+  /* return subtype if type is changed */
   useEffect(() => {
-    if (!centerSg) {
-      dispatch(setRulesSgSgFrom([]))
-      dispatch(setRulesSgSgTo([]))
-      dispatch(setRulesSgFqdnTo([]))
-      dispatch(setRulesSgCidrFrom([]))
-      dispatch(setRulesSgCidrTo([]))
-      dispatch(setRulesSgSgIcmpFrom([]))
-      dispatch(setRulesSgSgIcmpTo([]))
-      dispatch(setRulesSgSgIeFrom([]))
-      dispatch(setRulesSgSgIeTo([]))
-      dispatch(setRulesSgSgIeIcmpFrom([]))
-      dispatch(setRulesSgSgIeIcmpTo([]))
-      dispatch(setRulesSgCidrIcmpFrom([]))
-      dispatch(setRulesSgCidrIcmpTo([]))
-      setError(undefined)
-    }
-  }, [
-    centerSg,
-    dispatch,
-    rulesSgSgFrom.length,
-    rulesSgSgTo.length,
-    rulesSgSgIcmpFrom.length,
-    rulesSgSgIcmpTo.length,
-    rulesSgSgIeFrom.length,
-    rulesSgSgIeTo.length,
-    rulesSgSgIeIcmpFrom.length,
-    rulesSgSgIeIcmpTo.length,
-    rulesSgFqdnTo.length,
-    rulesSgCidrFrom.length,
-    rulesSgCidrTo.length,
-    rulesSgCidrIcmpFrom.length,
-    rulesSgCidrIcmpTo.length,
-  ])
+    setSubType('TCP/UDP')
+  }, [typeId])
 
+  /* clear searchText */
+  useEffect(() => {
+    dispatch(setSearchText(undefined))
+  }, [typeId, subType, dispatch])
+
+  /* get available sg names */
   useEffect(() => {
     setIsLoading(true)
     setError(undefined)
@@ -120,6 +88,7 @@ export const RulesDiagram: FC = () => {
       })
   }, [dispatch])
 
+  /* fetching rules */
   const fetchData = useCallback(() => {
     if (centerSg) {
       setIsLoading(true)
@@ -195,58 +164,77 @@ export const RulesDiagram: FC = () => {
     fetchData()
   }, [centerSg, fetchData])
 
-  const onSelectCenterSg = (newSg?: string) => {
-    const result = checkIfChangesExist([
-      ...rulesSgSgFrom,
-      ...rulesSgSgTo,
-      ...rulesSgSgIcmpFrom,
-      ...rulesSgSgIcmpTo,
-      ...rulesSgSgIeFrom,
-      ...rulesSgSgIeTo,
-      ...rulesSgSgIeIcmpFrom,
-      ...rulesSgSgIeIcmpTo,
-      ...rulesSgFqdnTo,
-      ...rulesSgCidrFrom,
-      ...rulesSgCidrTo,
-      ...rulesSgCidrIcmpFrom,
-      ...rulesSgCidrIcmpTo,
-    ])
-    if (result) {
-      setPendingSg(newSg)
-      setChangeCenterSgModalVisible(true)
-    } else {
-      dispatch(setCenterSg(newSg))
-    }
-  }
-
   if (error) {
     return (
-      <Result
-        status="error"
-        title={error.status}
-        subTitle={`Code:${error.data?.code}. Message: ${error.data?.message}`}
-      />
+      <MiddleContainer>
+        <Result status="error" title={error.status} subTitle={error.data?.message} />
+      </MiddleContainer>
     )
   }
 
   return (
-    <Styled.Container>
-      <TransformBlock onSelectCenterSg={onSelectCenterSg} />
-      <BottomBar onSubmit={() => fetchData()} />
+    <>
+      <Layouts.HeaderRow>
+        <TitleWithNoMargins level={3}>Diagram</TitleWithNoMargins>
+      </Layouts.HeaderRow>
+      <Layouts.ControlsRow>
+        <Layouts.ControlsRightSide>
+          <SgSelectAndTypeSwitcher
+            isHidden={false}
+            onSelectCenterSg={newSg => dispatch(setCenterSg(newSg))}
+            typeId={typeId}
+            subType={subType}
+            onSelectSubType={setSubType}
+          />
+        </Layouts.ControlsRightSide>
+        <Layouts.ControlsLeftSide>
+          <Layouts.SearchControl>
+            <Layouts.InputWithCustomPreffixMargin
+              allowClear
+              placeholder="Search"
+              prefix={<MagnifyingGlass color="#00000073" />}
+              value={searchText}
+              onChange={e => {
+                dispatch(setSearchText(e.target.value))
+              }}
+            />
+          </Layouts.SearchControl>
+        </Layouts.ControlsLeftSide>
+      </Layouts.ControlsRow>
+      <Styled.TabsContainer>
+        <Tabs
+          defaultActiveKey="all"
+          items={[
+            {
+              key: 'all',
+              label: 'All Rules',
+            },
+            {
+              key: 'sgSg',
+              label: 'SG-SG',
+            },
+            {
+              key: 'sgSgIe',
+              label: 'SG-SG (I/E)',
+            },
+            {
+              key: 'sgCidr',
+              label: 'SG-CIDR (I/E)',
+            },
+            {
+              key: 'sgFqdn',
+              label: 'SG-FQDN (E)',
+            },
+          ]}
+          onChange={key => setTypeId(key)}
+        />
+      </Styled.TabsContainer>
       {isLoading && (
-        <Styled.Loader>
-          <Spin size="large" />
-        </Styled.Loader>
+        <MiddleContainer>
+          <Spin />
+        </MiddleContainer>
       )}
-      <SelectCenterSgModal
-        isOpen={isChangeCenterSgModalVisible}
-        handleOk={() => {
-          dispatch(setCenterSg(pendingSg))
-          setChangeCenterSgModalVisible(false)
-          setPendingSg(undefined)
-        }}
-        handleCancel={() => setChangeCenterSgModalVisible(false)}
-      />
-    </Styled.Container>
+      {!isLoading && <TransformBlock type={typeId} subtype={subType} />}
+    </>
   )
 }

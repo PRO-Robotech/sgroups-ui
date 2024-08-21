@@ -2,10 +2,16 @@ import React, { FC, useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { Spacer } from 'components'
-import { RULES_CONFIGS_FOR_FACTORY } from '../../../../constants'
-import { TcpUdpAndIcmpSwitcher, GroupRulesNodeWrapper } from '../../../../atoms'
-import { SelectCenterSg } from '../../../../molecules'
-import { RulesBlockFactory } from '../../../../organisms'
+import { GroupRulesNodeWrapper } from '../../../../atoms'
+import {
+  SgSgTable,
+  SgSgIcmpTable,
+  SgSgIeTable,
+  SgSgIeIcmpTable,
+  SgFqdnTable,
+  SgCidrTable,
+  SgCidrIcmpTable,
+} from '../../../../molecules/RulesTables'
 import { Arrows } from '../../molecules'
 import {
   CARDS_CONTAINER,
@@ -21,12 +27,14 @@ import {
 import { Styled } from './styled'
 
 type TTransformBlockInnerProps = {
-  onSelectCenterSg: (value?: string) => void
+  type: string
+  subtype: string
 }
 
-export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCenterSg }) => {
+export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subtype }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
 
+  const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
   const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
@@ -57,64 +65,153 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ onSelectCen
     rulesSgCidrTo.length,
     rulesSgCidrIcmpFrom.length,
     rulesSgCidrIcmpTo.length,
+    type,
+    subtype,
   ])
 
   return (
     <Styled.CardsContainer id={CARDS_CONTAINER}>
       <Styled.CardsCol>
-        <div id={SG_AND_SG_SG_ICMP_FROM_ID}>
-          <TcpUdpAndIcmpSwitcher
-            tcpUdpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSg.from} isDisabledDefault />}
-            icmpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSgIcmp.from} />}
-          />
-        </div>
-        <Spacer $space={100} $samespace />
-        <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID}>
-          <TcpUdpAndIcmpSwitcher
-            tcpUdpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSgIe.from} />}
-            icmpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSgIeIcmp.from} />}
-          />
-        </div>
-        <Spacer $space={100} $samespace />
-        <div id={CIDR_FROM_ID}>
-          <TcpUdpAndIcmpSwitcher
-            tcpUdpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgCidr.from} />}
-            icmpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgCidrIcmp.from} />}
-          />
-        </div>
+        {(type === 'all' || type === 'sgSg') && (
+          <>
+            <div id={SG_AND_SG_SG_ICMP_FROM_ID}>
+              <GroupRulesNodeWrapper>
+                {subtype !== 'ICMP' ? (
+                  <div>
+                    <Styled.CardsTitle>SG</Styled.CardsTitle>
+                    {rulesSgSgFrom.length > 0 && <SgSgTable rulesData={rulesSgSgFrom} />}
+                  </div>
+                ) : (
+                  <div>
+                    <Styled.CardsTitle>SG ICMP</Styled.CardsTitle>
+                    {rulesSgSgIcmpFrom.length > 0 && <SgSgIcmpTable rulesData={rulesSgSgIcmpFrom} />}
+                  </div>
+                )}
+              </GroupRulesNodeWrapper>
+            </div>
+            <Spacer $space={100} $samespace />
+          </>
+        )}
+        {(type === 'all' || type === 'sgSgIe') && (
+          <>
+            <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID}>
+              <GroupRulesNodeWrapper>
+                {subtype !== 'ICMP' ? (
+                  <div>
+                    <Styled.CardsTitle>SG (I/E)</Styled.CardsTitle>
+                    {rulesSgSgIeFrom.length > 0 && <SgSgIeTable rulesData={rulesSgSgIeFrom} />}
+                  </div>
+                ) : (
+                  <div>
+                    <Styled.CardsTitle>SG (I/E) ICMP</Styled.CardsTitle>
+                    {rulesSgSgIeIcmpFrom.length > 0 && <SgSgIeIcmpTable rulesData={rulesSgSgIeIcmpFrom} />}
+                  </div>
+                )}
+              </GroupRulesNodeWrapper>
+            </div>
+            <Spacer $space={100} $samespace />
+          </>
+        )}
+        {(type === 'all' || type === 'sgCidr') && (
+          <div id={CIDR_FROM_ID}>
+            <GroupRulesNodeWrapper>
+              {subtype !== 'ICMP' ? (
+                <div>
+                  <Styled.CardsTitle>CIDR</Styled.CardsTitle>
+                  {rulesSgCidrFrom.length > 0 && <SgCidrTable rulesData={rulesSgCidrFrom} />}
+                </div>
+              ) : (
+                <div>
+                  <Styled.CardsTitle>CIDR ICMP</Styled.CardsTitle>
+                  {rulesSgCidrIcmpFrom.length > 0 && <SgCidrIcmpTable rulesData={rulesSgCidrIcmpFrom} />}
+                </div>
+              )}
+            </GroupRulesNodeWrapper>
+          </div>
+        )}
       </Styled.CardsCol>
       <Styled.CardsCol>
         <Styled.CenterColWithMarginAuto id={CENTRAL_ID}>
-          <SelectCenterSg onSelectCenterSg={onSelectCenterSg} />
+          <GroupRulesNodeWrapper $isCenterSg>
+            {centerSg ? (
+              <Styled.CardsTitle>{centerSg}</Styled.CardsTitle>
+            ) : (
+              <Styled.CenterUnchosen>Main Secuity Group</Styled.CenterUnchosen>
+            )}
+          </GroupRulesNodeWrapper>
         </Styled.CenterColWithMarginAuto>
       </Styled.CardsCol>
       <Styled.CardsCol>
-        <div id={SG_AND_SG_SG_ICMP_TO_ID}>
-          <TcpUdpAndIcmpSwitcher
-            tcpUdpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSg.to} />}
-            icmpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSgIcmp.to} />}
-          />
-        </div>
-        <Spacer $space={100} $samespace />
-        <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID}>
-          <TcpUdpAndIcmpSwitcher
-            tcpUdpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSgIe.to} />}
-            icmpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgSgIeIcmp.to} />}
-          />
-        </div>
-        <Spacer $space={100} $samespace />
-        <div id={CIDR_TO_ID}>
-          <TcpUdpAndIcmpSwitcher
-            tcpUdpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgCidr.to} />}
-            icmpComponent={<RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgCidrIcmp.to} />}
-          />
-        </div>
-        <Spacer $space={100} $samespace />
-        <div id={FQDN_TO_ID}>
-          <GroupRulesNodeWrapper>
-            <RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgFqdn.to} />
-          </GroupRulesNodeWrapper>
-        </div>
+        {(type === 'all' || type === 'sgSg') && (
+          <>
+            <div id={SG_AND_SG_SG_ICMP_TO_ID}>
+              <GroupRulesNodeWrapper>
+                {subtype !== 'ICMP' ? (
+                  <div>
+                    <Styled.CardsTitle>SG</Styled.CardsTitle>
+                    {rulesSgSgTo.length > 0 && <SgSgTable rulesData={rulesSgSgTo} />}
+                  </div>
+                ) : (
+                  <div>
+                    <Styled.CardsTitle>SG ICMP</Styled.CardsTitle>
+                    {rulesSgSgIcmpTo.length > 0 && <SgSgIcmpTable rulesData={rulesSgSgIcmpTo} />}
+                  </div>
+                )}
+              </GroupRulesNodeWrapper>
+            </div>
+            <Spacer $space={100} $samespace />{' '}
+          </>
+        )}
+        {(type === 'all' || type === 'sgSgIe') && (
+          <>
+            <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID}>
+              <GroupRulesNodeWrapper>
+                {subtype !== 'ICMP' ? (
+                  <div>
+                    <Styled.CardsTitle>SG (I/E</Styled.CardsTitle>
+                    {rulesSgSgIeTo.length > 0 && <SgSgIeTable rulesData={rulesSgSgIeTo} />}
+                  </div>
+                ) : (
+                  <div>
+                    <Styled.CardsTitle>SG (I/E) ICMP</Styled.CardsTitle>
+                    {rulesSgSgIeIcmpTo.length > 0 && <SgSgIeIcmpTable rulesData={rulesSgSgIeIcmpTo} />}
+                  </div>
+                )}
+              </GroupRulesNodeWrapper>
+            </div>
+            <Spacer $space={100} $samespace />
+          </>
+        )}
+        {(type === 'all' || type === 'sgCidr') && (
+          <>
+            <div id={CIDR_TO_ID}>
+              <GroupRulesNodeWrapper>
+                {subtype !== 'ICMP' ? (
+                  <div>
+                    <Styled.CardsTitle>CIDR</Styled.CardsTitle>
+                    {rulesSgCidrTo.length > 0 && <SgCidrTable rulesData={rulesSgCidrTo} />}
+                  </div>
+                ) : (
+                  <div>
+                    <Styled.CardsTitle>CIDR ICMP</Styled.CardsTitle>
+                    {rulesSgCidrIcmpTo.length > 0 && <SgCidrIcmpTable rulesData={rulesSgCidrIcmpTo} />}
+                  </div>
+                )}
+              </GroupRulesNodeWrapper>
+            </div>
+            <Spacer $space={100} $samespace />
+          </>
+        )}
+        {(type === 'all' || type === 'sgFqdn') && subtype !== 'ICMP' && (
+          <div id={FQDN_TO_ID}>
+            <GroupRulesNodeWrapper>
+              <div>
+                <Styled.CardsTitle>FQDN</Styled.CardsTitle>
+                {rulesSgFqdnTo.length > 0 && <SgFqdnTable rulesData={subtype === 'from' ? [] : rulesSgFqdnTo} />}
+              </div>
+            </GroupRulesNodeWrapper>
+          </div>
+        )}
       </Styled.CardsCol>
       <Arrows key={arrowsKey} />
     </Styled.CardsContainer>

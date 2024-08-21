@@ -1,44 +1,49 @@
+/* eslint-disable react/no-unstable-nested-components */
 import React, { FC } from 'react'
 import { Popover, Tag } from 'antd'
-import { TFormChanges, TPortGroup } from 'localTypes/rules'
-import { Styled as CommonStyled } from '../../styled'
+import { TPortGroup } from 'localTypes/rules'
 import { Styled } from './styled'
 
 type TPortsCellProps = {
   ports?: TPortGroup[] | null
-  changesMarker: string
-  formChanges?: TFormChanges
 }
 
-export const PortsCell: FC<TPortsCellProps> = ({ ports, changesMarker, formChanges }) => {
+export const PortsCell: FC<TPortsCellProps> = ({ ports }) => {
   if (!ports || ports.length === 0) {
-    return <Tag>any : any</Tag>
+    return <Tag>All Ports : All Ports</Tag>
   }
 
-  const popoverContent = (
-    <Styled.PopoverContainer>
-      {ports.map(({ s, d }) => (
-        <Tag key={`${s || 'any'}${d || 'any'}`}>
-          {!s || s.length === 0 ? 'any' : s} : {!d || d.length === 0 ? 'any' : d}
-        </Tag>
-      ))}
-    </Styled.PopoverContainer>
-  )
-
   return (
-    <CommonStyled.RulesEntryPorts
-      $modified={formChanges?.modifiedFields?.includes(changesMarker)}
-      className="no-scroll"
-    >
-      <Popover title="Ports" content={popoverContent}>
-        <Styled.InlineContainerWidthMaxWidth>
-          {ports.map(({ s, d }) => (
-            <Styled.PortsEntry key={`${s || 'any'}${d || 'any'}`}>
-              {!s || s.length === 0 ? 'any' : s} : {!d || d.length === 0 ? 'any' : d}
-            </Styled.PortsEntry>
+    <Styled.UncontrolledSelect
+      mode="multiple"
+      maxTagCount="responsive"
+      value={ports.map(({ s, d }) => ({
+        label: `${!s || s.length === 0 ? 'All Ports' : s} : ${!d || d.length === 0 ? 'All Ports' : d}`,
+        value: `${!s || s.length === 0 ? 'All Ports' : s} : ${!d || d.length === 0 ? 'All Ports' : d}`,
+      }))}
+      options={ports.map(({ s, d }) => ({
+        label: `${!s || s.length === 0 ? 'All Ports' : s} : ${!d || d.length === 0 ? 'All Ports' : d}`,
+        value: `${!s || s.length === 0 ? 'All Ports' : s} : ${!d || d.length === 0 ? 'All Ports' : d}`,
+      }))}
+      dropdownStyle={{ display: 'none' }}
+      open={false}
+      showSearch={false}
+      maxTagPlaceholder={omittedValues => (
+        <Popover
+          overlayStyle={{ pointerEvents: 'none' }}
+          title=""
+          content={omittedValues.map(({ label }) => (
+            <div key={label?.toString() || 'impossible'}>{label}</div>
           ))}
-        </Styled.InlineContainerWidthMaxWidth>
-      </Popover>
-    </CommonStyled.RulesEntryPorts>
+        >
+          <span>+{omittedValues.length}</span>
+        </Popover>
+      )}
+      removeIcon={() => {
+        return null
+      }}
+      suffixIcon={null}
+      tagRender={({ label }) => <Tag>{label}</Tag>}
+    />
   )
 }

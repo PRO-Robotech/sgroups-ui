@@ -47,7 +47,11 @@ export const RulesByType: FC<TRulesByTypeProps> = ({ typeId, subType }) => {
           <RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgCidrIcmp.to} />
         </Styled.Container>
       )}
-      {typeId === 'sgFqdn' && <RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgFqdn.to} />}
+      {typeId === 'sgFqdn' && (
+        <Styled.Container>
+          <RulesBlockFactory {...RULES_CONFIGS_FOR_FACTORY.sgFqdn.to} />
+        </Styled.Container>
+      )}
     </>
   )
 }

@@ -8,6 +8,7 @@ import { rulesSgSgIeIcmpSlice } from './editor/rulesSgSgIeIcmp/rulesSgSgIeIcmp'
 import { rulesSgFqdnSlice } from './editor/rulesSgFqdn/rulesSgFqdn'
 import { rulesSgCidrSlice } from './editor/rulesSgCidr/rulesSgCidr'
 import { rulesSgCidrIcmpSlice } from './editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
+import { searchTextSlice } from './editor/searchText/searchText'
 
 export const store = configureStore({
   reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
     rulesSgFqdn: rulesSgFqdnSlice.reducer,
     rulesSgCidr: rulesSgCidrSlice.reducer,
     rulesSgCidrIcmp: rulesSgCidrIcmpSlice.reducer,
+    searchText: searchTextSlice.reducer,
   },
 })
 

@@ -7,10 +7,10 @@ export const ResetedFormItem = styled(Form.Item)`
 
 const PortsEditContainer = styled.div`
   max-height: 242px;
+  padding: 8px 12px 12px 12px;
   overflow-x: auto;
   border: 1px solid #0000000f;
   border-radius: 8px;
-  padding: 8px 12px 12px 12px;
 `
 
 export const CustomLabelsContainer = styled.div`

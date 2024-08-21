@@ -14,6 +14,7 @@ import { setRulesSgSgIeIcmpFrom, setRulesSgSgIeIcmpTo } from 'store/editor/rules
 import { setRulesSgFqdnTo } from 'store/editor/rulesSgFqdn/rulesSgFqdn'
 import { setRulesSgCidrFrom, setRulesSgCidrTo } from 'store/editor/rulesSgCidr/rulesSgCidr'
 import { setRulesSgCidrIcmpFrom, setRulesSgCidrIcmpTo } from 'store/editor/rulesSgCidrIcmp/rulesSgCidrIcmp'
+import { setSearchText } from 'store/editor/searchText/searchText'
 import { TRequestErrorData, TRequestError } from 'localTypes/api'
 import { getSecurityGroups } from 'api/securityGroups'
 import {
@@ -65,11 +66,12 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
 
   const [subType, setSubType] = useState<string>('TCP/UDP')
 
-  const [searchText, setSearchText] = useState('')
+  // const [searchText, setSearchText] = useState('')
   const [checkboxRowSelected, setCheckboxRowSelected] = useState<number>(0)
   const [isModalDeleteManyOpen, setIsModalDeleteManyOpen] = useState<boolean>(false)
 
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
+  const searchText = useSelector((state: RootState) => state.searchText.searchText)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
   const rulesSgSgIcmpFrom = useSelector((state: RootState) => state.rulesSgSgIcmp.rulesFrom)
@@ -88,6 +90,11 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
   useEffect(() => {
     setSubType('TCP/UDP')
   }, [typeId])
+
+  /* clear searchText */
+  useEffect(() => {
+    dispatch(setSearchText(undefined))
+  }, [typeId, subType, dispatch])
 
   /* get available sg names */
   useEffect(() => {
@@ -397,7 +404,7 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
               prefix={<MagnifyingGlass color="#00000073" />}
               value={searchText}
               onChange={e => {
-                setSearchText(e.target.value)
+                dispatch(setSearchText(e.target.value))
               }}
             />
           </Layouts.SearchControl>

@@ -17,8 +17,8 @@ const HeaderAndControls = styled.div`
 `
 
 const BlueText = styled.span`
-  color: #1677ff;
   margin-left: 6px;
+  color: #1677ff;
 `
 
 const Carets = styled.div`

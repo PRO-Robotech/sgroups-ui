@@ -14,7 +14,6 @@ import {
   TFormSgCidrRule,
   TSgCidrIcmpRule,
   TFormSgCidrIcmpRule,
-  TFormChanges,
 } from 'localTypes/rules'
 
 export const mapRulesSgSg = (rules: TSgSgRule[], type: 'Ingress' | 'Egress'): TFormSgSgRule[] => {
@@ -185,13 +184,4 @@ export const mapRulesSgCidrIcmp = (rules: TSgCidrIcmpRule[], type: 'Ingress' | '
         },
       }
     })
-}
-
-export const checkIfChangesExist = (data: (unknown & { formChanges?: TFormChanges })[]): boolean => {
-  return data.some(
-    ({ formChanges }) =>
-      formChanges?.status === 'new' ||
-      formChanges?.status === 'deleted' ||
-      (formChanges?.status === 'modified' && formChanges.modifiedFields && formChanges.modifiedFields?.length > 0),
-  )
 }

@@ -1,29 +1,28 @@
-import { TablePaginationConfig } from 'antd'
+import { TablePaginationConfig, PaginationProps } from 'antd'
 import { SizeType } from 'antd/es/config-provider/SizeContext'
 import { ITEMS_PER_PAGE_EDITOR } from 'constants/rules'
 
-export const getDefaultTableProps = (
-  forceArrowsUpdate?: () => void,
-): {
+const showTotal: PaginationProps['showTotal'] = total => `Total: ${total}`
+
+export const getDefaultTableProps = (): {
   pagination: TablePaginationConfig
   virtual: boolean
   scroll: { x?: string | number | true | undefined }
   size: SizeType
 } => {
   const paginationProps: TablePaginationConfig = {
-    position: ['bottomCenter'],
-    showQuickJumper: false,
-    showSizeChanger: false,
+    position: ['bottomLeft'],
+    showSizeChanger: true,
     defaultPageSize: ITEMS_PER_PAGE_EDITOR,
-    onChange: forceArrowsUpdate,
-    hideOnSinglePage: true,
+    hideOnSinglePage: false,
+    showTotal,
   }
 
   const scrollProps = { x: 'max-content' }
 
   return {
     pagination: paginationProps,
-    virtual: true,
+    virtual: false,
     scroll: scrollProps,
     size: 'small',
   }

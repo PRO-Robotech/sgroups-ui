@@ -17,8 +17,25 @@ const CenterColWithMarginAuto = styled.div`
   margin: 0 auto;
 `
 
+const CardsTitle = styled.div`
+  margin: 0;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 22px;
+`
+
+const CenterUnchosen = styled.div`
+  margin: 0;
+  color: #00000040;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 22px;
+`
+
 export const Styled = {
   CardsContainer,
   CardsCol,
   CenterColWithMarginAuto,
+  CardsTitle,
+  CenterUnchosen,
 }
