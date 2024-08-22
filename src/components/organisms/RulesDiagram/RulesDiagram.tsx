@@ -53,6 +53,7 @@ export const RulesDiagram: FC = () => {
 
   // const [searchText, setSearchText] = useState('')
 
+  const theme = useSelector((state: RootState) => state.theme.theme)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const searchText = useSelector((state: RootState) => state.searchText.searchText)
 
@@ -174,10 +175,10 @@ export const RulesDiagram: FC = () => {
 
   return (
     <>
-      <Layouts.HeaderRow>
+      <Layouts.HeaderRow $isDark={theme === 'dark'}>
         <TitleWithNoMargins level={3}>Diagram</TitleWithNoMargins>
       </Layouts.HeaderRow>
-      <Layouts.ControlsRow>
+      <Layouts.ControlsRow $isDark={theme === 'dark'}>
         <Layouts.ControlsRightSide>
           <SgSelectAndTypeSwitcher
             isHidden={false}

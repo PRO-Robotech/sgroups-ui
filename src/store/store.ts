@@ -1,4 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
+import { themeSlice } from './theme/theme/theme'
 import { sgNamesSlice } from './editor/sgNames/sgNames'
 import { centerSgSlice } from './editor/centerSg/centerSg'
 import { rulesSgSgSlice } from './editor/rulesSgSg/rulesSgSg'
@@ -12,6 +13,7 @@ import { searchTextSlice } from './editor/searchText/searchText'
 
 export const store = configureStore({
   reducer: {
+    theme: themeSlice.reducer,
     sgNames: sgNamesSlice.reducer,
     centerSg: centerSgSlice.reducer,
     rulesSgSg: rulesSgSgSlice.reducer,

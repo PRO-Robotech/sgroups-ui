@@ -1,4 +1,5 @@
 import React, { FC, useState, useEffect } from 'react'
+import { theme as antdtheme } from 'antd'
 import { useSelector } from 'react-redux'
 import type { RootState } from 'store/store'
 import { Spacer } from 'components'
@@ -34,6 +35,10 @@ type TTransformBlockInnerProps = {
 export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subtype }) => {
   const [arrowsKey, setArrowsKey] = useState(0)
 
+  const { useToken } = antdtheme
+  const { token } = useToken()
+
+  const theme = useSelector((state: RootState) => state.theme.theme)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
   const rulesSgSgTo = useSelector((state: RootState) => state.rulesSgSg.rulesTo)
@@ -75,7 +80,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subty
         {(type === 'all' || type === 'sgSg') && (
           <>
             <div id={SG_AND_SG_SG_ICMP_FROM_ID}>
-              <GroupRulesNodeWrapper>
+              <GroupRulesNodeWrapper $isDark={theme === 'dark'} $bgColor={token.colorBgLayout}>
                 {subtype !== 'ICMP' ? (
                   <div>
                     <Styled.CardsTitle>SG</Styled.CardsTitle>
@@ -95,7 +100,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subty
         {(type === 'all' || type === 'sgSgIe') && (
           <>
             <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_FROM_ID}>
-              <GroupRulesNodeWrapper>
+              <GroupRulesNodeWrapper $isDark={theme === 'dark'} $bgColor={token.colorBgLayout}>
                 {subtype !== 'ICMP' ? (
                   <div>
                     <Styled.CardsTitle>SG (I/E)</Styled.CardsTitle>
@@ -114,7 +119,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subty
         )}
         {(type === 'all' || type === 'sgCidr') && (
           <div id={CIDR_FROM_ID}>
-            <GroupRulesNodeWrapper>
+            <GroupRulesNodeWrapper $isDark={theme === 'dark'} $bgColor={token.colorBgLayout}>
               {subtype !== 'ICMP' ? (
                 <div>
                   <Styled.CardsTitle>CIDR</Styled.CardsTitle>
@@ -132,11 +137,11 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subty
       </Styled.CardsCol>
       <Styled.CardsCol>
         <Styled.CenterColWithMarginAuto id={CENTRAL_ID}>
-          <GroupRulesNodeWrapper $isCenterSg>
+          <GroupRulesNodeWrapper $isDark={theme === 'dark'} $bgColor={token.colorBgLayout} $isCenterSg>
             {centerSg ? (
               <Styled.CardsTitle>{centerSg}</Styled.CardsTitle>
             ) : (
-              <Styled.CenterUnchosen>Main Secuity Group</Styled.CenterUnchosen>
+              <Styled.CenterUnchosen $color={token.colorText}>Main Secuity Group</Styled.CenterUnchosen>
             )}
           </GroupRulesNodeWrapper>
         </Styled.CenterColWithMarginAuto>
@@ -145,7 +150,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subty
         {(type === 'all' || type === 'sgSg') && (
           <>
             <div id={SG_AND_SG_SG_ICMP_TO_ID}>
-              <GroupRulesNodeWrapper>
+              <GroupRulesNodeWrapper $isDark={theme === 'dark'} $bgColor={token.colorBgLayout}>
                 {subtype !== 'ICMP' ? (
                   <div>
                     <Styled.CardsTitle>SG</Styled.CardsTitle>
@@ -165,7 +170,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subty
         {(type === 'all' || type === 'sgSgIe') && (
           <>
             <div id={SG_SG_IE_AND_SG_SG_IE_ICMP_TO_ID}>
-              <GroupRulesNodeWrapper>
+              <GroupRulesNodeWrapper $isDark={theme === 'dark'} $bgColor={token.colorBgLayout}>
                 {subtype !== 'ICMP' ? (
                   <div>
                     <Styled.CardsTitle>SG (I/E</Styled.CardsTitle>
@@ -185,7 +190,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subty
         {(type === 'all' || type === 'sgCidr') && (
           <>
             <div id={CIDR_TO_ID}>
-              <GroupRulesNodeWrapper>
+              <GroupRulesNodeWrapper $isDark={theme === 'dark'} $bgColor={token.colorBgLayout}>
                 {subtype !== 'ICMP' ? (
                   <div>
                     <Styled.CardsTitle>CIDR</Styled.CardsTitle>
@@ -204,7 +209,7 @@ export const TransformBlockInner: FC<TTransformBlockInnerProps> = ({ type, subty
         )}
         {(type === 'all' || type === 'sgFqdn') && subtype !== 'ICMP' && (
           <div id={FQDN_TO_ID}>
-            <GroupRulesNodeWrapper>
+            <GroupRulesNodeWrapper $isDark={theme === 'dark'} $bgColor={token.colorBgLayout}>
               <div>
                 <Styled.CardsTitle>FQDN</Styled.CardsTitle>
                 {rulesSgFqdnTo.length > 0 && <SgFqdnTable rulesData={subtype === 'from' ? [] : rulesSgFqdnTo} />}

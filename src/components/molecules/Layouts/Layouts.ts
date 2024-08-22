@@ -1,27 +1,39 @@
 import styled from 'styled-components'
 import { Input } from 'antd'
 
-const HeaderRow = styled.div`
+type THeaderRowProps = {
+  $isDark: boolean
+}
+
+const HeaderRow = styled.div<THeaderRowProps>`
   padding: 16px 24px;
-  border-bottom: 1px solid #0000000f;
+  border-bottom: 1px solid ${({ $isDark }) => ($isDark ? '#3C3C3C' : '#0000000f')};
 `
 
-const ControlsRow = styled.div`
+type TControlsRowProps = {
+  $isDark: boolean
+}
+
+const ControlsRow = styled.div<TControlsRowProps>`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   padding: 12px 24px;
-  border-bottom: 1px solid #0000000f;
+  border-bottom: 1px solid ${({ $isDark }) => ($isDark ? '#3C3C3C' : '#0000000f')};
 `
 
 const ControlsRightSide = styled.div`
   display: flex;
 `
 
-const Separator = styled.div`
+type TSeparatorProps = {
+  $isDark: boolean
+}
+
+const Separator = styled.div<TSeparatorProps>`
   width: 1px;
   height: 24pcx;
   margin: 0 16px;
-  background: #0000000f;
+  background: ${({ $isDark }) => ($isDark ? '#3C3C3C' : '#0000000f')};
 `
 
 const ControlsLeftSide = styled.div`

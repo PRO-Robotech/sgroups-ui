@@ -6,6 +6,8 @@ import { Button, Table, TableProps, PaginationProps, Result, Spin, notification 
 import type { ColumnsType } from 'antd/es/table'
 import { SearchOutlined } from '@ant-design/icons'
 import { Plus, TrashSimple, MagnifyingGlass, PencilSimpleLine, X } from '@phosphor-icons/react'
+import { useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
 import ipRangeCheck from 'ip-range-check'
 import {
   TitleWithNoMargins,
@@ -38,6 +40,7 @@ type OnChange = NonNullable<TableProps<TColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const NetworksList: FC = () => {
+  const theme = useSelector((state: RootState) => state.theme.theme)
   const [api, contextHolder] = notification.useNotification()
 
   const [networks, setNetworks] = useState<TNetworkWithSg[]>([])
@@ -195,10 +198,10 @@ export const NetworksList: FC = () => {
 
   return (
     <>
-      <Layouts.HeaderRow>
+      <Layouts.HeaderRow $isDark={theme === 'dark'}>
         <TitleWithNoMargins level={3}>Networks</TitleWithNoMargins>
       </Layouts.HeaderRow>
-      <Layouts.ControlsRow>
+      <Layouts.ControlsRow $isDark={theme === 'dark'}>
         <Layouts.ControlsRightSide>
           {selectedRowsData.length > 0 ? (
             <>
@@ -210,7 +213,7 @@ export const NetworksList: FC = () => {
               Add
             </FlexButton>
           )}
-          <Layouts.Separator />
+          <Layouts.Separator $isDark={theme === 'dark'} />
           <Button
             disabled={selectedRowsData.length === 0}
             type="text"

@@ -70,6 +70,7 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
   const [checkboxRowSelected, setCheckboxRowSelected] = useState<number>(0)
   const [isModalDeleteManyOpen, setIsModalDeleteManyOpen] = useState<boolean>(false)
 
+  const theme = useSelector((state: RootState) => state.theme.theme)
   const centerSg = useSelector((state: RootState) => state.centerSg.centerSg)
   const searchText = useSelector((state: RootState) => state.searchText.searchText)
   const rulesSgSgFrom = useSelector((state: RootState) => state.rulesSgSg.rulesFrom)
@@ -370,10 +371,10 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
 
   return (
     <>
-      <Layouts.HeaderRow>
+      <Layouts.HeaderRow $isDark={theme === 'dark'}>
         <TitleWithNoMargins level={3}>{getSectionName(typeId)}</TitleWithNoMargins>
       </Layouts.HeaderRow>
-      <Layouts.ControlsRow>
+      <Layouts.ControlsRow $isDark={theme === 'dark'}>
         <Layouts.ControlsRightSide>
           {checkboxRowSelected > 0 && (
             <>
@@ -388,7 +389,7 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
             subType={subType}
             onSelectSubType={setSubType}
           />
-          <Layouts.Separator />
+          <Layouts.Separator $isDark={theme === 'dark'} />
           <Button
             disabled={checkboxRowSelected === 0}
             type="text"

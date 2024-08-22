@@ -1,11 +1,15 @@
 import styled from 'styled-components'
 import { PositionSticky } from 'components'
 
-const Container = styled.div`
+type TContainerProps = {
+  $isDark: boolean
+}
+
+const Container = styled.div<TContainerProps>`
   min-height: 100vh;
 
   && aside {
-    border-right: 1px solid #ededed;
+    border-right: 1px solid ${({ $isDark }) => ($isDark ? '#3C3C3C' : '#ededed')};
   }
 `
 

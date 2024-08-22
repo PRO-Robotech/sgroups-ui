@@ -1,7 +1,11 @@
 import styled from 'styled-components'
 
-const Layout = styled.div`
-  background: #fff;
+type TLayoutProps = {
+  $bgColor: string
+}
+
+const Layout = styled.div<TLayoutProps>`
+  background: ${({ $bgColor }) => $bgColor};
   min-height: 100vh;
   width: 100%;
 `

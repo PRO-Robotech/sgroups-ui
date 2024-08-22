@@ -24,12 +24,17 @@ const CardsTitle = styled.div`
   line-height: 22px;
 `
 
-const CenterUnchosen = styled.div`
+type TCenterUnchosenProps = {
+  $color: string
+}
+
+const CenterUnchosen = styled.div<TCenterUnchosenProps>`
   margin: 0;
   color: #00000040;
   font-weight: 700;
   font-size: 14px;
   line-height: 22px;
+  color: ${({ $color }) => $color};
 `
 
 export const Styled = {
