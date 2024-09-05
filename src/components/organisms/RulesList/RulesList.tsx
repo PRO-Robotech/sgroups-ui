@@ -6,7 +6,6 @@ import { AxiosError } from 'axios'
 import { useSelector, useDispatch } from 'react-redux'
 import type { RootState } from 'store/store'
 import { setSgNames } from 'store/editor/sgNames/sgNames'
-import { setCenterSg } from 'store/editor/centerSg/centerSg'
 import { setRulesSgSgFrom, setRulesSgSgTo } from 'store/editor/rulesSgSg/rulesSgSg'
 import { setRulesSgSgIcmpFrom, setRulesSgSgIcmpTo } from 'store/editor/rulesSgSgIcmp/rulesSgSgIcmp'
 import { setRulesSgSgIeFrom, setRulesSgSgIeTo } from 'store/editor/rulesSgSgIe/rulesSgSgIe'
@@ -37,11 +36,10 @@ import {
   mapRulesSgFqdn,
   mapRulesSgCidr,
   mapRulesSgCidrIcmp,
-  checkIfChangesExist,
   countChanges,
   getSectionName,
 } from './utils'
-import { SelectCenterSgModal, DeleteManyModal } from './atoms'
+import { DeleteManyModal } from './atoms'
 import { CustomNotification } from './molecules'
 import { SgSelectAndTypeSwitcher, ChangesBlock } from './organisms'
 import { RulesByType } from './populations'
@@ -57,9 +55,6 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
 
   const [error, setError] = useState<TRequestError | undefined>()
   const [isLoading, setIsLoading] = useState<boolean>(false)
-
-  const [isChangeCenterSgModalVisible, setChangeCenterSgModalVisible] = useState<boolean>(false)
-  const [pendingSg, setPendingSg] = useState<string>()
 
   const [formChangesCount, setFormChangesCount] = useState<number>(0)
   const [isChangesBlockVisible, setIsChangesBlockVisible] = useState<boolean>(false)
@@ -305,33 +300,6 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
     )
   }
 
-  /* show modal if some changes are not submitted */
-  const onSelectCenterSg = (newSg?: string) => {
-    if (newSg !== centerSg) {
-      const result = checkIfChangesExist([
-        ...rulesSgSgFrom,
-        ...rulesSgSgTo,
-        ...rulesSgSgIcmpFrom,
-        ...rulesSgSgIcmpTo,
-        ...rulesSgSgIeFrom,
-        ...rulesSgSgIeTo,
-        ...rulesSgSgIeIcmpFrom,
-        ...rulesSgSgIeIcmpTo,
-        ...rulesSgFqdnTo,
-        ...rulesSgCidrFrom,
-        ...rulesSgCidrTo,
-        ...rulesSgCidrIcmpFrom,
-        ...rulesSgCidrIcmpTo,
-      ])
-      if (result) {
-        setPendingSg(newSg)
-        setChangeCenterSgModalVisible(true)
-      } else {
-        dispatch(setCenterSg(newSg))
-      }
-    }
-  }
-
   const openNotification = (msg: string) => {
     api.success({
       message: msg,
@@ -384,7 +352,6 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
           )}
           <SgSelectAndTypeSwitcher
             isHidden={checkboxRowSelected > 0}
-            onSelectCenterSg={onSelectCenterSg}
             typeId={typeId}
             subType={subType}
             onSelectSubType={setSubType}
@@ -417,15 +384,6 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
         </MiddleContainer>
       )}
       {!isLoading && <RulesByType typeId={typeId} subType={subType} />}
-      <SelectCenterSgModal
-        isOpen={isChangeCenterSgModalVisible}
-        handleOk={() => {
-          dispatch(setCenterSg(pendingSg))
-          setChangeCenterSgModalVisible(false)
-          setPendingSg(undefined)
-        }}
-        handleCancel={() => setChangeCenterSgModalVisible(false)}
-      />
       <DeleteManyModal
         externalOpenInfo={isModalDeleteManyOpen}
         setExternalOpenInfo={setIsModalDeleteManyOpen}

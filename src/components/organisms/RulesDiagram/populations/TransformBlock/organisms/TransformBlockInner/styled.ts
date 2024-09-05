@@ -30,11 +30,10 @@ type TCenterUnchosenProps = {
 
 const CenterUnchosen = styled.div<TCenterUnchosenProps>`
   margin: 0;
-  color: #00000040;
+  color: ${({ $color }) => $color};
   font-weight: 700;
   font-size: 14px;
   line-height: 22px;
-  color: ${({ $color }) => $color};
 `
 
 export const Styled = {
