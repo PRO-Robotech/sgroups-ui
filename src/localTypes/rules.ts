@@ -78,8 +78,8 @@ export type TSgSgRulesResponse = {
 }
 
 export type TSgSgIcmpRule = {
-  SgFrom: string
-  SgTo: string
+  sgFrom: string
+  sgTo: string
   logs: boolean
   trace: boolean
   ICMP: TICMPDescription
@@ -91,8 +91,8 @@ export type TSgSgIcmpRulesResponse = {
 }
 
 export type TSgSgIeRule = {
-  Sg: string
-  SgLocal: string
+  SG: string
+  sgLocal: string
   traffic: TTraffic
   ports: TPortGroup[] | null
   logs: boolean
@@ -106,8 +106,8 @@ export type TSgSgIeRulesResponse = {
 }
 
 export type TSgSgIeIcmpRule = {
-  Sg: string
-  SgLocal: string
+  SG: string
+  sgLocal: string
   ICMP: TICMPDescription
   traffic: TTraffic
   logs: boolean

@@ -3,11 +3,11 @@ import { TSgResponse, TSgDefaultAction } from 'localTypes/securityGroups'
 import { getBaseEndpoint } from './env'
 
 export const getSecurityGroups = (): Promise<AxiosResponse<TSgResponse>> =>
-  axios.post<TSgResponse>(`${getBaseEndpoint()}/v1/list/security-groups`)
+  axios.post<TSgResponse>(`${getBaseEndpoint()}/v2/list-security-groups`)
 
 export const getSecurityGroupByName = (name: string): Promise<AxiosResponse<TSgResponse>> =>
   axios.post<TSgResponse>(
-    `${getBaseEndpoint()}/v1/list/security-groups`,
+    `${getBaseEndpoint()}/v2/list-security-groups`,
     {
       sgNames: [name],
     },
@@ -26,7 +26,7 @@ export const addSecurityGroup = async (
   trace: boolean,
 ): Promise<AxiosResponse> => {
   return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
+    `${getBaseEndpoint()}/v2/sync`,
     {
       groups: {
         groups: [
@@ -53,7 +53,7 @@ export const removeSecurityGroup = async (names: string[]): Promise<AxiosRespons
   const currentSecurityGroups = (await getSecurityGroups()).data.groups
   const deletedSecurityGroups = [...currentSecurityGroups].filter(el => names.includes(el.name))
   return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
+    `${getBaseEndpoint()}/v2/sync`,
     {
       groups: {
         groups: deletedSecurityGroups,
@@ -85,7 +85,7 @@ export const editSecurityGroup = async (
     },
   ]
   return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
+    `${getBaseEndpoint()}/2/sync`,
     {
       groups: {
         groups: modifiedSecurityGroups,

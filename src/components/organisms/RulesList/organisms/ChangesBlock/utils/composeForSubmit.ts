@@ -102,8 +102,8 @@ export const composeAllTypesOfSgSgIcmpRules = (
 
   rulesSgSgIcmpFrom.forEach(({ sg, IPv, types, trace, logs, formChanges, action, prioritySome }) => {
     const rule: TSgSgIcmpRule = {
-      SgFrom: sg,
-      SgTo: centerSg,
+      sgFrom: sg,
+      sgTo: centerSg,
       ICMP: { IPv, Types: types },
       logs: !!logs,
       trace: !!trace,
@@ -123,8 +123,8 @@ export const composeAllTypesOfSgSgIcmpRules = (
 
   rulesSgSgIcmpTo.forEach(({ sg, IPv, types, trace, logs, formChanges, action, prioritySome }) => {
     const rule = {
-      SgFrom: centerSg,
-      SgTo: sg,
+      sgFrom: centerSg,
+      sgTo: sg,
       ICMP: { IPv, Types: types },
       logs: !!logs,
       trace: !!trace,
@@ -158,8 +158,8 @@ export const composeAllTypesOfSgSgIeRules = (
   const sgSgIeRules = [...rulesSgSgIeFrom, ...rulesSgSgIeTo]
   sgSgIeRules.forEach(({ sg, ports, transport, logs, trace, traffic, formChanges, action, prioritySome }) => {
     const rule = {
-      SgLocal: centerSg,
-      Sg: sg,
+      sgLocal: centerSg,
+      SG: sg,
       transport,
       ports: composePorts(ports),
       traffic,
@@ -195,8 +195,8 @@ export const composeAllTypesOfSgSgIeIcmpRules = (
   const sgSgIeIcmpRules = [...rulesSgSgIeIcmpFrom, ...rulesSgSgIeIcmpTo]
   sgSgIeIcmpRules.forEach(({ sg, IPv, types, logs, trace, traffic, formChanges, action, prioritySome }) => {
     const rule = {
-      SgLocal: centerSg,
-      Sg: sg,
+      sgLocal: centerSg,
+      SG: sg,
       ICMP: { IPv, Types: types },
       traffic,
       logs: !!logs,

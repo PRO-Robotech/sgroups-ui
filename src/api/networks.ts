@@ -3,11 +3,11 @@ import { TNwResponse, TNetworkForm } from 'localTypes/networks'
 import { getBaseEndpoint } from './env'
 
 export const getNetworks = (): Promise<AxiosResponse<TNwResponse>> =>
-  axios.post<TNwResponse>(`${getBaseEndpoint()}/v1/list/networks`)
+  axios.post<TNwResponse>(`${getBaseEndpoint()}/v2/list-networks`)
 
 export const getNetworkByName = (name: string): Promise<AxiosResponse<TNwResponse>> =>
   axios.post<TNwResponse>(
-    `${getBaseEndpoint()}/v1/list/networks`,
+    `${getBaseEndpoint()}/v2/list-networks`,
     {
       neteworkNames: [name],
     },
@@ -20,7 +20,7 @@ export const getNetworkByName = (name: string): Promise<AxiosResponse<TNwRespons
 
 export const addNetwork = async (name: string, cidr: string): Promise<AxiosResponse> => {
   return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
+    `${getBaseEndpoint()}/v2/sync`,
     {
       networks: {
         networks: [
@@ -52,7 +52,7 @@ export const addNetworks = async (nws: TNetworkForm[]): Promise<AxiosResponse> =
   }))
 
   return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
+    `${getBaseEndpoint()}/v2/sync`,
     {
       networks: {
         networks: body,
@@ -71,7 +71,7 @@ export const removeNetwork = async (names: string[]): Promise<AxiosResponse> => 
   const currentNetworks = (await getNetworks()).data.networks
   const deletedNetworks = [...currentNetworks].filter(el => names.includes(el.name))
   return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
+    `${getBaseEndpoint()}/v2/sync`,
     {
       networks: {
         networks: deletedNetworks,
@@ -96,7 +96,7 @@ export const editNetwork = async (name: string, cidr: string): Promise<AxiosResp
     },
   ]
   return axios.post(
-    `${getBaseEndpoint()}/v1/sync`,
+    `${getBaseEndpoint()}/v2/sync`,
     {
       networks: {
         networks: modifiedNetworks,

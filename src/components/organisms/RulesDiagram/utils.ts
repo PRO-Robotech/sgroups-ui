@@ -37,9 +37,9 @@ export const mapRulesSgSg = (rules: TSgSgRule[], type: 'Ingress' | 'Egress'): TF
 }
 
 export const mapRulesSgSgIcmp = (rules: TSgSgIcmpRule[], type: 'Ingress' | 'Egress'): TFormSgSgIcmpRule[] => {
-  return rules.map(({ SgFrom, SgTo, logs, trace, ICMP, action, priority }) => ({
+  return rules.map(({ sgFrom, sgTo, logs, trace, ICMP, action, priority }) => ({
     id: nanoid(),
-    sg: type === 'Ingress' ? SgFrom : SgTo,
+    sg: type === 'Ingress' ? sgFrom : sgTo,
     IPv: ICMP.IPv,
     types: ICMP.Types,
     logs,
@@ -47,7 +47,7 @@ export const mapRulesSgSgIcmp = (rules: TSgSgIcmpRule[], type: 'Ingress' | 'Egre
     action,
     prioritySome: priority?.some,
     initialValues: {
-      sg: type === 'Ingress' ? SgFrom : SgTo,
+      sg: type === 'Ingress' ? sgFrom : sgTo,
       IPv: ICMP.IPv,
       types: ICMP.Types,
       logs,
@@ -61,9 +61,9 @@ export const mapRulesSgSgIcmp = (rules: TSgSgIcmpRule[], type: 'Ingress' | 'Egre
 export const mapRulesSgSgIe = (rules: TSgSgIeRule[], type: 'Ingress' | 'Egress'): TFormSgSgIeRule[] => {
   return rules
     .filter(({ traffic }) => traffic === type)
-    .map(({ Sg, ports, transport, logs, trace, traffic, action, priority }) => ({
+    .map(({ SG, ports, transport, logs, trace, traffic, action, priority }) => ({
       id: nanoid(),
-      sg: Sg,
+      sg: SG,
       transport,
       traffic,
       ports,
@@ -72,7 +72,7 @@ export const mapRulesSgSgIe = (rules: TSgSgIeRule[], type: 'Ingress' | 'Egress')
       action,
       prioritySome: priority?.some,
       initialValues: {
-        sg: Sg,
+        sg: SG,
         transport,
         traffic,
         ports,
@@ -87,10 +87,10 @@ export const mapRulesSgSgIe = (rules: TSgSgIeRule[], type: 'Ingress' | 'Egress')
 export const mapRulesSgSgIeIcmp = (rules: TSgSgIeIcmpRule[], type: 'Ingress' | 'Egress'): TFormSgSgIeIcmpRule[] => {
   return rules
     .filter(({ traffic }) => traffic === type)
-    .flatMap(({ Sg, ICMP, logs, trace, traffic, action, priority }) => {
+    .flatMap(({ SG, ICMP, logs, trace, traffic, action, priority }) => {
       return {
         id: nanoid(),
-        sg: Sg,
+        sg: SG,
         traffic,
         IPv: ICMP.IPv,
         types: ICMP.Types,
@@ -99,7 +99,7 @@ export const mapRulesSgSgIeIcmp = (rules: TSgSgIeIcmpRule[], type: 'Ingress' | '
         action,
         prioritySome: priority?.some,
         initialValues: {
-          sg: Sg,
+          sg: SG,
           traffic,
           IPv: ICMP.IPv,
           types: ICMP.Types,
