@@ -1,5 +1,7 @@
 import React, { FC, ReactNode } from 'react'
-import { theme } from 'antd'
+// import { theme } from 'antd'
+import { useSelector } from 'react-redux'
+import type { RootState } from 'store/store'
 import { Header, Menu, DefaultLayout } from 'components'
 import { Styled } from './styled'
 
@@ -8,8 +10,9 @@ type TRulesEditorTemplateProps = {
 }
 
 export const RulesEditorTemplate: FC<TRulesEditorTemplateProps> = ({ children }) => {
-  const { useToken } = theme
-  const { token } = useToken()
+  const theme = useSelector((state: RootState) => state.theme.theme)
+  // const { useToken } = theme
+  // const { token } = useToken()
 
   return (
     <>
@@ -17,7 +20,8 @@ export const RulesEditorTemplate: FC<TRulesEditorTemplateProps> = ({ children })
         <Header />
         <Menu />
       </Styled.SidebarContainer>
-      <DefaultLayout.Layout $bgColor={token.colorBgLayout}>{children}</DefaultLayout.Layout>
+      {/* <DefaultLayout.Layout $bgColor={token.colorBgLayout}> */}
+      <DefaultLayout.Layout $bgColor={theme === 'dark' ? '#141414' : '#fff'}>{children}</DefaultLayout.Layout>
     </>
   )
 }

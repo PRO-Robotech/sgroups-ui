@@ -10,14 +10,22 @@ const Container = styled.div`
   margin-top: calc((100vh - 65px - 57px) / 2 - 26px);
 `
 
-const Icon = styled(InfoCircleOutlined)`
+type TIconProps = {
+  $isDark?: boolean
+}
+
+const Icon = styled(InfoCircleOutlined)<TIconProps>`
   margin-bottom: 4px;
-  color: #00000040;
+  color: ${({ $isDark }) => ($isDark ? '#E3E3E3' : '#00000040')};
   font-size: 24px;
 `
 
-const Text = styled.div`
-  color: #00000040;
+type TTextProps = {
+  $isDark?: boolean
+}
+
+const Text = styled.div<TTextProps>`
+  color: ${({ $isDark }) => ($isDark ? '#E3E3E3' : '#00000040')};
   font-size: 16px;
   line-height: 24px;
 `

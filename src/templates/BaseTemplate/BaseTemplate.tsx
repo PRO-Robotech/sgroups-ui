@@ -25,7 +25,8 @@ export const BaseTemplate: FC<TBaseTemplateProps> = ({ children }) => {
             </Styled.PositionStickyWithNoUserSelect>
             <ThemeSelector />
           </Layout.Sider>
-          <DefaultLayout.Layout $bgColor={token.colorBgLayout}>
+          {/* <DefaultLayout.Layout $bgColor={token.colorBgLayout}> */}
+          <DefaultLayout.Layout $bgColor={theme === 'dark' ? '#141414' : '#fff'}>
             <DefaultLayout.ContentContainer>{children}</DefaultLayout.ContentContainer>
           </DefaultLayout.Layout>
         </Layout>

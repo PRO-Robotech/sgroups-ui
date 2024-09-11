@@ -206,7 +206,11 @@ export const NetworksList: FC = () => {
           {selectedRowsData.length > 0 ? (
             <>
               <Styled.SelectedItemsText>Selected Items: {selectedRowsData.length}</Styled.SelectedItemsText>
-              <Button type="text" icon={<X size={16} color="#00000073" />} onClick={clearSelected} />
+              <Button
+                type="text"
+                icon={<X size={16} color={theme === 'dark' ? '#E3E3E3' : '#00000073'} />}
+                onClick={clearSelected}
+              />
             </>
           ) : (
             <FlexButton onClick={() => setIsModalAddOpen(true)} type="primary" icon={<Plus size={20} />}>
@@ -226,7 +230,7 @@ export const NetworksList: FC = () => {
             <Layouts.InputWithCustomPreffixMargin
               allowClear
               placeholder="Search"
-              prefix={<MagnifyingGlass color="#00000073" />}
+              prefix={<MagnifyingGlass color={theme === 'dark' ? '#E3E3E3' : '#00000073'} />}
               value={searchText}
               onChange={e => {
                 setSearchText(e.target.value)
@@ -243,7 +247,7 @@ export const NetworksList: FC = () => {
       )}
       {!networks.length && !error && !isLoading && <CustomEmpty />}
       {networks.length > 0 && (
-        <TableComponents.TableContainer>
+        <TableComponents.TableContainer $isDark={theme === 'dark'}>
           <TableComponents.HideableControls>
             <Table
               pagination={{

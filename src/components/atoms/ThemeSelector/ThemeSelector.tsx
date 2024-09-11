@@ -14,6 +14,9 @@ export const ThemeSelector: FC = () => {
     const localStorageTheme = localStorage.getItem('theme')
     if (localStorageTheme && (localStorageTheme === 'dark' || localStorageTheme === 'light')) {
       dispatch(setTheme(localStorageTheme))
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      localStorage.setItem('theme', 'dark')
+      dispatch(setTheme('dark'))
     } else {
       localStorage.setItem('theme', 'light')
       dispatch(setTheme('light'))

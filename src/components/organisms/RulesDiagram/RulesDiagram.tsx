@@ -193,7 +193,7 @@ export const RulesDiagram: FC = () => {
             <Layouts.InputWithCustomPreffixMargin
               allowClear
               placeholder="Search"
-              prefix={<MagnifyingGlass color="#00000073" />}
+              prefix={<MagnifyingGlass color={theme === 'dark' ? '#E3E3E3' : '#00000073'} />}
               value={searchText}
               onChange={e => {
                 dispatch(setSearchText(e.target.value))

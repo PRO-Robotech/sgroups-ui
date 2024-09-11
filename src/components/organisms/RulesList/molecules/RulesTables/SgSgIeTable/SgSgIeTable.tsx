@@ -41,6 +41,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   isDisabled,
   isRestoreButtonActive,
 }) => {
+  const theme = useSelector((state: RootState) => state.theme.theme)
   const [api, contextHolder] = notification.useNotification()
   const dispatch = useDispatch()
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -261,7 +262,7 @@ export const SgSgIeTable: FC<TSgSgIeTableProps> = ({
   return (
     <>
       <ThWhiteSpaceNoWrap>
-        <TableComponents.TableContainerRules>
+        <TableComponents.TableContainerRules $isDark={theme === 'dark'}>
           <TableComponents.HideableControls>
             <Table dataSource={dataSource} columns={columns} rowSelection={rowSelection} {...defaultTableProps} />
           </TableComponents.HideableControls>

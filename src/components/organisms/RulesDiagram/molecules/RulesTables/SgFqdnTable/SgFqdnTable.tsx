@@ -22,6 +22,7 @@ type OnChange = NonNullable<TableProps<TColumn>['onChange']>
 type Filters = Parameters<OnChange>[1]
 
 export const SgFqdnTable: FC<TSgFqdnTableProps> = ({ rulesData }) => {
+  const theme = useSelector((state: RootState) => state.theme.theme)
   const [filteredInfo, setFilteredInfo] = useState<Filters>({})
 
   const searchText = useSelector((state: RootState) => state.searchText.searchText)
@@ -102,7 +103,7 @@ export const SgFqdnTable: FC<TSgFqdnTableProps> = ({ rulesData }) => {
 
   return (
     <ThWhiteSpaceNoWrap>
-      <TableComponents.TableContainerRules>
+      <TableComponents.TableContainerRules $isDark={theme === 'dark'}>
         <TableComponents.HideableControls>
           <Table dataSource={dataSource} columns={columns} {...defaultTableProps} />
         </TableComponents.HideableControls>

@@ -1,10 +1,14 @@
 import styled from 'styled-components'
 
-const TableContainer = styled.div`
+type TTableContainerProps = {
+  $isDark?: boolean
+}
+
+const TableContainer = styled.div<TTableContainerProps>`
   padding: 24px;
 
   && .ant-table-container {
-    border: 1px solid #f0f0f0;
+    border: 1px solid ${({ $isDark }) => ($isDark ? '#3C3C3C' : '#f0f0f0')};
     border-bottom: 0;
   }
 
@@ -23,7 +27,7 @@ const TableContainer = styled.div`
   }
 
   && .ant-table-pagination {
-    border: 1px solid #f0f0f0;
+    border: 1px solid ${({ $isDark }) => ($isDark ? '#3C3C3C' : '#f0f0f0')};
     border-radius: 0 0 8px 8px;
     border-top: 0;
     margin: 0;
@@ -39,12 +43,15 @@ const TableContainer = styled.div`
     width: auto !important;
   }
 `
+type TTableContainerRulesProps = {
+  $isDark?: boolean
+}
 
-const TableContainerRules = styled.div`
+const TableContainerRules = styled.div<TTableContainerRulesProps>`
   width: 100% !important;
 
   && .ant-table-container {
-    border: 1px solid #f0f0f0;
+    border: 1px solid ${({ $isDark }) => ($isDark ? '#3C3C3C' : '#f0f0f0')};
     border-bottom: 0;
   }
 
@@ -63,7 +70,7 @@ const TableContainerRules = styled.div`
   }
 
   && .ant-table-pagination {
-    border: 1px solid #f0f0f0;
+    border: 1px solid ${({ $isDark }) => ($isDark ? '#3C3C3C' : '#f0f0f0')};
     border-radius: 0 0 8px 8px;
     border-top: 0;
     margin: 0;

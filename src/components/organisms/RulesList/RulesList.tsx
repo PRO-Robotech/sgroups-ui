@@ -347,7 +347,11 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
           {checkboxRowSelected > 0 && (
             <>
               <Styled.SelectedItemsText>Selected Rules: {checkboxRowSelected}</Styled.SelectedItemsText>
-              <Button type="text" icon={<X size={16} color="#00000073" />} onClick={clearSelected} />
+              <Button
+                type="text"
+                icon={<X size={16} color={theme === 'dark' ? '#E3E3E3' : '#00000073'} />}
+                onClick={clearSelected}
+              />
             </>
           )}
           <SgSelectAndTypeSwitcher
@@ -369,7 +373,7 @@ export const RulesList: FC<TRulesListProps> = ({ typeId }) => {
             <Layouts.InputWithCustomPreffixMargin
               allowClear
               placeholder="Search"
-              prefix={<MagnifyingGlass color="#00000073" />}
+              prefix={<MagnifyingGlass color={theme === 'dark' ? '#E3E3E3' : '#00000073'} />}
               value={searchText}
               onChange={e => {
                 dispatch(setSearchText(e.target.value))
