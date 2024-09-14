@@ -1,3 +1,4 @@
+# Строим приложение
 FROM node:18.17.1-alpine as build
 WORKDIR /app
 ENV PATH /app/node_modules/.bin:$PATH
@@ -9,12 +10,32 @@ COPY . ./
 ENV PUBLIC_URL /client/
 RUN npm run build
 
+# NGINX контейнер
 FROM nginx:stable-alpine
+
+# Переходим в нужную директорию и копируем сборку
 COPY --from=build /app/build /usr/share/nginx/html/client
 COPY nginx/nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
 
+# Установка bash для выполнения скриптов и прав на env.sh
+RUN apk add --no-cache bash
 WORKDIR /usr/share/nginx/html/client
 COPY ./env.sh .
-RUN apk add --no-cache bash
 RUN chmod +x env.sh
+
+# Изменение пользователя для запуска контейнера
+# Создаем non-root пользователя с UID и GID 65532
+RUN addgroup -g 65532 appgroup && \
+    adduser -u 65532 -G appgroup -s /bin/sh -D appuser
+
+# Меняем владельца файлов на non-root пользователя
+RUN chown -R appuser:appgroup /usr/share/nginx/html/client
+
+# Запуск контейнера от имени non-root пользователя
+USER 65532:65532
+
+# Открываем нужный порт
+EXPOSE 80
+
+# Запуск NGINX
+CMD ["nginx", "-g", "daemon off;"]
