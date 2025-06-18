@@ -35,3 +35,4 @@ jobs:
           file: ./Dockerfile.build
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/sgroups.ui:${{ github.head_ref || github.ref_name }}-${{ steps.short-sha.outputs.sha }}
+          platforms: linux/amd64,linux/arm64
