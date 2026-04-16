@@ -1,7 +1,7 @@
 /* eslint-disable import/no-default-export */
 import React, { FC } from 'react'
 import { Routes, Route, Navigate, useInRouterContext } from 'react-router-dom'
-import { HostsPage } from 'pages'
+import { AddressGroupsPage, HostsPage, NetworksPage, RulesPage, ServicesPage } from 'pages'
 
 export type TAppInnerProps = {
   cluster?: string
@@ -35,6 +35,58 @@ export const AppInner: FC<TAppInnerProps> = ({
         path="hosts"
         element={
           <HostsPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+          />
+        }
+      />
+      <Route
+        path="addressgroups"
+        element={
+          <AddressGroupsPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+          />
+        }
+      />
+      <Route
+        path="networks"
+        element={
+          <NetworksPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+          />
+        }
+      />
+      <Route
+        path="rules"
+        element={
+          <RulesPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+          />
+        }
+      />
+      <Route
+        path="services"
+        element={
+          <ServicesPage
             cluster={cluster}
             namespace={namespace}
             syntheticProject={syntheticProject}

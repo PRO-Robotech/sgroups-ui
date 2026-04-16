@@ -2,11 +2,17 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { Alert, Flex, Spin, Table, theme as antdTheme } from 'antd'
 import { ContentCard, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
-import { VerboseHostPanel } from './VerboseHostPanel'
 import { Styled } from './styled'
-import { buildHostsColumns, HOSTS_TABLE_PROPS, mapHostsToRows, THostResource, THostRow } from './tableConfig'
+import {
+  buildNetworksColumns,
+  mapNetworksToRows,
+  NETWORKS_TABLE_PROPS,
+  TNetworkResource,
+  TNetworkRow,
+} from './tableConfig'
+import { VerboseNetworkPanel } from './VerboseNetworkPanel'
 
-type THostsPageProps = {
+type TNetworksPageProps = {
   cluster?: string
   namespace?: string
   syntheticProject?: string
@@ -17,7 +23,7 @@ type THostsPageProps = {
 
 const DEFAULT_VERBOSE_WIDTH = 420
 const EXPANDED_VERBOSE_WIDTH = 640
-const VERBOSE_WIDTH_STORAGE_KEY = 'sgroups-hosts-verbose-width'
+const VERBOSE_WIDTH_STORAGE_KEY = 'sgroups-networks-verbose-width'
 
 const clampVerboseWidth = (width: number, containerWidth?: number) => {
   const maxWidth = containerWidth
@@ -27,10 +33,10 @@ const clampVerboseWidth = (width: number, containerWidth?: number) => {
   return Math.min(Math.max(width, Styled.DETAIL_PANEL_MIN_WIDTH), maxWidth)
 }
 
-export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
+export const NetworksPage: FC<TNetworksPageProps> = ({ cluster, namespace }) => {
   const { token } = antdTheme.useToken()
   const splitLayoutRef = useRef<HTMLDivElement>(null)
-  const [selectedHostKey, setSelectedHostKey] = useState<string | null>(null)
+  const [selectedNetworkKey, setSelectedNetworkKey] = useState<string | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -44,33 +50,33 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
   })
 
   const {
-    data: hostsData,
+    data: networksData,
     isLoading,
     error,
-  } = useK8sSmartResource<{ items: THostResource[] }>({
+  } = useK8sSmartResource<{ items: TNetworkResource[] }>({
     cluster: cluster || '',
     namespace,
     apiGroup: 'sgroups.io',
     apiVersion: 'v1alpha1',
-    plural: 'hosts',
+    plural: 'networks',
     isEnabled: Boolean(cluster),
   })
 
-  const columns = useMemo(() => buildHostsColumns(), [])
-  const dataSource = useMemo(() => mapHostsToRows(hostsData?.items || []), [hostsData?.items])
-  const selectedHost = useMemo(
-    () => dataSource.find(item => item.key === selectedHostKey) || null,
-    [dataSource, selectedHostKey],
+  const columns = useMemo(() => buildNetworksColumns(), [])
+  const dataSource = useMemo(() => mapNetworksToRows(networksData?.items || []), [networksData?.items])
+  const selectedNetwork = useMemo(
+    () => dataSource.find(item => item.key === selectedNetworkKey) || null,
+    [dataSource, selectedNetworkKey],
   )
-  const hostsLayoutStyle = useMemo(
+  const networksLayoutStyle = useMemo(
     () =>
       ({
-        ['--hosts-border-color' as string]: token.colorBorder,
-        ['--hosts-border-secondary-color' as string]: token.colorBorderSecondary,
-        ['--hosts-bg-color' as string]: token.colorBgContainer,
-        ['--hosts-layout-bg' as string]: token.colorBgLayout,
-        ['--hosts-row-selected-bg' as string]: token.colorPrimaryBg,
-        ['--hosts-row-selected-hover-bg' as string]: token.colorPrimaryBgHover,
+        ['--networks-border-color' as string]: token.colorBorder,
+        ['--networks-border-secondary-color' as string]: token.colorBorderSecondary,
+        ['--networks-bg-color' as string]: token.colorBgContainer,
+        ['--networks-layout-bg' as string]: token.colorBgLayout,
+        ['--networks-row-selected-bg' as string]: token.colorPrimaryBg,
+        ['--networks-row-selected-hover-bg' as string]: token.colorPrimaryBgHover,
       }) as React.CSSProperties,
     [token],
   )
@@ -84,10 +90,10 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
   }, [verboseWidth])
 
   useEffect(() => {
-    if (selectedHostKey && !dataSource.some(item => item.key === selectedHostKey)) {
-      setSelectedHostKey(null)
+    if (selectedNetworkKey && !dataSource.some(item => item.key === selectedNetworkKey)) {
+      setSelectedNetworkKey(null)
     }
-  }, [dataSource, selectedHostKey])
+  }, [dataSource, selectedNetworkKey])
 
   useEffect(() => {
     if (!isResizing) {
@@ -120,7 +126,7 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
   }, [isResizing])
 
   const closeVerbose = useCallback(() => {
-    setSelectedHostKey(null)
+    setSelectedNetworkKey(null)
   }, [])
 
   const collapseVerbose = useCallback(() => {
@@ -133,8 +139,8 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
     setVerboseWidth(clampVerboseWidth(EXPANDED_VERBOSE_WIDTH, containerWidth))
   }, [])
 
-  const handleRowClick = useCallback((record: THostRow) => {
-    setSelectedHostKey(currentValue => (currentValue === record.key ? null : record.key))
+  const handleRowClick = useCallback((record: TNetworkRow) => {
+    setSelectedNetworkKey(currentValue => (currentValue === record.key ? null : record.key))
   }, [])
 
   if (!cluster) {
@@ -145,38 +151,40 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
     <ContentCard displayFlex flexFlow="column" flexGrow={1}>
       <Flex vertical gap={16}>
         <TenantSelector cluster={cluster} tenant={namespace} />
-        {error && <Alert type="error" message={`Failed to load hosts: ${String(error)}`} showIcon />}
-        {isLoading && !hostsData && <Spin />}
-        {!error && hostsData && (
+        {error && <Alert type="error" message={`Failed to load networks: ${String(error)}`} showIcon />}
+        {isLoading && !networksData && <Spin />}
+        {!error && networksData && (
           <>
             <Styled.SplitLayout
               ref={splitLayoutRef}
               $detailWidth={verboseWidth}
-              $isDetailOpen={Boolean(selectedHost)}
-              style={hostsLayoutStyle}
+              $isDetailOpen={Boolean(selectedNetwork)}
+              style={networksLayoutStyle}
             >
               <Styled.TablePane>
-                <Table<THostRow>
-                  {...HOSTS_TABLE_PROPS}
+                <Table<TNetworkRow>
+                  {...NETWORKS_TABLE_PROPS}
                   dataSource={dataSource}
                   columns={columns}
-                  rowClassName={record => (record.key === selectedHostKey ? 'host-row-selected' : '')}
+                  rowClassName={record => (record.key === selectedNetworkKey ? 'network-row-selected' : '')}
                   onRow={record => ({
                     onClick: () => handleRowClick(record),
                     style: { cursor: 'pointer' },
                   })}
                 />
               </Styled.TablePane>
-              {selectedHost && (
+              {selectedNetwork && (
                 <>
                   <Styled.ResizeHandle
-                    aria-label="Resize host details panel"
+                    aria-label="Resize network details panel"
                     role="separator"
                     onMouseDown={() => setIsResizing(true)}
                   />
                   <Styled.DetailPane>
-                    <VerboseHostPanel
-                      host={selectedHost}
+                    <VerboseNetworkPanel
+                      cluster={cluster}
+                      namespace={namespace}
+                      network={selectedNetwork}
                       width={verboseWidth}
                       onClose={closeVerbose}
                       onCollapse={collapseVerbose}
@@ -186,10 +194,12 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
                 </>
               )}
             </Styled.SplitLayout>
-            {selectedHost && (
-              <Styled.MobileDetailPane style={hostsLayoutStyle}>
-                <VerboseHostPanel
-                  host={selectedHost}
+            {selectedNetwork && (
+              <Styled.MobileDetailPane style={networksLayoutStyle}>
+                <VerboseNetworkPanel
+                  cluster={cluster}
+                  namespace={namespace}
+                  network={selectedNetwork}
                   onClose={closeVerbose}
                   onCollapse={collapseVerbose}
                   onExpand={expandVerbose}

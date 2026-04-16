@@ -1,240 +1,209 @@
-import { TableProps } from 'antd'
-import { AnyObject } from 'antd/es/_util/type'
-import {
-  TAdditionalPrinterColumns,
-  TAdditionalPrinterColumnsTrimLengths,
-  TAdditionalPrinterColumnsUndefinedValues,
-  TSingleResource,
-} from '@prorobotech/openapi-k8s-toolkit'
+import { TableProps, Tag } from 'antd'
+import { ColumnsType } from 'antd/es/table'
+import React from 'react'
 
-type TAdditionalPrinterColumnsKeyTypeProps = Record<
-  string,
-  {
-    type: string
-    customProps?: unknown
+export type THostRef = {
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type THostResource = {
+  apiVersion?: string
+  kind?: string
+  metadata: {
+    name?: string
+    namespace?: string
+    creationTimestamp?: string
+    labels?: Record<string, string>
+    annotations?: Record<string, string>
   }
->
+  spec?: {
+    displayName?: string
+    description?: string
+    comment?: string
+  }
+  metaInfo?: {
+    hostName?: string
+    os?: string
+    platform?: string
+    platformFamily?: string
+    platformVersion?: string
+    kernelVersion?: string
+  }
+  ips: {
+    IPv4?: string[]
+    IPv6?: string[]
+  }
+  refs?: THostRef[]
+}
 
-type TAdditionalPrinterColumnsCustomSortersAndFilters = {
+export type THostRow = THostResource & {
   key: string
-  type: string
-}[]
-
-export const HOSTS_ADDITIONAL_PRINTER_COLUMNS: TAdditionalPrinterColumns = [
-  {
-    name: 'Name',
-    type: 'string',
-    jsonPath: '.metadata.name',
-  },
-  {
-    name: 'Namespace',
-    type: 'string',
-    jsonPath: '.metadata.namespace',
-  },
-  {
-    name: 'Display Name',
-    type: 'string',
-    jsonPath: '.spec.displayName',
-  },
-  {
-    name: 'Host Name',
-    type: 'string',
-    jsonPath: '.metaInfo.hostName',
-  },
-  {
-    name: 'OS',
-    type: 'string',
-    jsonPath: '.metaInfo.os',
-  },
-  {
-    name: 'Platform',
-    type: 'string',
-    jsonPath: '.metaInfo.platform',
-  },
-  {
-    name: 'Platform Version',
-    type: 'string',
-    jsonPath: '.metaInfo.platformVersion',
-  },
-  {
-    name: 'Kernel Version',
-    type: 'string',
-    jsonPath: '.metaInfo.kernelVersion',
-  },
-  {
-    name: 'IPv4',
-    type: 'array',
-    jsonPath: '.ips.IPv4',
-  },
-  {
-    name: 'IPv6',
-    type: 'array',
-    jsonPath: '.ips.IPv6',
-  },
-  {
-    name: 'Description',
-    type: 'string',
-    jsonPath: '.spec.description',
-  },
-  {
-    name: 'Comment',
-    type: 'string',
-    jsonPath: '.spec.comment',
-  },
-  {
-    name: 'Created',
-    type: 'factory',
-    jsonPath: '.metadata.creationTimestamp',
-  },
-]
-
-export const HOSTS_UNDEFINED_VALUES: TAdditionalPrinterColumnsUndefinedValues = [
-  { key: 'Namespace', value: '-' },
-  { key: 'Display Name', value: '-' },
-  { key: 'Description', value: '-' },
-  { key: 'Comment', value: '-' },
-]
-
-export const HOSTS_TRIM_LENGTHS: TAdditionalPrinterColumnsTrimLengths = [
-  { key: 'Name', value: 64 },
-  { key: 'Display Name', value: 64 },
-  { key: 'Description', value: 96 },
-  { key: 'Comment', value: 96 },
-]
-
-export const HOSTS_SORTERS_AND_FILTERS: TAdditionalPrinterColumnsCustomSortersAndFilters = [
-  { key: 'Created', type: 'disabled' },
-]
-
-export const HOSTS_KEY_TYPE_PROPS: TAdditionalPrinterColumnsKeyTypeProps = {
-  Name: {
-    type: 'factory',
-    customProps: {
-      disableEventBubbling: true,
-      items: [
-        {
-          type: 'antdFlex',
-          data: {
-            align: 'center',
-            direction: 'row',
-            gap: 6,
-            id: 'resource-badge-name-row',
-          },
-          children: [
-            {
-              type: 'ResourceBadge',
-              data: {
-                id: 'host-resource-badge',
-                value: 'Host',
-              },
-            },
-            {
-              type: 'parsedText',
-              data: {
-                id: 'host-name-text',
-                text: "{reqsJsonPath[0]['.metadata.name']['-']}",
-              },
-            },
-          ],
-        },
-      ],
-    },
-  },
-  Namespace: {
-    type: 'factory',
-    customProps: {
-      disableEventBubbling: true,
-      items: [
-        {
-          type: 'antdFlex',
-          data: {
-            align: 'center',
-            direction: 'row',
-            gap: 6,
-            id: 'resource-badge-name-row',
-          },
-          children: [
-            {
-              type: 'ResourceBadge',
-              data: {
-                id: 'host-resource-badge',
-                value: 'Namespace',
-              },
-            },
-            {
-              type: 'parsedText',
-              data: {
-                id: 'host-name-text',
-                text: "{reqsJsonPath[0]['.metadata.namespace']['-']}",
-              },
-            },
-          ],
-        },
-      ],
-    },
-  },
-  Created: {
-    type: 'factory',
-    customProps: {
-      disableEventBubbling: true,
-      items: [
-        {
-          type: 'antdFlex',
-          data: {
-            align: 'center',
-            gap: 6,
-            id: 'time-block',
-          },
-          children: [
-            {
-              type: 'antdText',
-              data: {
-                id: 'time-icon',
-                text: '🌐',
-              },
-            },
-            {
-              type: 'parsedText',
-              data: {
-                id: 'created-timestamp',
-                text: "{reqsJsonPath[0]['.metadata.creationTimestamp']['-']}",
-                formatter: 'timestamp',
-              },
-            },
-          ],
-        },
-      ],
-    },
-  },
+  displayName: string
+  hostName: string
+  ipv4: string[]
+  ipv6: string[]
+  os: string
+  platform: string
+  description: string
+  created: string
 }
 
-const getColumnDataIndex = (jsonPath?: string): string | string[] | undefined => {
-  if (!jsonPath) {
-    return undefined
+const EMPTY_VALUE = '-'
+const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
+  dateStyle: 'medium',
+  timeStyle: 'short',
+})
+
+export const formatDateTime = (value?: string): string => {
+  if (!value) {
+    return EMPTY_VALUE
   }
 
-  if (jsonPath.startsWith('.')) {
-    const parts = jsonPath.split('.').slice(1)
+  const parsed = new Date(value)
 
-    if (parts.length === 1) {
-      return parts[0]
-    }
-
-    return parts
+  if (Number.isNaN(parsed.getTime())) {
+    return value
   }
 
-  return jsonPath
+  return DATE_FORMATTER.format(parsed)
 }
 
-export const buildHostsColumns = (): TableProps<AnyObject>['columns'] =>
-  HOSTS_ADDITIONAL_PRINTER_COLUMNS.map(({ name, jsonPath }) => ({
-    title: name,
-    key: name,
-    dataIndex: getColumnDataIndex(jsonPath),
-  }))
+export const formatArrayForCell = (values?: string[]): string => {
+  if (!values || values.length === 0) {
+    return EMPTY_VALUE
+  }
 
-export const buildHostsDataSource = (items: TSingleResource[]): TableProps<AnyObject>['dataSource'] =>
+  return values.join(', ')
+}
+
+export const formatMapEntries = (value?: Record<string, string>): string[] => {
+  if (!value) {
+    return []
+  }
+
+  return Object.entries(value).map(([key, itemValue]) => `${key}: ${itemValue}`)
+}
+
+export const mapHostsToRows = (items: THostResource[]): THostRow[] =>
   items.map(item => ({
-    key: `${item.metadata.name}${item.metadata.namespace ? `-${item.metadata.namespace}` : ''}`,
     ...item,
+    key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
+    displayName: item.spec?.displayName || EMPTY_VALUE,
+    hostName: item.metaInfo?.hostName || EMPTY_VALUE,
+    ipv4: item.ips?.IPv4 || [],
+    ipv6: item.ips?.IPv6 || [],
+    os: item.metaInfo?.os || EMPTY_VALUE,
+    platform: item.metaInfo?.platform || EMPTY_VALUE,
+    description: item.spec?.description || EMPTY_VALUE,
+    created: formatDateTime(item.metadata.creationTimestamp),
   }))
+
+const stringSorter = (first?: string, second?: string): number =>
+  (first || '').localeCompare(second || '', undefined, { numeric: true, sensitivity: 'base' })
+
+const arrayLengthSorter = (first?: string[], second?: string[]): number => (first?.length || 0) - (second?.length || 0)
+
+const renderTagList = (values?: string[]) => {
+  if (!values || values.length === 0) {
+    return EMPTY_VALUE
+  }
+
+  return React.createElement(
+    React.Fragment,
+    null,
+    ...values.map(value => React.createElement(Tag, { key: value }, value)),
+  )
+}
+
+export const buildHostsColumns = (): ColumnsType<THostRow> => [
+  {
+    title: 'Name',
+    dataIndex: ['metadata', 'name'],
+    key: 'name',
+    fixed: 'left',
+    width: 180,
+    sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+    render: value => value || EMPTY_VALUE,
+  },
+  {
+    title: 'Namespace',
+    dataIndex: ['metadata', 'namespace'],
+    key: 'namespace',
+    width: 180,
+    sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
+    render: value => value || EMPTY_VALUE,
+  },
+  {
+    title: 'Display Name',
+    dataIndex: 'displayName',
+    key: 'displayName',
+    width: 180,
+    sorter: (a, b) => stringSorter(a.displayName, b.displayName),
+  },
+  {
+    title: 'Host Name',
+    dataIndex: 'hostName',
+    key: 'hostName',
+    width: 180,
+    sorter: (a, b) => stringSorter(a.hostName, b.hostName),
+  },
+  {
+    title: 'IPv4',
+    dataIndex: 'ipv4',
+    key: 'ipv4',
+    width: 220,
+    sorter: (a, b) => arrayLengthSorter(a.ipv4, b.ipv4),
+    render: value => renderTagList(value),
+  },
+  {
+    title: 'IPv6',
+    dataIndex: 'ipv6',
+    key: 'ipv6',
+    width: 240,
+    sorter: (a, b) => arrayLengthSorter(a.ipv6, b.ipv6),
+    render: value => renderTagList(value),
+  },
+  {
+    title: 'OS',
+    dataIndex: 'os',
+    key: 'os',
+    width: 140,
+    sorter: (a, b) => stringSorter(a.os, b.os),
+  },
+  {
+    title: 'Platform',
+    dataIndex: 'platform',
+    key: 'platform',
+    width: 160,
+    sorter: (a, b) => stringSorter(a.platform, b.platform),
+  },
+  {
+    title: 'Description',
+    dataIndex: 'description',
+    key: 'description',
+    width: 260,
+    sorter: (a, b) => stringSorter(a.description, b.description),
+    ellipsis: true,
+  },
+  {
+    title: 'Created',
+    dataIndex: ['metadata', 'creationTimestamp'],
+    key: 'created',
+    width: 180,
+    sorter: (a, b) =>
+      new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
+    render: value => formatDateTime(value),
+  },
+]
+
+export const HOSTS_TABLE_PROPS: Partial<TableProps<THostRow>> = {
+  pagination: {
+    position: ['bottomLeft'],
+    showSizeChanger: true,
+    hideOnSinglePage: false,
+  },
+  scroll: { x: 1700 },
+  size: 'middle',
+}

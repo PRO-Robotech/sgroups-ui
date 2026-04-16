@@ -2,11 +2,17 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { Alert, Flex, Spin, Table, theme as antdTheme } from 'antd'
 import { ContentCard, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
-import { VerboseHostPanel } from './VerboseHostPanel'
+import { VerboseAddressGroupPanel } from './VerboseAddressGroupPanel'
 import { Styled } from './styled'
-import { buildHostsColumns, HOSTS_TABLE_PROPS, mapHostsToRows, THostResource, THostRow } from './tableConfig'
+import {
+  ADDRESS_GROUPS_TABLE_PROPS,
+  buildAddressGroupsColumns,
+  mapAddressGroupsToRows,
+  TAddressGroupResource,
+  TAddressGroupRow,
+} from './tableConfig'
 
-type THostsPageProps = {
+type TAddressGroupsPageProps = {
   cluster?: string
   namespace?: string
   syntheticProject?: string
@@ -17,7 +23,7 @@ type THostsPageProps = {
 
 const DEFAULT_VERBOSE_WIDTH = 420
 const EXPANDED_VERBOSE_WIDTH = 640
-const VERBOSE_WIDTH_STORAGE_KEY = 'sgroups-hosts-verbose-width'
+const VERBOSE_WIDTH_STORAGE_KEY = 'sgroups-address-groups-verbose-width'
 
 const clampVerboseWidth = (width: number, containerWidth?: number) => {
   const maxWidth = containerWidth
@@ -27,10 +33,10 @@ const clampVerboseWidth = (width: number, containerWidth?: number) => {
   return Math.min(Math.max(width, Styled.DETAIL_PANEL_MIN_WIDTH), maxWidth)
 }
 
-export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
+export const AddressGroupsPage: FC<TAddressGroupsPageProps> = ({ cluster, namespace }) => {
   const { token } = antdTheme.useToken()
   const splitLayoutRef = useRef<HTMLDivElement>(null)
-  const [selectedHostKey, setSelectedHostKey] = useState<string | null>(null)
+  const [selectedAddressGroupKey, setSelectedAddressGroupKey] = useState<string | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -44,33 +50,33 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
   })
 
   const {
-    data: hostsData,
+    data: addressGroupsData,
     isLoading,
     error,
-  } = useK8sSmartResource<{ items: THostResource[] }>({
+  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
     cluster: cluster || '',
     namespace,
     apiGroup: 'sgroups.io',
     apiVersion: 'v1alpha1',
-    plural: 'hosts',
+    plural: 'addressgroups',
     isEnabled: Boolean(cluster),
   })
 
-  const columns = useMemo(() => buildHostsColumns(), [])
-  const dataSource = useMemo(() => mapHostsToRows(hostsData?.items || []), [hostsData?.items])
-  const selectedHost = useMemo(
-    () => dataSource.find(item => item.key === selectedHostKey) || null,
-    [dataSource, selectedHostKey],
+  const columns = useMemo(() => buildAddressGroupsColumns(), [])
+  const dataSource = useMemo(() => mapAddressGroupsToRows(addressGroupsData?.items || []), [addressGroupsData?.items])
+  const selectedAddressGroup = useMemo(
+    () => dataSource.find(item => item.key === selectedAddressGroupKey) || null,
+    [dataSource, selectedAddressGroupKey],
   )
-  const hostsLayoutStyle = useMemo(
+  const addressGroupsLayoutStyle = useMemo(
     () =>
       ({
-        ['--hosts-border-color' as string]: token.colorBorder,
-        ['--hosts-border-secondary-color' as string]: token.colorBorderSecondary,
-        ['--hosts-bg-color' as string]: token.colorBgContainer,
-        ['--hosts-layout-bg' as string]: token.colorBgLayout,
-        ['--hosts-row-selected-bg' as string]: token.colorPrimaryBg,
-        ['--hosts-row-selected-hover-bg' as string]: token.colorPrimaryBgHover,
+        ['--address-groups-border-color' as string]: token.colorBorder,
+        ['--address-groups-border-secondary-color' as string]: token.colorBorderSecondary,
+        ['--address-groups-bg-color' as string]: token.colorBgContainer,
+        ['--address-groups-layout-bg' as string]: token.colorBgLayout,
+        ['--address-groups-row-selected-bg' as string]: token.colorPrimaryBg,
+        ['--address-groups-row-selected-hover-bg' as string]: token.colorPrimaryBgHover,
       }) as React.CSSProperties,
     [token],
   )
@@ -84,10 +90,10 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
   }, [verboseWidth])
 
   useEffect(() => {
-    if (selectedHostKey && !dataSource.some(item => item.key === selectedHostKey)) {
-      setSelectedHostKey(null)
+    if (selectedAddressGroupKey && !dataSource.some(item => item.key === selectedAddressGroupKey)) {
+      setSelectedAddressGroupKey(null)
     }
-  }, [dataSource, selectedHostKey])
+  }, [dataSource, selectedAddressGroupKey])
 
   useEffect(() => {
     if (!isResizing) {
@@ -120,7 +126,7 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
   }, [isResizing])
 
   const closeVerbose = useCallback(() => {
-    setSelectedHostKey(null)
+    setSelectedAddressGroupKey(null)
   }, [])
 
   const collapseVerbose = useCallback(() => {
@@ -133,8 +139,8 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
     setVerboseWidth(clampVerboseWidth(EXPANDED_VERBOSE_WIDTH, containerWidth))
   }, [])
 
-  const handleRowClick = useCallback((record: THostRow) => {
-    setSelectedHostKey(currentValue => (currentValue === record.key ? null : record.key))
+  const handleRowClick = useCallback((record: TAddressGroupRow) => {
+    setSelectedAddressGroupKey(currentValue => (currentValue === record.key ? null : record.key))
   }, [])
 
   if (!cluster) {
@@ -145,38 +151,40 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
     <ContentCard displayFlex flexFlow="column" flexGrow={1}>
       <Flex vertical gap={16}>
         <TenantSelector cluster={cluster} tenant={namespace} />
-        {error && <Alert type="error" message={`Failed to load hosts: ${String(error)}`} showIcon />}
-        {isLoading && !hostsData && <Spin />}
-        {!error && hostsData && (
+        {error && <Alert type="error" message={`Failed to load address groups: ${String(error)}`} showIcon />}
+        {isLoading && !addressGroupsData && <Spin />}
+        {!error && addressGroupsData && (
           <>
             <Styled.SplitLayout
               ref={splitLayoutRef}
               $detailWidth={verboseWidth}
-              $isDetailOpen={Boolean(selectedHost)}
-              style={hostsLayoutStyle}
+              $isDetailOpen={Boolean(selectedAddressGroup)}
+              style={addressGroupsLayoutStyle}
             >
               <Styled.TablePane>
-                <Table<THostRow>
-                  {...HOSTS_TABLE_PROPS}
+                <Table<TAddressGroupRow>
+                  {...ADDRESS_GROUPS_TABLE_PROPS}
                   dataSource={dataSource}
                   columns={columns}
-                  rowClassName={record => (record.key === selectedHostKey ? 'host-row-selected' : '')}
+                  rowClassName={record => (record.key === selectedAddressGroupKey ? 'address-group-row-selected' : '')}
                   onRow={record => ({
                     onClick: () => handleRowClick(record),
                     style: { cursor: 'pointer' },
                   })}
                 />
               </Styled.TablePane>
-              {selectedHost && (
+              {selectedAddressGroup && (
                 <>
                   <Styled.ResizeHandle
-                    aria-label="Resize host details panel"
+                    aria-label="Resize address group details panel"
                     role="separator"
                     onMouseDown={() => setIsResizing(true)}
                   />
                   <Styled.DetailPane>
-                    <VerboseHostPanel
-                      host={selectedHost}
+                    <VerboseAddressGroupPanel
+                      cluster={cluster}
+                      namespace={namespace}
+                      addressGroup={selectedAddressGroup}
                       width={verboseWidth}
                       onClose={closeVerbose}
                       onCollapse={collapseVerbose}
@@ -186,10 +194,12 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
                 </>
               )}
             </Styled.SplitLayout>
-            {selectedHost && (
-              <Styled.MobileDetailPane style={hostsLayoutStyle}>
-                <VerboseHostPanel
-                  host={selectedHost}
+            {selectedAddressGroup && (
+              <Styled.MobileDetailPane style={addressGroupsLayoutStyle}>
+                <VerboseAddressGroupPanel
+                  cluster={cluster}
+                  namespace={namespace}
+                  addressGroup={selectedAddressGroup}
                   onClose={closeVerbose}
                   onCollapse={collapseVerbose}
                   onExpand={expandVerbose}

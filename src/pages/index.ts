@@ -1,1 +1,5 @@
 export { HostsPage } from './HostsPage'
+export { AddressGroupsPage } from './AddressGroupsPage'
+export { NetworksPage } from './NetworksPage'
+export { RulesPage } from './RulesPage'
+export { ServicesPage } from './ServicesPage'

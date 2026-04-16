@@ -1,0 +1,112 @@
+import { TableProps } from 'antd'
+import { ColumnsType } from 'antd/es/table'
+import { formatDateTime } from '../HostsPage/tableConfig'
+
+export type TNetworkRef = {
+  kind?: string
+  name?: string
+  namespace?: string
+}
+
+export type TNetworkResource = {
+  apiVersion?: string
+  kind?: string
+  metadata: {
+    name?: string
+    namespace?: string
+    creationTimestamp?: string
+    labels?: Record<string, string>
+    annotations?: Record<string, string>
+  }
+  refs?: TNetworkRef[]
+  spec?: {
+    displayName?: string
+    description?: string
+    comment?: string
+    CIDR?: string
+  }
+}
+
+export type TNetworkRow = TNetworkResource & {
+  key: string
+  displayName: string
+  cidr: string
+  description: string
+  created: string
+}
+
+const EMPTY_VALUE = '-'
+
+const stringSorter = (first?: string, second?: string): number =>
+  (first || '').localeCompare(second || '', undefined, { numeric: true, sensitivity: 'base' })
+
+export const mapNetworksToRows = (items: TNetworkResource[]): TNetworkRow[] =>
+  items.map(item => ({
+    ...item,
+    key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
+    displayName: item.spec?.displayName || EMPTY_VALUE,
+    cidr: item.spec?.CIDR || EMPTY_VALUE,
+    description: item.spec?.description || EMPTY_VALUE,
+    created: formatDateTime(item.metadata.creationTimestamp),
+  }))
+
+export const buildNetworksColumns = (): ColumnsType<TNetworkRow> => [
+  {
+    title: 'Name',
+    dataIndex: ['metadata', 'name'],
+    key: 'name',
+    fixed: 'left',
+    width: 180,
+    sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+    render: value => value || EMPTY_VALUE,
+  },
+  {
+    title: 'Namespace',
+    dataIndex: ['metadata', 'namespace'],
+    key: 'namespace',
+    width: 180,
+    sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
+    render: value => value || EMPTY_VALUE,
+  },
+  {
+    title: 'Display Name',
+    dataIndex: 'displayName',
+    key: 'displayName',
+    width: 180,
+    sorter: (a, b) => stringSorter(a.displayName, b.displayName),
+  },
+  {
+    title: 'CIDR',
+    dataIndex: 'cidr',
+    key: 'cidr',
+    width: 220,
+    sorter: (a, b) => stringSorter(a.cidr, b.cidr),
+  },
+  {
+    title: 'Description',
+    dataIndex: 'description',
+    key: 'description',
+    width: 260,
+    sorter: (a, b) => stringSorter(a.description, b.description),
+    ellipsis: true,
+  },
+  {
+    title: 'Created',
+    dataIndex: ['metadata', 'creationTimestamp'],
+    key: 'created',
+    width: 180,
+    sorter: (a, b) =>
+      new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
+    render: value => formatDateTime(value),
+  },
+]
+
+export const NETWORKS_TABLE_PROPS: Partial<TableProps<TNetworkRow>> = {
+  pagination: {
+    position: ['bottomLeft'],
+    showSizeChanger: true,
+    hideOnSinglePage: false,
+  },
+  scroll: { x: 1400 },
+  size: 'middle',
+}
