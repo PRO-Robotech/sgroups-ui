@@ -1,7 +1,7 @@
 import { TableProps, Tag } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import React from 'react'
-import { formatDateTime } from '../HostsPage/tableConfig'
+import { formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from '../HostsPage/tableConfig'
 
 export type TServiceRef = {
   kind?: string
@@ -81,22 +81,24 @@ const formatTransportEntriesSummary = (transports?: TServiceTransport[]) => {
     return EMPTY_VALUE
   }
 
-  return entries
-    .map(entry => {
-      const parts = []
+  return (
+    entries
+      .map(entry => {
+        const parts = []
 
-      if (entry.ports) {
-        parts.push(`Ports: ${entry.ports}`)
-      }
+        if (entry.ports) {
+          parts.push(`Ports: ${entry.ports}`)
+        }
 
-      if (entry.types && entry.types.length > 0) {
-        parts.push(`Types: ${entry.types.join(', ')}`)
-      }
+        if (entry.types && entry.types.length > 0) {
+          parts.push(`Types: ${entry.types.join(', ')}`)
+        }
 
-      return parts.join(' | ')
-    })
-    .filter(Boolean)
-    .join(' || ') || EMPTY_VALUE
+        return parts.join(' | ')
+      })
+      .filter(Boolean)
+      .join(' || ') || EMPTY_VALUE
+  )
 }
 
 const renderTagList = (values: string[]) => {
@@ -136,7 +138,7 @@ export const buildServicesColumns = (): ColumnsType<TServiceRow> => [
     fixed: 'left',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
-    render: value => value || EMPTY_VALUE,
+    render: value => renderBadgeWithValue('Service', value),
   },
   {
     title: 'Namespace',
@@ -144,7 +146,7 @@ export const buildServicesColumns = (): ColumnsType<TServiceRow> => [
     key: 'namespace',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-    render: value => value || EMPTY_VALUE,
+    render: value => renderBadgeWithValue('Namespace', value),
   },
   {
     title: 'Display Name',
@@ -199,7 +201,7 @@ export const buildServicesColumns = (): ColumnsType<TServiceRow> => [
     width: 180,
     sorter: (a, b) =>
       new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
-    render: value => formatDateTime(value),
+    render: value => renderTimestampWithIcon(value),
   },
 ]
 

@@ -8,7 +8,8 @@ const SplitLayout = styled.div<{
   $isDetailOpen: boolean
 }>`
   display: grid;
-  min-height: 520px;
+  flex: 1;
+  min-height: 0;
   overflow: hidden;
   border: 1px solid var(--hosts-border-color, #d9d9d9);
   border-radius: 12px;
@@ -27,6 +28,9 @@ const SplitLayout = styled.div<{
 `
 
 const TablePane = styled.div`
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   min-width: 0;
   overflow: hidden;
 
@@ -36,8 +40,17 @@ const TablePane = styled.div`
     height: 100%;
   }
 
+  .ant-table-wrapper,
+  .ant-spin-nested-loading,
+  .ant-spin-container,
   .ant-table {
+    display: flex;
+    flex-direction: column;
     height: 100%;
+  }
+
+  .ant-table-container {
+    flex: 1;
   }
 
   .ant-table-tbody > .host-row-selected > td {
@@ -70,6 +83,7 @@ const ResizeHandle = styled.div`
 `
 
 const DetailPane = styled.aside`
+  height: 100%;
   min-width: 0;
   overflow: auto;
   border-left: 1px solid var(--hosts-border-secondary-color, #f0f0f0);
@@ -115,16 +129,24 @@ const Value = styled.div`
 const VerboseContainer = styled.div`
   display: flex;
   flex-flow: column;
+  flex: 1;
   width: 100%;
   height: 100%;
-  max-height: calc(100vh - 114px);
+  min-height: 0;
   scrollbar-gutter: stable;
 `
 
 const CustomCard = styled(Card)`
-  max-height: calc(100vh - 158px);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
 
   .ant-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
     padding: 16px 24px;
   }
 `
@@ -157,19 +179,15 @@ const CloseButton = styled(Button)`
   padding: 3px;
 `
 
-type TOverflowContainerProps = {
-  $height: number
-}
-
-const OverflowContainer = styled.div<TOverflowContainerProps>`
-  max-height: ${({ $height }) => $height}px;
+const OverflowContainer = styled.div`
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 `
 
 const SpecGridHosts = styled.div`
   display: grid;
-  grid-row-gap: 8px;
-  grid-column-gap: 16px;
+  grid-gap: 8px 16px;
   grid-template-columns: 120px 1fr;
   word-break: break-all;
 `

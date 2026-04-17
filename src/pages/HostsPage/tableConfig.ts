@@ -56,6 +56,60 @@ const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
   timeStyle: 'short',
 })
 
+const getBadgeColor = (value: string): string => {
+  let hash = 0
+
+  for (let index = 0; index < value.length; index += 1) {
+    // eslint-disable-next-line no-bitwise
+    hash = value.charCodeAt(index) + ((hash << 5) - hash)
+  }
+
+  const hue = Math.abs(hash) % 360
+
+  return `hsl(${hue} 55% 78%)`
+}
+
+const getBadgeText = (value: string): string => {
+  const uppercases = [...value].filter(char => char >= 'A' && char <= 'Z').join('')
+
+  return uppercases.length > 0 ? uppercases : value[0]?.toUpperCase() || ''
+}
+
+export const renderBadge = (value: string) =>
+  React.createElement(
+    'span',
+    {
+      style: {
+        backgroundColor: getBadgeColor(value),
+        borderRadius: '13px',
+        padding: '1px 5px',
+        fontSize: '13px',
+        height: 'min-content',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        textTransform: 'uppercase',
+        letterSpacing: '0.02em',
+        boxSizing: 'content-box',
+      },
+    },
+    getBadgeText(value),
+  )
+
+export const renderBadgeWithValue = (badgeValue: string, value?: string) =>
+  React.createElement(
+    'span',
+    {
+      style: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+      },
+    },
+    renderBadge(badgeValue),
+    React.createElement('span', null, value || EMPTY_VALUE),
+  )
+
 export const formatDateTime = (value?: string): string => {
   if (!value) {
     return EMPTY_VALUE
@@ -69,6 +123,20 @@ export const formatDateTime = (value?: string): string => {
 
   return DATE_FORMATTER.format(parsed)
 }
+
+export const renderTimestampWithIcon = (value?: string) =>
+  React.createElement(
+    'span',
+    {
+      style: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+      },
+    },
+    React.createElement('span', null, '🌐'),
+    React.createElement('span', null, formatDateTime(value)),
+  )
 
 export const formatArrayForCell = (values?: string[]): string => {
   if (!values || values.length === 0) {
@@ -125,7 +193,7 @@ export const buildHostsColumns = (): ColumnsType<THostRow> => [
     fixed: 'left',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
-    render: value => value || EMPTY_VALUE,
+    render: value => renderBadgeWithValue('Host', value),
   },
   {
     title: 'Namespace',
@@ -133,7 +201,7 @@ export const buildHostsColumns = (): ColumnsType<THostRow> => [
     key: 'namespace',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-    render: value => value || EMPTY_VALUE,
+    render: value => renderBadgeWithValue('Namespace', value),
   },
   {
     title: 'Display Name',
@@ -194,7 +262,7 @@ export const buildHostsColumns = (): ColumnsType<THostRow> => [
     width: 180,
     sorter: (a, b) =>
       new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
-    render: value => formatDateTime(value),
+    render: value => renderTimestampWithIcon(value),
   },
 ]
 

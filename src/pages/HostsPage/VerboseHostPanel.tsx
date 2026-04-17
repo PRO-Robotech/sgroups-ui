@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react'
+import React, { FC, useMemo, useState } from 'react'
 import {
   CloseOutlined,
   CompressOutlined,
@@ -83,27 +83,13 @@ const renderRefs = (host: THostRow) => {
 }
 
 export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({ host, width, onClose, onExpand, onCollapse }) => {
-  const titleRef = useRef<HTMLDivElement>(null)
-  const [height, setHeight] = useState(0)
   const labels = useMemo(() => formatMapEntries(host.metadata.labels), [host.metadata.labels])
   const annotations = useMemo(() => formatMapEntries(host.metadata.annotations), [host.metadata.annotations])
-
-  useEffect(() => {
-    const updateHeight = () => {
-      const titleHeight = titleRef.current?.offsetHeight ?? 0
-      setHeight(window.innerHeight - 232 - titleHeight)
-    }
-
-    updateHeight()
-    window.addEventListener('resize', updateHeight)
-
-    return () => window.removeEventListener('resize', updateHeight)
-  }, [width])
 
   return (
     <Styled.VerboseContainer>
       <Styled.CustomCard>
-        <Styled.TitleAndControlsRow ref={titleRef}>
+        <Styled.TitleAndControlsRow>
           <Styled.TitleAndExpandCollapse>
             {width === Styled.DETAIL_PANEL_MIN_WIDTH ? (
               <Styled.ExpandCollapseButton type="text" onClick={onExpand} icon={<ExpandOutlined />} />
@@ -116,7 +102,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({ host, width, onCl
             <Styled.CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
           </div>
         </Styled.TitleAndControlsRow>
-        <Styled.OverflowContainer $height={height}>
+        <Styled.OverflowContainer>
           <Styled.SpecGridHosts>
             <Typography.Text type="secondary">Name</Typography.Text>
             <div>{renderValue(host.metadata.name)}</div>

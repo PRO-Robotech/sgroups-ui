@@ -1,6 +1,6 @@
 import { TableProps } from 'antd'
 import { ColumnsType } from 'antd/es/table'
-import { formatDateTime } from '../HostsPage/tableConfig'
+import { formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from '../HostsPage/tableConfig'
 
 export type TNetworkRef = {
   kind?: string
@@ -58,7 +58,7 @@ export const buildNetworksColumns = (): ColumnsType<TNetworkRow> => [
     fixed: 'left',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
-    render: value => value || EMPTY_VALUE,
+    render: value => renderBadgeWithValue('Network', value),
   },
   {
     title: 'Namespace',
@@ -66,7 +66,7 @@ export const buildNetworksColumns = (): ColumnsType<TNetworkRow> => [
     key: 'namespace',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-    render: value => value || EMPTY_VALUE,
+    render: value => renderBadgeWithValue('Namespace', value),
   },
   {
     title: 'Display Name',
@@ -97,7 +97,7 @@ export const buildNetworksColumns = (): ColumnsType<TNetworkRow> => [
     width: 180,
     sorter: (a, b) =>
       new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
-    render: value => formatDateTime(value),
+    render: value => renderTimestampWithIcon(value),
   },
 ]
 

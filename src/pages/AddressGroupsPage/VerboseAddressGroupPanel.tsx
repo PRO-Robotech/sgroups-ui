@@ -202,25 +202,10 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
     isNetworksLoading ||
     isServicesLoading
 
-  const titleRef = React.useRef<HTMLDivElement>(null)
-  const [height, setHeight] = React.useState(0)
-
-  React.useEffect(() => {
-    const updateHeight = () => {
-      const titleHeight = titleRef.current?.offsetHeight ?? 0
-      setHeight(window.innerHeight - 232 - titleHeight)
-    }
-
-    updateHeight()
-    window.addEventListener('resize', updateHeight)
-
-    return () => window.removeEventListener('resize', updateHeight)
-  }, [width])
-
   return (
     <Styled.VerboseContainer>
       <Styled.CustomCard>
-        <Styled.TitleAndControlsRow ref={titleRef}>
+        <Styled.TitleAndControlsRow>
           <Styled.TitleAndExpandCollapse>
             {width === Styled.DETAIL_PANEL_MIN_WIDTH ? (
               <Styled.ExpandCollapseButton type="text" onClick={onExpand} icon={<ExpandOutlined />} />
@@ -233,7 +218,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             <Styled.CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
           </div>
         </Styled.TitleAndControlsRow>
-        <Styled.OverflowContainer $height={height}>
+        <Styled.OverflowContainer>
           <Styled.SpecGrid>
             <Typography.Text type="secondary">Name</Typography.Text>
             <div>{renderValue(addressGroup.metadata.name)}</div>

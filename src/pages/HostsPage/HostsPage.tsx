@@ -1,7 +1,9 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Flex, Spin, Table, theme as antdTheme } from 'antd'
-import { ContentCard, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { Alert, Flex, Spin, theme as antdTheme } from 'antd'
+import { useSelector } from 'react-redux'
+import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
+import { RootState } from 'store/store'
 import { VerboseHostPanel } from './VerboseHostPanel'
 import { Styled } from './styled'
 import { buildHostsColumns, HOSTS_TABLE_PROPS, mapHostsToRows, THostResource, THostRow } from './tableConfig'
@@ -28,6 +30,7 @@ const clampVerboseWidth = (width: number, containerWidth?: number) => {
 }
 
 export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
+  const theme = useSelector((state: RootState) => state.theme.theme)
   const { token } = antdTheme.useToken()
   const splitLayoutRef = useRef<HTMLDivElement>(null)
   const [selectedHostKey, setSelectedHostKey] = useState<string | null>(null)
@@ -94,6 +97,9 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
       return undefined
     }
 
+    document.body.style.userSelect = 'none'
+    document.body.style.cursor = 'col-resize'
+
     const handleMouseMove = (event: MouseEvent) => {
       const containerWidth = splitLayoutRef.current?.getBoundingClientRect().width
 
@@ -114,6 +120,8 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
     window.addEventListener('mouseup', stopResizing)
 
     return () => {
+      document.body.style.userSelect = ''
+      document.body.style.cursor = ''
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', stopResizing)
     }
@@ -143,7 +151,7 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
 
   return (
     <ContentCard displayFlex flexFlow="column" flexGrow={1}>
-      <Flex vertical gap={16}>
+      <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
         <TenantSelector cluster={cluster} tenant={namespace} />
         {error && <Alert type="error" message={`Failed to load hosts: ${String(error)}`} showIcon />}
         {isLoading && !hostsData && <Spin />}
@@ -156,15 +164,22 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
               style={hostsLayoutStyle}
             >
               <Styled.TablePane>
-                <Table<THostRow>
-                  {...HOSTS_TABLE_PROPS}
+                <EnrichedTable<THostRow>
+                  theme={theme}
                   dataSource={dataSource}
                   columns={columns}
+                  rowClickable
                   rowClassName={record => (record.key === selectedHostKey ? 'host-row-selected' : '')}
                   onRow={record => ({
                     onClick: () => handleRowClick(record),
-                    style: { cursor: 'pointer' },
                   })}
+                  tableProps={{
+                    borderless: true,
+                    paginationPosition: ['bottomRight'],
+                    isTotalLeft: true,
+                    disablePagination: Boolean(HOSTS_TABLE_PROPS.pagination === false),
+                  }}
+                  withoutControls
                 />
               </Styled.TablePane>
               {selectedHost && (
@@ -172,7 +187,10 @@ export const HostsPage: FC<THostsPageProps> = ({ cluster, namespace }) => {
                   <Styled.ResizeHandle
                     aria-label="Resize host details panel"
                     role="separator"
-                    onMouseDown={() => setIsResizing(true)}
+                    onMouseDown={event => {
+                      event.preventDefault()
+                      setIsResizing(true)
+                    }}
                   />
                   <Styled.DetailPane>
                     <VerboseHostPanel

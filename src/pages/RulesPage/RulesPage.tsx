@@ -1,7 +1,9 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Flex, Spin, Table, theme as antdTheme } from 'antd'
-import { ContentCard, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { Alert, Flex, Spin, theme as antdTheme } from 'antd'
+import { useSelector } from 'react-redux'
+import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
+import { RootState } from 'store/store'
 import { VerboseRulePanel } from './VerboseRulePanel'
 import { Styled } from './styled'
 import { buildRulesColumns, mapRulesToRows, RULES_TABLE_PROPS, TRuleResource, TRuleRow } from './tableConfig'
@@ -28,6 +30,7 @@ const clampVerboseWidth = (width: number, containerWidth?: number) => {
 }
 
 export const RulesPage: FC<TRulesPageProps> = ({ cluster, namespace }) => {
+  const theme = useSelector((state: RootState) => state.theme.theme)
   const { token } = antdTheme.useToken()
   const splitLayoutRef = useRef<HTMLDivElement>(null)
   const [selectedRuleKey, setSelectedRuleKey] = useState<string | null>(null)
@@ -94,6 +97,9 @@ export const RulesPage: FC<TRulesPageProps> = ({ cluster, namespace }) => {
       return undefined
     }
 
+    document.body.style.userSelect = 'none'
+    document.body.style.cursor = 'col-resize'
+
     const handleMouseMove = (event: MouseEvent) => {
       const containerWidth = splitLayoutRef.current?.getBoundingClientRect().width
 
@@ -114,6 +120,8 @@ export const RulesPage: FC<TRulesPageProps> = ({ cluster, namespace }) => {
     window.addEventListener('mouseup', stopResizing)
 
     return () => {
+      document.body.style.userSelect = ''
+      document.body.style.cursor = ''
       window.removeEventListener('mousemove', handleMouseMove)
       window.removeEventListener('mouseup', stopResizing)
     }
@@ -143,7 +151,7 @@ export const RulesPage: FC<TRulesPageProps> = ({ cluster, namespace }) => {
 
   return (
     <ContentCard displayFlex flexFlow="column" flexGrow={1}>
-      <Flex vertical gap={16}>
+      <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
         <TenantSelector cluster={cluster} tenant={namespace} />
         {error && <Alert type="error" message={`Failed to load rules: ${String(error)}`} showIcon />}
         {isLoading && !rulesData && <Spin />}
@@ -156,15 +164,22 @@ export const RulesPage: FC<TRulesPageProps> = ({ cluster, namespace }) => {
               style={rulesLayoutStyle}
             >
               <Styled.TablePane>
-                <Table<TRuleRow>
-                  {...RULES_TABLE_PROPS}
+                <EnrichedTable<TRuleRow>
+                  theme={theme}
                   dataSource={dataSource}
                   columns={columns}
+                  rowClickable
                   rowClassName={record => (record.key === selectedRuleKey ? 'rule-row-selected' : '')}
                   onRow={record => ({
                     onClick: () => handleRowClick(record),
-                    style: { cursor: 'pointer' },
                   })}
+                  tableProps={{
+                    borderless: true,
+                    paginationPosition: ['bottomRight'],
+                    isTotalLeft: true,
+                    disablePagination: Boolean(RULES_TABLE_PROPS.pagination === false),
+                  }}
+                  withoutControls
                 />
               </Styled.TablePane>
               {selectedRule && (
@@ -172,7 +187,10 @@ export const RulesPage: FC<TRulesPageProps> = ({ cluster, namespace }) => {
                   <Styled.ResizeHandle
                     aria-label="Resize rule details panel"
                     role="separator"
-                    onMouseDown={() => setIsResizing(true)}
+                    onMouseDown={event => {
+                      event.preventDefault()
+                      setIsResizing(true)
+                    }}
                   />
                   <Styled.DetailPane>
                     <VerboseRulePanel

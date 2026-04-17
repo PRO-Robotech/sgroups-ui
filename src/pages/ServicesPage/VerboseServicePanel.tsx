@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react'
+import React, { FC, useMemo, useState } from 'react'
 import {
   ApartmentOutlined,
   CloseOutlined,
@@ -99,8 +99,6 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
   onCollapse,
 }) => {
   const { token } = antdTheme.useToken()
-  const titleRef = useRef<HTMLDivElement>(null)
-  const [height, setHeight] = useState(0)
   const labels = useMemo(() => formatMapEntries(service.metadata.labels), [service.metadata.labels])
   const annotations = useMemo(() => formatMapEntries(service.metadata.annotations), [service.metadata.annotations])
   const transportDetails = useMemo(
@@ -108,22 +106,10 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
     [service.spec?.transports],
   )
 
-  useEffect(() => {
-    const updateHeight = () => {
-      const titleHeight = titleRef.current?.offsetHeight ?? 0
-      setHeight(window.innerHeight - 232 - titleHeight)
-    }
-
-    updateHeight()
-    window.addEventListener('resize', updateHeight)
-
-    return () => window.removeEventListener('resize', updateHeight)
-  }, [width])
-
   return (
     <Styled.VerboseContainer>
       <Styled.CustomCard>
-        <Styled.TitleAndControlsRow ref={titleRef}>
+        <Styled.TitleAndControlsRow>
           <Styled.TitleAndExpandCollapse>
             {width === Styled.DETAIL_PANEL_MIN_WIDTH ? (
               <Styled.ExpandCollapseButton type="text" onClick={onExpand} icon={<ExpandOutlined />} />
@@ -136,7 +122,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             <Styled.CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
           </div>
         </Styled.TitleAndControlsRow>
-        <Styled.OverflowContainer $height={height}>
+        <Styled.OverflowContainer>
           <Styled.SpecGrid>
             <Typography.Text type="secondary">Name</Typography.Text>
             <div>{renderValue(service.metadata.name)}</div>

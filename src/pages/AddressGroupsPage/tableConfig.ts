@@ -1,7 +1,7 @@
 import { TableProps, Tag } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import React from 'react'
-import { formatDateTime } from '../HostsPage/tableConfig'
+import { formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from '../HostsPage/tableConfig'
 
 export type TAddressGroupRef = {
   kind?: string
@@ -99,7 +99,7 @@ export const buildAddressGroupsColumns = (): ColumnsType<TAddressGroupRow> => [
     fixed: 'left',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
-    render: value => value || EMPTY_VALUE,
+    render: value => renderBadgeWithValue('Address Group', value),
   },
   {
     title: 'Namespace',
@@ -107,7 +107,7 @@ export const buildAddressGroupsColumns = (): ColumnsType<TAddressGroupRow> => [
     key: 'namespace',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-    render: value => value || EMPTY_VALUE,
+    render: value => renderBadgeWithValue('Namespace', value),
   },
   {
     title: 'Display Name',
@@ -153,7 +153,7 @@ export const buildAddressGroupsColumns = (): ColumnsType<TAddressGroupRow> => [
     width: 180,
     sorter: (a, b) =>
       new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
-    render: value => formatDateTime(value),
+    render: value => renderTimestampWithIcon(value),
   },
 ]
 
