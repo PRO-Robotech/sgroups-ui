@@ -21,7 +21,10 @@ export const SplitLayout = styled.div<TSplitLayoutProps>`
   ${({ $isDetailOpen, $detailWidth }) =>
     $isDetailOpen &&
     css`
-      grid-template-columns: minmax(0, 1fr) ${DETAIL_PANEL_SPLITTER_WIDTH}px minmax(${DETAIL_PANEL_MIN_WIDTH}px, ${$detailWidth || 420}px);
+      grid-template-columns: minmax(0, 1fr) ${DETAIL_PANEL_SPLITTER_WIDTH}px minmax(
+          ${DETAIL_PANEL_MIN_WIDTH}px,
+          ${$detailWidth || 420}px
+        );
     `}
 
   @media (width <= 1100px) {
