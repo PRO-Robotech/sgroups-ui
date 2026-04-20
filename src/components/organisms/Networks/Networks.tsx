@@ -15,6 +15,14 @@ import {
 import { VerboseNetworkPanel } from './molecules'
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
 
+const getExpandedVerboseWidth = (containerWidth?: number) => {
+  if (!containerWidth) {
+    return EXPANDED_VERBOSE_WIDTH
+  }
+
+  return (containerWidth - Styled.DETAIL_PANEL_SPLITTER_WIDTH) / 2
+}
+
 type TNetworksProps = {
   cluster?: string
   namespace?: string
@@ -143,7 +151,7 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
 
   const expandVerbose = useCallback(() => {
     const containerWidth = splitLayoutRef.current?.getBoundingClientRect().width
-    setVerboseWidth(clampVerboseWidth(EXPANDED_VERBOSE_WIDTH, containerWidth))
+    setVerboseWidth(clampVerboseWidth(getExpandedVerboseWidth(containerWidth), containerWidth))
   }, [])
 
   const handleRowClick = useCallback((record: TNetworkRow) => {

@@ -1,5 +1,6 @@
 import {
   DETAIL_PANEL_MIN_WIDTH,
+  DETAIL_PANEL_SPLITTER_WIDTH,
   DetailPane,
   MobileDetailPane,
   ResizeHandle,
@@ -30,6 +31,7 @@ const SpecGridHosts = SpecGrid
 
 export const Styled = {
   DETAIL_PANEL_MIN_WIDTH,
+  DETAIL_PANEL_SPLITTER_WIDTH,
   SplitLayout,
   TablePane,
   ResizeHandle,

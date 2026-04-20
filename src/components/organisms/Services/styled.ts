@@ -1,5 +1,6 @@
 import {
   DETAIL_PANEL_MIN_WIDTH,
+  DETAIL_PANEL_SPLITTER_WIDTH,
   DetailPane,
   MobileDetailPane,
   ResizeHandle,
@@ -27,6 +28,7 @@ import {
 
 export const Styled = {
   DETAIL_PANEL_MIN_WIDTH,
+  DETAIL_PANEL_SPLITTER_WIDTH,
   SplitLayout,
   TablePane,
   ResizeHandle,
