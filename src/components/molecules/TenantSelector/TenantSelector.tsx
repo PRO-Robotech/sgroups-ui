@@ -14,6 +14,7 @@ export const TenantSelector: FC<TTenantSelectorProps> = ({ cluster, tenant }) =>
   const navigate = useNavigate()
   const location = useLocation()
   const params = useParams()
+
   const [selectedTenant, setSelectedTenant] = useState<string | undefined>(tenant)
 
   const {
