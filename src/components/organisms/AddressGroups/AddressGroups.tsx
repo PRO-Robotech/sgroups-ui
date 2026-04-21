@@ -16,6 +16,11 @@ import {
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
 import { Styled } from './styled'
 
+const debugAddressGroups = (...args: unknown[]) => {
+  // eslint-disable-next-line no-console
+  console.log('[AddressGroups]', ...args)
+}
+
 const getExpandedVerboseWidth = (containerWidth?: number) => {
   if (!containerWidth) {
     return EXPANDED_VERBOSE_WIDTH
@@ -76,19 +81,39 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   })
 
   const openCreateModal = useCallback(() => {
+    debugAddressGroups('openCreateModal')
     setEditingAddressGroup(null)
     setIsDummyModalOpen(true)
   }, [])
 
   const openEditModal = useCallback((addressGroup: TAddressGroupRow) => {
+    debugAddressGroups('openEditModal', {
+      key: addressGroup.key,
+      name: addressGroup.metadata.name,
+      namespace: addressGroup.metadata.namespace,
+    })
     setEditingAddressGroup(addressGroup)
     setIsDummyModalOpen(true)
   }, [])
 
   const closeFormModal = useCallback(() => {
+    debugAddressGroups('closeFormModal')
     setIsDummyModalOpen(false)
     setEditingAddressGroup(null)
   }, [])
+
+  useEffect(() => {
+    debugAddressGroups('modal state changed', {
+      isDummyModalOpen,
+      editingAddressGroup: editingAddressGroup
+        ? {
+            key: editingAddressGroup.key,
+            name: editingAddressGroup.metadata.name,
+            namespace: editingAddressGroup.metadata.namespace,
+          }
+        : null,
+    })
+  }, [editingAddressGroup, isDummyModalOpen])
 
   const columns = useMemo(() => buildAddressGroupsColumns({ onEdit: openEditModal }), [openEditModal])
   const dataSource = useMemo(() => mapAddressGroupsToRows(addressGroupsData?.items || []), [addressGroupsData?.items])
@@ -258,13 +283,15 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
           </Flex>
         )}
       </Flex>
-      <AddressGroupFormModal
-        cluster={cluster}
-        namespace={namespace}
-        addressGroup={editingAddressGroup}
-        open={isDummyModalOpen}
-        onClose={closeFormModal}
-      />
+      {isDummyModalOpen && (
+        <AddressGroupFormModal
+          cluster={cluster}
+          namespace={namespace}
+          addressGroup={editingAddressGroup}
+          open={isDummyModalOpen}
+          onClose={closeFormModal}
+        />
+      )}
     </ContentCard>
   )
 }

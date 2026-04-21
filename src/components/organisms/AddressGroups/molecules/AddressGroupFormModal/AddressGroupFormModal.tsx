@@ -1,18 +1,27 @@
-import React, { FC, useEffect, useMemo, useState } from 'react'
-import { Empty, Form, Input, message, Modal, Select, Switch } from 'antd'
+import React, { FC, useEffect, useMemo, useRef, useState } from 'react'
+import { Empty, Form, Input, message, Modal, Select, Spin, Switch } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   createNewEntry,
+  deleteEntry,
   patchEntryWithDeleteOp,
   patchEntryWithReplaceOp,
   TSingleResource,
   useK8sSmartResource,
 } from '@prorobotech/openapi-k8s-toolkit'
 import { TAddressGroupResource } from 'components/organisms/AddressGroups/tableConfig'
-import { THostResource, TNetworkResource, TServiceResource } from 'localTypes'
+import {
+  THostBindingResource,
+  THostResource,
+  TNetworkBindingResource,
+  TNetworkResource,
+  TServiceBindingResource,
+  TServiceResource,
+} from 'localTypes'
 import { renderBadgeWithValue } from 'utils'
 import {
   Count,
+  LoadingState,
   ModalContent,
   FormColumn,
   Header,
@@ -27,6 +36,11 @@ import {
   OverviewTree,
   SwitchRow,
 } from './styled'
+
+const debugAddressGroupModal = (...args: unknown[]) => {
+  // eslint-disable-next-line no-console
+  console.log('[AddressGroupFormModal]', ...args)
+}
 
 const API_GROUP = 'sgroups.io'
 const API_VERSION = 'v1alpha1'
@@ -67,6 +81,12 @@ type TResourceOption = {
   value: string
   label: React.ReactNode
   searchText: string
+}
+
+type TCurrentBindings = {
+  hosts: THostBindingResource[]
+  services: TServiceBindingResource[]
+  networks: TNetworkBindingResource[]
 }
 
 const getApiEndpoint = (cluster: string, namespace: string, plural: string) =>
@@ -138,11 +158,24 @@ const parseNamespacedValue = (value: string) => {
   }
 }
 
-const getRefsByKind = (addressGroup: TAddressGroupResource | null | undefined, kind: string) =>
-  (addressGroup?.refs || [])
-    .filter(ref => (ref.kind || ref.resType) === kind && ref.name)
-    .map(ref => (kind === 'Service' && ref.namespace ? `${ref.namespace}/${ref.name}` : ref.name))
-    .filter((value): value is string => Boolean(value))
+const getBindingLookupKey = (resource?: { name?: string; namespace?: string }) =>
+  resource?.name ? `${resource.namespace || ''}/${resource.name}` : null
+
+const isSameAddressGroup = (
+  resource: TAddressGroupResource | null | undefined,
+  addressGroupRef?: { name?: string; namespace?: string },
+) => addressGroupRef?.name === resource?.metadata.name && addressGroupRef?.namespace === resource?.metadata.namespace
+
+const buildCurrentBindings = (
+  addressGroup: TAddressGroupResource | null | undefined,
+  hostBindings?: THostBindingResource[],
+  serviceBindings?: TServiceBindingResource[],
+  networkBindings?: TNetworkBindingResource[],
+): TCurrentBindings => ({
+  hosts: (hostBindings || []).filter(binding => isSameAddressGroup(addressGroup, binding.spec?.addressGroup)),
+  services: (serviceBindings || []).filter(binding => isSameAddressGroup(addressGroup, binding.spec?.addressGroup)),
+  networks: (networkBindings || []).filter(binding => isSameAddressGroup(addressGroup, binding.spec?.addressGroup)),
+})
 
 const patchEditableSpec = async (
   endpoint: string,
@@ -200,6 +233,175 @@ const patchEditableSpec = async (
   return patchRequests.length
 }
 
+const syncBindings = async (
+  cluster: string,
+  addressGroupIdentifier: { name: string; namespace: string },
+  values: TAddressGroupFormValues,
+  currentBindings: TCurrentBindings,
+) => {
+  const requestedHosts = new Set(values.hosts || [])
+  const requestedServices = new Set(values.services || [])
+  const requestedNetworks = new Set(values.networks || [])
+
+  const currentHostKeys = new Set(
+    currentBindings.hosts.map(binding => binding.spec?.host?.name).filter(Boolean) as string[],
+  )
+  const currentServiceKeys = new Set(
+    currentBindings.services
+      .map(binding => getBindingLookupKey(binding.spec?.service))
+      .filter((value): value is string => Boolean(value)),
+  )
+  const currentNetworkKeys = new Set(
+    currentBindings.networks
+      .map(binding => binding.spec?.network?.name)
+      .filter((value): value is string => Boolean(value)),
+  )
+
+  const createHostBindings = [...requestedHosts]
+    .filter(resourceName => !currentHostKeys.has(resourceName))
+    .map(resourceName =>
+      createNewEntry({
+        endpoint: getApiEndpoint(cluster, values.namespace, 'hostbindings'),
+        body: {
+          apiVersion: API_RESOURCE_VERSION,
+          kind: 'HostBinding',
+          metadata: {
+            name: buildBindingName(values.name, 'host', resourceName),
+            namespace: values.namespace,
+          },
+          spec: {
+            addressGroup: addressGroupIdentifier,
+            host: {
+              name: resourceName,
+              namespace: values.namespace,
+            },
+            description: values.description,
+            comment: values.comment,
+          },
+        },
+      }),
+    )
+
+  const createServiceBindings = [...requestedServices]
+    .filter(resourceValue => !currentServiceKeys.has(resourceValue))
+    .map(resourceValue => {
+      const service = parseNamespacedValue(resourceValue)
+
+      return createNewEntry({
+        endpoint: getApiEndpoint(cluster, service.namespace, 'servicebindings'),
+        body: {
+          apiVersion: API_RESOURCE_VERSION,
+          kind: 'ServiceBinding',
+          metadata: {
+            name: buildBindingName(values.name, 'service', service.name),
+            namespace: service.namespace,
+          },
+          spec: {
+            addressGroup: addressGroupIdentifier,
+            service: {
+              name: service.name,
+              namespace: service.namespace,
+            },
+            description: values.description,
+            comment: values.comment,
+          },
+        },
+      })
+    })
+
+  const createNetworkBindings = [...requestedNetworks]
+    .filter(resourceName => !currentNetworkKeys.has(resourceName))
+    .map(resourceName =>
+      createNewEntry({
+        endpoint: getApiEndpoint(cluster, values.namespace, 'networkbindings'),
+        body: {
+          apiVersion: API_RESOURCE_VERSION,
+          kind: 'NetworkBinding',
+          metadata: {
+            name: buildBindingName(values.name, 'network', resourceName),
+            namespace: values.namespace,
+          },
+          spec: {
+            addressGroup: addressGroupIdentifier,
+            network: {
+              name: resourceName,
+              namespace: values.namespace,
+            },
+            description: values.description,
+            comment: values.comment,
+          },
+        },
+      }),
+    )
+
+  const deleteHostBindings = currentBindings.hosts
+    .filter(binding => {
+      const resourceName = binding.spec?.host?.name
+
+      if (!resourceName || !binding.metadata.name) {
+        return false
+      }
+
+      return !requestedHosts.has(resourceName)
+    })
+    .map(binding =>
+      deleteEntry({
+        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'hostbindings')}/${
+          binding.metadata.name
+        }`,
+      }),
+    )
+
+  const deleteServiceBindings = currentBindings.services
+    .filter(binding => {
+      const resourceKey = getBindingLookupKey(binding.spec?.service)
+
+      if (!resourceKey || !binding.metadata.name) {
+        return false
+      }
+
+      return !requestedServices.has(resourceKey)
+    })
+    .map(binding =>
+      deleteEntry({
+        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'servicebindings')}/${
+          binding.metadata.name
+        }`,
+      }),
+    )
+
+  const deleteNetworkBindings = currentBindings.networks
+    .filter(binding => {
+      const resourceName = binding.spec?.network?.name
+
+      if (!resourceName || !binding.metadata.name) {
+        return false
+      }
+
+      return !requestedNetworks.has(resourceName)
+    })
+    .map(binding =>
+      deleteEntry({
+        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'networkbindings')}/${
+          binding.metadata.name
+        }`,
+      }),
+    )
+
+  const requests = [
+    ...createHostBindings,
+    ...createServiceBindings,
+    ...createNetworkBindings,
+    ...deleteHostBindings,
+    ...deleteServiceBindings,
+    ...deleteNetworkBindings,
+  ]
+
+  await Promise.all(requests)
+
+  return requests.length
+}
+
 export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   cluster,
   namespace,
@@ -208,6 +410,9 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   onClose,
 }) => {
   const [form] = Form.useForm<TAddressGroupFormValues>()
+  const [isInitialized, setIsInitialized] = useState(false)
+  const didApplyEditPrefillRef = useRef(false)
+  const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
   const selectedNamespace = Form.useWatch('namespace', form)
   const selectedHostsRaw = Form.useWatch('hosts', form)
@@ -216,7 +421,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   const selectedHosts = useMemo(() => selectedHostsRaw || [], [selectedHostsRaw])
   const selectedServices = useMemo(() => selectedServicesRaw || [], [selectedServicesRaw])
   const selectedNetworks = useMemo(() => selectedNetworksRaw || [], [selectedNetworksRaw])
-  const effectiveAddressGroupNamespace = selectedNamespace || namespace
+  const effectiveAddressGroupNamespace = selectedNamespace || addressGroup?.metadata.namespace || namespace
   const isEditMode = Boolean(addressGroup)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -270,6 +475,36 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
     plural: 'networks',
     isEnabled: open && Boolean(effectiveAddressGroupNamespace),
   })
+  const { data: hostBindingsData, isLoading: isHostBindingsLoading } = useK8sSmartResource<{
+    items: THostBindingResource[]
+  }>({
+    cluster,
+    namespace: effectiveAddressGroupNamespace,
+    apiGroup: API_GROUP,
+    apiVersion: API_VERSION,
+    plural: 'hostbindings',
+    isEnabled: open && Boolean(effectiveAddressGroupNamespace),
+  })
+  const { data: serviceBindingsData, isLoading: isServiceBindingsLoading } = useK8sSmartResource<{
+    items: TServiceBindingResource[]
+  }>({
+    cluster,
+    namespace: undefined,
+    apiGroup: API_GROUP,
+    apiVersion: API_VERSION,
+    plural: 'servicebindings',
+    isEnabled: open,
+  })
+  const { data: networkBindingsData, isLoading: isNetworkBindingsLoading } = useK8sSmartResource<{
+    items: TNetworkBindingResource[]
+  }>({
+    cluster,
+    namespace: effectiveAddressGroupNamespace,
+    apiGroup: API_GROUP,
+    apiVersion: API_VERSION,
+    plural: 'networkbindings',
+    isEnabled: open && Boolean(effectiveAddressGroupNamespace),
+  })
 
   const namespaceOptions = useMemo(
     () =>
@@ -280,14 +515,144 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
         .map(value => ({ value, label: value })),
     [tenantsData?.items],
   )
+  const currentBindings = useMemo(
+    () =>
+      buildCurrentBindings(
+        addressGroup,
+        hostBindingsData?.items,
+        serviceBindingsData?.items,
+        networkBindingsData?.items,
+      ),
+    [addressGroup, hostBindingsData?.items, networkBindingsData?.items, serviceBindingsData?.items],
+  )
   const parsedSelectedServices = useMemo(() => selectedServices.map(parseNamespacedValue), [selectedServices])
   const selectedItemsCount = selectedHosts.length + selectedServices.length + selectedNetworks.length
+  const isNamespaceScopedResourcesLoading =
+    Boolean(effectiveAddressGroupNamespace) &&
+    (isHostsLoading || isNetworksLoading || isHostBindingsLoading || isNetworkBindingsLoading)
+  const isFormResourcesLoading =
+    isTenantsLoading || isServicesLoading || isServiceBindingsLoading || isNamespaceScopedResourcesLoading
+  const isInitialLoadPending = open && !isInitialized
+  const isModalInitializing = isFormResourcesLoading || isInitialLoadPending
 
   useEffect(() => {
-    if (!open || !addressGroup) {
+    debugAddressGroupModal('mount', {
+      open,
+      namespace,
+      addressGroup: addressGroup
+        ? {
+            name: addressGroup.metadata.name,
+            namespace: addressGroup.metadata.namespace,
+          }
+        : null,
+    })
+
+    return () => {
+      debugAddressGroupModal('unmount')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    debugAddressGroupModal('props changed', {
+      open,
+      namespace,
+      effectiveAddressGroupNamespace,
+      isEditMode,
+      addressGroup: addressGroup
+        ? {
+            name: addressGroup.metadata.name,
+            namespace: addressGroup.metadata.namespace,
+          }
+        : null,
+    })
+  }, [addressGroup, effectiveAddressGroupNamespace, isEditMode, namespace, open])
+
+  useEffect(() => {
+    if (!open) {
+      didApplyEditPrefillRef.current = false
+      didApplyCreatePrefillRef.current = false
+      setIsInitialized(false)
+    }
+  }, [open])
+
+  useEffect(() => {
+    debugAddressGroupModal('watched values changed', {
+      selectedNamespace,
+      hosts: selectedHosts,
+      services: selectedServices,
+      networks: selectedNetworks,
+    })
+  }, [selectedHosts, selectedNamespace, selectedNetworks, selectedServices])
+
+  useEffect(() => {
+    debugAddressGroupModal('resource loading changed', {
+      isTenantsLoading,
+      isHostsLoading,
+      isServicesLoading,
+      isNetworksLoading,
+      isHostBindingsLoading,
+      isServiceBindingsLoading,
+      isNetworkBindingsLoading,
+      namespaceOptionsCount: namespaceOptions.length,
+      hostsCount: hostsData?.items?.length || 0,
+      servicesCount: servicesData?.items?.length || 0,
+      networksCount: networksData?.items?.length || 0,
+      currentBindings: {
+        hosts: currentBindings.hosts.length,
+        services: currentBindings.services.length,
+        networks: currentBindings.networks.length,
+      },
+    })
+  }, [
+    currentBindings.hosts.length,
+    currentBindings.networks.length,
+    currentBindings.services.length,
+    hostBindingsData?.items?.length,
+    hostsData?.items?.length,
+    isHostBindingsLoading,
+    isHostsLoading,
+    isNetworkBindingsLoading,
+    isNetworksLoading,
+    isServiceBindingsLoading,
+    isServicesLoading,
+    isTenantsLoading,
+    namespaceOptions.length,
+    networksData?.items?.length,
+    serviceBindingsData?.items?.length,
+    servicesData?.items?.length,
+  ])
+
+  useEffect(() => {
+    if (
+      !open ||
+      !addressGroup ||
+      !effectiveAddressGroupNamespace ||
+      isFormResourcesLoading ||
+      didApplyEditPrefillRef.current
+    ) {
+      debugAddressGroupModal('edit prefill skipped', {
+        open,
+        hasAddressGroup: Boolean(addressGroup),
+        effectiveAddressGroupNamespace,
+        isFormResourcesLoading,
+        didApplyEditPrefill: didApplyEditPrefillRef.current,
+      })
       return
     }
 
+    debugAddressGroupModal('edit prefill setFieldsValue', {
+      namespace: addressGroup?.metadata.namespace || namespace,
+      name: addressGroup?.metadata.name,
+      displayName: addressGroup?.spec?.displayName,
+      allowAccess: addressGroup?.spec?.defaultAction === 'Allow',
+      description: addressGroup?.spec?.description,
+      comment: addressGroup?.spec?.comment,
+      hosts: currentBindings.hosts.map(binding => binding.spec?.host?.name).filter(Boolean),
+      services: currentBindings.services.map(binding => getBindingLookupKey(binding.spec?.service)).filter(Boolean),
+      networks: currentBindings.networks.map(binding => binding.spec?.network?.name).filter(Boolean),
+    })
+    didApplyEditPrefillRef.current = true
     form.setFieldsValue({
       namespace: addressGroup?.metadata.namespace || namespace,
       name: addressGroup?.metadata.name,
@@ -295,17 +660,48 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       allowAccess: addressGroup?.spec?.defaultAction === 'Allow',
       description: addressGroup?.spec?.description,
       comment: addressGroup?.spec?.comment,
-      hosts: getRefsByKind(addressGroup, 'Host'),
-      services: getRefsByKind(addressGroup, 'Service'),
-      networks: getRefsByKind(addressGroup, 'Network'),
+      hosts: currentBindings.hosts
+        .map(binding => binding.spec?.host?.name)
+        .filter((value): value is string => Boolean(value)),
+      services: currentBindings.services
+        .map(binding => getBindingLookupKey(binding.spec?.service))
+        .filter((value): value is string => Boolean(value)),
+      networks: currentBindings.networks
+        .map(binding => binding.spec?.network?.name)
+        .filter((value): value is string => Boolean(value)),
     })
-  }, [addressGroup, form, namespace, open])
+    setIsInitialized(true)
+  }, [
+    addressGroup,
+    currentBindings.hosts,
+    currentBindings.networks,
+    currentBindings.services,
+    form,
+    effectiveAddressGroupNamespace,
+    isFormResourcesLoading,
+    namespace,
+    open,
+  ])
 
   useEffect(() => {
-    if (!open || addressGroup) {
+    if (!open || addressGroup || isFormResourcesLoading || didApplyCreatePrefillRef.current) {
+      debugAddressGroupModal('create prefill skipped', {
+        open,
+        hasAddressGroup: Boolean(addressGroup),
+        isFormResourcesLoading,
+        didApplyCreatePrefill: didApplyCreatePrefillRef.current,
+      })
       return
     }
 
+    didApplyCreatePrefillRef.current = true
+    debugAddressGroupModal('create prefill setFieldsValue', {
+      namespace,
+      allowAccess: false,
+      hosts: [],
+      services: [],
+      networks: [],
+    })
     form.setFieldsValue({
       namespace,
       name: undefined,
@@ -317,15 +713,36 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       services: [],
       networks: [],
     })
-  }, [addressGroup, form, namespace, open])
+    setIsInitialized(true)
+  }, [addressGroup, form, isFormResourcesLoading, namespace, open])
+
+  useEffect(() => {
+    if (open) {
+      debugAddressGroupModal('close reset skipped because modal is open')
+      return
+    }
+
+    debugAddressGroupModal('close reset via effect')
+    didApplyEditPrefillRef.current = false
+    didApplyCreatePrefillRef.current = false
+    setIsInitialized(false)
+    form.resetFields()
+    setIsSubmitting(false)
+  }, [form, open])
 
   const handleCancel = () => {
+    debugAddressGroupModal('handleCancel')
+    didApplyEditPrefillRef.current = false
+    didApplyCreatePrefillRef.current = false
+    setIsInitialized(false)
     form.resetFields()
+    setIsSubmitting(false)
     onClose()
   }
 
   const handleSubmit = async () => {
     const values = await form.validateFields()
+    debugAddressGroupModal('handleSubmit validated values', values)
 
     setIsSubmitting(true)
 
@@ -359,104 +776,50 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       }
 
       if (addressGroup) {
+        debugAddressGroupModal('edit submit start', {
+          addressGroupIdentifier,
+          currentBindings: {
+            hosts: currentBindings.hosts.map(binding => binding.metadata.name),
+            services: currentBindings.services.map(binding => binding.metadata.name),
+            networks: currentBindings.networks.map(binding => binding.metadata.name),
+          },
+        })
         const changedFieldsCount = await patchEditableSpec(
           `${getApiEndpoint(cluster, values.namespace, 'addressgroups')}/${values.name}`,
           addressGroup,
           values,
         )
+        const changedBindingsCount = await syncBindings(cluster, addressGroupIdentifier, values, currentBindings)
 
-        if (changedFieldsCount > 0) {
+        if (changedFieldsCount > 0 || changedBindingsCount > 0) {
           await queryClient.invalidateQueries({ queryKey: ['k8s-list'] })
         }
 
         message.success('Address group updated')
+        debugAddressGroupModal('edit submit success', {
+          changedFieldsCount,
+          changedBindingsCount,
+        })
         handleCancel()
         return
       }
 
+      debugAddressGroupModal('create submit start', { addressGroupIdentifier })
       await createNewEntry({
         endpoint: getApiEndpoint(cluster, values.namespace, 'addressgroups'),
         body: addressGroupBody,
       })
 
-      const createHostBindings = (values.hosts || []).map(resourceName =>
-        createNewEntry({
-          endpoint: getApiEndpoint(cluster, values.namespace, 'hostbindings'),
-          body: {
-            apiVersion: API_RESOURCE_VERSION,
-            kind: 'HostBinding',
-            metadata: {
-              name: buildBindingName(values.name, 'host', resourceName),
-              namespace: values.namespace,
-            },
-            spec: {
-              addressGroup: addressGroupIdentifier,
-              host: {
-                name: resourceName,
-                namespace: values.namespace,
-              },
-              description: values.description,
-              comment: values.comment,
-            },
-          },
-        }),
-      )
-
-      const createServiceBindings = (values.services || []).map(resourceValue => {
-        const service = parseNamespacedValue(resourceValue)
-
-        return createNewEntry({
-          endpoint: getApiEndpoint(cluster, service.namespace, 'servicebindings'),
-          body: {
-            apiVersion: API_RESOURCE_VERSION,
-            kind: 'ServiceBinding',
-            metadata: {
-              name: buildBindingName(values.name, 'service', service.name),
-              namespace: service.namespace,
-            },
-            spec: {
-              addressGroup: addressGroupIdentifier,
-              service: {
-                name: service.name,
-                namespace: service.namespace,
-              },
-              description: values.description,
-              comment: values.comment,
-            },
-          },
-        })
-      })
-
-      const createNetworkBindings = (values.networks || []).map(resourceName =>
-        createNewEntry({
-          endpoint: getApiEndpoint(cluster, values.namespace, 'networkbindings'),
-          body: {
-            apiVersion: API_RESOURCE_VERSION,
-            kind: 'NetworkBinding',
-            metadata: {
-              name: buildBindingName(values.name, 'network', resourceName),
-              namespace: values.namespace,
-            },
-            spec: {
-              addressGroup: addressGroupIdentifier,
-              network: {
-                name: resourceName,
-                namespace: values.namespace,
-              },
-              description: values.description,
-              comment: values.comment,
-            },
-          },
-        }),
-      )
-
-      await Promise.all([...createHostBindings, ...createServiceBindings, ...createNetworkBindings])
+      await syncBindings(cluster, addressGroupIdentifier, values, { hosts: [], services: [], networks: [] })
       await queryClient.invalidateQueries({ queryKey: ['k8s-list'] })
       message.success('Address group created')
+      debugAddressGroupModal('create submit success')
       handleCancel()
     } catch (error) {
+      debugAddressGroupModal('submit failed', error)
       message.error(`Failed to ${isEditMode ? 'update' : 'create'} address group: ${String(error)}`)
     } finally {
+      debugAddressGroupModal('submit finally')
       setIsSubmitting(false)
     }
   }
@@ -466,139 +829,157 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       title={null}
       open={open}
       onCancel={handleCancel}
+      afterClose={() => {
+        debugAddressGroupModal('afterClose')
+        didApplyEditPrefillRef.current = false
+        didApplyCreatePrefillRef.current = false
+        setIsInitialized(false)
+        form.resetFields()
+        setIsSubmitting(false)
+      }}
       onOk={handleSubmit}
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width={728}
+      width="70vw"
       destroyOnClose
     >
       <ModalContent>
-        <FormColumn>
-          <Header>{renderBadgeWithValue('Address Group', 'Address group')}</Header>
-          <Form<TAddressGroupFormValues> form={form} layout="vertical" requiredMark>
-            <Form.Item
-              name="namespace"
-              label="Namespace"
-              rules={[
-                { required: true, message: 'Select namespace' },
-                { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                { max: 63, message: 'Namespace must be 63 characters or less' },
-              ]}
-            >
-              <Select
-                showSearch
-                placeholder="Select namespace"
-                options={namespaceOptions}
-                loading={isTenantsLoading}
-                disabled={isEditMode}
-                status={tenantsError ? 'error' : undefined}
-                onChange={() => {
-                  form.setFieldsValue({ hosts: [], networks: [] })
-                }}
-              />
-            </Form.Item>
-            <Form.Item
-              name="name"
-              label="Name"
-              rules={[
-                { required: true, message: 'Enter name' },
-                { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
-                { max: 63, message: 'Name must be 63 characters or less' },
-              ]}
-            >
-              <Input placeholder="e.g. server-01-prod" disabled={isEditMode} />
-            </Form.Item>
-            <Form.Item name="displayName" label="Display name">
-              <Input placeholder="e.g. server-01.prod" />
-            </Form.Item>
-            <SwitchRow>
-              <span>Allow access</span>
-              <Form.Item name="allowAccess" valuePropName="checked" noStyle>
-                <Switch />
-              </Form.Item>
-            </SwitchRow>
-            <Form.Item name="hosts" label="Hosts" validateStatus={hostsError ? 'error' : undefined}>
-              <Select
-                mode="multiple"
-                showSearch
-                placeholder="Select hosts"
-                optionFilterProp="searchText"
-                options={getResourceOptions('Host', hostsData?.items)}
-                loading={isHostsLoading}
-                disabled={isEditMode || !effectiveAddressGroupNamespace}
-              />
-            </Form.Item>
-            <Form.Item name="services" label="Services" validateStatus={servicesError ? 'error' : undefined}>
-              <Select
-                mode="multiple"
-                showSearch
-                placeholder="Select services"
-                optionFilterProp="searchText"
-                options={getNamespacedResourceOptions(servicesData?.items)}
-                loading={isServicesLoading}
-                disabled={isEditMode}
-              />
-            </Form.Item>
-            <Form.Item name="networks" label="Networks" validateStatus={networksError ? 'error' : undefined}>
-              <Select
-                mode="multiple"
-                showSearch
-                placeholder="Select networks"
-                optionFilterProp="searchText"
-                options={getResourceOptions('Network', networksData?.items)}
-                loading={isNetworksLoading}
-                disabled={isEditMode || !effectiveAddressGroupNamespace}
-              />
-            </Form.Item>
-            <Form.Item name="description" label="Description">
-              <Input placeholder="Briefly describe the address group's purpose" />
-            </Form.Item>
-            <Form.Item name="comment" label="Comment">
-              <Input.TextArea placeholder="Add any additional notes here..." autoSize={{ minRows: 2, maxRows: 4 }} />
-            </Form.Item>
-          </Form>
-        </FormColumn>
-        <Overview>
-          <OverviewTitle>Structure Overview</OverviewTitle>
-          <OverviewBody>
-            {selectedItemsCount === 0 ? (
-              <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
-            ) : (
-              <OverviewTree>
-                <OverviewGroup>
-                  <OverviewGroupTitle>
-                    Address group <Count>{selectedItemsCount}</Count>
-                  </OverviewGroupTitle>
-                  <OverviewBranch>
-                    <OverviewBranchTitle>
-                      Hosts <Count>{selectedHosts.length}</Count>
-                    </OverviewBranchTitle>
-                    {selectedHosts.map(value => (
-                      <OverviewLeaf key={`host-${value}`}>{renderResourceOptionLabel('Host', value)}</OverviewLeaf>
-                    ))}
-                    <OverviewBranchTitle>
-                      Networks <Count>{selectedNetworks.length}</Count>
-                    </OverviewBranchTitle>
-                    {selectedNetworks.map(value => (
-                      <OverviewLeaf key={`network-${value}`}>
-                        {renderResourceOptionLabel('Network', value)}
-                      </OverviewLeaf>
-                    ))}
-                    <OverviewBranchTitle>
-                      Services <Count>{parsedSelectedServices.length}</Count>
-                    </OverviewBranchTitle>
-                    {parsedSelectedServices.map(service => (
-                      <OverviewLeaf key={`service-${service.namespace}-${service.name}`}>
-                        {renderResourceOptionLabel('Service', `${service.namespace} / ${service.name}`)}
-                      </OverviewLeaf>
-                    ))}
-                  </OverviewBranch>
-                </OverviewGroup>
-              </OverviewTree>
-            )}
-          </OverviewBody>
-        </Overview>
+        {isModalInitializing ? (
+          <LoadingState>
+            <Spin size="large" />
+          </LoadingState>
+        ) : (
+          <>
+            <FormColumn>
+              <Header>{renderBadgeWithValue('Address Group', 'Address group')}</Header>
+              <Form<TAddressGroupFormValues> form={form} layout="vertical" requiredMark>
+                <Form.Item
+                  name="namespace"
+                  label="Namespace"
+                  rules={[
+                    { required: true, message: 'Select namespace' },
+                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
+                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                  ]}
+                >
+                  <Select
+                    showSearch
+                    placeholder="Select namespace"
+                    options={namespaceOptions}
+                    loading={isTenantsLoading}
+                    disabled={isEditMode}
+                    status={tenantsError ? 'error' : undefined}
+                    onChange={() => {
+                      form.setFieldsValue({ hosts: [], networks: [] })
+                    }}
+                  />
+                </Form.Item>
+                <Form.Item
+                  name="name"
+                  label="Name"
+                  rules={[
+                    { required: true, message: 'Enter name' },
+                    { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
+                    { max: 63, message: 'Name must be 63 characters or less' },
+                  ]}
+                >
+                  <Input placeholder="e.g. server-01-prod" disabled={isEditMode} />
+                </Form.Item>
+                <Form.Item name="displayName" label="Display name">
+                  <Input placeholder="e.g. server-01.prod" />
+                </Form.Item>
+                <SwitchRow>
+                  <span>Allow access</span>
+                  <Form.Item name="allowAccess" valuePropName="checked" noStyle>
+                    <Switch />
+                  </Form.Item>
+                </SwitchRow>
+                <Form.Item name="hosts" label="Hosts" validateStatus={hostsError ? 'error' : undefined}>
+                  <Select
+                    mode="multiple"
+                    showSearch
+                    placeholder="Select hosts"
+                    optionFilterProp="searchText"
+                    options={getResourceOptions('Host', hostsData?.items)}
+                    loading={isHostsLoading}
+                    disabled={!effectiveAddressGroupNamespace}
+                  />
+                </Form.Item>
+                <Form.Item name="services" label="Services" validateStatus={servicesError ? 'error' : undefined}>
+                  <Select
+                    mode="multiple"
+                    showSearch
+                    placeholder="Select services"
+                    optionFilterProp="searchText"
+                    options={getNamespacedResourceOptions(servicesData?.items)}
+                    loading={isServicesLoading}
+                  />
+                </Form.Item>
+                <Form.Item name="networks" label="Networks" validateStatus={networksError ? 'error' : undefined}>
+                  <Select
+                    mode="multiple"
+                    showSearch
+                    placeholder="Select networks"
+                    optionFilterProp="searchText"
+                    options={getResourceOptions('Network', networksData?.items)}
+                    loading={isNetworksLoading}
+                    disabled={!effectiveAddressGroupNamespace}
+                  />
+                </Form.Item>
+                <Form.Item name="description" label="Description">
+                  <Input placeholder="Briefly describe the address group's purpose" />
+                </Form.Item>
+                <Form.Item name="comment" label="Comment">
+                  <Input.TextArea
+                    placeholder="Add any additional notes here..."
+                    autoSize={{ minRows: 2, maxRows: 4 }}
+                  />
+                </Form.Item>
+              </Form>
+            </FormColumn>
+            <Overview>
+              <OverviewTitle>Structure Overview</OverviewTitle>
+              <OverviewBody>
+                {selectedItemsCount === 0 ? (
+                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
+                ) : (
+                  <OverviewTree>
+                    <OverviewGroup>
+                      <OverviewGroupTitle>
+                        Address group <Count>{selectedItemsCount}</Count>
+                      </OverviewGroupTitle>
+                      <OverviewBranch>
+                        <OverviewBranchTitle>
+                          Hosts <Count>{selectedHosts.length}</Count>
+                        </OverviewBranchTitle>
+                        {selectedHosts.map(value => (
+                          <OverviewLeaf key={`host-${value}`}>{renderResourceOptionLabel('Host', value)}</OverviewLeaf>
+                        ))}
+                        <OverviewBranchTitle>
+                          Networks <Count>{selectedNetworks.length}</Count>
+                        </OverviewBranchTitle>
+                        {selectedNetworks.map(value => (
+                          <OverviewLeaf key={`network-${value}`}>
+                            {renderResourceOptionLabel('Network', value)}
+                          </OverviewLeaf>
+                        ))}
+                        <OverviewBranchTitle>
+                          Services <Count>{parsedSelectedServices.length}</Count>
+                        </OverviewBranchTitle>
+                        {parsedSelectedServices.map(service => (
+                          <OverviewLeaf key={`service-${service.namespace}-${service.name}`}>
+                            {renderResourceOptionLabel('Service', `${service.namespace} / ${service.name}`)}
+                          </OverviewLeaf>
+                        ))}
+                      </OverviewBranch>
+                    </OverviewGroup>
+                  </OverviewTree>
+                )}
+              </OverviewBody>
+            </Overview>
+          </>
+        )}
       </ModalContent>
     </Modal>
   )

@@ -37,6 +37,10 @@ export const Header = styled.div`
   line-height: 24px;
 `
 
+export const SegmentedWrap = styled.div`
+  margin-bottom: 16px;
+`
+
 export const Overview = styled.aside`
   display: flex;
   flex-direction: column;
@@ -61,45 +65,31 @@ export const OverviewBody = styled.div`
   padding: 28px 8px 16px;
 `
 
-export const OverviewTree = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0 16px;
-  font-size: 14px;
-  line-height: 22px;
+export const OverviewEmpty = styled.div`
+  padding: 0 8px;
 `
 
-export const OverviewGroup = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`
+export const TreeContainer = styled.div`
+  padding: 0 8px;
+  overflow-y: auto;
 
-export const OverviewGroupTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 700;
-`
+  .ant-tree {
+    background: transparent;
+  }
 
-export const OverviewBranch = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding-left: 24px;
-`
+  .ant-tree-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
 
-export const OverviewBranchTitle = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 8px;
-`
+  .ant-tree-switcher:before {
+    top: initial !important;
+  }
 
-export const OverviewLeaf = styled.div`
-  display: flex;
-  align-items: center;
-  padding-left: 24px;
+  .ant-tree .ant-tree-node-content-wrapper {
+    overflow-wrap: anywhere;
+  }
 `
 
 export const Count = styled.span`
@@ -115,9 +105,8 @@ export const Count = styled.span`
   line-height: 12px;
 `
 
-export const SwitchRow = styled.div`
+export const PortsActions = styled.div`
   display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 16px 0;
+  justify-content: flex-start;
+  margin-top: 12px;
 `

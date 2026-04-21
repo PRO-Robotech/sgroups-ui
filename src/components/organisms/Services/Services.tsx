@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Flex, Spin, theme as antdTheme } from 'antd'
+import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
@@ -12,7 +13,7 @@ import {
   TServiceResource,
   TServiceRow,
 } from './tableConfig'
-import { VerboseServicePanel } from './molecules'
+import { ServiceFormModal, VerboseServicePanel } from './molecules'
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
 
 const getExpandedVerboseWidth = (containerWidth?: number) => {
@@ -47,6 +48,8 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
   const splitLayoutRef = useRef<HTMLDivElement>(null)
 
   const [selectedServiceKey, setSelectedServiceKey] = useState<string | null>(null)
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [editingService, setEditingService] = useState<TServiceRow | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -72,7 +75,22 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
     isEnabled: Boolean(cluster),
   })
 
-  const columns = useMemo(() => buildServicesColumns(), [])
+  const openCreateModal = useCallback(() => {
+    setEditingService(null)
+    setIsFormModalOpen(true)
+  }, [])
+
+  const openEditModal = useCallback((serviceRecord: TServiceRow) => {
+    setEditingService(serviceRecord)
+    setIsFormModalOpen(true)
+  }, [])
+
+  const closeFormModal = useCallback(() => {
+    setIsFormModalOpen(false)
+    setEditingService(null)
+  }, [])
+
+  const columns = useMemo(() => buildServicesColumns({ onEdit: openEditModal }), [openEditModal])
   const dataSource = useMemo(() => mapServicesToRows(servicesData?.items || []), [servicesData?.items])
   const selectedService = useMemo(
     () => dataSource.find(item => item.key === selectedServiceKey) || null,
@@ -169,7 +187,7 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
         {error && <Alert type="error" message={`Failed to load services: ${String(error)}`} showIcon />}
         {isLoading && !servicesData && <Spin />}
         {!error && servicesData && (
-          <>
+          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
             <Styled.SplitLayout
               ref={splitLayoutRef}
               $detailWidth={verboseWidth}
@@ -227,9 +245,24 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
                 />
               </Styled.MobileDetailPane>
             )}
-          </>
+            <Styled.BottomActionBar style={servicesLayoutStyle}>
+              <Button type="primary" onClick={openCreateModal}>
+                <PlusOutlined />
+                Add Service
+              </Button>
+            </Styled.BottomActionBar>
+          </Flex>
         )}
       </Flex>
+      {isFormModalOpen && (
+        <ServiceFormModal
+          cluster={cluster}
+          namespace={namespace}
+          service={editingService}
+          open={isFormModalOpen}
+          onClose={closeFormModal}
+        />
+      )}
     </ContentCard>
   )
 }

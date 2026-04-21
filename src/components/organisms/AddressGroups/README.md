@@ -49,8 +49,17 @@ In edit mode:
 - `Namespace` and `Name` are read-only because they identify the resource endpoint.
 - `Display name`, `Allow access`, `Description`, and `Comment` are editable and saved with patch helpers from the toolkit.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
-- Hosts, services, and networks are prefilled from `AddressGroup.refs` when available, but are read-only for now. Updating relationships requires binding diffing and delete/create handling, so it is intentionally outside this modal save path.
+- Hosts, services, and networks are initialized from existing bindings and are editable.
+- Removing a selected host, service, or network deletes the corresponding binding.
+- Adding a selected host, service, or network creates the corresponding binding.
+- In edit mode, namespace-scoped resource and binding queries must start from `addressGroup.metadata.namespace` immediately. Waiting for the form watcher alone causes partial prefills.
+- Edit prefill should run only once per modal open, after host/network/service binding queries are ready. Repeated partial `setFieldsValue` calls can leave AntD selects visually stuck on reopen.
 - Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview.
+
+## Modal lifecycle
+
+- The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
+- That hard reset is intentional. Soft resets were not enough for AntD multi-select state in this flow.
 
 ## Schema source
 
