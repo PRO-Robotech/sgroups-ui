@@ -110,7 +110,8 @@ const buildHostBindingNode = (
     }
   }
 
-  const ipChildren = [...(host.ips?.IPv4 || []), ...(host.ips?.IPv6 || [])].map(ip =>
+  const normalizedIps = host.ips || host.spec?.IPs
+  const ipChildren = [...(normalizedIps?.IPv4 || []), ...(normalizedIps?.IPv6 || [])].map(ip =>
     createLeaf(ip, `${bindingKey}-${ip}`),
   )
 
