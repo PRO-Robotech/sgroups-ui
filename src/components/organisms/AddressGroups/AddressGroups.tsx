@@ -1,10 +1,11 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Flex, Spin, theme as antdTheme } from 'antd'
+import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
-import { VerboseAddressGroupPanel } from './molecules'
+import { AddressGroupFormModal, VerboseAddressGroupPanel } from './molecules'
 import {
   ADDRESS_GROUPS_TABLE_PROPS,
   buildAddressGroupsColumns,
@@ -47,6 +48,8 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   const splitLayoutRef = useRef<HTMLDivElement>(null)
 
   const [selectedAddressGroupKey, setSelectedAddressGroupKey] = useState<string | null>(null)
+  const [isDummyModalOpen, setIsDummyModalOpen] = useState(false)
+  const [editingAddressGroup, setEditingAddressGroup] = useState<TAddressGroupRow | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -72,7 +75,22 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
     isEnabled: Boolean(cluster),
   })
 
-  const columns = useMemo(() => buildAddressGroupsColumns(), [])
+  const openCreateModal = useCallback(() => {
+    setEditingAddressGroup(null)
+    setIsDummyModalOpen(true)
+  }, [])
+
+  const openEditModal = useCallback((addressGroup: TAddressGroupRow) => {
+    setEditingAddressGroup(addressGroup)
+    setIsDummyModalOpen(true)
+  }, [])
+
+  const closeFormModal = useCallback(() => {
+    setIsDummyModalOpen(false)
+    setEditingAddressGroup(null)
+  }, [])
+
+  const columns = useMemo(() => buildAddressGroupsColumns({ onEdit: openEditModal }), [openEditModal])
   const dataSource = useMemo(() => mapAddressGroupsToRows(addressGroupsData?.items || []), [addressGroupsData?.items])
   const selectedAddressGroup = useMemo(
     () => dataSource.find(item => item.key === selectedAddressGroupKey) || null,
@@ -169,7 +187,7 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
         {error && <Alert type="error" message={`Failed to load address groups: ${String(error)}`} showIcon />}
         {isLoading && !addressGroupsData && <Spin />}
         {!error && addressGroupsData && (
-          <>
+          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
             <Styled.SplitLayout
               ref={splitLayoutRef}
               $detailWidth={verboseWidth}
@@ -231,9 +249,22 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
                 />
               </Styled.MobileDetailPane>
             )}
-          </>
+            <Styled.BottomActionBar style={addressGroupsLayoutStyle}>
+              <Button type="primary" onClick={openCreateModal}>
+                <PlusOutlined />
+                Add Address Group
+              </Button>
+            </Styled.BottomActionBar>
+          </Flex>
         )}
       </Flex>
+      <AddressGroupFormModal
+        cluster={cluster}
+        namespace={namespace}
+        addressGroup={editingAddressGroup}
+        open={isDummyModalOpen}
+        onClose={closeFormModal}
+      />
     </ContentCard>
   )
 }
