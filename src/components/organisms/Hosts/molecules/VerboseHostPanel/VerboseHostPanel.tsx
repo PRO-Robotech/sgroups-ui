@@ -102,6 +102,8 @@ const renderRefs = (host: THostRow) => {
 export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({ host, width, onClose, onExpand, onCollapse }) => {
   const labels = useMemo(() => formatMapEntries(host.metadata.labels), [host.metadata.labels])
   const annotations = useMemo(() => formatMapEntries(host.metadata.annotations), [host.metadata.annotations])
+  const metaInfo = host.metaInfo || host.spec?.metaInfo
+  const ips = host.ips || host.spec?.IPs
 
   return (
     <VerboseContainer>
@@ -137,28 +139,28 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({ host, width, onCl
             <div>{renderValue(host.spec?.comment)}</div>
 
             <Typography.Text type="secondary">Host Name</Typography.Text>
-            <div>{renderValue(host.metaInfo?.hostName)}</div>
+            <div>{renderValue(metaInfo?.hostName)}</div>
 
             <Typography.Text type="secondary">OS</Typography.Text>
-            <div>{renderValue(host.metaInfo?.os)}</div>
+            <div>{renderValue(metaInfo?.os)}</div>
 
             <Typography.Text type="secondary">Platform</Typography.Text>
-            <div>{renderValue(host.metaInfo?.platform)}</div>
+            <div>{renderValue(metaInfo?.platform)}</div>
 
             <Typography.Text type="secondary">Platform Family</Typography.Text>
-            <div>{renderValue(host.metaInfo?.platformFamily)}</div>
+            <div>{renderValue(metaInfo?.platformFamily)}</div>
 
             <Typography.Text type="secondary">Platform Version</Typography.Text>
-            <div>{renderValue(host.metaInfo?.platformVersion)}</div>
+            <div>{renderValue(metaInfo?.platformVersion)}</div>
 
             <Typography.Text type="secondary">Kernel Version</Typography.Text>
-            <div>{renderValue(host.metaInfo?.kernelVersion)}</div>
+            <div>{renderValue(metaInfo?.kernelVersion)}</div>
 
             <Typography.Text type="secondary">IPv4</Typography.Text>
-            <div>{renderTagList(host.ips?.IPv4 || [], true)}</div>
+            <div>{renderTagList(ips?.IPv4 || [], true)}</div>
 
             <Typography.Text type="secondary">IPv6</Typography.Text>
-            <div>{renderTagList(host.ips?.IPv6 || [], true)}</div>
+            <div>{renderTagList(ips?.IPv6 || [], true)}</div>
 
             <Typography.Text type="secondary">Created</Typography.Text>
             <div>{formatDateTime(host.metadata.creationTimestamp)}</div>

@@ -1,5 +1,6 @@
 import React from 'react'
-import { TableProps, Tag } from 'antd'
+import { Button, TableProps, Tag, Tooltip } from 'antd'
+import { EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
 import { formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
 
@@ -67,6 +68,10 @@ export type TRuleRow = TRuleResource & {
   created: string
 }
 
+type TBuildRulesColumnsParams = {
+  onEdit?: (record: TRuleRow) => void
+}
+
 const EMPTY_VALUE = '-'
 
 const stringSorter = (first?: string, second?: string): number =>
@@ -129,8 +134,9 @@ export const mapRulesToRows = (items: TRuleResource[]): TRuleRow[] =>
     created: formatDateTime(item.metadata.creationTimestamp),
   }))
 
-export const buildRulesColumns = (): ColumnsType<TRuleRow> => [
-  {
+export const buildRulesColumns = ({ onEdit }: TBuildRulesColumnsParams = {}): ColumnsType<TRuleRow> => {
+  const columns: ColumnsType<TRuleRow> = [
+    {
     title: 'Name',
     dataIndex: ['metadata', 'name'],
     key: 'name',
@@ -138,66 +144,66 @@ export const buildRulesColumns = (): ColumnsType<TRuleRow> => [
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
     render: value => renderBadgeWithValue('Rule', value),
-  },
-  {
+    },
+    {
     title: 'Namespace',
     dataIndex: ['metadata', 'namespace'],
     key: 'namespace',
     width: 180,
     sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
     render: value => renderBadgeWithValue('Namespace', value),
-  },
-  {
+    },
+    {
     title: 'Display Name',
     dataIndex: 'displayName',
     key: 'displayName',
     width: 180,
     sorter: (a, b) => stringSorter(a.displayName, b.displayName),
-  },
-  {
+    },
+    {
     title: 'Action',
     dataIndex: 'action',
     key: 'action',
     width: 140,
     sorter: (a, b) => stringSorter(a.action, b.action),
     render: value => renderActionTag(value),
-  },
-  {
+    },
+    {
     title: 'Traffic',
     dataIndex: 'traffic',
     key: 'traffic',
     width: 140,
     sorter: (a, b) => stringSorter(a.traffic, b.traffic),
-  },
-  {
+    },
+    {
     title: 'Protocol',
     dataIndex: 'protocol',
     key: 'protocol',
     width: 140,
     sorter: (a, b) => stringSorter(a.protocol, b.protocol),
-  },
-  {
+    },
+    {
     title: 'IP Family',
     dataIndex: 'ipFamily',
     key: 'ipFamily',
     width: 140,
     sorter: (a, b) => stringSorter(a.ipFamily, b.ipFamily),
-  },
-  {
+    },
+    {
     title: 'Local',
     dataIndex: 'localEndpoint',
     key: 'localEndpoint',
     width: 220,
     sorter: (a, b) => stringSorter(a.localEndpoint, b.localEndpoint),
-  },
-  {
+    },
+    {
     title: 'Remote',
     dataIndex: 'remoteEndpoint',
     key: 'remoteEndpoint',
     width: 220,
     sorter: (a, b) => stringSorter(a.remoteEndpoint, b.remoteEndpoint),
-  },
-  {
+    },
+    {
     title: 'Ports / Types',
     key: 'transportEntries',
     width: 240,
@@ -213,16 +219,16 @@ export const buildRulesColumns = (): ColumnsType<TRuleRow> => [
         .filter(Boolean)
         .join(' | ')
     },
-  },
-  {
+    },
+    {
     title: 'Description',
     dataIndex: 'description',
     key: 'description',
     width: 260,
     sorter: (a, b) => stringSorter(a.description, b.description),
     ellipsis: true,
-  },
-  {
+    },
+    {
     title: 'Created',
     dataIndex: ['metadata', 'creationTimestamp'],
     key: 'created',
@@ -230,8 +236,33 @@ export const buildRulesColumns = (): ColumnsType<TRuleRow> => [
     sorter: (a, b) =>
       new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
     render: value => renderTimestampWithIcon(value),
-  },
-]
+    },
+  ]
+
+  if (onEdit) {
+    columns.push({
+      title: 'Actions',
+      key: 'actions',
+      fixed: 'right',
+      width: 90,
+      render: (_, record) =>
+        React.createElement(
+          Tooltip,
+          { title: 'Edit' },
+          React.createElement(Button, {
+            type: 'text',
+            icon: React.createElement(EditOutlined),
+            onClick: event => {
+              event.stopPropagation()
+              onEdit(record)
+            },
+          }),
+        ),
+    })
+  }
+
+  return columns
+}
 
 export const RULES_TABLE_PROPS: Partial<TableProps<TRuleRow>> = {
   pagination: {
@@ -239,6 +270,6 @@ export const RULES_TABLE_PROPS: Partial<TableProps<TRuleRow>> = {
     showSizeChanger: true,
     hideOnSinglePage: false,
   },
-  scroll: { x: 2200 },
+  scroll: { x: 2290 },
   size: 'middle',
 }

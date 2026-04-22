@@ -1,5 +1,6 @@
 import React from 'react'
-import { TableProps, Tag } from 'antd'
+import { Button, TableProps, Tag, Tooltip } from 'antd'
+import { EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
 import { formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
 
@@ -50,6 +51,10 @@ export type TServiceRow = TServiceResource & {
   transportsCount: number
   description: string
   created: string
+}
+
+type TBuildServicesColumnsParams = {
+  onEdit?: (record: TServiceRow) => void
 }
 
 const EMPTY_VALUE = '-'
@@ -130,80 +135,106 @@ export const mapServicesToRows = (items: TServiceResource[]): TServiceRow[] =>
     }
   })
 
-export const buildServicesColumns = (): ColumnsType<TServiceRow> => [
-  {
-    title: 'Name',
-    dataIndex: ['metadata', 'name'],
-    key: 'name',
-    fixed: 'left',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
-    render: value => renderBadgeWithValue('Service', value),
-  },
-  {
-    title: 'Namespace',
-    dataIndex: ['metadata', 'namespace'],
-    key: 'namespace',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-    render: value => renderBadgeWithValue('Namespace', value),
-  },
-  {
-    title: 'Display Name',
-    dataIndex: 'displayName',
-    key: 'displayName',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.displayName, b.displayName),
-  },
-  {
-    title: 'Protocols',
-    dataIndex: 'protocols',
-    key: 'protocols',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.protocols, b.protocols),
-    render: value => (value === EMPTY_VALUE ? value : renderTagList(value.split(', '))),
-  },
-  {
-    title: 'IP Families',
-    dataIndex: 'ipFamilies',
-    key: 'ipFamilies',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.ipFamilies, b.ipFamilies),
-    render: value => (value === EMPTY_VALUE ? value : renderTagList(value.split(', '))),
-  },
-  {
-    title: 'Transports',
-    dataIndex: 'transportsCount',
-    key: 'transportsCount',
-    width: 120,
-    sorter: (a, b) => a.transportsCount - b.transportsCount,
-  },
-  {
-    title: 'Entries',
-    dataIndex: 'transportEntries',
-    key: 'transportEntries',
-    width: 320,
-    sorter: (a, b) => stringSorter(a.transportEntries, b.transportEntries),
-    ellipsis: true,
-  },
-  {
-    title: 'Description',
-    dataIndex: 'description',
-    key: 'description',
-    width: 260,
-    sorter: (a, b) => stringSorter(a.description, b.description),
-    ellipsis: true,
-  },
-  {
-    title: 'Created',
-    dataIndex: ['metadata', 'creationTimestamp'],
-    key: 'created',
-    width: 180,
-    sorter: (a, b) =>
-      new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
-    render: value => renderTimestampWithIcon(value),
-  },
-]
+export const buildServicesColumns = ({ onEdit }: TBuildServicesColumnsParams = {}): ColumnsType<TServiceRow> => {
+  const columns: ColumnsType<TServiceRow> = [
+    {
+      title: 'Name',
+      dataIndex: ['metadata', 'name'],
+      key: 'name',
+      fixed: 'left',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      render: value => renderBadgeWithValue('Service', value),
+    },
+    {
+      title: 'Namespace',
+      dataIndex: ['metadata', 'namespace'],
+      key: 'namespace',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
+      render: value => renderBadgeWithValue('Namespace', value),
+    },
+    {
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
+    },
+    {
+      title: 'Protocols',
+      dataIndex: 'protocols',
+      key: 'protocols',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.protocols, b.protocols),
+      render: value => (value === EMPTY_VALUE ? value : renderTagList(value.split(', '))),
+    },
+    {
+      title: 'IP Families',
+      dataIndex: 'ipFamilies',
+      key: 'ipFamilies',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.ipFamilies, b.ipFamilies),
+      render: value => (value === EMPTY_VALUE ? value : renderTagList(value.split(', '))),
+    },
+    {
+      title: 'Transports',
+      dataIndex: 'transportsCount',
+      key: 'transportsCount',
+      width: 120,
+      sorter: (a, b) => a.transportsCount - b.transportsCount,
+    },
+    {
+      title: 'Entries',
+      dataIndex: 'transportEntries',
+      key: 'transportEntries',
+      width: 320,
+      sorter: (a, b) => stringSorter(a.transportEntries, b.transportEntries),
+      ellipsis: true,
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      width: 260,
+      sorter: (a, b) => stringSorter(a.description, b.description),
+      ellipsis: true,
+    },
+    {
+      title: 'Created',
+      dataIndex: ['metadata', 'creationTimestamp'],
+      key: 'created',
+      width: 180,
+      sorter: (a, b) =>
+        new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
+      render: value => renderTimestampWithIcon(value),
+    },
+  ]
+
+  if (onEdit) {
+    columns.push({
+      title: 'Actions',
+      key: 'actions',
+      fixed: 'right',
+      width: 90,
+      render: (_, record) =>
+        React.createElement(
+          Tooltip,
+          { title: 'Edit' },
+          React.createElement(Button, {
+            type: 'text',
+            icon: React.createElement(EditOutlined),
+            onClick: event => {
+              event.stopPropagation()
+              onEdit(record)
+            },
+          }),
+        ),
+    })
+  }
+
+  return columns
+}
 
 export const SERVICES_TABLE_PROPS: Partial<TableProps<TServiceRow>> = {
   pagination: {
@@ -211,6 +242,6 @@ export const SERVICES_TABLE_PROPS: Partial<TableProps<TServiceRow>> = {
     showSizeChanger: true,
     hideOnSinglePage: false,
   },
-  scroll: { x: 1900 },
+  scroll: { x: 1990 },
   size: 'middle',
 }

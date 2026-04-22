@@ -1,5 +1,6 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Flex, Spin, theme as antdTheme } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
 import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
@@ -12,7 +13,7 @@ import {
   TNetworkResource,
   TNetworkRow,
 } from './tableConfig'
-import { VerboseNetworkPanel } from './molecules'
+import { NetworkFormModal, VerboseNetworkPanel } from './molecules'
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
 
 const getExpandedVerboseWidth = (containerWidth?: number) => {
@@ -47,6 +48,8 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
   const splitLayoutRef = useRef<HTMLDivElement>(null)
 
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string | null>(null)
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [editingNetwork, setEditingNetwork] = useState<TNetworkRow | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -72,7 +75,22 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
     isEnabled: Boolean(cluster),
   })
 
-  const columns = useMemo(() => buildNetworksColumns(), [])
+  const openCreateModal = useCallback(() => {
+    setEditingNetwork(null)
+    setIsFormModalOpen(true)
+  }, [])
+
+  const openEditModal = useCallback((networkRecord: TNetworkRow) => {
+    setEditingNetwork(networkRecord)
+    setIsFormModalOpen(true)
+  }, [])
+
+  const closeFormModal = useCallback(() => {
+    setIsFormModalOpen(false)
+    setEditingNetwork(null)
+  }, [])
+
+  const columns = useMemo(() => buildNetworksColumns({ onEdit: openEditModal }), [openEditModal])
   const dataSource = useMemo(() => mapNetworksToRows(networksData?.items || []), [networksData?.items])
   const selectedNetwork = useMemo(
     () => dataSource.find(item => item.key === selectedNetworkKey) || null,
@@ -169,7 +187,7 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
         {error && <Alert type="error" message={`Failed to load networks: ${String(error)}`} showIcon />}
         {isLoading && !networksData && <Spin />}
         {!error && networksData && (
-          <>
+          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
             <Styled.SplitLayout
               ref={splitLayoutRef}
               $detailWidth={verboseWidth}
@@ -231,9 +249,24 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
                 />
               </Styled.MobileDetailPane>
             )}
-          </>
+            <Styled.BottomActionBar style={networksLayoutStyle}>
+              <Button type="primary" onClick={openCreateModal}>
+                <PlusOutlined />
+                Add Network
+              </Button>
+            </Styled.BottomActionBar>
+          </Flex>
         )}
       </Flex>
+      {isFormModalOpen && (
+        <NetworkFormModal
+          cluster={cluster}
+          namespace={namespace}
+          network={editingNetwork}
+          open={isFormModalOpen}
+          onClose={closeFormModal}
+        />
+      )}
     </ContentCard>
   )
 }

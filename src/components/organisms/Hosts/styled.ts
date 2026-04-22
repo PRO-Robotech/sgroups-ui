@@ -1,3 +1,4 @@
+import styled from 'styled-components'
 import {
   DETAIL_PANEL_MIN_WIDTH,
   DETAIL_PANEL_SPLITTER_WIDTH,
@@ -29,6 +30,15 @@ import {
 
 const SpecGridHosts = SpecGrid
 
+const BottomActionBar = styled.div`
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex: 0 0 auto;
+  padding: 4px;
+  background: var(--table-splitter-bg-color, white);
+`
+
 export const Styled = {
   DETAIL_PANEL_MIN_WIDTH,
   DETAIL_PANEL_SPLITTER_WIDTH,
@@ -54,4 +64,5 @@ export const Styled = {
   InfoTag,
   TagsContainer,
   ViewMoreTag,
+  BottomActionBar,
 }

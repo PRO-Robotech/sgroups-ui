@@ -1,10 +1,11 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Flex, Spin, theme as antdTheme } from 'antd'
+import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
-import { VerboseAddressGroupPanel } from './molecules'
+import { AddressGroupFormModal, VerboseAddressGroupPanel } from './molecules'
 import {
   ADDRESS_GROUPS_TABLE_PROPS,
   buildAddressGroupsColumns,
@@ -14,6 +15,11 @@ import {
 } from './tableConfig'
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
 import { Styled } from './styled'
+
+const debugAddressGroups = (...args: unknown[]) => {
+  // eslint-disable-next-line no-console
+  console.log('[AddressGroups]', ...args)
+}
 
 const getExpandedVerboseWidth = (containerWidth?: number) => {
   if (!containerWidth) {
@@ -47,6 +53,8 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   const splitLayoutRef = useRef<HTMLDivElement>(null)
 
   const [selectedAddressGroupKey, setSelectedAddressGroupKey] = useState<string | null>(null)
+  const [isDummyModalOpen, setIsDummyModalOpen] = useState(false)
+  const [editingAddressGroup, setEditingAddressGroup] = useState<TAddressGroupRow | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -72,7 +80,42 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
     isEnabled: Boolean(cluster),
   })
 
-  const columns = useMemo(() => buildAddressGroupsColumns(), [])
+  const openCreateModal = useCallback(() => {
+    debugAddressGroups('openCreateModal')
+    setEditingAddressGroup(null)
+    setIsDummyModalOpen(true)
+  }, [])
+
+  const openEditModal = useCallback((addressGroup: TAddressGroupRow) => {
+    debugAddressGroups('openEditModal', {
+      key: addressGroup.key,
+      name: addressGroup.metadata.name,
+      namespace: addressGroup.metadata.namespace,
+    })
+    setEditingAddressGroup(addressGroup)
+    setIsDummyModalOpen(true)
+  }, [])
+
+  const closeFormModal = useCallback(() => {
+    debugAddressGroups('closeFormModal')
+    setIsDummyModalOpen(false)
+    setEditingAddressGroup(null)
+  }, [])
+
+  useEffect(() => {
+    debugAddressGroups('modal state changed', {
+      isDummyModalOpen,
+      editingAddressGroup: editingAddressGroup
+        ? {
+            key: editingAddressGroup.key,
+            name: editingAddressGroup.metadata.name,
+            namespace: editingAddressGroup.metadata.namespace,
+          }
+        : null,
+    })
+  }, [editingAddressGroup, isDummyModalOpen])
+
+  const columns = useMemo(() => buildAddressGroupsColumns({ onEdit: openEditModal }), [openEditModal])
   const dataSource = useMemo(() => mapAddressGroupsToRows(addressGroupsData?.items || []), [addressGroupsData?.items])
   const selectedAddressGroup = useMemo(
     () => dataSource.find(item => item.key === selectedAddressGroupKey) || null,
@@ -169,7 +212,7 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
         {error && <Alert type="error" message={`Failed to load address groups: ${String(error)}`} showIcon />}
         {isLoading && !addressGroupsData && <Spin />}
         {!error && addressGroupsData && (
-          <>
+          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
             <Styled.SplitLayout
               ref={splitLayoutRef}
               $detailWidth={verboseWidth}
@@ -231,9 +274,24 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
                 />
               </Styled.MobileDetailPane>
             )}
-          </>
+            <Styled.BottomActionBar style={addressGroupsLayoutStyle}>
+              <Button type="primary" onClick={openCreateModal}>
+                <PlusOutlined />
+                Add Address Group
+              </Button>
+            </Styled.BottomActionBar>
+          </Flex>
         )}
       </Flex>
+      {isDummyModalOpen && (
+        <AddressGroupFormModal
+          cluster={cluster}
+          namespace={namespace}
+          addressGroup={editingAddressGroup}
+          open={isDummyModalOpen}
+          onClose={closeFormModal}
+        />
+      )}
     </ContentCard>
   )
 }

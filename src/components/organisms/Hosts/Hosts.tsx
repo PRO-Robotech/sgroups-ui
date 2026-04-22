@@ -1,10 +1,11 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Flex, Spin, theme as antdTheme } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
 import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
-import { VerboseHostPanel } from './molecules'
+import { HostFormModal, VerboseHostPanel } from './molecules'
 import { Styled } from './styled'
 import { buildHostsColumns, HOSTS_TABLE_PROPS, mapHostsToRows, THostResource, THostRow } from './tableConfig'
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
@@ -41,6 +42,8 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
   const splitLayoutRef = useRef<HTMLDivElement>(null)
 
   const [selectedHostKey, setSelectedHostKey] = useState<string | null>(null)
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [editingHost, setEditingHost] = useState<THostRow | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -66,7 +69,22 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
     isEnabled: Boolean(cluster),
   })
 
-  const columns = useMemo(() => buildHostsColumns(), [])
+  const openCreateModal = useCallback(() => {
+    setEditingHost(null)
+    setIsFormModalOpen(true)
+  }, [])
+
+  const openEditModal = useCallback((hostRecord: THostRow) => {
+    setEditingHost(hostRecord)
+    setIsFormModalOpen(true)
+  }, [])
+
+  const closeFormModal = useCallback(() => {
+    setIsFormModalOpen(false)
+    setEditingHost(null)
+  }, [])
+
+  const columns = useMemo(() => buildHostsColumns({ onEdit: openEditModal }), [openEditModal])
   const dataSource = useMemo(() => mapHostsToRows(hostsData?.items || []), [hostsData?.items])
   const selectedHost = useMemo(
     () => dataSource.find(item => item.key === selectedHostKey) || null,
@@ -163,7 +181,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
         {error && <Alert type="error" message={`Failed to load hosts: ${String(error)}`} showIcon />}
         {isLoading && !hostsData && <Spin />}
         {!error && hostsData && (
-          <>
+          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
             <Styled.SplitLayout
               ref={splitLayoutRef}
               $detailWidth={verboseWidth}
@@ -221,9 +239,24 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
                 />
               </Styled.MobileDetailPane>
             )}
-          </>
+            <Styled.BottomActionBar style={hostsLayoutStyle}>
+              <Button type="primary" onClick={openCreateModal}>
+                <PlusOutlined />
+                Add Host
+              </Button>
+            </Styled.BottomActionBar>
+          </Flex>
         )}
       </Flex>
+      {isFormModalOpen && (
+        <HostFormModal
+          cluster={cluster}
+          namespace={namespace}
+          host={editingHost}
+          open={isFormModalOpen}
+          onClose={closeFormModal}
+        />
+      )}
     </ContentCard>
   )
 }

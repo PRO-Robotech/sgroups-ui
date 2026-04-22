@@ -26,6 +26,16 @@ import {
   VerboseContainer,
   ViewMoreTag,
 } from '../../atoms/VerbosePanel'
+import styled from 'styled-components'
+
+const BottomActionBar = styled.div`
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  flex: 0 0 auto;
+  padding: 4px;
+  background: var(--table-splitter-bg-color, white);
+`
 
 export const Styled = {
   DETAIL_PANEL_MIN_WIDTH,
@@ -52,4 +62,5 @@ export const Styled = {
   InfoTag,
   TagsContainer,
   ViewMoreTag,
+  BottomActionBar,
 }

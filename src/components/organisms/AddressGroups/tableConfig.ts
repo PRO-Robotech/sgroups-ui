@@ -1,10 +1,12 @@
-import { TableProps, Tag } from 'antd'
+import { Button, TableProps, Tag, Tooltip } from 'antd'
+import { EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
 import React from 'react'
 import { formatBooleanFlag, formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
 
 export type TAddressGroupRef = {
   kind?: string
+  resType?: string
   name?: string
   namespace?: string
 }
@@ -71,6 +73,10 @@ const renderDefaultActionTag = (value?: string) => {
   return React.createElement(Tag, { color }, value)
 }
 
+type TBuildAddressGroupsColumnsParams = {
+  onEdit?: (record: TAddressGroupRow) => void
+}
+
 export const mapAddressGroupsToRows = (items: TAddressGroupResource[]): TAddressGroupRow[] =>
   items.map(item => ({
     ...item,
@@ -83,71 +89,99 @@ export const mapAddressGroupsToRows = (items: TAddressGroupResource[]): TAddress
     created: formatDateTime(item.metadata.creationTimestamp),
   }))
 
-export const buildAddressGroupsColumns = (): ColumnsType<TAddressGroupRow> => [
-  {
-    title: 'Name',
-    dataIndex: ['metadata', 'name'],
-    key: 'name',
-    fixed: 'left',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
-    render: value => renderBadgeWithValue('Address Group', value),
-  },
-  {
-    title: 'Namespace',
-    dataIndex: ['metadata', 'namespace'],
-    key: 'namespace',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-    render: value => renderBadgeWithValue('Namespace', value),
-  },
-  {
-    title: 'Display Name',
-    dataIndex: 'displayName',
-    key: 'displayName',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.displayName, b.displayName),
-  },
-  {
-    title: 'Default Action',
-    dataIndex: 'defaultAction',
-    key: 'defaultAction',
-    width: 160,
-    sorter: (a, b) => stringSorter(a.defaultAction, b.defaultAction),
-    render: value => renderDefaultActionTag(value),
-  },
-  {
-    title: 'Logs',
-    dataIndex: 'logsLabel',
-    key: 'logs',
-    width: 140,
-    sorter: (a, b) => booleanSorter(a.spec?.logs, b.spec?.logs),
-  },
-  {
-    title: 'Trace',
-    dataIndex: 'traceLabel',
-    key: 'trace',
-    width: 140,
-    sorter: (a, b) => booleanSorter(a.spec?.trace, b.spec?.trace),
-  },
-  {
-    title: 'Description',
-    dataIndex: 'description',
-    key: 'description',
-    width: 260,
-    sorter: (a, b) => stringSorter(a.description, b.description),
-    ellipsis: true,
-  },
-  {
-    title: 'Created',
-    dataIndex: ['metadata', 'creationTimestamp'],
-    key: 'created',
-    width: 180,
-    sorter: (a, b) =>
-      new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
-    render: value => renderTimestampWithIcon(value),
-  },
-]
+export const buildAddressGroupsColumns = ({
+  onEdit,
+}: TBuildAddressGroupsColumnsParams = {}): ColumnsType<TAddressGroupRow> => {
+  const columns: ColumnsType<TAddressGroupRow> = [
+    {
+      title: 'Name',
+      dataIndex: ['metadata', 'name'],
+      key: 'name',
+      fixed: 'left',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      render: value => renderBadgeWithValue('Address Group', value),
+    },
+    {
+      title: 'Namespace',
+      dataIndex: ['metadata', 'namespace'],
+      key: 'namespace',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
+      render: value => renderBadgeWithValue('Namespace', value),
+    },
+    {
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
+    },
+    {
+      title: 'Default Action',
+      dataIndex: 'defaultAction',
+      key: 'defaultAction',
+      width: 160,
+      sorter: (a, b) => stringSorter(a.defaultAction, b.defaultAction),
+      render: value => renderDefaultActionTag(value),
+    },
+    {
+      title: 'Logs',
+      dataIndex: 'logsLabel',
+      key: 'logs',
+      width: 140,
+      sorter: (a, b) => booleanSorter(a.spec?.logs, b.spec?.logs),
+    },
+    {
+      title: 'Trace',
+      dataIndex: 'traceLabel',
+      key: 'trace',
+      width: 140,
+      sorter: (a, b) => booleanSorter(a.spec?.trace, b.spec?.trace),
+    },
+    {
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      width: 260,
+      sorter: (a, b) => stringSorter(a.description, b.description),
+      ellipsis: true,
+    },
+    {
+      title: 'Created',
+      dataIndex: ['metadata', 'creationTimestamp'],
+      key: 'created',
+      width: 180,
+      sorter: (a, b) =>
+        new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
+      render: value => renderTimestampWithIcon(value),
+    },
+  ]
+
+  if (onEdit) {
+    columns.push({
+      title: 'Actions',
+      key: 'actions',
+      fixed: 'right',
+      width: 90,
+      render: (_, record) =>
+        React.createElement(
+          Tooltip,
+          { title: 'Edit' },
+          React.createElement(Button, {
+            type: 'text',
+            icon: React.createElement(EditOutlined),
+            onClick: event => {
+              event.stopPropagation()
+              onEdit(record)
+            },
+          }),
+        ),
+    })
+  }
+
+  return columns
+}
 
 export const ADDRESS_GROUPS_TABLE_PROPS: Partial<TableProps<TAddressGroupRow>> = {
   pagination: {
