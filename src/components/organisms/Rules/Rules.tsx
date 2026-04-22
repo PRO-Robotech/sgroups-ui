@@ -1,10 +1,11 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Flex, Spin, theme as antdTheme } from 'antd'
+import { PlusOutlined } from '@ant-design/icons'
+import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
 import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
-import { VerboseRulePanel } from './molecules'
+import { UniRuleFormModal, VerboseRulePanel } from './molecules'
 import { Styled } from './styled'
 import { buildRulesColumns, mapRulesToRows, RULES_TABLE_PROPS, TRuleResource, TRuleRow } from './tableConfig'
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
@@ -39,6 +40,8 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
   const { token } = antdTheme.useToken()
   const splitLayoutRef = useRef<HTMLDivElement>(null)
   const [selectedRuleKey, setSelectedRuleKey] = useState<string | null>(null)
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false)
+  const [editingRule, setEditingRule] = useState<TRuleRow | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -64,7 +67,22 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
     isEnabled: Boolean(cluster),
   })
 
-  const columns = useMemo(() => buildRulesColumns(), [])
+  const openCreateModal = useCallback(() => {
+    setEditingRule(null)
+    setIsFormModalOpen(true)
+  }, [])
+
+  const openEditModal = useCallback((ruleRecord: TRuleRow) => {
+    setEditingRule(ruleRecord)
+    setIsFormModalOpen(true)
+  }, [])
+
+  const closeFormModal = useCallback(() => {
+    setIsFormModalOpen(false)
+    setEditingRule(null)
+  }, [])
+
+  const columns = useMemo(() => buildRulesColumns({ onEdit: openEditModal }), [openEditModal])
   const dataSource = useMemo(() => mapRulesToRows(rulesData?.items || []), [rulesData?.items])
   const selectedRule = useMemo(
     () => dataSource.find(item => item.key === selectedRuleKey) || null,
@@ -161,7 +179,7 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
         {error && <Alert type="error" message={`Failed to load rules: ${String(error)}`} showIcon />}
         {isLoading && !rulesData && <Spin />}
         {!error && rulesData && (
-          <>
+          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
             <Styled.SplitLayout
               ref={splitLayoutRef}
               $detailWidth={verboseWidth}
@@ -223,9 +241,24 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
                 />
               </Styled.MobileDetailPane>
             )}
-          </>
+            <Styled.BottomActionBar style={rulesLayoutStyle}>
+              <Button type="primary" onClick={openCreateModal}>
+                <PlusOutlined />
+                Add UniRule
+              </Button>
+            </Styled.BottomActionBar>
+          </Flex>
         )}
       </Flex>
+      {isFormModalOpen && (
+        <UniRuleFormModal
+          cluster={cluster}
+          namespace={namespace}
+          rule={editingRule}
+          open={isFormModalOpen}
+          onClose={closeFormModal}
+        />
+      )}
     </ContentCard>
   )
 }
