@@ -1,3 +1,4 @@
+import styled from 'styled-components'
 import {
   DETAIL_PANEL_MIN_WIDTH,
   DETAIL_PANEL_SPLITTER_WIDTH,
@@ -26,7 +27,6 @@ import {
   VerboseContainer,
   ViewMoreTag,
 } from '../../atoms/VerbosePanel'
-import styled from 'styled-components'
 
 const BottomActionBar = styled.div`
   position: sticky;
