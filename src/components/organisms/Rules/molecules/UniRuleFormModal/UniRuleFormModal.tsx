@@ -43,8 +43,7 @@ const API_RESOURCE_VERSION = `${API_GROUP}/${API_VERSION}`
 const NAME_PATTERN = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/
 const PORT_VALUE_SEPARATOR = /\s*,\s*/
 const HEX_GROUP_PATTERN = /^[0-9a-f]{1,4}$/i
-const FQDN_PATTERN =
-  /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i
+const FQDN_PATTERN = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i
 const ENDPOINT_TYPE_OPTIONS = [
   { label: 'Address Group', value: 'AddressGroup' },
   { label: 'Service', value: 'Service' },
@@ -121,9 +120,6 @@ const normalizeOptionalString = (value?: string) => {
 
   return trimmedValue || undefined
 }
-
-const buildNamespacedValue = (resource?: { namespace?: string; name?: string }) =>
-  resource?.name && resource?.namespace ? `${resource.namespace}/${resource.name}` : undefined
 
 const parseNamespacedValue = (value?: string) => {
   if (!value) {
@@ -414,8 +410,16 @@ const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource, value
 
   ;(
     [
-      ['displayName', normalizeOptionalString(values.displayName), normalizeOptionalString(currentRule.spec?.displayName)],
-      ['description', normalizeOptionalString(values.description), normalizeOptionalString(currentRule.spec?.description)],
+      [
+        'displayName',
+        normalizeOptionalString(values.displayName),
+        normalizeOptionalString(currentRule.spec?.displayName),
+      ],
+      [
+        'description',
+        normalizeOptionalString(values.description),
+        normalizeOptionalString(currentRule.spec?.description),
+      ],
       ['comment', normalizeOptionalString(values.comment), normalizeOptionalString(currentRule.spec?.comment)],
     ] as const
   ).forEach(([fieldName, nextValue, currentValue]) => {
@@ -539,10 +543,9 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     isEnabled: open,
   })
 
-  const {
-    data: addressGroupsData,
-    isLoading: isAddressGroupsLoading,
-  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
+  const { data: addressGroupsData, isLoading: isAddressGroupsLoading } = useK8sSmartResource<{
+    items: TAddressGroupResource[]
+  }>({
     cluster,
     namespace: undefined,
     apiGroup: API_GROUP,
@@ -624,10 +627,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     () => getResourceOptions(addressGroupsData?.items, 'Address Group'),
     [addressGroupsData?.items],
   )
-  const serviceOptions = useMemo(
-    () => getResourceOptions(servicesData?.items, 'Service'),
-    [servicesData?.items],
-  )
+  const serviceOptions = useMemo(() => getResourceOptions(servicesData?.items, 'Service'), [servicesData?.items])
 
   const localType = formValues?.local?.type
   const remoteType = formValues?.remote?.type
@@ -915,11 +915,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   <Form.Item name="displayName" label="Display name">
                     <Input placeholder="e.g. api to db" />
                   </Form.Item>
-                  <Form.Item
-                    name="action"
-                    label="Action"
-                    rules={[{ required: true, message: 'Select action' }]}
-                  >
+                  <Form.Item name="action" label="Action" rules={[{ required: true, message: 'Select action' }]}>
                     <Select options={ACTION_OPTIONS as unknown as { label: string; value: string }[]} />
                   </Form.Item>
                   <Form.Item
@@ -1190,7 +1186,9 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                             const invalidValue = (value || []).find(item => {
                                               const parsedValue = Number(String(item).trim())
 
-                                              return !Number.isInteger(parsedValue) || parsedValue < 0 || parsedValue > 255
+                                              return (
+                                                !Number.isInteger(parsedValue) || parsedValue < 0 || parsedValue > 255
+                                              )
                                             })
 
                                             if (invalidValue !== undefined) {
@@ -1271,11 +1269,17 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
                     </OverviewEmpty>
                   )}
-                {!isOverviewLoading && (buildEndpointPayload(formValues?.local) || buildEndpointPayload(formValues?.remote)) && (
-                  <TreeContainer>
-                    <Tree showLine switcherIcon={<CaretDownOutlined />} defaultExpandAll treeData={overviewTreeData} />
-                  </TreeContainer>
-                )}
+                {!isOverviewLoading &&
+                  (buildEndpointPayload(formValues?.local) || buildEndpointPayload(formValues?.remote)) && (
+                    <TreeContainer>
+                      <Tree
+                        showLine
+                        switcherIcon={<CaretDownOutlined />}
+                        defaultExpandAll
+                        treeData={overviewTreeData}
+                      />
+                    </TreeContainer>
+                  )}
               </OverviewBody>
             </Overview>
           </>

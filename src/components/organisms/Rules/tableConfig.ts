@@ -137,105 +137,105 @@ export const mapRulesToRows = (items: TRuleResource[]): TRuleRow[] =>
 export const buildRulesColumns = ({ onEdit }: TBuildRulesColumnsParams = {}): ColumnsType<TRuleRow> => {
   const columns: ColumnsType<TRuleRow> = [
     {
-    title: 'Name',
-    dataIndex: ['metadata', 'name'],
-    key: 'name',
-    fixed: 'left',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
-    render: value => renderBadgeWithValue('Rule', value),
+      title: 'Name',
+      dataIndex: ['metadata', 'name'],
+      key: 'name',
+      fixed: 'left',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      render: value => renderBadgeWithValue('Rule', value),
     },
     {
-    title: 'Namespace',
-    dataIndex: ['metadata', 'namespace'],
-    key: 'namespace',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-    render: value => renderBadgeWithValue('Namespace', value),
+      title: 'Namespace',
+      dataIndex: ['metadata', 'namespace'],
+      key: 'namespace',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
+      render: value => renderBadgeWithValue('Namespace', value),
     },
     {
-    title: 'Display Name',
-    dataIndex: 'displayName',
-    key: 'displayName',
-    width: 180,
-    sorter: (a, b) => stringSorter(a.displayName, b.displayName),
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
+      width: 180,
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
-    title: 'Action',
-    dataIndex: 'action',
-    key: 'action',
-    width: 140,
-    sorter: (a, b) => stringSorter(a.action, b.action),
-    render: value => renderActionTag(value),
+      title: 'Action',
+      dataIndex: 'action',
+      key: 'action',
+      width: 140,
+      sorter: (a, b) => stringSorter(a.action, b.action),
+      render: value => renderActionTag(value),
     },
     {
-    title: 'Traffic',
-    dataIndex: 'traffic',
-    key: 'traffic',
-    width: 140,
-    sorter: (a, b) => stringSorter(a.traffic, b.traffic),
+      title: 'Traffic',
+      dataIndex: 'traffic',
+      key: 'traffic',
+      width: 140,
+      sorter: (a, b) => stringSorter(a.traffic, b.traffic),
     },
     {
-    title: 'Protocol',
-    dataIndex: 'protocol',
-    key: 'protocol',
-    width: 140,
-    sorter: (a, b) => stringSorter(a.protocol, b.protocol),
+      title: 'Protocol',
+      dataIndex: 'protocol',
+      key: 'protocol',
+      width: 140,
+      sorter: (a, b) => stringSorter(a.protocol, b.protocol),
     },
     {
-    title: 'IP Family',
-    dataIndex: 'ipFamily',
-    key: 'ipFamily',
-    width: 140,
-    sorter: (a, b) => stringSorter(a.ipFamily, b.ipFamily),
+      title: 'IP Family',
+      dataIndex: 'ipFamily',
+      key: 'ipFamily',
+      width: 140,
+      sorter: (a, b) => stringSorter(a.ipFamily, b.ipFamily),
     },
     {
-    title: 'Local',
-    dataIndex: 'localEndpoint',
-    key: 'localEndpoint',
-    width: 220,
-    sorter: (a, b) => stringSorter(a.localEndpoint, b.localEndpoint),
+      title: 'Local',
+      dataIndex: 'localEndpoint',
+      key: 'localEndpoint',
+      width: 220,
+      sorter: (a, b) => stringSorter(a.localEndpoint, b.localEndpoint),
     },
     {
-    title: 'Remote',
-    dataIndex: 'remoteEndpoint',
-    key: 'remoteEndpoint',
-    width: 220,
-    sorter: (a, b) => stringSorter(a.remoteEndpoint, b.remoteEndpoint),
+      title: 'Remote',
+      dataIndex: 'remoteEndpoint',
+      key: 'remoteEndpoint',
+      width: 220,
+      sorter: (a, b) => stringSorter(a.remoteEndpoint, b.remoteEndpoint),
     },
     {
-    title: 'Ports / Types',
-    key: 'transportEntries',
-    width: 240,
-    render: (_, record) => {
-      const ports = formatTransportSummary('ports', record.spec?.transport?.entries)
-      const types = formatTransportSummary('types', record.spec?.transport?.entries)
+      title: 'Ports / Types',
+      key: 'transportEntries',
+      width: 240,
+      render: (_, record) => {
+        const ports = formatTransportSummary('ports', record.spec?.transport?.entries)
+        const types = formatTransportSummary('types', record.spec?.transport?.entries)
 
-      if (ports === EMPTY_VALUE && types === EMPTY_VALUE) {
-        return EMPTY_VALUE
-      }
+        if (ports === EMPTY_VALUE && types === EMPTY_VALUE) {
+          return EMPTY_VALUE
+        }
 
-      return [ports !== EMPTY_VALUE ? `Ports: ${ports}` : '', types !== EMPTY_VALUE ? `Types: ${types}` : '']
-        .filter(Boolean)
-        .join(' | ')
-    },
-    },
-    {
-    title: 'Description',
-    dataIndex: 'description',
-    key: 'description',
-    width: 260,
-    sorter: (a, b) => stringSorter(a.description, b.description),
-    ellipsis: true,
+        return [ports !== EMPTY_VALUE ? `Ports: ${ports}` : '', types !== EMPTY_VALUE ? `Types: ${types}` : '']
+          .filter(Boolean)
+          .join(' | ')
+      },
     },
     {
-    title: 'Created',
-    dataIndex: ['metadata', 'creationTimestamp'],
-    key: 'created',
-    width: 180,
-    sorter: (a, b) =>
-      new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
-    render: value => renderTimestampWithIcon(value),
+      title: 'Description',
+      dataIndex: 'description',
+      key: 'description',
+      width: 260,
+      sorter: (a, b) => stringSorter(a.description, b.description),
+      ellipsis: true,
+    },
+    {
+      title: 'Created',
+      dataIndex: ['metadata', 'creationTimestamp'],
+      key: 'created',
+      width: 180,
+      sorter: (a, b) =>
+        new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
+      render: value => renderTimestampWithIcon(value),
     },
   ]
 
