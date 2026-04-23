@@ -24,6 +24,7 @@ import {
   normalizeOptionalString,
   parseNamespacedValue,
   renderBadgeWithValue,
+  runSequentialRequests,
   sanitizeBindingName,
 } from 'utils'
 import { Styled } from './styled'
@@ -127,7 +128,7 @@ export const buildOverviewTreeData = ({
 }
 
 export const patchEditableSpec = async (endpoint: string, service: TServiceResource, values: TServiceFormValues) => {
-  const patchRequests: Promise<unknown>[] = []
+  const patchRequests: Array<() => Promise<unknown>> = []
 
   ;(
     [
@@ -143,7 +144,7 @@ export const patchEditableSpec = async (endpoint: string, service: TServiceResou
     }
 
     if (nextValue === undefined) {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithDeleteOp({
           endpoint,
           pathToValue: `/spec/${fieldName}`,
@@ -153,7 +154,7 @@ export const patchEditableSpec = async (endpoint: string, service: TServiceResou
       return
     }
 
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: `/spec/${fieldName}`,
@@ -167,14 +168,14 @@ export const patchEditableSpec = async (endpoint: string, service: TServiceResou
 
   if (JSON.stringify(nextTransports) !== JSON.stringify(currentTransports)) {
     if (nextTransports.length === 0) {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithDeleteOp({
           endpoint,
           pathToValue: '/spec/transports',
         }),
       )
     } else {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithReplaceOp({
           endpoint,
           pathToValue: '/spec/transports',
@@ -184,9 +185,7 @@ export const patchEditableSpec = async (endpoint: string, service: TServiceResou
     }
   }
 
-  await Promise.all(patchRequests)
-
-  return patchRequests.length
+  return runSequentialRequests(patchRequests)
 }
 
 export const syncAddressGroupBindings = async (
@@ -207,23 +206,24 @@ export const syncAddressGroupBindings = async (
     .map(resourceValue => {
       const addressGroup = parseNamespacedValue(resourceValue)
 
-      return createNewEntry({
-        endpoint: getApiEndpoint(cluster, values.namespace, 'servicebindings'),
-        body: {
-          apiVersion: API_RESOURCE_VERSION,
-          kind: 'ServiceBinding',
-          metadata: {
-            name: buildBindingName(values.name, addressGroup.namespace || '', addressGroup.name || ''),
-            namespace: values.namespace,
+      return () =>
+        createNewEntry({
+          endpoint: getApiEndpoint(cluster, values.namespace, 'servicebindings'),
+          body: {
+            apiVersion: API_RESOURCE_VERSION,
+            kind: 'ServiceBinding',
+            metadata: {
+              name: buildBindingName(values.name, addressGroup.namespace || '', addressGroup.name || ''),
+              namespace: values.namespace,
+            },
+            spec: {
+              addressGroup,
+              service: serviceIdentifier,
+              description: values.description,
+              comment: values.comment,
+            },
           },
-          spec: {
-            addressGroup,
-            service: serviceIdentifier,
-            description: values.description,
-            comment: values.comment,
-          },
-        },
-      })
+        })
     })
 
   const deleteBindings = currentBindings
@@ -236,17 +236,16 @@ export const syncAddressGroupBindings = async (
 
       return !requestedAddressGroups.has(addressGroupValue)
     })
-    .map(binding =>
-      deleteEntry({
-        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'servicebindings')}/${
-          binding.metadata.name
-        }`,
-      }),
+    .map(
+      binding => () =>
+        deleteEntry({
+          endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'servicebindings')}/${
+            binding.metadata.name
+          }`,
+        }),
     )
 
   const requests = [...createBindings, ...deleteBindings]
 
-  await Promise.all(requests)
-
-  return requests.length
+  return runSequentialRequests(requests)
 }

@@ -30,6 +30,8 @@ Create submits the AddressGroup first, then creates selected bindings:
 
 Hosts and Networks are selected from the future AddressGroup namespace. Services can be selected from any namespace and are labeled as `namespace / serviceName`.
 
+Binding requests are intentionally executed one at a time. The backend can reject concurrent binding sync with serialization errors, so do not replace this with `Promise.all`.
+
 ## Edit Flow
 
 Edit mode receives an existing `addressGroup` prop.
@@ -42,6 +44,8 @@ Edit mode receives an existing `addressGroup` prop.
 - Removed selections delete bindings.
 - Added selections create bindings.
 - If no editable fields or bindings changed, no update request is sent.
+
+Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
 ## Lifecycle
 

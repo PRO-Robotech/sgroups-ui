@@ -11,6 +11,7 @@ import {
   normalizeOptionalString,
   parseNamespacedValue,
   PORT_VALUE_SEPARATOR,
+  runSequentialRequests,
   sanitizeBindingName,
   validateCIDR,
   validatePortToken,
@@ -40,6 +41,26 @@ describe('sgroupsFormUtils', () => {
     expect(sanitizeBindingName('AG A / Service_Name!!')).toBe('ag-a-service-name')
     expect(sanitizeBindingName('---')).toBe('binding')
     expect(sanitizeBindingName(`name-${'x'.repeat(80)}`)).toHaveLength(63)
+  })
+
+  it('runs request thunks one at a time', async () => {
+    const order: string[] = []
+
+    const requestCount = await runSequentialRequests([
+      async () => {
+        order.push('first-start')
+        await Promise.resolve()
+        order.push('first-end')
+      },
+      async () => {
+        order.push('second-start')
+        await Promise.resolve()
+        order.push('second-end')
+      },
+    ])
+
+    expect(requestCount).toBe(2)
+    expect(order).toEqual(['first-start', 'first-end', 'second-start', 'second-end'])
   })
 
   it('parses, builds, and looks up namespaced resource values', () => {

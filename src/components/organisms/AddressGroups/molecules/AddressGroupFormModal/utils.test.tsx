@@ -181,4 +181,39 @@ describe('AddressGroupFormModal utils', () => {
         '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-old-service/servicebindings/old-service-binding',
     })
   })
+
+  it('waits for each binding request before starting the next one', async () => {
+    let resolveFirstRequest: (() => void) | undefined
+    const firstRequest = new Promise<void>(resolve => {
+      resolveFirstRequest = resolve
+    })
+
+    mockCreateNewEntry.mockImplementationOnce(() => firstRequest).mockImplementationOnce(() => Promise.resolve())
+
+    const syncPromise = syncBindings(
+      'cluster-a',
+      { name: 'ag-a', namespace: 'tenant-a' },
+      {
+        namespace: 'tenant-a',
+        name: 'ag-a',
+        hosts: ['host-a', 'host-b'],
+        services: [],
+        networks: [],
+      } as any,
+      {
+        hosts: [],
+        services: [],
+        networks: [],
+      } as any,
+    )
+
+    await Promise.resolve()
+
+    expect(mockCreateNewEntry).toHaveBeenCalledTimes(1)
+
+    resolveFirstRequest?.()
+    await syncPromise
+
+    expect(mockCreateNewEntry).toHaveBeenCalledTimes(2)
+  })
 })

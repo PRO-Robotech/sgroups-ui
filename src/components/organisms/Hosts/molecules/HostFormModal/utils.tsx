@@ -23,6 +23,7 @@ import {
   normalizeOptionalString,
   parseNamespacedValue,
   renderBadgeWithValue,
+  runSequentialRequests,
   sanitizeBindingName,
 } from 'utils'
 import { Styled } from './styled'
@@ -50,7 +51,7 @@ export const buildCurrentBindings = (host: THostResource | null | undefined, bin
   (bindings || []).filter(binding => isSameHost(host, binding.spec?.host))
 
 export const patchEditableSpec = async (endpoint: string, currentHost: THostResource, values: THostFormValues) => {
-  const patchRequests: Promise<unknown>[] = []
+  const patchRequests: Array<() => Promise<unknown>> = []
 
   ;(
     [
@@ -66,7 +67,7 @@ export const patchEditableSpec = async (endpoint: string, currentHost: THostReso
     }
 
     if (nextValue === undefined) {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithDeleteOp({
           endpoint,
           pathToValue: `/spec/${fieldName}`,
@@ -76,7 +77,7 @@ export const patchEditableSpec = async (endpoint: string, currentHost: THostReso
       return
     }
 
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: `/spec/${fieldName}`,
@@ -85,9 +86,7 @@ export const patchEditableSpec = async (endpoint: string, currentHost: THostReso
     )
   })
 
-  await Promise.all(patchRequests)
-
-  return patchRequests.length
+  return runSequentialRequests(patchRequests)
 }
 
 export const syncAddressGroupBindings = async (
@@ -108,23 +107,24 @@ export const syncAddressGroupBindings = async (
     .map(resourceValue => {
       const addressGroup = parseNamespacedValue(resourceValue)
 
-      return createNewEntry({
-        endpoint: getApiEndpoint(cluster, values.namespace, 'hostbindings'),
-        body: {
-          apiVersion: API_RESOURCE_VERSION,
-          kind: 'HostBinding',
-          metadata: {
-            name: buildBindingName(values.name, addressGroup.namespace || '', addressGroup.name || ''),
-            namespace: values.namespace,
+      return () =>
+        createNewEntry({
+          endpoint: getApiEndpoint(cluster, values.namespace, 'hostbindings'),
+          body: {
+            apiVersion: API_RESOURCE_VERSION,
+            kind: 'HostBinding',
+            metadata: {
+              name: buildBindingName(values.name, addressGroup.namespace || '', addressGroup.name || ''),
+              namespace: values.namespace,
+            },
+            spec: {
+              addressGroup,
+              host: hostIdentifier,
+              description: values.description,
+              comment: values.comment,
+            },
           },
-          spec: {
-            addressGroup,
-            host: hostIdentifier,
-            description: values.description,
-            comment: values.comment,
-          },
-        },
-      })
+        })
     })
 
   const deleteBindings = currentBindings
@@ -137,19 +137,18 @@ export const syncAddressGroupBindings = async (
 
       return !requestedAddressGroups.has(addressGroupValue)
     })
-    .map(binding =>
-      deleteEntry({
-        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'hostbindings')}/${
-          binding.metadata.name
-        }`,
-      }),
+    .map(
+      binding => () =>
+        deleteEntry({
+          endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'hostbindings')}/${
+            binding.metadata.name
+          }`,
+        }),
     )
 
   const requests = [...createBindings, ...deleteBindings]
 
-  await Promise.all(requests)
-
-  return requests.length
+  return runSequentialRequests(requests)
 }
 
 export const buildOverviewTreeData = ({

@@ -30,6 +30,8 @@ Each binding:
 - points `spec.host` to the Host name and namespace
 - points `spec.addressGroup` to the selected AddressGroup name and namespace
 
+Binding requests are intentionally executed one at a time. The backend can reject concurrent binding sync with serialization errors, so do not replace this with `Promise.all`.
+
 Do not write `Host.refs` from this modal. It is backend-computed data.
 
 ## Edit Flow
@@ -44,6 +46,8 @@ Edit mode receives an existing `host` prop.
 - Removed selections delete bindings.
 - Added selections create bindings in the Host namespace.
 - If no editable fields or bindings changed, no update request is sent.
+
+Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
 ## Lifecycle
 

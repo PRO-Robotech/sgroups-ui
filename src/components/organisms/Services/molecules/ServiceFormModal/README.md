@@ -32,6 +32,8 @@ Each binding:
 - points `spec.service` to the Service name and namespace
 - points `spec.addressGroup` to the selected AddressGroup name and namespace
 
+Binding requests are intentionally executed one at a time. The backend can reject concurrent binding sync with serialization errors, so do not replace this with `Promise.all`.
+
 AddressGroup membership for Services is managed only through `ServiceBinding` resources.
 
 ## Edit Flow
@@ -48,6 +50,8 @@ Edit mode receives an existing `service` prop.
 - Removed selections delete bindings.
 - Added selections create bindings in the Service namespace.
 - If no editable fields or bindings changed, no update request is sent.
+
+Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
 ## Transport Rules
 

@@ -30,6 +30,8 @@ Each binding:
 - points `spec.network` to the Network name and namespace
 - points `spec.addressGroup` to the selected AddressGroup name and namespace
 
+Binding requests are intentionally executed one at a time. The backend can reject concurrent binding sync with serialization errors, so do not replace this with `Promise.all`.
+
 ## Edit Flow
 
 Edit mode receives an existing `network` prop.
@@ -43,6 +45,8 @@ Edit mode receives an existing `network` prop.
 - Removed selections delete bindings.
 - Added selections create bindings in the Network namespace.
 - If no editable fields or bindings changed, no update request is sent.
+
+Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
 ## Lifecycle
 

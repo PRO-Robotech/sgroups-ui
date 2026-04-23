@@ -38,6 +38,8 @@ Edit mode receives an existing `rule` prop.
 - Changed values use `patchEntryWithReplaceOp`.
 - If nothing changed, no update request is sent.
 
+Patch requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields changed.
+
 Patched fields include:
 
 - `spec.displayName`

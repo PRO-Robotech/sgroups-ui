@@ -6,7 +6,7 @@ import {
 } from '@prorobotech/openapi-k8s-toolkit'
 import { TAddressGroupResource } from 'components/organisms/AddressGroups/tableConfig'
 import { THostBindingResource, TNetworkBindingResource, TServiceBindingResource } from 'localTypes'
-import { renderBadgeWithValue } from 'utils'
+import { renderBadgeWithValue, runSequentialRequests } from 'utils'
 import { TAddressGroupFormValues, TCurrentBindings, TResourceOption, TSelectableResource } from './types'
 
 export const API_GROUP = 'sgroups.io'
@@ -107,12 +107,12 @@ export const patchEditableSpec = async (
   addressGroup: TAddressGroupResource,
   values: TAddressGroupFormValues,
 ) => {
-  const patchRequests: Promise<unknown>[] = []
+  const patchRequests: Array<() => Promise<unknown>> = []
   const nextDefaultAction = values.allowAccess ? 'Allow' : 'Deny'
   const currentDefaultAction = addressGroup.spec?.defaultAction || 'Deny'
 
   if (nextDefaultAction !== currentDefaultAction) {
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: '/spec/defaultAction',
@@ -135,7 +135,7 @@ export const patchEditableSpec = async (
     }
 
     if (nextValue === undefined) {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithDeleteOp({
           endpoint,
           pathToValue: `/spec/${fieldName}`,
@@ -144,7 +144,7 @@ export const patchEditableSpec = async (
       return
     }
 
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: `/spec/${fieldName}`,
@@ -153,9 +153,7 @@ export const patchEditableSpec = async (
     )
   })
 
-  await Promise.all(patchRequests)
-
-  return patchRequests.length
+  return runSequentialRequests(patchRequests)
 }
 
 export const syncBindings = async (
@@ -184,27 +182,28 @@ export const syncBindings = async (
 
   const createHostBindings = [...requestedHosts]
     .filter(resourceName => !currentHostKeys.has(resourceName))
-    .map(resourceName =>
-      createNewEntry({
-        endpoint: getApiEndpoint(cluster, values.namespace, 'hostbindings'),
-        body: {
-          apiVersion: API_RESOURCE_VERSION,
-          kind: 'HostBinding',
-          metadata: {
-            name: buildBindingName(values.name, 'host', resourceName),
-            namespace: values.namespace,
-          },
-          spec: {
-            addressGroup: addressGroupIdentifier,
-            host: {
-              name: resourceName,
+    .map(
+      resourceName => () =>
+        createNewEntry({
+          endpoint: getApiEndpoint(cluster, values.namespace, 'hostbindings'),
+          body: {
+            apiVersion: API_RESOURCE_VERSION,
+            kind: 'HostBinding',
+            metadata: {
+              name: buildBindingName(values.name, 'host', resourceName),
               namespace: values.namespace,
             },
-            description: values.description,
-            comment: values.comment,
+            spec: {
+              addressGroup: addressGroupIdentifier,
+              host: {
+                name: resourceName,
+                namespace: values.namespace,
+              },
+              description: values.description,
+              comment: values.comment,
+            },
           },
-        },
-      }),
+        }),
     )
 
   const createServiceBindings = [...requestedServices]
@@ -212,51 +211,53 @@ export const syncBindings = async (
     .map(resourceValue => {
       const service = parseNamespacedValue(resourceValue)
 
-      return createNewEntry({
-        endpoint: getApiEndpoint(cluster, service.namespace, 'servicebindings'),
-        body: {
-          apiVersion: API_RESOURCE_VERSION,
-          kind: 'ServiceBinding',
-          metadata: {
-            name: buildBindingName(values.name, 'service', service.name),
-            namespace: service.namespace,
-          },
-          spec: {
-            addressGroup: addressGroupIdentifier,
-            service: {
-              name: service.name,
+      return () =>
+        createNewEntry({
+          endpoint: getApiEndpoint(cluster, service.namespace, 'servicebindings'),
+          body: {
+            apiVersion: API_RESOURCE_VERSION,
+            kind: 'ServiceBinding',
+            metadata: {
+              name: buildBindingName(values.name, 'service', service.name),
               namespace: service.namespace,
             },
-            description: values.description,
-            comment: values.comment,
+            spec: {
+              addressGroup: addressGroupIdentifier,
+              service: {
+                name: service.name,
+                namespace: service.namespace,
+              },
+              description: values.description,
+              comment: values.comment,
+            },
           },
-        },
-      })
+        })
     })
 
   const createNetworkBindings = [...requestedNetworks]
     .filter(resourceName => !currentNetworkKeys.has(resourceName))
-    .map(resourceName =>
-      createNewEntry({
-        endpoint: getApiEndpoint(cluster, values.namespace, 'networkbindings'),
-        body: {
-          apiVersion: API_RESOURCE_VERSION,
-          kind: 'NetworkBinding',
-          metadata: {
-            name: buildBindingName(values.name, 'network', resourceName),
-            namespace: values.namespace,
-          },
-          spec: {
-            addressGroup: addressGroupIdentifier,
-            network: {
-              name: resourceName,
+    .map(
+      resourceName => () =>
+        createNewEntry({
+          endpoint: getApiEndpoint(cluster, values.namespace, 'networkbindings'),
+          body: {
+            apiVersion: API_RESOURCE_VERSION,
+            kind: 'NetworkBinding',
+            metadata: {
+              name: buildBindingName(values.name, 'network', resourceName),
               namespace: values.namespace,
             },
-            description: values.description,
-            comment: values.comment,
+            spec: {
+              addressGroup: addressGroupIdentifier,
+              network: {
+                name: resourceName,
+                namespace: values.namespace,
+              },
+              description: values.description,
+              comment: values.comment,
+            },
           },
-        },
-      }),
+        }),
     )
 
   const deleteHostBindings = currentBindings.hosts
@@ -269,12 +270,13 @@ export const syncBindings = async (
 
       return !requestedHosts.has(resourceName)
     })
-    .map(binding =>
-      deleteEntry({
-        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'hostbindings')}/${
-          binding.metadata.name
-        }`,
-      }),
+    .map(
+      binding => () =>
+        deleteEntry({
+          endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'hostbindings')}/${
+            binding.metadata.name
+          }`,
+        }),
     )
 
   const deleteServiceBindings = currentBindings.services
@@ -287,12 +289,13 @@ export const syncBindings = async (
 
       return !requestedServices.has(resourceKey)
     })
-    .map(binding =>
-      deleteEntry({
-        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'servicebindings')}/${
-          binding.metadata.name
-        }`,
-      }),
+    .map(
+      binding => () =>
+        deleteEntry({
+          endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'servicebindings')}/${
+            binding.metadata.name
+          }`,
+        }),
     )
 
   const deleteNetworkBindings = currentBindings.networks
@@ -305,12 +308,13 @@ export const syncBindings = async (
 
       return !requestedNetworks.has(resourceName)
     })
-    .map(binding =>
-      deleteEntry({
-        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'networkbindings')}/${
-          binding.metadata.name
-        }`,
-      }),
+    .map(
+      binding => () =>
+        deleteEntry({
+          endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'networkbindings')}/${
+            binding.metadata.name
+          }`,
+        }),
     )
 
   const requests = [
@@ -322,7 +326,5 @@ export const syncBindings = async (
     ...deleteNetworkBindings,
   ]
 
-  await Promise.all(requests)
-
-  return requests.length
+  return runSequentialRequests(requests)
 }

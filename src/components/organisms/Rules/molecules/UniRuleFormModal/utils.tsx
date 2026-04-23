@@ -1,6 +1,6 @@
 import type { TreeDataNode } from 'antd'
 import { patchEntryWithDeleteOp, patchEntryWithReplaceOp } from '@prorobotech/openapi-k8s-toolkit'
-import { normalizeOptionalString } from 'utils'
+import { normalizeOptionalString, runSequentialRequests } from 'utils'
 import { TRuleEndpoint, TRuleResource } from '../../tableConfig'
 import { Styled } from './styled'
 import { TEndpointFormValues, TTransportEntryFormValue, TUniRuleFormValues } from './types'
@@ -144,7 +144,7 @@ export const buildOverviewTreeData = ({
 ]
 
 export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource, values: TUniRuleFormValues) => {
-  const patchRequests: Promise<unknown>[] = []
+  const patchRequests: Array<() => Promise<unknown>> = []
   const normalizedCurrent = buildFormValuesFromRule(currentRule)
   const nextLocal = buildEndpointPayload(values.local)
   const nextRemote = buildEndpointPayload(values.remote)
@@ -171,7 +171,7 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
     }
 
     if (nextValue === undefined) {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithDeleteOp({
           endpoint,
           pathToValue: `/spec/${fieldName}`,
@@ -181,7 +181,7 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
       return
     }
 
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: `/spec/${fieldName}`,
@@ -191,7 +191,7 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
   })
 
   if (values.action !== currentRule.spec?.action) {
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: '/spec/action',
@@ -201,7 +201,7 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
   }
 
   if (JSON.stringify(nextLocal) !== JSON.stringify(buildEndpointPayload(normalizedCurrent.local))) {
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: '/spec/endpoints/local',
@@ -211,7 +211,7 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
   }
 
   if (JSON.stringify(nextRemote) !== JSON.stringify(buildEndpointPayload(normalizedCurrent.remote))) {
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: '/spec/endpoints/remote',
@@ -222,14 +222,14 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
 
   if (nextTraffic !== currentRule.spec?.session?.traffic) {
     if (nextTraffic === undefined) {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithDeleteOp({
           endpoint,
           pathToValue: '/spec/session',
         }),
       )
     } else {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithReplaceOp({
           endpoint,
           pathToValue: '/spec/session',
@@ -241,14 +241,14 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
 
   if (JSON.stringify(nextTransport) !== JSON.stringify(currentRule.spec?.transport)) {
     if (nextTransport === undefined) {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithDeleteOp({
           endpoint,
           pathToValue: '/spec/transport',
         }),
       )
     } else {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithReplaceOp({
           endpoint,
           pathToValue: '/spec/transport',
@@ -258,7 +258,5 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
     }
   }
 
-  await Promise.all(patchRequests)
-
-  return patchRequests.length
+  return runSequentialRequests(patchRequests)
 }

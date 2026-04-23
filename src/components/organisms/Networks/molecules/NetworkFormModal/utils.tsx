@@ -23,6 +23,7 @@ import {
   normalizeOptionalString,
   parseNamespacedValue,
   renderBadgeWithValue,
+  runSequentialRequests,
   sanitizeBindingName,
 } from 'utils'
 import { Styled } from './styled'
@@ -58,12 +59,12 @@ export const patchEditableSpec = async (
   currentNetwork: TNetworkResource,
   values: TNetworkFormValues,
 ) => {
-  const patchRequests: Promise<unknown>[] = []
+  const patchRequests: Array<() => Promise<unknown>> = []
   const nextCidr = values.cidr.trim()
   const currentCidr = currentNetwork.spec?.CIDR?.trim()
 
   if (nextCidr !== currentCidr) {
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: '/spec/CIDR',
@@ -86,7 +87,7 @@ export const patchEditableSpec = async (
     }
 
     if (nextValue === undefined) {
-      patchRequests.push(
+      patchRequests.push(() =>
         patchEntryWithDeleteOp({
           endpoint,
           pathToValue: `/spec/${fieldName}`,
@@ -96,7 +97,7 @@ export const patchEditableSpec = async (
       return
     }
 
-    patchRequests.push(
+    patchRequests.push(() =>
       patchEntryWithReplaceOp({
         endpoint,
         pathToValue: `/spec/${fieldName}`,
@@ -105,9 +106,7 @@ export const patchEditableSpec = async (
     )
   })
 
-  await Promise.all(patchRequests)
-
-  return patchRequests.length
+  return runSequentialRequests(patchRequests)
 }
 
 export const syncAddressGroupBindings = async (
@@ -128,23 +127,24 @@ export const syncAddressGroupBindings = async (
     .map(resourceValue => {
       const addressGroup = parseNamespacedValue(resourceValue)
 
-      return createNewEntry({
-        endpoint: getApiEndpoint(cluster, values.namespace, 'networkbindings'),
-        body: {
-          apiVersion: API_RESOURCE_VERSION,
-          kind: 'NetworkBinding',
-          metadata: {
-            name: buildBindingName(values.name, addressGroup.namespace || '', addressGroup.name || ''),
-            namespace: values.namespace,
+      return () =>
+        createNewEntry({
+          endpoint: getApiEndpoint(cluster, values.namespace, 'networkbindings'),
+          body: {
+            apiVersion: API_RESOURCE_VERSION,
+            kind: 'NetworkBinding',
+            metadata: {
+              name: buildBindingName(values.name, addressGroup.namespace || '', addressGroup.name || ''),
+              namespace: values.namespace,
+            },
+            spec: {
+              addressGroup,
+              network: networkIdentifier,
+              description: values.description,
+              comment: values.comment,
+            },
           },
-          spec: {
-            addressGroup,
-            network: networkIdentifier,
-            description: values.description,
-            comment: values.comment,
-          },
-        },
-      })
+        })
     })
 
   const deleteBindings = currentBindings
@@ -157,19 +157,18 @@ export const syncAddressGroupBindings = async (
 
       return !requestedAddressGroups.has(addressGroupValue)
     })
-    .map(binding =>
-      deleteEntry({
-        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'networkbindings')}/${
-          binding.metadata.name
-        }`,
-      }),
+    .map(
+      binding => () =>
+        deleteEntry({
+          endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'networkbindings')}/${
+            binding.metadata.name
+          }`,
+        }),
     )
 
   const requests = [...createBindings, ...deleteBindings]
 
-  await Promise.all(requests)
-
-  return requests.length
+  return runSequentialRequests(requests)
 }
 
 export const buildOverviewTreeData = ({

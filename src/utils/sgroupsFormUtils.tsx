@@ -76,6 +76,17 @@ export const normalizeOptionalString = (value?: string) => {
   return trimmedValue || undefined
 }
 
+export const runSequentialRequests = (requests: Array<() => Promise<unknown>>) =>
+  requests.reduce(
+    (chain, request) =>
+      chain.then(async count => {
+        await request()
+
+        return count + 1
+      }),
+    Promise.resolve(0),
+  )
+
 export const sanitizeBindingName = (value: string) => {
   const sanitized = value
     .toLowerCase()
