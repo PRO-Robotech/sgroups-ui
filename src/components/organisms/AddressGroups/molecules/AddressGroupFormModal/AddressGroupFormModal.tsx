@@ -143,6 +143,9 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
         .map(value => ({ value, label: value })),
     [tenantsData?.items],
   )
+  const hostOptions = useMemo(() => getResourceOptions('Host', hostsData?.items), [hostsData?.items])
+  const serviceOptions = useMemo(() => getNamespacedResourceOptions(servicesData?.items), [servicesData?.items])
+  const networkOptions = useMemo(() => getResourceOptions('Network', networksData?.items), [networksData?.items])
   const currentBindings = useMemo(
     () =>
       buildCurrentBindings(
@@ -161,7 +164,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   const isFormResourcesLoading =
     isTenantsLoading || isServicesLoading || isServiceBindingsLoading || isNamespaceScopedResourcesLoading
   const isInitialLoadPending = open && !isInitialized
-  const isModalInitializing = isFormResourcesLoading || isInitialLoadPending
+  const isModalInitializing = isInitialLoadPending
 
   useEffect(() => {
     if (!open) {
@@ -399,7 +402,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                     showSearch
                     placeholder="Select hosts"
                     optionFilterProp="searchText"
-                    options={getResourceOptions('Host', hostsData?.items)}
+                    options={hostOptions}
                     loading={isHostsLoading}
                     disabled={!effectiveAddressGroupNamespace}
                   />
@@ -410,7 +413,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                     showSearch
                     placeholder="Select services"
                     optionFilterProp="searchText"
-                    options={getNamespacedResourceOptions(servicesData?.items)}
+                    options={serviceOptions}
                     loading={isServicesLoading}
                   />
                 </Form.Item>
@@ -420,7 +423,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                     showSearch
                     placeholder="Select networks"
                     optionFilterProp="searchText"
-                    options={getResourceOptions('Network', networksData?.items)}
+                    options={networkOptions}
                     loading={isNetworksLoading}
                     disabled={!effectiveAddressGroupNamespace}
                   />
