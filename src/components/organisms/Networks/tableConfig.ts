@@ -1,6 +1,6 @@
 import React from 'react'
-import { Button, TableProps, Tooltip } from 'antd'
-import { EditOutlined } from '@ant-design/icons'
+import { Button, Space, TableProps, Tooltip } from 'antd'
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
 import { formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
 
@@ -39,6 +39,7 @@ export type TNetworkRow = TNetworkResource & {
 
 type TBuildNetworksColumnsParams = {
   onEdit?: (record: TNetworkRow) => void
+  onDelete?: (record: TNetworkRow) => void
 }
 
 const EMPTY_VALUE = '-'
@@ -56,7 +57,10 @@ export const mapNetworksToRows = (items: TNetworkResource[]): TNetworkRow[] =>
     created: formatDateTime(item.metadata.creationTimestamp),
   }))
 
-export const buildNetworksColumns = ({ onEdit }: TBuildNetworksColumnsParams = {}): ColumnsType<TNetworkRow> => {
+export const buildNetworksColumns = ({
+  onDelete,
+  onEdit,
+}: TBuildNetworksColumnsParams = {}): ColumnsType<TNetworkRow> => {
   const columns: ColumnsType<TNetworkRow> = [
     {
       title: 'Name',
@@ -108,24 +112,45 @@ export const buildNetworksColumns = ({ onEdit }: TBuildNetworksColumnsParams = {
     },
   ]
 
-  if (onEdit) {
+  if (onEdit || onDelete) {
     columns.push({
       title: 'Actions',
       key: 'actions',
       fixed: 'right',
-      width: 90,
+      width: 120,
       render: (_, record) =>
         React.createElement(
-          Tooltip,
-          { title: 'Edit' },
-          React.createElement(Button, {
-            type: 'text',
-            icon: React.createElement(EditOutlined),
-            onClick: event => {
-              event.stopPropagation()
-              onEdit(record)
-            },
-          }),
+          Space,
+          { size: 4 },
+          onEdit &&
+            React.createElement(
+              Tooltip,
+              { title: 'Edit' },
+              React.createElement(Button, {
+                'aria-label': `Edit ${record.metadata.name || 'network'}`,
+                type: 'text',
+                icon: React.createElement(EditOutlined),
+                onClick: event => {
+                  event.stopPropagation()
+                  onEdit(record)
+                },
+              }),
+            ),
+          onDelete &&
+            React.createElement(
+              Tooltip,
+              { title: 'Delete' },
+              React.createElement(Button, {
+                'aria-label': `Delete ${record.metadata.name || 'network'}`,
+                danger: true,
+                type: 'text',
+                icon: React.createElement(DeleteOutlined),
+                onClick: event => {
+                  event.stopPropagation()
+                  onDelete(record)
+                },
+              }),
+            ),
         ),
     })
   }

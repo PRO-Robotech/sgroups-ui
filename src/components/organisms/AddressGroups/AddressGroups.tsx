@@ -2,9 +2,10 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
-import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
+import { getDeleteModalResource, TDeleteModalResource } from 'utils'
 import { AddressGroupFormModal, VerboseAddressGroupPanel } from './molecules'
 import {
   ADDRESS_GROUPS_TABLE_PROPS,
@@ -50,6 +51,7 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   const [selectedAddressGroupKey, setSelectedAddressGroupKey] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingAddressGroup, setEditingAddressGroup] = useState<TAddressGroupRow | null>(null)
+  const [deletingAddressGroup, setDeletingAddressGroup] = useState<TDeleteModalResource | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -90,7 +92,21 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
     setEditingAddressGroup(null)
   }, [])
 
-  const columns = useMemo(() => buildAddressGroupsColumns({ onEdit: openEditModal }), [openEditModal])
+  const openDeleteModal = useCallback(
+    (addressGroup: TAddressGroupRow) => {
+      setDeletingAddressGroup(getDeleteModalResource(cluster || '', namespace, 'addressgroups', addressGroup))
+    },
+    [cluster, namespace],
+  )
+
+  const closeDeleteModal = useCallback(() => {
+    setDeletingAddressGroup(null)
+  }, [])
+
+  const columns = useMemo(
+    () => buildAddressGroupsColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
+    [openDeleteModal, openEditModal],
+  )
   const dataSource = useMemo(() => mapAddressGroupsToRows(addressGroupsData?.items || []), [addressGroupsData?.items])
   const selectedAddressGroup = useMemo(
     () => dataSource.find(item => item.key === selectedAddressGroupKey) || null,
@@ -265,6 +281,13 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
           addressGroup={editingAddressGroup}
           open={isModalOpen}
           onClose={closeFormModal}
+        />
+      )}
+      {deletingAddressGroup && (
+        <DeleteModal
+          name={deletingAddressGroup.name}
+          endpoint={deletingAddressGroup.endpoint}
+          onClose={closeDeleteModal}
         />
       )}
     </ContentCard>

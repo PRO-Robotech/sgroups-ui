@@ -1,6 +1,6 @@
 import React from 'react'
-import { EditOutlined } from '@ant-design/icons'
-import { Button, TableProps, Tag, Tooltip } from 'antd'
+import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { Button, Space, TableProps, Tag, Tooltip } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import { formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
 
@@ -66,6 +66,7 @@ export type THostRow = THostResource & {
 
 type TBuildHostsColumnsParams = {
   onEdit?: (record: THostRow) => void
+  onDelete?: (record: THostRow) => void
 }
 
 const EMPTY_VALUE = '-'
@@ -108,7 +109,7 @@ const renderTagList = (values?: string[]) => {
   )
 }
 
-export const buildHostsColumns = ({ onEdit }: TBuildHostsColumnsParams = {}): ColumnsType<THostRow> => {
+export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams = {}): ColumnsType<THostRow> => {
   const columns: ColumnsType<THostRow> = [
     {
       title: 'Name',
@@ -190,24 +191,45 @@ export const buildHostsColumns = ({ onEdit }: TBuildHostsColumnsParams = {}): Co
     },
   ]
 
-  if (onEdit) {
+  if (onEdit || onDelete) {
     columns.push({
       title: 'Actions',
       key: 'actions',
       fixed: 'right',
-      width: 90,
+      width: 120,
       render: (_, record) =>
         React.createElement(
-          Tooltip,
-          { title: 'Edit' },
-          React.createElement(Button, {
-            type: 'text',
-            icon: React.createElement(EditOutlined),
-            onClick: event => {
-              event.stopPropagation()
-              onEdit(record)
-            },
-          }),
+          Space,
+          { size: 4 },
+          onEdit &&
+            React.createElement(
+              Tooltip,
+              { title: 'Edit' },
+              React.createElement(Button, {
+                'aria-label': `Edit ${record.metadata.name || 'host'}`,
+                type: 'text',
+                icon: React.createElement(EditOutlined),
+                onClick: event => {
+                  event.stopPropagation()
+                  onEdit(record)
+                },
+              }),
+            ),
+          onDelete &&
+            React.createElement(
+              Tooltip,
+              { title: 'Delete' },
+              React.createElement(Button, {
+                'aria-label': `Delete ${record.metadata.name || 'host'}`,
+                danger: true,
+                type: 'text',
+                icon: React.createElement(DeleteOutlined),
+                onClick: event => {
+                  event.stopPropagation()
+                  onDelete(record)
+                },
+              }),
+            ),
         ),
     })
   }

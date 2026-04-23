@@ -16,19 +16,31 @@ jest.mock(
 
     return {
       ContentCard: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+      DeleteModal: ({ endpoint, name }: { endpoint: string; name: string }) => (
+        <div role="dialog">{`Delete modal ${name} ${endpoint}`}</div>
+      ),
       EnrichedTable: ({
+        columns,
         dataSource,
         onRow,
       }: {
+        columns?: any[]
         dataSource: Array<{ key: string; metadata: { name?: string } }>
         onRow?: (record: any) => { onClick?: () => void }
       }) => (
         <div data-testid="hosts-table">
-          {dataSource.map(record => (
-            <button key={record.key} onClick={onRow?.(record).onClick} type="button">
-              {record.metadata.name}
-            </button>
-          ))}
+          {dataSource.map(record => {
+            const actionsColumn = columns?.find(column => column.key === 'actions')
+
+            return (
+              <div key={record.key}>
+                <button onClick={onRow?.(record).onClick} type="button">
+                  {record.metadata.name}
+                </button>
+                {actionsColumn?.render?.(undefined, record)}
+              </div>
+            )
+          })}
         </div>
       ),
       useK8sSmartResource: (...args: unknown[]) => mockUseK8sSmartResource(...args),
@@ -105,6 +117,16 @@ describe('Hosts', () => {
     fireEvent.click(screen.getByRole('button', { name: /add host/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('Host form create')
+  })
+
+  it('opens delete modal from the table action', () => {
+    render(<Hosts cluster="cluster-a" namespace="tenant-a" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /delete host-a/i }))
+
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      'Delete modal tenant-a/host-a /api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/hosts/host-a',
+    )
   })
 
   it('shows a loading error', () => {

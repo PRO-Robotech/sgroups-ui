@@ -72,7 +72,9 @@ Rule.spec.session
 
 ## Edit modal
 
-The table actions column opens the same `UniRuleFormModal` for a selected Rule by passing it as the optional `rule` prop.
+The table actions column includes edit and delete actions.
+
+Edit opens the same `UniRuleFormModal` for a selected Rule by passing it as the optional `rule` prop.
 
 In edit mode:
 
@@ -93,6 +95,18 @@ Patched fields are currently:
 - `Rule.spec.endpoints.remote`
 - `Rule.spec.session`
 - `Rule.spec.transport`
+
+## Delete modal
+
+The table delete action opens the toolkit `DeleteModal`.
+
+The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
+
+```ts
+;/api/celrsstu / { cluster } / k8s / apis / sgroups.io / v1alpha1 / namespaces / { namespace } / rules / { name }
+```
+
+If the row namespace is missing, the current screen namespace is used as a fallback.
 
 ## Validation notes
 

@@ -38,8 +38,34 @@ export type TNamespacedResource = {
   }
 }
 
+export type TDeleteModalResource = {
+  key: string
+  name: string
+  endpoint: string
+}
+
 export const getApiEndpoint = (cluster: string, namespaceValue: string, plural: string) =>
   `/api/clusters/${cluster}/k8s/apis/${API_GROUP}/${API_VERSION}/namespaces/${namespaceValue}/${plural}`
+
+export const getDeleteModalResource = (
+  cluster: string,
+  fallbackNamespace: string | undefined,
+  plural: string,
+  resource: TNamespacedResource & { key: string },
+): TDeleteModalResource | null => {
+  const resourceName = resource.metadata.name
+  const resourceNamespace = resource.metadata.namespace || fallbackNamespace
+
+  if (!resourceName || !resourceNamespace) {
+    return null
+  }
+
+  return {
+    key: resource.key,
+    name: `${resourceNamespace}/${resourceName}`,
+    endpoint: `${getApiEndpoint(cluster, resourceNamespace, plural)}/${resourceName}`,
+  }
+}
 
 export const compactSpec = (spec: Record<string, string | boolean | undefined>) =>
   Object.fromEntries(Object.entries(spec).filter(([, value]) => value !== undefined && value !== ''))

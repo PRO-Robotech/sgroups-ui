@@ -2,9 +2,10 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
-import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
+import { getDeleteModalResource, TDeleteModalResource } from 'utils'
 import { HostFormModal, VerboseHostPanel } from './molecules'
 import { Styled } from './styled'
 import { buildHostsColumns, HOSTS_TABLE_PROPS, mapHostsToRows, THostResource, THostRow } from './tableConfig'
@@ -44,6 +45,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
   const [selectedHostKey, setSelectedHostKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [editingHost, setEditingHost] = useState<THostRow | null>(null)
+  const [deletingHost, setDeletingHost] = useState<TDeleteModalResource | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -84,7 +86,21 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
     setEditingHost(null)
   }, [])
 
-  const columns = useMemo(() => buildHostsColumns({ onEdit: openEditModal }), [openEditModal])
+  const openDeleteModal = useCallback(
+    (hostRecord: THostRow) => {
+      setDeletingHost(getDeleteModalResource(cluster || '', namespace, 'hosts', hostRecord))
+    },
+    [cluster, namespace],
+  )
+
+  const closeDeleteModal = useCallback(() => {
+    setDeletingHost(null)
+  }, [])
+
+  const columns = useMemo(
+    () => buildHostsColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
+    [openDeleteModal, openEditModal],
+  )
   const dataSource = useMemo(() => mapHostsToRows(hostsData?.items || []), [hostsData?.items])
   const selectedHost = useMemo(
     () => dataSource.find(item => item.key === selectedHostKey) || null,
@@ -256,6 +272,9 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
           open={isFormModalOpen}
           onClose={closeFormModal}
         />
+      )}
+      {deletingHost && (
+        <DeleteModal name={deletingHost.name} endpoint={deletingHost.endpoint} onClose={closeDeleteModal} />
       )}
     </ContentCard>
   )
