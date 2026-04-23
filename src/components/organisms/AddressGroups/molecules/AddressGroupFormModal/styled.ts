@@ -121,3 +121,21 @@ export const SwitchRow = styled.div`
   gap: 8px;
   margin: 16px 0;
 `
+
+export const Styled = {
+  ModalContent,
+  LoadingState,
+  FormColumn,
+  Header,
+  Overview,
+  OverviewTitle,
+  OverviewBody,
+  OverviewTree,
+  OverviewGroup,
+  OverviewGroupTitle,
+  OverviewBranch,
+  OverviewBranchTitle,
+  OverviewLeaf,
+  Count,
+  SwitchRow,
+}

@@ -110,3 +110,18 @@ export const PortsActions = styled.div`
   justify-content: flex-start;
   margin-top: 12px;
 `
+
+export const Styled = {
+  ModalContent,
+  LoadingState,
+  FormColumn,
+  Header,
+  SegmentedWrap,
+  Overview,
+  OverviewTitle,
+  OverviewBody,
+  OverviewEmpty,
+  TreeContainer,
+  Count,
+  PortsActions,
+}

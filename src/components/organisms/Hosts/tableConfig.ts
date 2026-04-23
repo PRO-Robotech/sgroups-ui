@@ -45,7 +45,7 @@ export type THostResource = {
     platformVersion?: string
     kernelVersion?: string
   }
-  ips: {
+  ips?: {
     IPv4?: string[]
     IPv6?: string[]
   }
