@@ -2,9 +2,10 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
-import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
+import { getDeleteModalResource, TDeleteModalResource } from 'utils'
 import { AddressGroupFormModal, VerboseAddressGroupPanel } from './molecules'
 import {
   ADDRESS_GROUPS_TABLE_PROPS,
@@ -15,11 +16,6 @@ import {
 } from './tableConfig'
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
 import { Styled } from './styled'
-
-const debugAddressGroups = (...args: unknown[]) => {
-  // eslint-disable-next-line no-console
-  console.log('[AddressGroups]', ...args)
-}
 
 const getExpandedVerboseWidth = (containerWidth?: number) => {
   if (!containerWidth) {
@@ -53,8 +49,9 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   const splitLayoutRef = useRef<HTMLDivElement>(null)
 
   const [selectedAddressGroupKey, setSelectedAddressGroupKey] = useState<string | null>(null)
-  const [isDummyModalOpen, setIsDummyModalOpen] = useState(false)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const [editingAddressGroup, setEditingAddressGroup] = useState<TAddressGroupRow | null>(null)
+  const [deletingAddressGroup, setDeletingAddressGroup] = useState<TDeleteModalResource | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -81,41 +78,35 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   })
 
   const openCreateModal = useCallback(() => {
-    debugAddressGroups('openCreateModal')
     setEditingAddressGroup(null)
-    setIsDummyModalOpen(true)
+    setIsModalOpen(true)
   }, [])
 
   const openEditModal = useCallback((addressGroup: TAddressGroupRow) => {
-    debugAddressGroups('openEditModal', {
-      key: addressGroup.key,
-      name: addressGroup.metadata.name,
-      namespace: addressGroup.metadata.namespace,
-    })
     setEditingAddressGroup(addressGroup)
-    setIsDummyModalOpen(true)
+    setIsModalOpen(true)
   }, [])
 
   const closeFormModal = useCallback(() => {
-    debugAddressGroups('closeFormModal')
-    setIsDummyModalOpen(false)
+    setIsModalOpen(false)
     setEditingAddressGroup(null)
   }, [])
 
-  useEffect(() => {
-    debugAddressGroups('modal state changed', {
-      isDummyModalOpen,
-      editingAddressGroup: editingAddressGroup
-        ? {
-            key: editingAddressGroup.key,
-            name: editingAddressGroup.metadata.name,
-            namespace: editingAddressGroup.metadata.namespace,
-          }
-        : null,
-    })
-  }, [editingAddressGroup, isDummyModalOpen])
+  const openDeleteModal = useCallback(
+    (addressGroup: TAddressGroupRow) => {
+      setDeletingAddressGroup(getDeleteModalResource(cluster || '', namespace, 'addressgroups', addressGroup))
+    },
+    [cluster, namespace],
+  )
 
-  const columns = useMemo(() => buildAddressGroupsColumns({ onEdit: openEditModal }), [openEditModal])
+  const closeDeleteModal = useCallback(() => {
+    setDeletingAddressGroup(null)
+  }, [])
+
+  const columns = useMemo(
+    () => buildAddressGroupsColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
+    [openDeleteModal, openEditModal],
+  )
   const dataSource = useMemo(() => mapAddressGroupsToRows(addressGroupsData?.items || []), [addressGroupsData?.items])
   const selectedAddressGroup = useMemo(
     () => dataSource.find(item => item.key === selectedAddressGroupKey) || null,
@@ -283,13 +274,20 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
           </Flex>
         )}
       </Flex>
-      {isDummyModalOpen && (
+      {isModalOpen && (
         <AddressGroupFormModal
           cluster={cluster}
           namespace={namespace}
           addressGroup={editingAddressGroup}
-          open={isDummyModalOpen}
+          open={isModalOpen}
           onClose={closeFormModal}
+        />
+      )}
+      {deletingAddressGroup && (
+        <DeleteModal
+          name={deletingAddressGroup.name}
+          endpoint={deletingAddressGroup.endpoint}
+          onClose={closeDeleteModal}
         />
       )}
     </ContentCard>

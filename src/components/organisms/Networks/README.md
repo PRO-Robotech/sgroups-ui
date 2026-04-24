@@ -40,7 +40,9 @@ The modal structure overview is derived from the selected AddressGroups and the 
 
 ## Edit modal
 
-The table actions column opens the same `NetworkFormModal` for a selected Network by passing it as the optional `network` prop.
+The table actions column includes edit and delete actions.
+
+Edit opens the same `NetworkFormModal` for a selected Network by passing it as the optional `network` prop.
 
 In edit mode:
 
@@ -52,6 +54,18 @@ In edit mode:
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Network namespace.
 - If no editable field changed and no binding changed, no update request is sent.
+
+## Delete modal
+
+The table delete action opens the toolkit `DeleteModal`.
+
+The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
+
+```ts
+;/api/celrsstu / { cluster } / k8s / apis / sgroups.io / v1alpha1 / namespaces / { namespace } / networks / { name }
+```
+
+If the row namespace is missing, the current screen namespace is used as a fallback.
 
 ## Modal lifecycle
 

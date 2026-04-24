@@ -100,3 +100,16 @@ export const Count = styled.span`
   font-size: 12px;
   line-height: 12px;
 `
+
+export const Styled = {
+  ModalContent,
+  LoadingState,
+  FormColumn,
+  Header,
+  Overview,
+  OverviewTitle,
+  OverviewBody,
+  OverviewEmpty,
+  TreeContainer,
+  Count,
+}

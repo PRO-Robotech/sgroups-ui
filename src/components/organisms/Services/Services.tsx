@@ -2,9 +2,10 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
-import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
+import { getDeleteModalResource, TDeleteModalResource } from 'utils'
 import { Styled } from './styled'
 import {
   buildServicesColumns,
@@ -50,6 +51,7 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
   const [selectedServiceKey, setSelectedServiceKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [editingService, setEditingService] = useState<TServiceRow | null>(null)
+  const [deletingService, setDeletingService] = useState<TDeleteModalResource | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -90,7 +92,21 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
     setEditingService(null)
   }, [])
 
-  const columns = useMemo(() => buildServicesColumns({ onEdit: openEditModal }), [openEditModal])
+  const openDeleteModal = useCallback(
+    (serviceRecord: TServiceRow) => {
+      setDeletingService(getDeleteModalResource(cluster || '', namespace, 'services', serviceRecord))
+    },
+    [cluster, namespace],
+  )
+
+  const closeDeleteModal = useCallback(() => {
+    setDeletingService(null)
+  }, [])
+
+  const columns = useMemo(
+    () => buildServicesColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
+    [openDeleteModal, openEditModal],
+  )
   const dataSource = useMemo(() => mapServicesToRows(servicesData?.items || []), [servicesData?.items])
   const selectedService = useMemo(
     () => dataSource.find(item => item.key === selectedServiceKey) || null,
@@ -262,6 +278,9 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
           open={isFormModalOpen}
           onClose={closeFormModal}
         />
+      )}
+      {deletingService && (
+        <DeleteModal name={deletingService.name} endpoint={deletingService.endpoint} onClose={closeDeleteModal} />
       )}
     </ContentCard>
   )

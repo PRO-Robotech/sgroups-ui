@@ -2,9 +2,10 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
-import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
+import { getDeleteModalResource, TDeleteModalResource } from 'utils'
 import { UniRuleFormModal, VerboseRulePanel } from './molecules'
 import { Styled } from './styled'
 import { buildRulesColumns, mapRulesToRows, RULES_TABLE_PROPS, TRuleResource, TRuleRow } from './tableConfig'
@@ -42,6 +43,7 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
   const [selectedRuleKey, setSelectedRuleKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<TRuleRow | null>(null)
+  const [deletingRule, setDeletingRule] = useState<TDeleteModalResource | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -82,7 +84,21 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
     setEditingRule(null)
   }, [])
 
-  const columns = useMemo(() => buildRulesColumns({ onEdit: openEditModal }), [openEditModal])
+  const openDeleteModal = useCallback(
+    (ruleRecord: TRuleRow) => {
+      setDeletingRule(getDeleteModalResource(cluster || '', namespace, 'rules', ruleRecord))
+    },
+    [cluster, namespace],
+  )
+
+  const closeDeleteModal = useCallback(() => {
+    setDeletingRule(null)
+  }, [])
+
+  const columns = useMemo(
+    () => buildRulesColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
+    [openDeleteModal, openEditModal],
+  )
   const dataSource = useMemo(() => mapRulesToRows(rulesData?.items || []), [rulesData?.items])
   const selectedRule = useMemo(
     () => dataSource.find(item => item.key === selectedRuleKey) || null,
@@ -258,6 +274,9 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
           open={isFormModalOpen}
           onClose={closeFormModal}
         />
+      )}
+      {deletingRule && (
+        <DeleteModal name={deletingRule.name} endpoint={deletingRule.endpoint} onClose={closeDeleteModal} />
       )}
     </ContentCard>
   )

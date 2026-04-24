@@ -2,9 +2,10 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
-import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { RootState } from 'store/store'
+import { getDeleteModalResource, TDeleteModalResource } from 'utils'
 import { Styled } from './styled'
 import {
   buildNetworksColumns,
@@ -50,6 +51,7 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [editingNetwork, setEditingNetwork] = useState<TNetworkRow | null>(null)
+  const [deletingNetwork, setDeletingNetwork] = useState<TDeleteModalResource | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
     if (typeof window === 'undefined') {
@@ -90,7 +92,21 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
     setEditingNetwork(null)
   }, [])
 
-  const columns = useMemo(() => buildNetworksColumns({ onEdit: openEditModal }), [openEditModal])
+  const openDeleteModal = useCallback(
+    (networkRecord: TNetworkRow) => {
+      setDeletingNetwork(getDeleteModalResource(cluster || '', namespace, 'networks', networkRecord))
+    },
+    [cluster, namespace],
+  )
+
+  const closeDeleteModal = useCallback(() => {
+    setDeletingNetwork(null)
+  }, [])
+
+  const columns = useMemo(
+    () => buildNetworksColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
+    [openDeleteModal, openEditModal],
+  )
   const dataSource = useMemo(() => mapNetworksToRows(networksData?.items || []), [networksData?.items])
   const selectedNetwork = useMemo(
     () => dataSource.find(item => item.key === selectedNetworkKey) || null,
@@ -266,6 +282,9 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
           open={isFormModalOpen}
           onClose={closeFormModal}
         />
+      )}
+      {deletingNetwork && (
+        <DeleteModal name={deletingNetwork.name} endpoint={deletingNetwork.endpoint} onClose={closeDeleteModal} />
       )}
     </ContentCard>
   )

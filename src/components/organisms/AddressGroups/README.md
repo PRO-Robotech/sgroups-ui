@@ -42,7 +42,9 @@ The modal structure overview is a single AddressGroup tree. It does not model lo
 
 ## Edit modal
 
-The table actions column can open the same `AddressGroupFormModal` for a selected AddressGroup by passing it as the optional `addressGroup` prop.
+The table actions column includes edit and delete actions.
+
+Edit opens the same `AddressGroupFormModal` for a selected AddressGroup by passing it as the optional `addressGroup` prop.
 
 In edit mode:
 
@@ -55,6 +57,27 @@ In edit mode:
 - In edit mode, namespace-scoped resource and binding queries must start from `addressGroup.metadata.namespace` immediately. Waiting for the form watcher alone causes partial prefills.
 - Edit prefill should run only once per modal open, after host/network/service binding queries are ready. Repeated partial `setFieldsValue` calls can leave AntD selects visually stuck on reopen.
 - Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview.
+
+## Delete modal
+
+The table delete action opens the toolkit `DeleteModal`.
+
+The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
+
+```ts
+;/api/celrsstu /
+  { cluster } /
+  k8s /
+  apis /
+  sgroups.io /
+  v1alpha1 /
+  namespaces /
+  { namespace } /
+  addressgroups /
+  { name }
+```
+
+If the row namespace is missing, the current screen namespace is used as a fallback.
 
 ## Modal lifecycle
 

@@ -1,15 +1,9 @@
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Collapse, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  createNewEntry,
-  patchEntryWithDeleteOp,
-  patchEntryWithReplaceOp,
-  TSingleResource,
-  useK8sSmartResource,
-} from '@prorobotech/openapi-k8s-toolkit'
+import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import {
   TAddressGroupResource,
   THostBindingResource,
@@ -19,506 +13,38 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { renderBadgeWithValue } from 'utils'
-import { buildRuleEndpointTree } from '../VerboseRulePanel/contentsTree'
-import { TRuleEndpoint, TRuleResource, TRuleRow } from '../../tableConfig'
 import {
-  Count,
-  EntryActions,
-  FormColumn,
-  Header,
-  LoadingState,
-  ModalContent,
-  Overview,
-  OverviewBody,
-  OverviewEmpty,
-  OverviewTitle,
-  SegmentedWrap,
-  TreeContainer,
-} from './styled'
-
-const API_GROUP = 'sgroups.io'
-const API_VERSION = 'v1alpha1'
-const API_RESOURCE_VERSION = `${API_GROUP}/${API_VERSION}`
-const NAME_PATTERN = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/
-const PORT_VALUE_SEPARATOR = /\s*,\s*/
-const HEX_GROUP_PATTERN = /^[0-9a-f]{1,4}$/i
-const FQDN_PATTERN = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i
-const ENDPOINT_TYPE_OPTIONS = [
-  { label: 'Address Group', value: 'AddressGroup' },
-  { label: 'Service', value: 'Service' },
-  { label: 'FQDN', value: 'FQDN' },
-  { label: 'CIDR', value: 'CIDR' },
-] as const
-const ACTION_OPTIONS = [
-  { label: 'Allow', value: 'Allow' },
-  { label: 'Deny', value: 'Deny' },
-] as const
-const TRAFFIC_OPTIONS = [
-  { label: 'Both', value: 'Both' },
-  { label: 'Ingress', value: 'Ingress' },
-  { label: 'Egress', value: 'Egress' },
-] as const
-const IPV_OPTIONS = [
-  { label: 'IPv4', value: 'IPv4' },
-  { label: 'IPv6', value: 'IPv6' },
-] as const
-const PROTOCOL_OPTIONS = [
-  { label: 'TCP', value: 'TCP' },
-  { label: 'UDP', value: 'UDP' },
-  { label: 'ICMP', value: 'ICMP' },
-] as const
-
-type TEndpointFormValues = {
-  type?: TRuleEndpoint['type']
-  namespace?: string
-  name?: string
-  value?: string
-}
-
-type TTransportEntryFormValue = {
-  ports?: string
-  types?: string[]
-  description?: string
-  comment?: string
-}
-
-type TUniRuleFormValues = {
-  namespace: string
-  name: string
-  displayName?: string
-  action: 'Allow' | 'Deny'
-  traffic?: 'Both' | 'Ingress' | 'Egress'
-  description?: string
-  comment?: string
-  local?: TEndpointFormValues
-  remote?: TEndpointFormValues
-  transportIPv?: 'IPv4' | 'IPv6'
-  transportProtocol?: 'TCP' | 'UDP' | 'ICMP'
-  transportEntries?: TTransportEntryFormValue[]
-}
-
-type TResourceOption = {
-  value: string
-  label: React.ReactNode
-  searchText: string
-}
-
-type TUniRuleFormModalProps = {
-  cluster: string
-  namespace?: string
-  open: boolean
-  rule?: TRuleRow | null
-  onClose: () => void
-}
-
-const getApiEndpoint = (cluster: string, namespaceValue: string, plural: string) =>
-  `/api/clusters/${cluster}/k8s/apis/${API_GROUP}/${API_VERSION}/namespaces/${namespaceValue}/${plural}`
-
-const normalizeOptionalString = (value?: string) => {
-  const trimmedValue = value?.trim()
-
-  return trimmedValue || undefined
-}
-
-const parseNamespacedValue = (value?: string) => {
-  if (!value) {
-    return {}
-  }
-
-  const [resourceNamespace, ...nameParts] = value.split('/')
-
-  return {
-    namespace: resourceNamespace,
-    name: nameParts.join('/'),
-  }
-}
-
-const getResourceOptions = (
-  items: Array<{ metadata: { name?: string; namespace?: string }; spec?: { displayName?: string } }> | undefined,
-  badgeLabel: 'Address Group' | 'Service',
-): TResourceOption[] =>
-  (items || [])
-    .reduce<TResourceOption[]>((acc, item) => {
-      const resourceName = item.metadata.name
-      const resourceNamespace = item.metadata.namespace
-
-      if (!resourceName || !resourceNamespace) {
-        return acc
-      }
-
-      const displayValue = `${resourceNamespace} / ${item.spec?.displayName || resourceName}`
-      acc.push({
-        value: `${resourceNamespace}/${resourceName}`,
-        label: renderBadgeWithValue(badgeLabel, displayValue),
-        searchText: `${resourceNamespace} ${resourceName} ${item.spec?.displayName || ''}`.trim(),
-      })
-
-      return acc
-    }, [])
-    .sort((first, second) => first.searchText.localeCompare(second.searchText))
-
-const getScopedResourceOptions = (options: TResourceOption[], selectedNamespace?: string) =>
-  selectedNamespace
-    ? options
-        .filter(option => option.value.startsWith(`${selectedNamespace}/`))
-        .map(option => ({
-          ...option,
-          value: parseNamespacedValue(option.value).name || option.value,
-        }))
-    : []
-
-const isValidIPv4 = (value: string) => {
-  const octets = value.split('.')
-
-  if (octets.length !== 4) {
-    return false
-  }
-
-  return octets.every(octet => {
-    if (!/^\d+$/.test(octet)) {
-      return false
-    }
-
-    if (octet.length > 1 && octet.startsWith('0')) {
-      return false
-    }
-
-    const parsedValue = Number(octet)
-
-    return Number.isInteger(parsedValue) && parsedValue >= 0 && parsedValue <= 255
-  })
-}
-
-const isValidIPv6 = (value: string) => {
-  if (!value || value.includes(':::')) {
-    return false
-  }
-
-  const doubleColonParts = value.split('::')
-
-  if (doubleColonParts.length > 2) {
-    return false
-  }
-
-  const parseGroups = (part: string) => {
-    if (!part) {
-      return []
-    }
-
-    return part.split(':')
-  }
-
-  const leftGroups = parseGroups(doubleColonParts[0])
-  const rightGroups = parseGroups(doubleColonParts[1] || '')
-  const allGroups = [...leftGroups, ...rightGroups]
-
-  if (allGroups.some(group => !HEX_GROUP_PATTERN.test(group))) {
-    return false
-  }
-
-  if (doubleColonParts.length === 1) {
-    return allGroups.length === 8
-  }
-
-  return allGroups.length < 8
-}
-
-const validateCIDR = (value?: string) => {
-  const normalizedValue = normalizeOptionalString(value)
-
-  if (!normalizedValue) {
-    return false
-  }
-
-  const separatorIndex = normalizedValue.lastIndexOf('/')
-
-  if (separatorIndex <= 0 || separatorIndex === normalizedValue.length - 1) {
-    return false
-  }
-
-  const addressPart = normalizedValue.slice(0, separatorIndex)
-  const prefixPart = normalizedValue.slice(separatorIndex + 1)
-
-  if (!/^\d+$/.test(prefixPart)) {
-    return false
-  }
-
-  const prefix = Number(prefixPart)
-
-  if (addressPart.includes('.')) {
-    return isValidIPv4(addressPart) && prefix >= 0 && prefix <= 32
-  }
-
-  if (addressPart.includes(':')) {
-    return isValidIPv6(addressPart) && prefix >= 0 && prefix <= 128
-  }
-
-  return false
-}
-
-const validatePortToken = (value: string) => {
-  if (!value) {
-    return false
-  }
-
-  const rangeMatch = value.match(/^(\d+)-(\d+)$/)
-
-  if (rangeMatch) {
-    const rangeStart = Number(rangeMatch[1])
-    const rangeEnd = Number(rangeMatch[2])
-
-    return (
-      Number.isInteger(rangeStart) &&
-      Number.isInteger(rangeEnd) &&
-      rangeStart >= 1 &&
-      rangeStart <= 65535 &&
-      rangeEnd >= 1 &&
-      rangeEnd <= 65535 &&
-      rangeStart <= rangeEnd
-    )
-  }
-
-  const port = Number(value)
-
-  return Number.isInteger(port) && port >= 1 && port <= 65535
-}
-
-const buildEndpointPayload = (endpoint?: TEndpointFormValues): TRuleEndpoint | undefined => {
-  if (!endpoint?.type) {
-    return undefined
-  }
-
-  if (endpoint.type === 'FQDN' || endpoint.type === 'CIDR') {
-    const value = normalizeOptionalString(endpoint.value)
-
-    return value
-      ? {
-          type: endpoint.type,
-          value,
-        }
-      : undefined
-  }
-
-  const name = normalizeOptionalString(endpoint.name)
-  const namespace = normalizeOptionalString(endpoint.namespace)
-
-  return name && namespace
-    ? {
-        type: endpoint.type,
-        name,
-        namespace,
-      }
-    : undefined
-}
-
-const buildTransportEntries = (entries?: TTransportEntryFormValue[]) =>
-  (entries || [])
-    .map(entry => {
-      const ports = normalizeOptionalString(entry.ports)
-      const types = (entry.types || [])
-        .map(item => Number(String(item).trim()))
-        .filter(item => Number.isInteger(item) && item >= 0 && item <= 255)
-
-      return {
-        ports,
-        types: types.length > 0 ? types : undefined,
-        description: normalizeOptionalString(entry.description),
-        comment: normalizeOptionalString(entry.comment),
-      }
-    })
-    .filter(entry => entry.ports || (entry.types && entry.types.length > 0) || entry.description || entry.comment)
-
-const buildTransportPayload = (values: TUniRuleFormValues) => {
-  const entries = buildTransportEntries(values.transportEntries)
-
-  if (!values.transportProtocol || !values.transportIPv || entries.length === 0) {
-    return undefined
-  }
-
-  return {
-    protocol: values.transportProtocol,
-    IPv: values.transportIPv,
-    entries,
-  }
-}
-
-const buildFormValuesFromRule = (rule?: TRuleResource | null): Partial<TUniRuleFormValues> => ({
-  namespace: rule?.metadata.namespace,
-  name: rule?.metadata.name,
-  displayName: rule?.spec?.displayName,
-  action: rule?.spec?.action || 'Allow',
-  traffic: rule?.spec?.session?.traffic,
-  description: rule?.spec?.description,
-  comment: rule?.spec?.comment,
-  local: {
-    type: rule?.spec?.endpoints?.local?.type,
-    namespace: rule?.spec?.endpoints?.local?.namespace,
-    name: rule?.spec?.endpoints?.local?.name,
-    value: rule?.spec?.endpoints?.local?.value,
-  },
-  remote: {
-    type: rule?.spec?.endpoints?.remote?.type,
-    namespace: rule?.spec?.endpoints?.remote?.namespace,
-    name: rule?.spec?.endpoints?.remote?.name,
-    value: rule?.spec?.endpoints?.remote?.value,
-  },
-  transportIPv: rule?.spec?.transport?.IPv,
-  transportProtocol: rule?.spec?.transport?.protocol,
-  transportEntries:
-    rule?.spec?.transport?.entries?.map(entry => ({
-      ports: entry.ports,
-      types: entry.types?.map(item => String(item)),
-      description: entry.description,
-      comment: entry.comment,
-    })) || [],
-})
-
-const buildOverviewTitle = (label: 'Local' | 'Remote', count: number) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-    <span>{label}</span>
-    <Count>{count}</Count>
-  </span>
-)
-
-const buildOverviewTreeData = ({
-  localTreeData,
-  remoteTreeData,
-}: {
-  localTreeData: TreeDataNode[]
-  remoteTreeData: TreeDataNode[]
-}): TreeDataNode[] => [
-  {
-    title: buildOverviewTitle('Local', localTreeData.length),
-    key: 'overview-local',
-    children: localTreeData,
-  },
-  {
-    title: buildOverviewTitle('Remote', remoteTreeData.length),
-    key: 'overview-remote',
-    children: remoteTreeData,
-  },
-]
-
-const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource, values: TUniRuleFormValues) => {
-  const patchRequests: Promise<unknown>[] = []
-  const normalizedCurrent = buildFormValuesFromRule(currentRule)
-  const nextLocal = buildEndpointPayload(values.local)
-  const nextRemote = buildEndpointPayload(values.remote)
-  const nextTransport = buildTransportPayload(values)
-  const nextTraffic = values.traffic || undefined
-
-  ;(
-    [
-      [
-        'displayName',
-        normalizeOptionalString(values.displayName),
-        normalizeOptionalString(currentRule.spec?.displayName),
-      ],
-      [
-        'description',
-        normalizeOptionalString(values.description),
-        normalizeOptionalString(currentRule.spec?.description),
-      ],
-      ['comment', normalizeOptionalString(values.comment), normalizeOptionalString(currentRule.spec?.comment)],
-    ] as const
-  ).forEach(([fieldName, nextValue, currentValue]) => {
-    if (nextValue === currentValue) {
-      return
-    }
-
-    if (nextValue === undefined) {
-      patchRequests.push(
-        patchEntryWithDeleteOp({
-          endpoint,
-          pathToValue: `/spec/${fieldName}`,
-        }),
-      )
-
-      return
-    }
-
-    patchRequests.push(
-      patchEntryWithReplaceOp({
-        endpoint,
-        pathToValue: `/spec/${fieldName}`,
-        body: nextValue,
-      }),
-    )
-  })
-
-  if (values.action !== currentRule.spec?.action) {
-    patchRequests.push(
-      patchEntryWithReplaceOp({
-        endpoint,
-        pathToValue: '/spec/action',
-        body: values.action,
-      }),
-    )
-  }
-
-  if (JSON.stringify(nextLocal) !== JSON.stringify(buildEndpointPayload(normalizedCurrent.local))) {
-    patchRequests.push(
-      patchEntryWithReplaceOp({
-        endpoint,
-        pathToValue: '/spec/endpoints/local',
-        body: nextLocal,
-      }),
-    )
-  }
-
-  if (JSON.stringify(nextRemote) !== JSON.stringify(buildEndpointPayload(normalizedCurrent.remote))) {
-    patchRequests.push(
-      patchEntryWithReplaceOp({
-        endpoint,
-        pathToValue: '/spec/endpoints/remote',
-        body: nextRemote,
-      }),
-    )
-  }
-
-  if (nextTraffic !== currentRule.spec?.session?.traffic) {
-    if (nextTraffic === undefined) {
-      patchRequests.push(
-        patchEntryWithDeleteOp({
-          endpoint,
-          pathToValue: '/spec/session',
-        }),
-      )
-    } else {
-      patchRequests.push(
-        patchEntryWithReplaceOp({
-          endpoint,
-          pathToValue: '/spec/session',
-          body: { traffic: nextTraffic },
-        }),
-      )
-    }
-  }
-
-  if (JSON.stringify(nextTransport) !== JSON.stringify(currentRule.spec?.transport)) {
-    if (nextTransport === undefined) {
-      patchRequests.push(
-        patchEntryWithDeleteOp({
-          endpoint,
-          pathToValue: '/spec/transport',
-        }),
-      )
-    } else {
-      patchRequests.push(
-        patchEntryWithReplaceOp({
-          endpoint,
-          pathToValue: '/spec/transport',
-          body: nextTransport,
-        }),
-      )
-    }
-  }
-
-  await Promise.all(patchRequests)
-
-  return patchRequests.length
-}
+  API_GROUP,
+  API_RESOURCE_VERSION,
+  API_VERSION,
+  FQDN_PATTERN,
+  getApiEndpoint,
+  getNamespacedResourceOptions,
+  getNamespaceOptions,
+  getScopedResourceOptions,
+  IPV_OPTIONS,
+  NAME_PATTERN,
+  normalizeOptionalString,
+  PORT_VALUE_SEPARATOR,
+  PROTOCOL_OPTIONS,
+  renderBadgeWithValue,
+  validateCIDR,
+  validatePortToken,
+} from 'utils'
+import { buildRuleEndpointTree } from '../VerboseRulePanel/contentsTree'
+import { TUniRuleFormModalProps, TUniRuleFormValues } from './types'
+import {
+  ACTION_OPTIONS,
+  buildEndpointPayload,
+  buildFormValuesFromRule,
+  buildOverviewTreeData,
+  buildTransportPayload,
+  ENDPOINT_TYPE_OPTIONS,
+  LOCAL_ENDPOINT_TYPE_OPTIONS,
+  patchRuleSpec,
+  TRAFFIC_OPTIONS,
+} from './utils'
+import { Styled } from './styled'
 
 export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespace, open, rule, onClose }) => {
   const [form] = Form.useForm<TUniRuleFormValues>()
@@ -614,20 +140,15 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     isEnabled: open,
   })
 
-  const namespaceOptions = useMemo(
-    () =>
-      (tenantsData?.items || [])
-        .map(item => item.metadata?.name)
-        .filter((value): value is string => Boolean(value))
-        .sort((first, second) => first.localeCompare(second))
-        .map(value => ({ value, label: value })),
-    [tenantsData?.items],
-  )
+  const namespaceOptions = useMemo(() => getNamespaceOptions(tenantsData?.items), [tenantsData?.items])
   const addressGroupOptions = useMemo(
-    () => getResourceOptions(addressGroupsData?.items, 'Address Group'),
+    () => getNamespacedResourceOptions(addressGroupsData?.items, 'Address Group'),
     [addressGroupsData?.items],
   )
-  const serviceOptions = useMemo(() => getResourceOptions(servicesData?.items, 'Service'), [servicesData?.items])
+  const serviceOptions = useMemo(
+    () => getNamespacedResourceOptions(servicesData?.items, 'Service'),
+    [servicesData?.items],
+  )
 
   const localType = formValues?.local?.type
   const remoteType = formValues?.remote?.type
@@ -860,18 +381,18 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       cancelText="Cancel"
       confirmLoading={isSubmitting}
       width="70vw"
-      destroyOnClose
+      destroyOnHidden
     >
-      <ModalContent>
+      <Styled.ModalContent>
         {isModalInitializing ? (
-          <LoadingState>
+          <Styled.LoadingState>
             <Spin size="large" />
-          </LoadingState>
+          </Styled.LoadingState>
         ) : (
           <>
-            <FormColumn>
-              <Header>{renderBadgeWithValue('UniRule', 'UniRule')}</Header>
-              <SegmentedWrap>
+            <Styled.FormColumn>
+              <Styled.Header>{renderBadgeWithValue('UniRule', 'UniRule')}</Styled.Header>
+              <Styled.SegmentedWrap>
                 <Segmented
                   options={[
                     { label: 'Info', value: 'info' },
@@ -880,7 +401,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   value={activeTab}
                   onChange={value => setActiveTab(value as 'info' | 'ports')}
                 />
-              </SegmentedWrap>
+              </Styled.SegmentedWrap>
               <Form<TUniRuleFormValues> form={form} layout="vertical" requiredMark>
                 <div style={{ display: activeTab === 'info' ? 'block' : 'none' }}>
                   <Form.Item
@@ -939,7 +460,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                               rules={[{ required: true, message: 'Select endpoint type' }]}
                             >
                               <Select
-                                options={ENDPOINT_TYPE_OPTIONS as unknown as { label: string; value: string }[]}
+                                options={LOCAL_ENDPOINT_TYPE_OPTIONS as unknown as { label: string; value: string }[]}
                                 onChange={() => {
                                   form.setFieldValue(['local', 'namespace'], undefined)
                                   form.setFieldValue(['local', 'name'], undefined)
@@ -1246,45 +767,45 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                             }
                           })}
                         />
-                        <EntryActions>
+                        <Styled.EntryActions>
                           <Button type="dashed" onClick={() => add({})}>
                             <PlusOutlined />
                             Add transport entry
                           </Button>
-                        </EntryActions>
+                        </Styled.EntryActions>
                       </>
                     )}
                   </Form.List>
                 </div>
               </Form>
-            </FormColumn>
-            <Overview>
-              <OverviewTitle>Structure Overview</OverviewTitle>
-              <OverviewBody>
+            </Styled.FormColumn>
+            <Styled.Overview>
+              <Styled.OverviewTitle>Structure Overview</Styled.OverviewTitle>
+              <Styled.OverviewBody>
                 {isOverviewLoading && <Spin />}
                 {!isOverviewLoading &&
                   !buildEndpointPayload(formValues?.local) &&
                   !buildEndpointPayload(formValues?.remote) && (
-                    <OverviewEmpty>
+                    <Styled.OverviewEmpty>
                       <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
-                    </OverviewEmpty>
+                    </Styled.OverviewEmpty>
                   )}
                 {!isOverviewLoading &&
                   (buildEndpointPayload(formValues?.local) || buildEndpointPayload(formValues?.remote)) && (
-                    <TreeContainer>
+                    <Styled.TreeContainer>
                       <Tree
                         showLine
                         switcherIcon={<CaretDownOutlined />}
                         defaultExpandAll
                         treeData={overviewTreeData}
                       />
-                    </TreeContainer>
+                    </Styled.TreeContainer>
                   )}
-              </OverviewBody>
-            </Overview>
+              </Styled.OverviewBody>
+            </Styled.Overview>
           </>
         )}
-      </ModalContent>
+      </Styled.ModalContent>
     </Modal>
   )
 }

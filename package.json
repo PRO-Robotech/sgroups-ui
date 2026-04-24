@@ -14,12 +14,15 @@
     "tsc": "tsc --project tsconfig.json",
     "lint:css": "stylelint ./src/**/styled.{js,ts} --fix",
     "lint:js": "eslint .",
-    "lint": "npm run lint:js && npm run lint:css && npm run tsc"
+    "lint": "npm run lint:js && npm run lint:css && npm run tsc",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "dependencies": {
     "@ant-design/icons": "5.6.0",
     "@originjs/vite-plugin-federation": "1.3.6",
-    "@prorobotech/openapi-k8s-toolkit": "1.5.0-alpha.1",
+    "@prorobotech/openapi-k8s-toolkit": "1.5.0-alpha.2",
     "@reduxjs/toolkit": "2.2.5",
     "@tanstack/react-query": "5.62.2",
     "@tanstack/react-query-devtools": "5.62.2",
@@ -47,6 +50,9 @@
   },
   "devDependencies": {
     "@stylelint/postcss-css-in-js": "0.38.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.3.0",
+    "@types/jest": "30.0.0",
     "@types/cors": "^2.8.19",
     "@types/jsonpath": "0.2.4",
     "@types/lodash": "4.17.13",
@@ -65,11 +71,15 @@
     "eslint-plugin-prettier": "5.0.0",
     "eslint-plugin-react": "7.33.2",
     "eslint-plugin-react-hooks": "4.6.0",
+    "jest": "30.2.0",
+    "jest-environment-jsdom": "30.2.0",
+    "jest-styled-components": "7.2.0",
     "postcss": "8.5.2",
     "postcss-styled-syntax": "0.7.1",
     "prettier": "3.0.2",
     "stylelint": "16.14.1",
     "stylelint-config-standard": "37.0.0",
+    "ts-jest": "29.4.6",
     "tsx": "4.19.2",
     "vite": "5.4.6",
     "vite-tsconfig-paths": "5.0.1"

@@ -1,396 +1,38 @@
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  createNewEntry,
-  deleteEntry,
-  patchEntryWithDeleteOp,
-  patchEntryWithReplaceOp,
-  TSingleResource,
-  useK8sSmartResource,
-} from '@prorobotech/openapi-k8s-toolkit'
-import { buildAddressGroupContentsTree } from 'components/organisms/AddressGroups/molecules/VerboseAddressGroupPanel/contentsTree'
+import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import {
   TAddressGroupResource,
-  TBindingBase,
   THostBindingResource,
   THostResource,
   TNetworkBindingResource,
   TNetworkResource,
   TServiceBindingResource,
 } from 'localTypes'
-import { renderBadgeWithValue } from 'utils'
-import { TServiceResource, TServiceRow } from '../../tableConfig'
-import { buildServiceTransports, flattenServiceTransports, normalizeServiceTransports } from './transportUtils'
 import {
-  Count,
-  FormColumn,
-  Header,
-  LoadingState,
-  ModalContent,
-  Overview,
-  OverviewBody,
-  OverviewEmpty,
-  OverviewTitle,
-  PortsActions,
-  SegmentedWrap,
-  TreeContainer,
-} from './styled'
-
-const API_GROUP = 'sgroups.io'
-const API_VERSION = 'v1alpha1'
-const API_RESOURCE_VERSION = `${API_GROUP}/${API_VERSION}`
-const NAME_PATTERN = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/
-const PORT_VALUE_SEPARATOR = /\s*,\s*/
-const IPV_OPTIONS = [
-  { label: 'IPv4', value: 'IPv4' },
-  { label: 'IPv6', value: 'IPv6' },
-] as const
-const PROTOCOL_OPTIONS = [
-  { label: 'TCP', value: 'TCP' },
-  { label: 'UDP', value: 'UDP' },
-  { label: 'ICMP', value: 'ICMP' },
-] as const
-
-type TServiceFormModalProps = {
-  cluster: string
-  namespace?: string
-  open: boolean
-  service?: TServiceRow | null
-  onClose: () => void
-}
-
-type TServiceFormValues = {
-  namespace: string
-  name: string
-  displayName?: string
-  addressGroups?: string[]
-  description?: string
-  comment?: string
-  transportEntries?: {
-    IPv?: 'IPv4' | 'IPv6'
-    protocol?: 'TCP' | 'UDP' | 'ICMP'
-    ports?: string
-    types?: string[]
-    description?: string
-    comment?: string
-  }[]
-}
-
-type TResourceOption = {
-  value: string
-  label: React.ReactNode
-  searchText: string
-}
-
-const getApiEndpoint = (cluster: string, namespaceValue: string, plural: string) =>
-  `/api/clusters/${cluster}/k8s/apis/${API_GROUP}/${API_VERSION}/namespaces/${namespaceValue}/${plural}`
-
-const normalizeOptionalString = (value?: string) => {
-  const trimmedValue = value?.trim()
-
-  return trimmedValue || undefined
-}
-
-const sanitizeBindingName = (value: string) => {
-  const sanitized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9-]/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 63)
-    .replace(/-$/g, '')
-
-  return sanitized || 'binding'
-}
-
-const buildBindingName = (serviceName: string, addressGroupNamespace: string, addressGroupName: string) =>
-  sanitizeBindingName(`${serviceName}-ag-${addressGroupNamespace}-${addressGroupName}`)
-
-const parseNamespacedValue = (value: string) => {
-  const [resourceNamespace, ...nameParts] = value.split('/')
-
-  return {
-    namespace: resourceNamespace,
-    name: nameParts.join('/'),
-  }
-}
-
-const buildNamespacedValue = (resource?: { namespace?: string; name?: string }) =>
-  resource?.name && resource?.namespace ? `${resource.namespace}/${resource.name}` : undefined
-
-const renderAddressGroupOptionLabel = (value: string) => renderBadgeWithValue('Address Group', value)
-
-const getAddressGroupOptions = (items?: TAddressGroupResource[]): TResourceOption[] =>
-  (items || [])
-    .reduce<TResourceOption[]>((acc, item) => {
-      const resourceName = item.metadata.name
-      const resourceNamespace = item.metadata.namespace
-
-      if (!resourceName || !resourceNamespace) {
-        return acc
-      }
-
-      const displayValue = `${resourceNamespace} / ${item.spec?.displayName || resourceName}`
-      acc.push({
-        value: `${resourceNamespace}/${resourceName}`,
-        label: renderAddressGroupOptionLabel(displayValue),
-        searchText: `${resourceNamespace} ${resourceName} ${item.spec?.displayName || ''}`.trim(),
-      })
-
-      return acc
-    }, [])
-    .sort((first, second) => first.searchText.localeCompare(second.searchText))
-
-const getBindingLookupKey = (resource?: { name?: string; namespace?: string }) =>
-  resource?.name ? `${resource.namespace || ''}/${resource.name}` : null
-
-const isSameService = (
-  resource: TServiceResource | null | undefined,
-  serviceRef?: { name?: string; namespace?: string },
-) => serviceRef?.name === resource?.metadata.name && serviceRef?.namespace === resource?.metadata.namespace
-
-const buildCurrentBindings = (
-  service: TServiceResource | null | undefined,
-  serviceBindings?: TServiceBindingResource[],
-) => (serviceBindings || []).filter(binding => isSameService(service, binding.spec?.service))
-
-const isBindingRelatedToSelectedAddressGroups = (binding: TBindingBase, selectedAddressGroupValues: string[]) => {
-  const relatedValue = buildNamespacedValue(binding.spec?.addressGroup)
-
-  return relatedValue ? selectedAddressGroupValues.includes(relatedValue) : false
-}
-
-const buildOverviewTitle = (addressGroup?: TAddressGroupResource, value?: string, bindingsCount?: number) => {
-  const parsedValue = value ? parseNamespacedValue(value) : undefined
-  const displayName = addressGroup?.spec?.displayName || addressGroup?.metadata.name || parsedValue?.name || 'Unknown'
-
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-      {renderBadgeWithValue('Address Group', displayName)}
-      <Count>{bindingsCount || 0}</Count>
-    </span>
-  )
-}
-
-const buildOverviewTreeData = ({
-  addressGroups,
-  selectedAddressGroupValues,
-  hostBindings,
-  networkBindings,
-  serviceBindings,
-  hosts,
-  networks,
-  services,
-}: {
-  addressGroups?: TAddressGroupResource[]
-  selectedAddressGroupValues: string[]
-  hostBindings?: THostBindingResource[]
-  networkBindings?: TNetworkBindingResource[]
-  serviceBindings?: TServiceBindingResource[]
-  hosts?: THostResource[]
-  networks?: TNetworkResource[]
-  services?: TServiceResource[]
-}): TreeDataNode[] => {
-  const addressGroupsByKey = Object.fromEntries(
-    (addressGroups || []).map(addressGroup => [
-      buildNamespacedValue({
-        namespace: addressGroup.metadata.namespace,
-        name: addressGroup.metadata.name,
-      }),
-      addressGroup,
-    ]),
-  )
-
-  return selectedAddressGroupValues.map(selectedValue => {
-    const parsedValue = parseNamespacedValue(selectedValue)
-    const addressGroup = addressGroupsByKey[selectedValue]
-    const relatedHostBindings = (hostBindings || []).filter(binding =>
-      isBindingRelatedToSelectedAddressGroups(binding, [selectedValue]),
-    )
-    const relatedNetworkBindings = (networkBindings || []).filter(binding =>
-      isBindingRelatedToSelectedAddressGroups(binding, [selectedValue]),
-    )
-    const relatedServiceBindings = (serviceBindings || []).filter(binding =>
-      isBindingRelatedToSelectedAddressGroups(binding, [selectedValue]),
-    )
-
-    const branches = buildAddressGroupContentsTree({
-      addressGroupName: parsedValue.name,
-      addressGroupNamespace: parsedValue.namespace,
-      hostBindings: relatedHostBindings,
-      networkBindings: relatedNetworkBindings,
-      serviceBindings: relatedServiceBindings,
-      hosts,
-      networks,
-      services,
-    })
-
-    return {
-      title: buildOverviewTitle(
-        addressGroup,
-        selectedValue,
-        relatedHostBindings.length + relatedNetworkBindings.length + relatedServiceBindings.length,
-      ),
-      key: `overview-${selectedValue}`,
-      children: branches,
-    }
-  })
-}
-
-const validatePortToken = (value: string) => {
-  if (!value) {
-    return false
-  }
-
-  const rangeMatch = value.match(/^(\d+)-(\d+)$/)
-
-  if (rangeMatch) {
-    const rangeStart = Number(rangeMatch[1])
-    const rangeEnd = Number(rangeMatch[2])
-
-    return (
-      Number.isInteger(rangeStart) &&
-      Number.isInteger(rangeEnd) &&
-      rangeStart >= 1 &&
-      rangeStart <= 65535 &&
-      rangeEnd >= 1 &&
-      rangeEnd <= 65535 &&
-      rangeStart <= rangeEnd
-    )
-  }
-
-  const port = Number(value)
-
-  return Number.isInteger(port) && port >= 1 && port <= 65535
-}
-
-const patchEditableSpec = async (endpoint: string, service: TServiceResource, values: TServiceFormValues) => {
-  const patchRequests: Promise<unknown>[] = []
-
-  ;(
-    [
-      ['displayName', normalizeOptionalString(values.displayName)],
-      ['description', normalizeOptionalString(values.description)],
-      ['comment', normalizeOptionalString(values.comment)],
-    ] as const
-  ).forEach(([fieldName, nextValue]) => {
-    const currentValue = normalizeOptionalString(service.spec?.[fieldName])
-
-    if (nextValue === currentValue) {
-      return
-    }
-
-    if (nextValue === undefined) {
-      patchRequests.push(
-        patchEntryWithDeleteOp({
-          endpoint,
-          pathToValue: `/spec/${fieldName}`,
-        }),
-      )
-
-      return
-    }
-
-    patchRequests.push(
-      patchEntryWithReplaceOp({
-        endpoint,
-        pathToValue: `/spec/${fieldName}`,
-        body: nextValue,
-      }),
-    )
-  })
-
-  const nextTransports = buildServiceTransports(values.transportEntries)
-  const currentTransports = normalizeServiceTransports(service.spec?.transports)
-
-  if (JSON.stringify(nextTransports) !== JSON.stringify(currentTransports)) {
-    if (nextTransports.length === 0) {
-      patchRequests.push(
-        patchEntryWithDeleteOp({
-          endpoint,
-          pathToValue: '/spec/transports',
-        }),
-      )
-    } else {
-      patchRequests.push(
-        patchEntryWithReplaceOp({
-          endpoint,
-          pathToValue: '/spec/transports',
-          body: nextTransports,
-        }),
-      )
-    }
-  }
-
-  await Promise.all(patchRequests)
-
-  return patchRequests.length
-}
-
-const syncAddressGroupBindings = async (
-  cluster: string,
-  serviceIdentifier: { name: string; namespace: string },
-  values: TServiceFormValues,
-  currentBindings: TServiceBindingResource[],
-) => {
-  const requestedAddressGroups = new Set(values.addressGroups || [])
-  const currentAddressGroups = new Set(
-    currentBindings
-      .map(binding => getBindingLookupKey(binding.spec?.addressGroup))
-      .filter((value): value is string => Boolean(value)),
-  )
-
-  const createBindings = [...requestedAddressGroups]
-    .filter(resourceValue => !currentAddressGroups.has(resourceValue))
-    .map(resourceValue => {
-      const addressGroup = parseNamespacedValue(resourceValue)
-
-      return createNewEntry({
-        endpoint: getApiEndpoint(cluster, values.namespace, 'servicebindings'),
-        body: {
-          apiVersion: API_RESOURCE_VERSION,
-          kind: 'ServiceBinding',
-          metadata: {
-            name: buildBindingName(values.name, addressGroup.namespace, addressGroup.name),
-            namespace: values.namespace,
-          },
-          spec: {
-            addressGroup,
-            service: serviceIdentifier,
-            description: values.description,
-            comment: values.comment,
-          },
-        },
-      })
-    })
-
-  const deleteBindings = currentBindings
-    .filter(binding => {
-      const addressGroupValue = getBindingLookupKey(binding.spec?.addressGroup)
-
-      if (!addressGroupValue || !binding.metadata.name) {
-        return false
-      }
-
-      return !requestedAddressGroups.has(addressGroupValue)
-    })
-    .map(binding =>
-      deleteEntry({
-        endpoint: `${getApiEndpoint(cluster, binding.metadata.namespace || values.namespace, 'servicebindings')}/${
-          binding.metadata.name
-        }`,
-      }),
-    )
-
-  const requests = [...createBindings, ...deleteBindings]
-
-  await Promise.all(requests)
-
-  return requests.length
-}
+  API_GROUP,
+  API_RESOURCE_VERSION,
+  API_VERSION,
+  buildNamespacedValue,
+  getAddressGroupOptions,
+  getApiEndpoint,
+  getNamespaceOptions,
+  IPV_OPTIONS,
+  NAME_PATTERN,
+  normalizeOptionalString,
+  PORT_VALUE_SEPARATOR,
+  PROTOCOL_OPTIONS,
+  renderBadgeWithValue,
+  validatePortToken,
+} from 'utils'
+import { TServiceResource } from '../../tableConfig'
+import { buildServiceTransports, flattenServiceTransports } from './transportUtils'
+import { TServiceFormModalProps, TServiceFormValues } from './types'
+import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAddressGroupBindings } from './utils'
+import { Styled } from './styled'
 
 export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespace, open, service, onClose }) => {
   const [form] = Form.useForm<TServiceFormValues>()
@@ -489,15 +131,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     isEnabled: open,
   })
 
-  const namespaceOptions = useMemo(
-    () =>
-      (tenantsData?.items || [])
-        .map(item => item.metadata?.name)
-        .filter((value): value is string => Boolean(value))
-        .sort((first, second) => first.localeCompare(second))
-        .map(value => ({ value, label: value })),
-    [tenantsData?.items],
-  )
+  const namespaceOptions = useMemo(() => getNamespaceOptions(tenantsData?.items), [tenantsData?.items])
   const addressGroupOptions = useMemo(
     () => getAddressGroupOptions(addressGroupsData?.items),
     [addressGroupsData?.items],
@@ -702,18 +336,18 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       cancelText="Cancel"
       confirmLoading={isSubmitting}
       width="70vw"
-      destroyOnClose
+      destroyOnHidden
     >
-      <ModalContent>
+      <Styled.ModalContent>
         {isModalInitializing ? (
-          <LoadingState>
+          <Styled.LoadingState>
             <Spin size="large" />
-          </LoadingState>
+          </Styled.LoadingState>
         ) : (
           <>
-            <FormColumn>
-              <Header>{renderBadgeWithValue('Service', 'Service')}</Header>
-              <SegmentedWrap>
+            <Styled.FormColumn>
+              <Styled.Header>{renderBadgeWithValue('Service', 'Service')}</Styled.Header>
+              <Styled.SegmentedWrap>
                 <Segmented
                   options={[
                     { label: 'Info', value: 'info' },
@@ -722,7 +356,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   value={activeTab}
                   onChange={value => setActiveTab(value as 'info' | 'ports')}
                 />
-              </SegmentedWrap>
+              </Styled.SegmentedWrap>
               <Form<TServiceFormValues> form={form} layout="vertical" requiredMark>
                 <div style={{ display: activeTab === 'info' ? 'block' : 'none' }}>
                   <Form.Item
@@ -923,7 +557,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                             </div>
                           )
                         })}
-                        <PortsActions>
+                        <Styled.PortsActions>
                           <Button
                             type="dashed"
                             onClick={() =>
@@ -936,32 +570,32 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                             <PlusOutlined />
                             Add transport entry
                           </Button>
-                        </PortsActions>
+                        </Styled.PortsActions>
                       </>
                     )}
                   </Form.List>
                 </div>
               </Form>
-            </FormColumn>
-            <Overview>
-              <OverviewTitle>Structure Overview</OverviewTitle>
-              <OverviewBody>
+            </Styled.FormColumn>
+            <Styled.Overview>
+              <Styled.OverviewTitle>Structure Overview</Styled.OverviewTitle>
+              <Styled.OverviewBody>
                 {isOverviewLoading && <Spin />}
                 {!isOverviewLoading && selectedAddressGroups.length === 0 && (
-                  <OverviewEmpty>
+                  <Styled.OverviewEmpty>
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
-                  </OverviewEmpty>
+                  </Styled.OverviewEmpty>
                 )}
                 {!isOverviewLoading && selectedAddressGroups.length > 0 && (
-                  <TreeContainer>
+                  <Styled.TreeContainer>
                     <Tree showLine switcherIcon={<CaretDownOutlined />} defaultExpandAll treeData={overviewTreeData} />
-                  </TreeContainer>
+                  </Styled.TreeContainer>
                 )}
-              </OverviewBody>
-            </Overview>
+              </Styled.OverviewBody>
+            </Styled.Overview>
           </>
         )}
-      </ModalContent>
+      </Styled.ModalContent>
     </Modal>
   )
 }
