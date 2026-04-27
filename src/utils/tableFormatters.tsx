@@ -112,7 +112,11 @@ export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode) =>
       },
     },
     renderBadge(badgeValue),
-    React.createElement('span', { style: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' } }, value || EMPTY_VALUE),
+    React.createElement(
+      'span',
+      { style: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' } },
+      value || EMPTY_VALUE,
+    ),
   )
 
 export const renderNamespaceBadgeWithValue = (value?: string) => renderBadgeWithValue('Namespace', value)

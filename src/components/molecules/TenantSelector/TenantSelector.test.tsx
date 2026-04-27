@@ -40,7 +40,7 @@ jest.mock('antd', () => {
       disabled?: boolean
       loading?: boolean
       onChange: (value: string) => void
-      options: Array<{ label: string; value: string }>
+      options: Array<{ label: React.ReactNode; value: string }>
       placeholder?: string
       value?: string
     }) => (
@@ -53,7 +53,7 @@ jest.mock('antd', () => {
       >
         {options.map(option => (
           <option key={option.value} value={option.value}>
-            {option.label}
+            {typeof option.label === 'string' ? option.label : option.value}
           </option>
         ))}
       </select>
@@ -100,7 +100,11 @@ describe('TenantSelector', () => {
       plural: 'tenants',
     })
     expect(screen.getByLabelText('Tenant')).toHaveAttribute('data-loading', 'true')
-    expect(screen.getAllByRole('option').map(option => option.textContent)).toEqual(['All Tenants', 'alpha', 'zeta'])
+    expect(screen.getAllByRole('option').map(option => option.getAttribute('value'))).toEqual([
+      '__all_tenants__',
+      'alpha',
+      'zeta',
+    ])
   })
 
   it('inserts the selected tenant after the cluster segment and preserves search params', () => {
