@@ -92,7 +92,7 @@ describe('UniRuleFormModal', () => {
             metadata: { namespace: 'tenant-a', name: 'rule-a' },
             spec: {
               action: 'Allow',
-              session: { traffic: 'Both' },
+              session: { traffic: 'both' },
               endpoints: {
                 local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
                 remote: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },

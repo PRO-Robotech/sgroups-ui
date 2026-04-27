@@ -95,4 +95,22 @@ describe('ServiceFormModal', () => {
     expect(mockMessage.success).toHaveBeenCalledWith('Service created')
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('blocks create when service display name exceeds backend limit', async () => {
+    const onClose = jest.fn()
+
+    renderModal(<ServiceFormModal cluster="cluster-a" namespace="tenant-a" open onClose={onClose} />)
+
+    fireEvent.change(await screen.findByPlaceholderText('e.g. h-api-prod-01'), {
+      target: { value: 'svc-new' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('e.g. api-gateway'), {
+      target: { value: 'a'.repeat(64) },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Display name must be 63 characters or less')).toBeInTheDocument()
+    expect(mockCreateNewEntry).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+  })
 })

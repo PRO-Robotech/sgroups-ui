@@ -2,7 +2,13 @@ import { Button, Space, TableProps, Tag, Tooltip } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
 import React from 'react'
-import { formatBooleanFlag, formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
+import {
+  formatBooleanFlag,
+  formatDateTime,
+  renderBadgeWithValue,
+  renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
+} from 'utils'
 
 export type TAddressGroupRef = {
   kind?: string
@@ -110,7 +116,7 @@ export const buildAddressGroupsColumns = ({
       key: 'namespace',
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-      render: value => renderBadgeWithValue('Namespace', value),
+      render: value => renderNamespaceBadgeWithValue(value),
     },
     {
       title: 'Display Name',

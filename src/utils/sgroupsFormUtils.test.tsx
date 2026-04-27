@@ -1,3 +1,5 @@
+import React from 'react'
+import { render, screen } from '@testing-library/react'
 import {
   buildNamespacedValue,
   compactSpec,
@@ -14,6 +16,7 @@ import {
   runSequentialRequests,
   sanitizeBindingName,
   validateCIDR,
+  validateNetworkCIDR,
   validatePortToken,
 } from './sgroupsFormUtils'
 
@@ -77,12 +80,16 @@ describe('sgroupsFormUtils', () => {
   })
 
   it('builds sorted namespace and namespaced resource options', () => {
-    expect(
-      getNamespaceOptions([{ metadata: { name: 'zeta' } }, { metadata: {} }, { metadata: { name: 'alpha' } }]),
-    ).toEqual([
-      { value: 'alpha', label: 'alpha' },
-      { value: 'zeta', label: 'zeta' },
+    const namespaceOptions = getNamespaceOptions([
+      { metadata: { name: 'zeta' } },
+      { metadata: {} },
+      { metadata: { name: 'alpha' } },
     ])
+
+    expect(namespaceOptions.map(option => option.value)).toEqual(['alpha', 'zeta'])
+    render(<div>{namespaceOptions[0].label}</div>)
+    expect(screen.getByText('N')).toBeInTheDocument()
+    expect(screen.getByText('alpha')).toBeInTheDocument()
 
     const options = getNamespacedResourceOptions(
       [
@@ -110,6 +117,18 @@ describe('sgroupsFormUtils', () => {
       ),
     ).toEqual([{ value: 'ag-a', label: 'A', searchText: 'tenant-a ag-a' }])
     expect(getScopedResourceOptions([], undefined)).toEqual([])
+
+    const scopedOptions = getScopedResourceOptions(
+      getNamespacedResourceOptions(
+        [{ metadata: { namespace: 'tenant-a', name: 'service-a' }, spec: { displayName: 'Service A' } }],
+        'Service',
+      ),
+      'tenant-a',
+    )
+
+    render(<div>{scopedOptions[0].label}</div>)
+    expect(screen.getByText('Service A')).toBeInTheDocument()
+    expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
   })
 
   it('validates Kubernetes names and FQDNs with exported patterns', () => {
@@ -133,6 +152,17 @@ describe('sgroupsFormUtils', () => {
     expect(validateCIDR('2001:db8:::/64')).toBe(false)
     expect(validateCIDR('not-a-cidr')).toBe(false)
     expect(validateCIDR('   ')).toBe(false)
+  })
+
+  it('validates network CIDRs with zero host bits', () => {
+    expect(validateNetworkCIDR('10.0.0.0/8')).toBe(true)
+    expect(validateNetworkCIDR('0.0.0.0/0')).toBe(true)
+    expect(validateNetworkCIDR('192.168.1.0/24')).toBe(true)
+    expect(validateNetworkCIDR('2001:db8::/64')).toBe(true)
+    expect(validateNetworkCIDR('::/0')).toBe(true)
+    expect(validateNetworkCIDR('5.5.5.5/8')).toBe(false)
+    expect(validateNetworkCIDR('::1/8')).toBe(false)
+    expect(validateNetworkCIDR('1.1.1.1')).toBe(false)
   })
 
   it('validates port tokens and comma-separated separators', () => {

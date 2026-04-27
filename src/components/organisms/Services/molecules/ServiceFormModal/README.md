@@ -22,6 +22,20 @@ The form stores UI-friendly values:
 
 The submit handler validates and reads the full form store, including fields hidden behind the segmented panel.
 
+## Validation
+
+The modal uses AntD form rules for backend-backed constraints:
+
+- `namespace`: required Kubernetes resource namespace, max 63 chars.
+- `name`: required Kubernetes resource name, max 63 chars.
+- `displayName`: optional, max 63 chars.
+- `transportEntries[].IPv`: required, must be `IPv4` or `IPv6`.
+- `transportEntries[].protocol`: required, must be `TCP`, `UDP`, or `ICMP`.
+- `transportEntries[].ports`: required for `TCP` and `UDP`; accepts comma-separated ports and ranges.
+- `transportEntries[].types`: used for `ICMP`; accepts numeric values from `0` to `255`.
+
+The local `v2` and `v3sgroups` OpenAPI ServiceSpec declares service text fields as strings and transport enums for IP family and protocol. The display-name length comes from the extracted backend validator in `tmp`; `description` and `comment` currently have no stricter documented limits.
+
 ## Create Flow
 
 Create submits the Service first, then creates one `ServiceBinding` per selected AddressGroup.
@@ -63,6 +77,6 @@ Transport entries support `TCP`, `UDP`, and `ICMP`.
 
 ## Lifecycle
 
-The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnClose` and resets refs/state after close.
+The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
 Edit prefill should run once per open cycle after the full async resource set is ready. Keep segmented panel state independent from shared overview data so hidden panel fields do not break submit or overview rendering.

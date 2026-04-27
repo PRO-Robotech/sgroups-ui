@@ -20,6 +20,18 @@ The form stores UI-friendly values:
 
 Do not write `AddressGroup.refs` from this modal. It is backend-computed data.
 
+## Validation
+
+AntD form validation mirrors the local `v2`/`v3sgroups` schema and backend validation from `tmp/sgroups`:
+
+- `namespace`: required Kubernetes resource name, max 63 characters.
+- `name`: required Kubernetes resource name, max 63 characters.
+- `displayName`: optional, max 63 characters.
+- `defaultAction`: controlled by the Allow access switch and submitted as `Allow` or `Deny`.
+- `description` and `comment`: optional strings. The current schema does not define stricter client-side limits for these fields.
+
+Validation failures should stop submit before any create, patch, or binding request is sent.
+
 ## Create Flow
 
 Create submits the AddressGroup first, then creates selected bindings:

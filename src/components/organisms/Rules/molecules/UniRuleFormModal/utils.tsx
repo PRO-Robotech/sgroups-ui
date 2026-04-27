@@ -1,6 +1,6 @@
 import type { TreeDataNode } from 'antd'
 import { patchEntryWithDeleteOp, patchEntryWithReplaceOp } from '@prorobotech/openapi-k8s-toolkit'
-import { normalizeOptionalString, runSequentialRequests } from 'utils'
+import { normalizeOptionalString, normalizeTrafficValue, runSequentialRequests } from 'utils'
 import { TRuleEndpoint, TRuleResource } from '../../tableConfig'
 import { Styled } from './styled'
 import { TEndpointFormValues, TTransportEntryFormValue, TUniRuleFormValues } from './types'
@@ -22,9 +22,9 @@ export const ACTION_OPTIONS = [
 ] as const
 
 export const TRAFFIC_OPTIONS = [
-  { label: 'Both', value: 'Both' },
-  { label: 'Ingress', value: 'Ingress' },
-  { label: 'Egress', value: 'Egress' },
+  { label: 'Both', value: 'both' },
+  { label: 'Ingress', value: 'ingress' },
+  { label: 'Egress', value: 'egress' },
 ] as const
 
 export const buildEndpointPayload = (endpoint?: TEndpointFormValues): TRuleEndpoint | undefined => {
@@ -91,7 +91,7 @@ export const buildFormValuesFromRule = (rule?: TRuleResource | null): Partial<TU
   name: rule?.metadata.name,
   displayName: rule?.spec?.displayName,
   action: rule?.spec?.action || 'Allow',
-  traffic: rule?.spec?.session?.traffic,
+  traffic: normalizeTrafficValue(rule?.spec?.session?.traffic),
   description: rule?.spec?.description,
   comment: rule?.spec?.comment,
   local: {
@@ -149,7 +149,8 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
   const nextLocal = buildEndpointPayload(values.local)
   const nextRemote = buildEndpointPayload(values.remote)
   const nextTransport = buildTransportPayload(values)
-  const nextTraffic = values.traffic || undefined
+  const nextTraffic = normalizeTrafficValue(values.traffic)
+  const currentTraffic = normalizeTrafficValue(currentRule.spec?.session?.traffic)
 
   ;(
     [
@@ -220,7 +221,7 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
     )
   }
 
-  if (nextTraffic !== currentRule.spec?.session?.traffic) {
+  if (nextTraffic !== currentTraffic) {
     if (nextTraffic === undefined) {
       patchRequests.push(() =>
         patchEntryWithDeleteOp({

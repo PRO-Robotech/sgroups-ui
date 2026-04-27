@@ -33,7 +33,6 @@ describe('buildRuleEndpointTree', () => {
 
     expect(tree).toEqual([
       expect.objectContaining({
-        title: 'Service A (tenant-a)',
         key: 'service-endpoint',
         children: [
           expect.objectContaining({
@@ -56,7 +55,6 @@ describe('buildRuleEndpointTree', () => {
       }),
     ).toEqual([
       expect.objectContaining({
-        title: 'svc-a (tenant-a)',
         key: 'service-endpoint',
         children: [{ title: 'Not found', key: 'service-endpoint-status', isLeaf: true }],
       }),
@@ -69,7 +67,6 @@ describe('buildRuleEndpointTree', () => {
       }),
     ).toEqual([
       expect.objectContaining({
-        title: 'svc-a (tenant-a)',
         children: [{ title: 'Error while fetching', key: 'service-endpoint-status', isLeaf: true }],
       }),
     ])
@@ -134,7 +131,7 @@ describe('buildRuleEndpointTree', () => {
     const addressGroupNode = tree[0]
     const branches = addressGroupNode.children || []
 
-    expect(addressGroupNode).toEqual(expect.objectContaining({ title: 'Address Group A (tenant-a)' }))
+    expect(addressGroupNode).toEqual(expect.objectContaining({ key: 'address-group-endpoint' }))
     expect(branches.map(branch => branch.key)).toEqual(['rule-hosts-root', 'rule-networks-root', 'rule-services-root'])
     expect(branches[0].children?.[0]).toEqual(
       expect.objectContaining({
@@ -142,7 +139,6 @@ describe('buildRuleEndpointTree', () => {
         key: 'host-binding-tenant-a-host-binding-a',
         children: [
           expect.objectContaining({
-            title: 'Host A (tenant-a)',
             children: [{ title: '10.0.0.10', key: 'host-binding-tenant-a-host-binding-a-10.0.0.10', isLeaf: true }],
           }),
         ],
@@ -154,7 +150,6 @@ describe('buildRuleEndpointTree', () => {
         key: 'network-binding-tenant-a-network-binding-a',
         children: [
           expect.objectContaining({
-            title: 'Network A (tenant-a)',
             children: [{ title: '10.0.0.0/24', key: 'network-binding-tenant-a-network-binding-a-cidr', isLeaf: true }],
           }),
         ],
@@ -166,7 +161,6 @@ describe('buildRuleEndpointTree', () => {
         key: 'service-binding-tenant-a-service-binding-a',
         children: [
           expect.objectContaining({
-            title: 'Service A (tenant-a)',
             children: [
               expect.objectContaining({
                 title: 'TCP / IPv4',
@@ -189,7 +183,6 @@ describe('buildRuleEndpointTree', () => {
       }),
     ).toEqual([
       expect.objectContaining({
-        title: 'ag-a (tenant-a)',
         key: 'address-group-endpoint',
         children: [{ title: 'Not found', key: 'address-group-endpoint-status', isLeaf: true }],
       }),
@@ -202,7 +195,6 @@ describe('buildRuleEndpointTree', () => {
       }),
     ).toEqual([
       expect.objectContaining({
-        title: 'ag-a (tenant-a)',
         children: [{ title: 'Error while fetching', key: 'address-group-endpoint-status', isLeaf: true }],
       }),
     ])

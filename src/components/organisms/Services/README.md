@@ -8,7 +8,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 
 - `Namespace`: required. Service namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
-- `Display name`: optional.
+- `Display name`: optional, max 63 chars.
 - `Address group`: optional multi-select. Loaded from all namespaces and displayed as `namespace / displayName-or-name`.
 - `Description`: optional.
 - `Comment`: optional.
@@ -74,7 +74,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 ## Schema source
 
-The implementation follows the local `v2` OpenAPI dump for `sgroups.io/v1alpha1` resources.
+Use the local `v2` and `v3sgroups` OpenAPI dumps for the Kubernetes resource shape. For field validation gaps not emitted into the OpenAPI schema, use the extracted backend sources in `tmp`.
 
 Relevant fields:
 
@@ -84,3 +84,13 @@ Relevant fields:
 - `Service.spec.transports`
 - `ServiceBinding.spec.addressGroup`
 - `ServiceBinding.spec.service`
+
+Validation notes:
+
+- `Service.metadata.name` and `Service.metadata.namespace` follow the backend resource-name regex: lower-case alphanumeric or `-`, start/end with alphanumeric, max 63 chars.
+- `Service.spec.displayName` is limited to 63 characters by the backend `DisplayName` validator.
+- `Service.spec.transports[].IPv` must be `IPv4` or `IPv6`.
+- `Service.spec.transports[].protocol` must be `TCP`, `UDP`, or `ICMP`.
+- `TCP` and `UDP` transport entries require one or more ports or port ranges.
+- `ICMP` transport entries accept numeric types from `0` to `255`.
+- `Service.spec.description` and `Service.spec.comment` are strings in the local OpenAPI dump and currently have no stricter documented limits.

@@ -22,7 +22,7 @@ import {
   getBindingLookupKey,
   normalizeOptionalString,
   parseNamespacedValue,
-  renderBadgeWithValue,
+  renderNamespacedResourceValue,
   runSequentialRequests,
   sanitizeBindingName,
 } from 'utils'
@@ -35,10 +35,11 @@ const buildBindingName = (hostName: string, addressGroupNamespace: string, addre
 const renderOverviewTitle = (addressGroup?: TAddressGroupResource, value?: string, bindingsCount?: number) => {
   const parsedValue = value ? parseNamespacedValue(value) : undefined
   const displayName = addressGroup?.spec?.displayName || addressGroup?.metadata.name || parsedValue?.name || 'Unknown'
+  const addressGroupNamespace = addressGroup?.metadata.namespace || parsedValue?.namespace
 
   return (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-      {renderBadgeWithValue('Address Group', displayName)}
+      {renderNamespacedResourceValue('Address Group', addressGroupNamespace, displayName)}
       <Styled.Count>{bindingsCount || 0}</Styled.Count>
     </span>
   )

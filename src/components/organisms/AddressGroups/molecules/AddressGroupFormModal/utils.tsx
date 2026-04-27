@@ -6,7 +6,7 @@ import {
 } from '@prorobotech/openapi-k8s-toolkit'
 import { TAddressGroupResource } from 'components/organisms/AddressGroups/tableConfig'
 import { THostBindingResource, TNetworkBindingResource, TServiceBindingResource } from 'localTypes'
-import { renderBadgeWithValue, runSequentialRequests } from 'utils'
+import { renderBadgeWithValue, renderNamespacedResourceValue, runSequentialRequests } from 'utils'
 import { TAddressGroupFormValues, TCurrentBindings, TResourceOption, TSelectableResource } from './types'
 
 export const API_GROUP = 'sgroups.io'
@@ -44,6 +44,12 @@ const buildBindingName = (addressGroupName: string, kind: 'host' | 'service' | '
 export const renderResourceOptionLabel = (kind: 'Host' | 'Service' | 'Network', value: string) =>
   renderBadgeWithValue(kind, value)
 
+export const renderNamespacedResourceOptionLabel = (
+  kind: 'Host' | 'Service' | 'Network',
+  namespace: string | undefined,
+  value: string | undefined,
+) => renderNamespacedResourceValue(kind, namespace, value)
+
 export const getResourceOptions = (kind: 'Host' | 'Network', items?: TSelectableResource[]): TResourceOption[] =>
   (items || [])
     .map(item => item.metadata.name)
@@ -66,7 +72,7 @@ export const getNamespacedResourceOptions = (items?: TSelectableResource[]): TRe
 
       acc.push({
         value: `${resourceNamespace}/${name}`,
-        label: renderResourceOptionLabel('Service', `${resourceNamespace} / ${name}`),
+        label: renderNamespacedResourceOptionLabel('Service', resourceNamespace, name),
         searchText: `${resourceNamespace} ${name}`,
       })
 

@@ -10,7 +10,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { renderBadgeWithValue } from 'utils'
+import { renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
 import { TAddressGroupFormModalProps, TAddressGroupFormValues } from './types'
 import {
   API_GROUP,
@@ -25,10 +25,13 @@ import {
   NAME_PATTERN,
   parseNamespacedValue,
   patchEditableSpec,
+  renderNamespacedResourceOptionLabel,
   renderResourceOptionLabel,
   syncBindings,
 } from './utils'
 import { Styled } from './styled'
+
+const DISPLAY_NAME_MAX_LENGTH = 63
 
 export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   cluster,
@@ -140,7 +143,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
         .map(item => item.metadata?.name)
         .filter((value): value is string => Boolean(value))
         .sort((first, second) => first.localeCompare(second))
-        .map(value => ({ value, label: value })),
+        .map(value => ({ value, label: renderNamespaceBadgeWithValue(value) })),
     [tenantsData?.items],
   )
   const hostOptions = useMemo(() => getResourceOptions('Host', hostsData?.items), [hostsData?.items])
@@ -258,7 +261,13 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   }
 
   const handleSubmit = async () => {
-    const values = await form.validateFields()
+    let values: TAddressGroupFormValues
+
+    try {
+      values = await form.validateFields()
+    } catch {
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -342,7 +351,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width="70vw"
+      width={1092}
       destroyOnHidden
     >
       <Styled.ModalContent>
@@ -387,7 +396,16 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                 >
                   <Input placeholder="e.g. server-01-prod" disabled={isEditMode} />
                 </Form.Item>
-                <Form.Item name="displayName" label="Display name">
+                <Form.Item
+                  name="displayName"
+                  label="Display name"
+                  rules={[
+                    {
+                      max: DISPLAY_NAME_MAX_LENGTH,
+                      message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+                    },
+                  ]}
+                >
                   <Input placeholder="e.g. server-01.prod" />
                 </Form.Item>
                 <Styled.SwitchRow>
@@ -472,7 +490,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                         </Styled.OverviewBranchTitle>
                         {parsedSelectedServices.map(service => (
                           <Styled.OverviewLeaf key={`service-${service.namespace}-${service.name}`}>
-                            {renderResourceOptionLabel('Service', `${service.namespace} / ${service.name}`)}
+                            {renderNamespacedResourceOptionLabel('Service', service.namespace, service.name)}
                           </Styled.OverviewLeaf>
                         ))}
                       </Styled.OverviewBranch>

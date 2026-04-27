@@ -10,6 +10,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
+import { renderNamespacedResourceValue } from 'utils'
 import { TRuleEndpoint } from '../../tableConfig'
 
 type TContentsTreeArgs = {
@@ -65,27 +66,30 @@ const renderEndpointTitle = (endpoint?: TRuleEndpoint) => {
     return endpoint.type || 'Unknown endpoint'
   }
 
-  return endpoint.namespace ? `${value} (${endpoint.namespace})` : value
+  return endpoint.namespace
+    ? renderNamespacedResourceValue(endpoint.type || 'Endpoint', endpoint.namespace, value)
+    : value
 }
 
 const renderLabel = (
+  badgeValue: string,
   resource?: { metadata?: { name?: string; namespace?: string }; spec?: { displayName?: string } },
   fallback?: TResourceIdentifier,
 ) => {
   if (resource?.spec?.displayName) {
-    return resource.metadata?.namespace
-      ? `${resource.spec.displayName} (${resource.metadata.namespace})`
-      : resource.spec.displayName
+    return renderNamespacedResourceValue(
+      badgeValue,
+      resource.metadata?.namespace || fallback?.namespace,
+      resource.spec.displayName,
+    )
   }
 
   if (resource?.metadata?.name) {
-    return resource.metadata?.namespace
-      ? `${resource.metadata.name} (${resource.metadata.namespace})`
-      : resource.metadata.name
+    return renderNamespacedResourceValue(badgeValue, resource.metadata.namespace, resource.metadata.name)
   }
 
   if (fallback?.name) {
-    return fallback.namespace ? `${fallback.name} (${fallback.namespace})` : fallback.name
+    return renderNamespacedResourceValue(badgeValue, fallback.namespace, fallback.name)
   }
 
   return 'Unknown'
@@ -100,7 +104,7 @@ const buildHostBindingNode = (
   const key = makeLookupKey(target)
   const host = hostsByKey[key]
   const bindingKey = `host-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`
-  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel(host, target)
+  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Host', host, target)
 
   if (!host) {
     return {
@@ -120,7 +124,7 @@ const buildHostBindingNode = (
     key: bindingKey,
     children: [
       {
-        title: renderLabel(host, target),
+        title: renderLabel('Host', host, target),
         key: `${bindingKey}-resource`,
         children: ipChildren.length > 0 ? ipChildren : [createLeaf('No IPs', `${bindingKey}-empty`)],
       },
@@ -137,7 +141,7 @@ const buildNetworkBindingNode = (
   const key = makeLookupKey(target)
   const network = networksByKey[key]
   const bindingKey = `network-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`
-  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel(network, target)
+  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Network', network, target)
 
   if (!network) {
     return {
@@ -152,7 +156,7 @@ const buildNetworkBindingNode = (
     key: bindingKey,
     children: [
       {
-        title: renderLabel(network, target),
+        title: renderLabel('Network', network, target),
         key: `${bindingKey}-resource`,
         children: [createLeaf(network.spec?.CIDR || 'No CIDR', `${bindingKey}-cidr`)],
       },
@@ -169,7 +173,7 @@ const buildServiceBindingNode = (
   const key = makeLookupKey(target)
   const service = servicesByKey[key]
   const bindingKey = `service-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`
-  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel(service, target)
+  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Service', service, target)
 
   if (!service) {
     return {
@@ -208,7 +212,7 @@ const buildServiceBindingNode = (
     key: bindingKey,
     children: [
       {
-        title: renderLabel(service, target),
+        title: renderLabel('Service', service, target),
         key: `${bindingKey}-resource`,
         children: transportChildren,
       },
@@ -283,7 +287,7 @@ export const buildRuleEndpointTree = ({
 
     return [
       {
-        title: renderLabel(service, { name: endpoint.name, namespace: endpoint.namespace }),
+        title: renderLabel('Service', service, { name: endpoint.name, namespace: endpoint.namespace }),
         key: 'service-endpoint',
         children: transportChildren,
       },
@@ -329,7 +333,7 @@ export const buildRuleEndpointTree = ({
 
   return [
     {
-      title: renderLabel(addressGroup, { name: endpoint.name, namespace: endpoint.namespace }),
+      title: renderLabel('Address Group', addressGroup, { name: endpoint.name, namespace: endpoint.namespace }),
       key: 'address-group-endpoint',
       children: [
         createBranch('Hosts', 'rule-hosts-root', hostChildren, countColor),

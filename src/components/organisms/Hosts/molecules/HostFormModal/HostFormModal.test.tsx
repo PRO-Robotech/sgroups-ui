@@ -95,4 +95,22 @@ describe('HostFormModal', () => {
     expect(mockMessage.success).toHaveBeenCalledWith('Host created')
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('validates host display name length before submit', async () => {
+    const onClose = jest.fn()
+
+    renderModal(<HostFormModal cluster="cluster-a" namespace="tenant-a" open onClose={onClose} />)
+
+    fireEvent.change(await screen.findByPlaceholderText('e.g. h-api-prod-01'), {
+      target: { value: 'host-new' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('e.g. server-01.prod'), {
+      target: { value: 'x'.repeat(64) },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Display name must be 63 characters or less')).toBeInTheDocument()
+    expect(mockCreateNewEntry).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+  })
 })

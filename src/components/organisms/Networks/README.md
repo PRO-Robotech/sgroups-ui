@@ -8,9 +8,9 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. Network namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
-- `Display name`: optional.
+- `Display name`: optional, max 63 chars.
 - `Address group`: optional multi-select. Loaded from all namespaces and displayed as `namespace / displayName-or-name`.
-- `CIDR`: required. The form validates CIDR shape before submit.
+- `CIDR`: required. The form validates CIDR shape and requires a network address with zero host bits, for example `10.0.0.0/8` or `2001:db8::/64`.
 - `Description`: optional.
 - `Comment`: optional.
 
@@ -49,7 +49,7 @@ In edit mode:
 - `Namespace` and `Name` are read-only because they identify the resource endpoint.
 - `Display name`, `CIDR`, `Description`, and `Comment` are editable and saved with toolkit patch helpers.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
-- `CIDR` is patched only when its trimmed value actually changed.
+- `CIDR` is validated as a network CIDR and patched only when its trimmed value actually changed.
 - AddressGroup membership is initialized from existing `NetworkBinding` resources and remains editable.
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Network namespace.

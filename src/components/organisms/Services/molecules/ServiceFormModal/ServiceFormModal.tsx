@@ -34,6 +34,13 @@ import { TServiceFormModalProps, TServiceFormValues } from './types'
 import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAddressGroupBindings } from './utils'
 import { Styled } from './styled'
 
+const DISPLAY_NAME_MAX_LENGTH = 63
+const IPV_VALUES = IPV_OPTIONS.map(option => option.value)
+const PROTOCOL_VALUES = PROTOCOL_OPTIONS.map(option => option.value)
+const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
+const isProtocolValue = (value?: string) => !value || PROTOCOL_VALUES.some(optionValue => optionValue === value)
+const isAntdValidationError = (error: unknown) => Boolean(error && typeof error === 'object' && 'errorFields' in error)
+
 export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespace, open, service, onClose }) => {
   const [form] = Form.useForm<TServiceFormValues>()
   const [activeTab, setActiveTab] = useState<'info' | 'ports'>('info')
@@ -239,16 +246,27 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
   }
 
   const handleSubmit = async () => {
-    await form.validateFields([
-      ['namespace'],
-      ['name'],
-      ['displayName'],
-      ['addressGroups'],
-      ['description'],
-      ['comment'],
-      ['transportEntries'],
-    ])
-    const values = form.getFieldsValue(true) as TServiceFormValues
+    let values: TServiceFormValues
+
+    try {
+      await form.validateFields([
+        ['namespace'],
+        ['name'],
+        ['displayName'],
+        ['addressGroups'],
+        ['description'],
+        ['comment'],
+        ['transportEntries'],
+      ])
+      values = form.getFieldsValue(true) as TServiceFormValues
+    } catch (error) {
+      if (isAntdValidationError(error)) {
+        return
+      }
+
+      throw error
+    }
+
     setIsSubmitting(true)
 
     try {
@@ -335,7 +353,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width="70vw"
+      width={1092}
       destroyOnHidden
     >
       <Styled.ModalContent>
@@ -388,7 +406,11 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   >
                     <Input placeholder="e.g. h-api-prod-01" disabled={isEditMode} />
                   </Form.Item>
-                  <Form.Item name="displayName" label="Display name">
+                  <Form.Item
+                    name="displayName"
+                    label="Display name"
+                    rules={[{ max: DISPLAY_NAME_MAX_LENGTH, message: 'Display name must be 63 characters or less' }]}
+                  >
                     <Input placeholder="e.g. api-gateway" />
                   </Form.Item>
                   <Form.Item
@@ -462,7 +484,18 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                                   {...field}
                                   name={[field.name, 'IPv']}
                                   label="IP family"
-                                  rules={[{ required: true, message: 'Select IP family' }]}
+                                  rules={[
+                                    { required: true, message: 'Select IP family' },
+                                    {
+                                      validator: async (_, value?: string) => {
+                                        if (isIpFamilyValue(value)) {
+                                          return
+                                        }
+
+                                        throw new Error('Use IPv4 or IPv6')
+                                      },
+                                    },
+                                  ]}
                                 >
                                   <Select
                                     placeholder="Select IP family"
@@ -473,7 +506,18 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                                   {...field}
                                   name={[field.name, 'protocol']}
                                   label="Protocol"
-                                  rules={[{ required: true, message: 'Select protocol' }]}
+                                  rules={[
+                                    { required: true, message: 'Select protocol' },
+                                    {
+                                      validator: async (_, value?: string) => {
+                                        if (isProtocolValue(value)) {
+                                          return
+                                        }
+
+                                        throw new Error('Use TCP, UDP, or ICMP')
+                                      },
+                                    },
+                                  ]}
                                 >
                                   <Select
                                     placeholder="Select protocol"

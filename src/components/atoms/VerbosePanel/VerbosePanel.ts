@@ -57,13 +57,16 @@ export const TitleAndControlsRow = styled.div`
 
 export const TitleAndExpandCollapse = styled.div`
   display: flex;
+  align-items: center;
   gap: 8px;
+  min-width: 0;
 `
 
 export const Title = styled.div`
   font-weight: 700;
   font-size: 16px;
   line-height: 24px;
+  min-width: 0;
 `
 
 export const ExpandCollapseButton = styled(Button)`

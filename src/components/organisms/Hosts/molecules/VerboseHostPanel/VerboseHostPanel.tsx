@@ -23,7 +23,7 @@ import {
   VerboseContainer,
   ViewMoreTag,
 } from 'components/atoms'
-import { formatDateTime, formatMapEntries } from 'utils'
+import { formatDateTime, formatMapEntries, renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
 import { THostRow } from '../../tableConfig'
 
 const SpecGridHosts = SpecGrid
@@ -115,7 +115,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({ host, width, onCl
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{host.metadata.name || 'Host'}</Title>
+            <Title>{renderBadgeWithValue('Host', host.metadata.name || 'Host')}</Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -127,7 +127,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({ host, width, onCl
             <div>{renderValue(host.metadata.name)}</div>
 
             <Typography.Text type="secondary">Namespace</Typography.Text>
-            <div>{renderValue(host.metadata.namespace)}</div>
+            <div>{renderNamespaceBadgeWithValue(host.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">Display Name</Typography.Text>
             <div>{renderValue(host.spec?.displayName)}</div>

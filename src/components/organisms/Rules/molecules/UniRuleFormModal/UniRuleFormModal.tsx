@@ -32,7 +32,7 @@ import {
   validatePortToken,
 } from 'utils'
 import { buildRuleEndpointTree } from '../VerboseRulePanel/contentsTree'
-import { TUniRuleFormModalProps, TUniRuleFormValues } from './types'
+import { TTransportEntryFormValue, TUniRuleFormModalProps, TUniRuleFormValues } from './types'
 import {
   ACTION_OPTIONS,
   buildEndpointPayload,
@@ -45,6 +45,34 @@ import {
   TRAFFIC_OPTIONS,
 } from './utils'
 import { Styled } from './styled'
+
+const DISPLAY_NAME_MAX_LENGTH = 63
+const ACTION_VALUES = ACTION_OPTIONS.map(option => option.value)
+const TRAFFIC_VALUES = TRAFFIC_OPTIONS.map(option => option.value)
+const ENDPOINT_TYPE_VALUES = ENDPOINT_TYPE_OPTIONS.map(option => option.value)
+const LOCAL_ENDPOINT_TYPE_VALUES = LOCAL_ENDPOINT_TYPE_OPTIONS.map(option => option.value)
+const IPV_VALUES = IPV_OPTIONS.map(option => option.value)
+const PROTOCOL_VALUES = PROTOCOL_OPTIONS.map(option => option.value)
+
+const hasTransportEntryValue = (entry?: TTransportEntryFormValue) =>
+  Boolean(
+    normalizeOptionalString(entry?.ports) ||
+      normalizeOptionalString(entry?.description) ||
+      normalizeOptionalString(entry?.comment) ||
+      entry?.types?.some(item => normalizeOptionalString(String(item))),
+  )
+
+const hasTransportEntries = (entries?: TUniRuleFormValues['transportEntries']) =>
+  (entries || []).some(entry => hasTransportEntryValue(entry))
+
+const isActionValue = (value?: string) => ACTION_VALUES.some(optionValue => optionValue === value)
+const isTrafficValue = (value?: string) => TRAFFIC_VALUES.some(optionValue => optionValue === value)
+const isEndpointTypeValue = (value?: string) => ENDPOINT_TYPE_VALUES.some(optionValue => optionValue === value)
+const isLocalEndpointTypeValue = (value?: string) =>
+  LOCAL_ENDPOINT_TYPE_VALUES.some(optionValue => optionValue === value)
+const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
+const isProtocolValue = (value?: string) => !value || PROTOCOL_VALUES.some(optionValue => optionValue === value)
+const isAntdValidationError = (error: unknown) => Boolean(error && typeof error === 'object' && 'errorFields' in error)
 
 export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespace, open, rule, onClose }) => {
   const [form] = Form.useForm<TUniRuleFormValues>()
@@ -247,7 +275,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
         name: undefined,
         displayName: undefined,
         action: 'Allow',
-        traffic: 'Both',
+        traffic: 'both',
         description: undefined,
         comment: undefined,
         local: {
@@ -288,8 +316,19 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   }
 
   const handleSubmit = async () => {
-    await form.validateFields()
-    const values = form.getFieldsValue(true) as TUniRuleFormValues
+    let values: TUniRuleFormValues
+
+    try {
+      await form.validateFields()
+      values = form.getFieldsValue(true) as TUniRuleFormValues
+    } catch (error) {
+      if (isAntdValidationError(error)) {
+        return
+      }
+
+      throw error
+    }
+
     const localEndpoint = buildEndpointPayload(values.local)
     const remoteEndpoint = buildEndpointPayload(values.remote)
 
@@ -380,7 +419,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width="70vw"
+      width={1092}
       destroyOnHidden
     >
       <Styled.ModalContent>
@@ -433,16 +472,51 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   >
                     <Input placeholder="e.g. rule-api-prod-01" disabled={isEditMode} />
                   </Form.Item>
-                  <Form.Item name="displayName" label="Display name">
+                  <Form.Item
+                    name="displayName"
+                    label="Display name"
+                    rules={[
+                      {
+                        max: DISPLAY_NAME_MAX_LENGTH,
+                        message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+                      },
+                    ]}
+                  >
                     <Input placeholder="e.g. api to db" />
                   </Form.Item>
-                  <Form.Item name="action" label="Action" rules={[{ required: true, message: 'Select action' }]}>
+                  <Form.Item
+                    name="action"
+                    label="Action"
+                    rules={[
+                      { required: true, message: 'Select action' },
+                      {
+                        validator: async (_, value?: string) => {
+                          if (isActionValue(value)) {
+                            return
+                          }
+
+                          throw new Error('Use Allow or Deny')
+                        },
+                      },
+                    ]}
+                  >
                     <Select options={ACTION_OPTIONS as unknown as { label: string; value: string }[]} />
                   </Form.Item>
                   <Form.Item
                     name="traffic"
                     label="Traffic"
-                    rules={[{ required: true, message: 'Select traffic direction' }]}
+                    rules={[
+                      { required: true, message: 'Select traffic direction' },
+                      {
+                        validator: async (_, value?: string) => {
+                          if (isTrafficValue(value)) {
+                            return
+                          }
+
+                          throw new Error('Use Both, Ingress, or Egress')
+                        },
+                      },
+                    ]}
                   >
                     <Select options={TRAFFIC_OPTIONS as unknown as { label: string; value: string }[]} />
                   </Form.Item>
@@ -457,7 +531,18 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                             <Form.Item
                               name={['local', 'type']}
                               label="Type"
-                              rules={[{ required: true, message: 'Select endpoint type' }]}
+                              rules={[
+                                { required: true, message: 'Select endpoint type' },
+                                {
+                                  validator: async (_, value?: string) => {
+                                    if (isLocalEndpointTypeValue(value)) {
+                                      return
+                                    }
+
+                                    throw new Error('Local endpoint must be an address group or service')
+                                  },
+                                },
+                              ]}
                             >
                               <Select
                                 options={LOCAL_ENDPOINT_TYPE_OPTIONS as unknown as { label: string; value: string }[]}
@@ -473,7 +558,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                 <Form.Item
                                   name={['local', 'namespace']}
                                   label="Namespace"
-                                  rules={[{ required: true, message: 'Select resource namespace' }]}
+                                  rules={[
+                                    { required: true, message: 'Select resource namespace' },
+                                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
+                                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                                  ]}
                                 >
                                   <Select
                                     showSearch
@@ -487,7 +576,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                 <Form.Item
                                   name={['local', 'name']}
                                   label="Name"
-                                  rules={[{ required: true, message: 'Select resource' }]}
+                                  rules={[
+                                    { required: true, message: 'Select resource' },
+                                    { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
+                                    { max: 63, message: 'Name must be 63 characters or less' },
+                                  ]}
                                 >
                                   <Select
                                     showSearch
@@ -552,7 +645,18 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                             <Form.Item
                               name={['remote', 'type']}
                               label="Type"
-                              rules={[{ required: true, message: 'Select endpoint type' }]}
+                              rules={[
+                                { required: true, message: 'Select endpoint type' },
+                                {
+                                  validator: async (_, value?: string) => {
+                                    if (isEndpointTypeValue(value)) {
+                                      return
+                                    }
+
+                                    throw new Error('Use AddressGroup, Service, FQDN, or CIDR')
+                                  },
+                                },
+                              ]}
                             >
                               <Select
                                 options={ENDPOINT_TYPE_OPTIONS as unknown as { label: string; value: string }[]}
@@ -568,7 +672,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                 <Form.Item
                                   name={['remote', 'namespace']}
                                   label="Namespace"
-                                  rules={[{ required: true, message: 'Select resource namespace' }]}
+                                  rules={[
+                                    { required: true, message: 'Select resource namespace' },
+                                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
+                                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                                  ]}
                                 >
                                   <Select
                                     showSearch
@@ -582,7 +690,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                 <Form.Item
                                   name={['remote', 'name']}
                                   label="Name"
-                                  rules={[{ required: true, message: 'Select resource' }]}
+                                  rules={[
+                                    { required: true, message: 'Select resource' },
+                                    { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
+                                    { max: 63, message: 'Name must be 63 characters or less' },
+                                  ]}
                                 >
                                   <Select
                                     showSearch
@@ -652,18 +764,75 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   </Form.Item>
                 </div>
                 <div style={{ display: activeTab === 'ports' ? 'block' : 'none' }}>
-                  <Form.Item name="transportIPv" label="IP family">
+                  <Form.Item
+                    name="transportIPv"
+                    label="IP family"
+                    dependencies={['transportProtocol', 'transportEntries']}
+                    rules={[
+                      {
+                        validator: async (_, value?: string) => {
+                          if (!isIpFamilyValue(value)) {
+                            throw new Error('Use IPv4 or IPv6')
+                          }
+
+                          const entries = form.getFieldValue(
+                            'transportEntries',
+                          ) as TUniRuleFormValues['transportEntries']
+                          const protocol = form.getFieldValue('transportProtocol') as string | undefined
+
+                          if ((protocol || hasTransportEntries(entries)) && !value) {
+                            throw new Error('Select IP family for transport entries')
+                          }
+                        },
+                      },
+                    ]}
+                  >
                     <Select
                       allowClear
                       placeholder="Select IP family"
                       options={IPV_OPTIONS as unknown as { label: string; value: string }[]}
                     />
                   </Form.Item>
-                  <Form.Item name="transportProtocol" label="Protocol">
+                  <Form.Item
+                    name="transportProtocol"
+                    label="Protocol"
+                    dependencies={['transportIPv', 'transportEntries']}
+                    rules={[
+                      {
+                        validator: async (_, value?: string) => {
+                          if (!isProtocolValue(value)) {
+                            throw new Error('Use TCP, UDP, or ICMP')
+                          }
+
+                          const entries = form.getFieldValue(
+                            'transportEntries',
+                          ) as TUniRuleFormValues['transportEntries']
+                          if (hasTransportEntries(entries) && !value) {
+                            throw new Error('Select protocol for transport entries')
+                          }
+
+                          if (value && !hasTransportEntries(entries)) {
+                            throw new Error('Add at least one transport entry')
+                          }
+                        },
+                      },
+                    ]}
+                  >
                     <Select
                       allowClear
                       placeholder="Select protocol"
                       options={PROTOCOL_OPTIONS as unknown as { label: string; value: string }[]}
+                      onChange={value => {
+                        const entries = form.getFieldValue('transportEntries') as TUniRuleFormValues['transportEntries']
+
+                        ;(entries || []).forEach((_, index) => {
+                          if (value === 'ICMP') {
+                            form.setFieldValue(['transportEntries', index, 'ports'], undefined)
+                          } else {
+                            form.setFieldValue(['transportEntries', index, 'types'], undefined)
+                          }
+                        })
+                      }}
                     />
                   </Form.Item>
                   <Form.List name="transportEntries">
