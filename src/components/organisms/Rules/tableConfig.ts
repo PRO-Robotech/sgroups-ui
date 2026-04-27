@@ -2,7 +2,7 @@ import React from 'react'
 import { Button, Space, TableProps, Tag, Tooltip } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
-import { formatDateTime, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
+import { formatDateTime, formatTrafficValue, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
 
 export type TRuleEndpointType = 'AddressGroup' | 'Service' | 'FQDN' | 'CIDR'
 
@@ -28,7 +28,7 @@ export type TRuleTransport = {
 }
 
 export type TRuleSession = {
-  traffic?: 'Both' | 'Ingress' | 'Egress'
+  traffic?: 'both' | 'ingress' | 'egress'
 }
 
 export type TRuleResource = {
@@ -126,7 +126,7 @@ export const mapRulesToRows = (items: TRuleResource[]): TRuleRow[] =>
     key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
     displayName: item.spec?.displayName || EMPTY_VALUE,
     action: item.spec?.action || EMPTY_VALUE,
-    traffic: item.spec?.session?.traffic || EMPTY_VALUE,
+    traffic: formatTrafficValue(item.spec?.session?.traffic),
     protocol: item.spec?.transport?.protocol || EMPTY_VALUE,
     ipFamily: item.spec?.transport?.IPv || EMPTY_VALUE,
     localEndpoint: formatEndpointLabel(item.spec?.endpoints?.local),

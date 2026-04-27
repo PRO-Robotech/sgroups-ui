@@ -335,7 +335,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width="70vw"
+      width={728}
       destroyOnHidden
     >
       <Styled.ModalContent>

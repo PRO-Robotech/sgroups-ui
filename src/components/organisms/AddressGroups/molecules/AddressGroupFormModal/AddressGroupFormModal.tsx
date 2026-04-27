@@ -342,7 +342,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width="70vw"
+      width={728}
       destroyOnHidden
     >
       <Styled.ModalContent>

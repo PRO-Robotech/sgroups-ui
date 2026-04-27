@@ -41,7 +41,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { formatDateTime, formatMapEntries } from 'utils'
+import { formatDateTime, formatMapEntries, formatTrafficValue } from 'utils'
 import { buildRuleEndpointTree } from './contentsTree'
 import { TRuleEndpoint, TRuleRow, TRuleTransportEntry } from '../../tableConfig'
 
@@ -342,7 +342,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             <div>{renderAction(rule.spec?.action)}</div>
 
             <Typography.Text type="secondary">Traffic</Typography.Text>
-            <div>{renderValue(rule.spec?.session?.traffic)}</div>
+            <div>{formatTrafficValue(rule.spec?.session?.traffic)}</div>
 
             <Typography.Text type="secondary">Protocol</Typography.Text>
             <div>{renderValue(rule.spec?.transport?.protocol)}</div>

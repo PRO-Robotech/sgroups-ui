@@ -247,7 +247,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
         name: undefined,
         displayName: undefined,
         action: 'Allow',
-        traffic: 'Both',
+        traffic: 'both',
         description: undefined,
         comment: undefined,
         local: {
@@ -380,7 +380,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width="70vw"
+      width={728}
       destroyOnHidden
     >
       <Styled.ModalContent>

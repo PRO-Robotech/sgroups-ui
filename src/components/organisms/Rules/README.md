@@ -10,7 +10,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
 - `Display name`: optional.
 - `Action`: required. `Allow` or `Deny`.
-- `Traffic`: required. `Both`, `Ingress`, or `Egress`.
+- `Traffic`: required. UI labels are `Both`, `Ingress`, or `Egress`; saved `spec.session.traffic` values are lowercase: `both`, `ingress`, or `egress`.
 - `Local`: required endpoint block.
 - `Remote`: required endpoint block.
 - `Description`: optional.

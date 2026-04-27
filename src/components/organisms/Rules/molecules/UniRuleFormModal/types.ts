@@ -19,7 +19,7 @@ export type TUniRuleFormValues = {
   name: string
   displayName?: string
   action: 'Allow' | 'Deny'
-  traffic?: 'Both' | 'Ingress' | 'Egress'
+  traffic?: 'both' | 'ingress' | 'egress'
   description?: string
   comment?: string
   local?: TEndpointFormValues

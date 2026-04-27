@@ -2,6 +2,12 @@ import React from 'react'
 
 const EMPTY_VALUE = '-'
 
+const TRAFFIC_LABELS: Record<string, string> = {
+  both: 'Both',
+  ingress: 'Ingress',
+  egress: 'Egress',
+}
+
 const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
   dateStyle: 'medium',
   timeStyle: 'short',
@@ -54,6 +60,20 @@ export const formatBooleanFlag = (value?: boolean): string => {
   }
 
   return value ? 'Enabled' : 'Disabled'
+}
+
+export const normalizeTrafficValue = (value?: string) => {
+  const normalizedValue = value?.toLowerCase()
+
+  return normalizedValue && TRAFFIC_LABELS[normalizedValue]
+    ? (normalizedValue as 'both' | 'ingress' | 'egress')
+    : undefined
+}
+
+export const formatTrafficValue = (value?: string): string => {
+  const normalizedValue = normalizeTrafficValue(value)
+
+  return normalizedValue ? TRAFFIC_LABELS[normalizedValue] : value || EMPTY_VALUE
 }
 
 export const renderBadge = (value: string) =>

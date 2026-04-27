@@ -83,7 +83,7 @@ describe('Rules', () => {
             spec: {
               displayName: 'Rule A',
               action: 'Allow',
-              session: { traffic: 'Both' },
+              session: { traffic: 'both' },
               endpoints: {
                 local: { type: 'AddressGroup', name: 'ag-a', namespace: 'tenant-a' },
                 remote: { type: 'Service', name: 'svc-a', namespace: 'tenant-a' },
