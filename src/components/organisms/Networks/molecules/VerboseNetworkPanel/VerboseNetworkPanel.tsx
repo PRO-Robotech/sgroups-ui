@@ -32,7 +32,13 @@ import {
   ViewMoreTag,
 } from 'components/atoms'
 import { TAddressGroupResource, TNetworkBindingResource, TResourceIdentifier } from 'localTypes'
-import { formatDateTime, formatMapEntries } from 'utils'
+import {
+  formatDateTime,
+  formatMapEntries,
+  renderBadgeWithValue,
+  renderNamespacedResourceValue,
+  renderNamespaceBadgeWithValue,
+} from 'utils'
 import { TNetworkRow } from '../../tableConfig'
 
 type TVerboseNetworkPanelProps = {
@@ -60,7 +66,7 @@ const withNamespaceLabel = (name?: string, namespace?: string) => {
     return 'Unknown'
   }
 
-  return namespace ? `${name} (${namespace})` : name
+  return renderNamespacedResourceValue('Address Group', namespace, name)
 }
 
 const renderAddressGroupLabel = (addressGroup?: TAddressGroupResource, fallback?: TResourceIdentifier) => {
@@ -246,7 +252,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{network.metadata.name || 'Network'}</Title>
+            <Title>{renderBadgeWithValue('Network', network.metadata.name || 'Network')}</Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -258,7 +264,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
             <div>{renderValue(network.metadata.name)}</div>
 
             <Typography.Text type="secondary">Namespace</Typography.Text>
-            <div>{renderValue(network.metadata.namespace)}</div>
+            <div>{renderNamespaceBadgeWithValue(network.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">Display Name</Typography.Text>
             <div>{renderValue(network.spec?.displayName)}</div>

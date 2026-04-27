@@ -1,7 +1,7 @@
 /* eslint-disable no-bitwise */
 import { ReactNode } from 'react'
 import { TAddressGroupResource } from 'localTypes'
-import { renderBadgeWithValue } from './tableFormatters'
+import { renderBadgeWithValue, renderNamespacedResourceValue, renderNamespaceBadgeWithValue } from './tableFormatters'
 
 export const API_GROUP = 'sgroups.io'
 export const API_VERSION = 'v1alpha1'
@@ -29,6 +29,8 @@ export type TResourceOption = {
   value: string
   label: ReactNode
   searchText: string
+  badgeLabel?: 'Address Group' | 'Service'
+  resourceLabel?: string
 }
 
 export type TNamespacedResource = {
@@ -126,7 +128,7 @@ export const getNamespaceOptions = (items?: Array<{ metadata?: { name?: string }
     .map(item => item.metadata?.name)
     .filter((value): value is string => Boolean(value))
     .sort((first, second) => first.localeCompare(second))
-    .map(value => ({ value, label: value }))
+    .map(value => ({ value, label: renderNamespaceBadgeWithValue(value) }))
 
 export const getNamespacedResourceOptions = (
   items: TNamespacedResource[] | undefined,
@@ -141,11 +143,13 @@ export const getNamespacedResourceOptions = (
         return acc
       }
 
-      const displayValue = `${resourceNamespace} / ${item.spec?.displayName || resourceName}`
+      const displayName = item.spec?.displayName || resourceName
       acc.push({
         value: `${resourceNamespace}/${resourceName}`,
-        label: renderBadgeWithValue(badgeLabel, displayValue),
+        label: renderNamespacedResourceValue(badgeLabel, resourceNamespace, displayName),
         searchText: `${resourceNamespace} ${resourceName} ${item.spec?.displayName || ''}`.trim(),
+        badgeLabel,
+        resourceLabel: displayName,
       })
 
       return acc
@@ -162,6 +166,10 @@ export const getScopedResourceOptions = (options: TResourceOption[], selectedNam
         .map(option => ({
           ...option,
           value: parseNamespacedValue(option.value).name || option.value,
+          label:
+            option.badgeLabel && option.resourceLabel
+              ? renderBadgeWithValue(option.badgeLabel, option.resourceLabel)
+              : option.label,
         }))
     : []
 

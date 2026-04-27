@@ -334,7 +334,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width={728}
+      width={1092}
       destroyOnHidden
     >
       <Styled.ModalContent>

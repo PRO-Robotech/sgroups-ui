@@ -1,3 +1,5 @@
+import React from 'react'
+import { render, screen } from '@testing-library/react'
 import {
   buildNamespacedValue,
   compactSpec,
@@ -78,12 +80,16 @@ describe('sgroupsFormUtils', () => {
   })
 
   it('builds sorted namespace and namespaced resource options', () => {
-    expect(
-      getNamespaceOptions([{ metadata: { name: 'zeta' } }, { metadata: {} }, { metadata: { name: 'alpha' } }]),
-    ).toEqual([
-      { value: 'alpha', label: 'alpha' },
-      { value: 'zeta', label: 'zeta' },
+    const namespaceOptions = getNamespaceOptions([
+      { metadata: { name: 'zeta' } },
+      { metadata: {} },
+      { metadata: { name: 'alpha' } },
     ])
+
+    expect(namespaceOptions.map(option => option.value)).toEqual(['alpha', 'zeta'])
+    render(<div>{namespaceOptions[0].label}</div>)
+    expect(screen.getByText('N')).toBeInTheDocument()
+    expect(screen.getByText('alpha')).toBeInTheDocument()
 
     const options = getNamespacedResourceOptions(
       [
@@ -111,6 +117,18 @@ describe('sgroupsFormUtils', () => {
       ),
     ).toEqual([{ value: 'ag-a', label: 'A', searchText: 'tenant-a ag-a' }])
     expect(getScopedResourceOptions([], undefined)).toEqual([])
+
+    const scopedOptions = getScopedResourceOptions(
+      getNamespacedResourceOptions(
+        [{ metadata: { namespace: 'tenant-a', name: 'service-a' }, spec: { displayName: 'Service A' } }],
+        'Service',
+      ),
+      'tenant-a',
+    )
+
+    render(<div>{scopedOptions[0].label}</div>)
+    expect(screen.getByText('Service A')).toBeInTheDocument()
+    expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
   })
 
   it('validates Kubernetes names and FQDNs with exported patterns', () => {

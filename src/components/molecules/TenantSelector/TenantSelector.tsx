@@ -2,6 +2,7 @@ import React, { FC, useEffect, useMemo, useState } from 'react'
 import { Alert, Flex, Select, Typography } from 'antd'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useK8sSmartResource, TSingleResource } from '@prorobotech/openapi-k8s-toolkit'
+import { renderNamespaceBadgeWithValue } from 'utils'
 
 type TTenantSelectorProps = {
   cluster?: string
@@ -42,7 +43,7 @@ export const TenantSelector: FC<TTenantSelectorProps> = ({ cluster, tenant }) =>
         ?.map(item => item.metadata?.name)
         .filter((value): value is string => Boolean(value))
         .sort((a, b) => a.localeCompare(b))
-        .map(value => ({ value, label: value })) || []),
+        .map(value => ({ value, label: renderNamespaceBadgeWithValue(value) })) || []),
     ],
     [tenantsData],
   )

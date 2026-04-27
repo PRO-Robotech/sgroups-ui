@@ -10,6 +10,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
+import { renderNamespacedResourceValue } from 'utils'
 
 type TContentsTreeArgs = {
   addressGroupName?: string
@@ -42,30 +43,31 @@ const renderCount = (label: string, count: number, color?: string) => (
   </>
 )
 
-const withNamespaceLabel = (name?: string, namespace?: string) => {
+const withNamespaceLabel = (kind: 'Host' | 'Network' | 'Service', name?: string, namespace?: string) => {
   if (!name) {
     return 'Unknown'
   }
 
-  return namespace ? `${name} (${namespace})` : name
+  return renderNamespacedResourceValue(kind, namespace, name)
 }
 
 const getDisplayLabel = (
+  kind: 'Host' | 'Network' | 'Service',
   resource?: { metadata?: { name?: string; namespace?: string }; spec?: { displayName?: string } },
   identifier?: TResourceIdentifier,
 ) => {
   if (resource?.spec?.displayName) {
-    return withNamespaceLabel(resource.spec.displayName, resource.metadata?.namespace || identifier?.namespace)
+    return withNamespaceLabel(kind, resource.spec.displayName, resource.metadata?.namespace || identifier?.namespace)
   }
 
   if (resource?.metadata?.name) {
-    return withNamespaceLabel(resource.metadata.name, resource.metadata?.namespace)
+    return withNamespaceLabel(kind, resource.metadata.name, resource.metadata?.namespace)
   }
 
-  return withNamespaceLabel(identifier?.name, identifier?.namespace)
+  return withNamespaceLabel(kind, identifier?.name, identifier?.namespace)
 }
 
-const createLeaf = (title: string, key: string): TreeDataNode => ({
+const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
   title,
   key,
   isLeaf: true,
@@ -92,7 +94,7 @@ const buildHostNode = (
 
   if (!host) {
     return {
-      title: getDisplayLabel(undefined, target),
+      title: getDisplayLabel('Host', undefined, target),
       key: `host-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
       children: [createLeaf(hostsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `host-${key}-status`)],
     }
@@ -104,7 +106,7 @@ const buildHostNode = (
   )
 
   return {
-    title: getDisplayLabel(host, target),
+    title: getDisplayLabel('Host', host, target),
     key: `host-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
     children: ipChildren.length > 0 ? ipChildren : [createLeaf('No IPs', `host-${key}-empty`)],
   }
@@ -121,14 +123,14 @@ const buildNetworkNode = (
 
   if (!network) {
     return {
-      title: getDisplayLabel(undefined, target),
+      title: getDisplayLabel('Network', undefined, target),
       key: `network-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
       children: [createLeaf(networksError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `network-${key}-status`)],
     }
   }
 
   return {
-    title: getDisplayLabel(network, target),
+    title: getDisplayLabel('Network', network, target),
     key: `network-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
     children: [createLeaf(network.spec?.CIDR || 'No CIDR', `network-${key}-cidr`)],
   }
@@ -145,7 +147,7 @@ const buildServiceNode = (
 
   if (!service) {
     return {
-      title: getDisplayLabel(undefined, target),
+      title: getDisplayLabel('Service', undefined, target),
       key: `service-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
       children: [createLeaf(servicesError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `service-${key}-status`)],
     }
@@ -177,7 +179,7 @@ const buildServiceNode = (
       : [createLeaf('No transports', `service-${key}-empty`)]
 
   return {
-    title: getDisplayLabel(service, target),
+    title: getDisplayLabel('Service', service, target),
     key: `service-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
     children: transportChildren,
   }

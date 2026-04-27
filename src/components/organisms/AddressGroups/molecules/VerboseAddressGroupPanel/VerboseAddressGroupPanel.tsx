@@ -28,7 +28,13 @@ import {
   TreeContainer,
   VerboseContainer,
 } from 'components/atoms'
-import { formatBooleanFlag, formatDateTime, formatMapEntries } from 'utils'
+import {
+  formatBooleanFlag,
+  formatDateTime,
+  formatMapEntries,
+  renderBadgeWithValue,
+  renderNamespaceBadgeWithValue,
+} from 'utils'
 import {
   THostBindingResource,
   THostResource,
@@ -230,7 +236,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{addressGroup.metadata.name || 'Address Group'}</Title>
+            <Title>{renderBadgeWithValue('Address Group', addressGroup.metadata.name || 'Address Group')}</Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -242,7 +248,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             <div>{renderValue(addressGroup.metadata.name)}</div>
 
             <Typography.Text type="secondary">Namespace</Typography.Text>
-            <div>{renderValue(addressGroup.metadata.namespace)}</div>
+            <div>{renderNamespaceBadgeWithValue(addressGroup.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">Display Name</Typography.Text>
             <div>{renderValue(addressGroup.spec?.displayName)}</div>

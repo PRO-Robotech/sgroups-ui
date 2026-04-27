@@ -324,7 +324,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width={728}
+      width={1092}
       destroyOnHidden
     >
       <Styled.ModalContent>

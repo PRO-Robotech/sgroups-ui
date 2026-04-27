@@ -41,7 +41,14 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { formatDateTime, formatMapEntries, formatTrafficValue } from 'utils'
+import {
+  formatDateTime,
+  formatMapEntries,
+  formatTrafficValue,
+  renderBadgeWithValue,
+  renderNamespacedResourceValue,
+  renderNamespaceBadgeWithValue,
+} from 'utils'
 import { buildRuleEndpointTree } from './contentsTree'
 import { TRuleEndpoint, TRuleRow, TRuleTransportEntry } from '../../tableConfig'
 
@@ -82,7 +89,9 @@ const renderEndpointSummary = (endpoint?: TRuleEndpoint) => {
     return '-'
   }
 
-  return endpoint.namespace ? `${value} (${endpoint.namespace})` : value
+  return endpoint.namespace
+    ? renderNamespacedResourceValue(endpoint.type || 'Endpoint', endpoint.namespace, value)
+    : value
 }
 
 const TagList: FC<{ values: string[] }> = ({ values }) => {
@@ -321,7 +330,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{rule.metadata.name || 'Rule'}</Title>
+            <Title>{renderBadgeWithValue('Rule', rule.metadata.name || 'Rule')}</Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -333,7 +342,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             <div>{renderValue(rule.metadata.name)}</div>
 
             <Typography.Text type="secondary">Namespace</Typography.Text>
-            <div>{renderValue(rule.metadata.namespace)}</div>
+            <div>{renderNamespaceBadgeWithValue(rule.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">Display Name</Typography.Text>
             <div>{renderValue(rule.spec?.displayName)}</div>

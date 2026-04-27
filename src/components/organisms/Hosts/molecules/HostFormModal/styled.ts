@@ -2,7 +2,7 @@ import styled from 'styled-components'
 
 export const ModalContent = styled.div`
   display: grid;
-  grid-template-columns: 356px 300px;
+  grid-template-columns: minmax(356px, 534px) minmax(280px, 450px);
   gap: 24px;
 
   @media (width <= 720px) {

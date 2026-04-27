@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { ReactNode } from 'react'
 
 const EMPTY_VALUE = '-'
 
@@ -82,22 +82,25 @@ export const renderBadge = (value: string) =>
     {
       style: {
         backgroundColor: getBadgeColor(value),
-        borderRadius: '13px',
-        padding: '1px 5px',
-        fontSize: '13px',
+        borderRadius: '10px',
+        padding: '0 5px',
+        minHeight: '20px',
+        fontSize: '12px',
+        lineHeight: '20px',
         height: 'min-content',
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
         textTransform: 'uppercase',
-        letterSpacing: '0.02em',
+        letterSpacing: 0,
         boxSizing: 'content-box',
+        flexShrink: 0,
       },
     },
     getBadgeText(value),
   )
 
-export const renderBadgeWithValue = (badgeValue: string, value?: string) =>
+export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode) =>
   React.createElement(
     'span',
     {
@@ -105,11 +108,38 @@ export const renderBadgeWithValue = (badgeValue: string, value?: string) =>
         display: 'inline-flex',
         alignItems: 'center',
         gap: 6,
+        minWidth: 0,
       },
     },
     renderBadge(badgeValue),
-    React.createElement('span', null, value || EMPTY_VALUE),
+    React.createElement('span', { style: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' } }, value || EMPTY_VALUE),
   )
+
+export const renderNamespaceBadgeWithValue = (value?: string) => renderBadgeWithValue('Namespace', value)
+
+export const renderNamespacedResourceValue = (badgeValue: string, namespace?: string, value?: string) => {
+  if (!namespace) {
+    return renderBadgeWithValue(badgeValue, value)
+  }
+
+  return React.createElement(
+    'span',
+    {
+      style: {
+        display: 'inline-flex',
+        alignItems: 'center',
+        gap: 6,
+        flexWrap: 'nowrap',
+        minWidth: 0,
+        maxWidth: '100%',
+        whiteSpace: 'nowrap',
+      },
+    },
+    renderNamespaceBadgeWithValue(namespace),
+    React.createElement('span', { style: { flexShrink: 0 } }, '/'),
+    renderBadgeWithValue(badgeValue, value),
+  )
+}
 
 export const renderTimestampWithIcon = (value?: string) =>
   React.createElement(

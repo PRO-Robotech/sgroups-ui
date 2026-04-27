@@ -27,7 +27,7 @@ import {
   VerboseContainer,
   ViewMoreTag,
 } from 'components/atoms'
-import { formatDateTime, formatMapEntries } from 'utils'
+import { formatDateTime, formatMapEntries, renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
 import { TServiceRow, TServiceTransport, TServiceTransportEntry } from '../../tableConfig'
 
 type TVerboseServicePanelProps = {
@@ -134,7 +134,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{service.metadata.name || 'Service'}</Title>
+            <Title>{renderBadgeWithValue('Service', service.metadata.name || 'Service')}</Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -146,7 +146,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             <div>{renderValue(service.metadata.name)}</div>
 
             <Typography.Text type="secondary">Namespace</Typography.Text>
-            <div>{renderValue(service.metadata.namespace)}</div>
+            <div>{renderNamespaceBadgeWithValue(service.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">Display Name</Typography.Text>
             <div>{renderValue(service.spec?.displayName)}</div>

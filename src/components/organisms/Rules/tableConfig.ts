@@ -2,7 +2,14 @@ import React from 'react'
 import { Button, Space, TableProps, Tag, Tooltip } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
-import { formatDateTime, formatTrafficValue, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
+import {
+  formatDateTime,
+  formatTrafficValue,
+  renderBadgeWithValue,
+  renderNamespacedResourceValue,
+  renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
+} from 'utils'
 
 export type TRuleEndpointType = 'AddressGroup' | 'Service' | 'FQDN' | 'CIDR'
 
@@ -104,6 +111,24 @@ const formatEndpointLabel = (endpoint?: TRuleEndpoint): string => {
   return endpoint.namespace ? `${name} (${endpoint.namespace})` : name
 }
 
+const renderEndpointLabel = (endpoint?: TRuleEndpoint) => {
+  if (!endpoint) {
+    return EMPTY_VALUE
+  }
+
+  if (endpoint.type === 'FQDN' || endpoint.type === 'CIDR') {
+    return endpoint.value || EMPTY_VALUE
+  }
+
+  const name = endpoint.name || endpoint.value
+
+  if (!name) {
+    return EMPTY_VALUE
+  }
+
+  return renderNamespacedResourceValue(endpoint.type || 'Endpoint', endpoint.namespace, name)
+}
+
 const formatTransportSummary = (field: 'ports' | 'types', entries?: TRuleTransportEntry[]) => {
   if (!entries || entries.length === 0) {
     return EMPTY_VALUE
@@ -152,7 +177,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       key: 'namespace',
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-      render: value => renderBadgeWithValue('Namespace', value),
+      render: value => renderNamespaceBadgeWithValue(value),
     },
     {
       title: 'Display Name',
@@ -196,6 +221,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       key: 'localEndpoint',
       width: 220,
       sorter: (a, b) => stringSorter(a.localEndpoint, b.localEndpoint),
+      render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.local),
     },
     {
       title: 'Remote',
@@ -203,6 +229,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       key: 'remoteEndpoint',
       width: 220,
       sorter: (a, b) => stringSorter(a.remoteEndpoint, b.remoteEndpoint),
+      render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.remote),
     },
     {
       title: 'Ports / Types',

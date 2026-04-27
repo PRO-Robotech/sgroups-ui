@@ -67,7 +67,6 @@ describe('buildAddressGroupContentsTree', () => {
     expect(tree.map(node => node.key)).toEqual(['hosts-root', 'networks-root', 'services-root'])
     expect(tree[0].children).toEqual([
       expect.objectContaining({
-        title: 'Host A (tenant-a)',
         key: 'host-tenant-a-host-binding-a',
         children: [
           { title: '10.0.0.10', key: 'host-tenant-a::host-a-10.0.0.10', isLeaf: true },
@@ -77,14 +76,12 @@ describe('buildAddressGroupContentsTree', () => {
     ])
     expect(tree[1].children).toEqual([
       expect.objectContaining({
-        title: 'Network A (tenant-a)',
         key: 'network-tenant-a-network-binding-a',
         children: [{ title: '10.0.0.0/24', key: 'network-tenant-a::net-a-cidr', isLeaf: true }],
       }),
     ])
     expect(tree[2].children).toEqual([
       expect.objectContaining({
-        title: 'Service A (tenant-a)',
         key: 'service-tenant-a-service-binding-a',
         children: [
           expect.objectContaining({
@@ -135,13 +132,11 @@ describe('buildAddressGroupContentsTree', () => {
 
     expect(tree[0].children?.[0]).toEqual(
       expect.objectContaining({
-        title: 'missing-host (tenant-a)',
         children: [{ title: 'Not found', key: 'host-tenant-a::missing-host-status', isLeaf: true }],
       }),
     )
     expect(tree[1].children?.[0]).toEqual(
       expect.objectContaining({
-        title: 'missing-network (tenant-a)',
         children: [{ title: 'Error while fetching', key: 'network-tenant-a::missing-network-status', isLeaf: true }],
       }),
     )

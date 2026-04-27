@@ -10,7 +10,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { renderBadgeWithValue } from 'utils'
+import { renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
 import { TAddressGroupFormModalProps, TAddressGroupFormValues } from './types'
 import {
   API_GROUP,
@@ -25,6 +25,7 @@ import {
   NAME_PATTERN,
   parseNamespacedValue,
   patchEditableSpec,
+  renderNamespacedResourceOptionLabel,
   renderResourceOptionLabel,
   syncBindings,
 } from './utils'
@@ -142,7 +143,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
         .map(item => item.metadata?.name)
         .filter((value): value is string => Boolean(value))
         .sort((first, second) => first.localeCompare(second))
-        .map(value => ({ value, label: value })),
+        .map(value => ({ value, label: renderNamespaceBadgeWithValue(value) })),
     [tenantsData?.items],
   )
   const hostOptions = useMemo(() => getResourceOptions('Host', hostsData?.items), [hostsData?.items])
@@ -350,7 +351,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       okText="Save"
       cancelText="Cancel"
       confirmLoading={isSubmitting}
-      width={728}
+      width={1092}
       destroyOnHidden
     >
       <Styled.ModalContent>
@@ -489,7 +490,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                         </Styled.OverviewBranchTitle>
                         {parsedSelectedServices.map(service => (
                           <Styled.OverviewLeaf key={`service-${service.namespace}-${service.name}`}>
-                            {renderResourceOptionLabel('Service', `${service.namespace} / ${service.name}`)}
+                            {renderNamespacedResourceOptionLabel('Service', service.namespace, service.name)}
                           </Styled.OverviewLeaf>
                         ))}
                       </Styled.OverviewBranch>
