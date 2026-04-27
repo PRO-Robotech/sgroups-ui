@@ -30,6 +30,11 @@ import { THostFormModalProps, THostFormValues } from './types'
 import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAddressGroupBindings } from './utils'
 import { Styled } from './styled'
 
+const DISPLAY_NAME_MAX_LENGTH = 63
+
+const isFormValidationError = (error: unknown): error is { errorFields: unknown[] } =>
+  Boolean(error && typeof error === 'object' && 'errorFields' in error)
+
 export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, open, host, onClose }) => {
   const [form] = Form.useForm<THostFormValues>()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -230,18 +235,18 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
   }
 
   const handleSubmit = async () => {
-    await form.validateFields([
-      ['namespace'],
-      ['name'],
-      ['displayName'],
-      ['addressGroups'],
-      ['description'],
-      ['comment'],
-    ])
-    const values = form.getFieldsValue(true) as THostFormValues
-    setIsSubmitting(true)
-
     try {
+      await form.validateFields([
+        ['namespace'],
+        ['name'],
+        ['displayName'],
+        ['addressGroups'],
+        ['description'],
+        ['comment'],
+      ])
+      const values = form.getFieldsValue(true) as THostFormValues
+      setIsSubmitting(true)
+
       const hostIdentifier = {
         name: values.name,
         namespace: values.namespace,
@@ -293,6 +298,10 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
       message.success('Host created')
       handleCancel()
     } catch (error) {
+      if (isFormValidationError(error)) {
+        return
+      }
+
       message.error(`Failed to ${isEditMode ? 'update' : 'create'} host: ${String(error)}`)
     } finally {
       setIsSubmitting(false)
@@ -357,7 +366,16 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
                 >
                   <Input placeholder="e.g. h-api-prod-01" disabled={isEditMode} />
                 </Form.Item>
-                <Form.Item name="displayName" label="Display name">
+                <Form.Item
+                  name="displayName"
+                  label="Display name"
+                  rules={[
+                    {
+                      max: DISPLAY_NAME_MAX_LENGTH,
+                      message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+                    },
+                  ]}
+                >
                   <Input placeholder="e.g. server-01.prod" />
                 </Form.Item>
                 <Form.Item

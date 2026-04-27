@@ -20,6 +20,16 @@ The form stores UI-friendly values:
 
 Host IPs and metainfo are backend-owned in this modal flow and are not edited here. Reads should tolerate both `spec`-nested and legacy flattened payloads until the backend shape is consistent.
 
+## Validation
+
+The modal uses AntD form rules for backend-backed constraints:
+
+- `namespace`: required Kubernetes resource namespace, max 63 chars.
+- `name`: required Kubernetes resource name, max 63 chars.
+- `displayName`: optional, max 63 chars.
+
+The local `v2` and `v3sgroups` OpenAPI HostSpec only declares `displayName`, `description`, and `comment` as strings. The display-name length comes from the extracted backend validator in `tmp`; `description` and `comment` currently have no stricter documented limits.
+
 ## Create Flow
 
 Create submits the Host first, then creates one `HostBinding` per selected AddressGroup.

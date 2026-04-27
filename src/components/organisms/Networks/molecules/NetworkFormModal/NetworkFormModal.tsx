@@ -24,12 +24,16 @@ import {
   NAME_PATTERN,
   normalizeOptionalString,
   renderBadgeWithValue,
-  validateCIDR,
+  validateNetworkCIDR,
 } from 'utils'
 import { TNetworkResource } from '../../tableConfig'
 import { TNetworkFormModalProps, TNetworkFormValues } from './types'
 import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAddressGroupBindings } from './utils'
 import { Styled } from './styled'
+
+const DISPLAY_NAME_MAX_LENGTH = 63
+const isFormValidationError = (error: unknown): error is { errorFields: unknown[] } =>
+  Boolean(error && typeof error === 'object' && 'errorFields' in error)
 
 export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespace, open, network, onClose }) => {
   const [form] = Form.useForm<TNetworkFormValues>()
@@ -233,15 +237,25 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
   }
 
   const handleSubmit = async () => {
-    await form.validateFields([
-      ['namespace'],
-      ['name'],
-      ['displayName'],
-      ['addressGroups'],
-      ['cidr'],
-      ['description'],
-      ['comment'],
-    ])
+    try {
+      await form.validateFields([
+        ['namespace'],
+        ['name'],
+        ['displayName'],
+        ['addressGroups'],
+        ['cidr'],
+        ['description'],
+        ['comment'],
+      ])
+    } catch (error) {
+      if (isFormValidationError(error)) {
+        return
+      }
+
+      message.error(`Failed to validate network form: ${String(error)}`)
+      return
+    }
+
     const values = form.getFieldsValue(true) as TNetworkFormValues
     setIsSubmitting(true)
 
@@ -362,7 +376,16 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                 >
                   <Input placeholder="e.g. h-api-prod-01" disabled={isEditMode} />
                 </Form.Item>
-                <Form.Item name="displayName" label="Display name">
+                <Form.Item
+                  name="displayName"
+                  label="Display name"
+                  rules={[
+                    {
+                      max: DISPLAY_NAME_MAX_LENGTH,
+                      message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+                    },
+                  ]}
+                >
                   <Input placeholder="e.g. server-01.prod" />
                 </Form.Item>
                 <Form.Item
@@ -386,8 +409,8 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                     { required: true, message: 'Enter CIDR' },
                     {
                       validator: async (_, value?: string) => {
-                        if (!validateCIDR(value)) {
-                          throw new Error('Use a valid CIDR like 10.0.0.0/8 or 2001:db8::/64')
+                        if (!validateNetworkCIDR(value)) {
+                          throw new Error('Use a valid network CIDR like 10.0.0.0/8 or 2001:db8::/64')
                         }
                       },
                     },

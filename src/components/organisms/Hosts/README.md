@@ -8,7 +8,7 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
-- `Display name`: optional.
+- `Display name`: optional, max 63 chars.
 - `Address group`: optional multi-select. Loaded from all namespaces and displayed as `namespace / displayName-or-name`.
 - `Description`: optional.
 - `Comment`: optional.
@@ -82,6 +82,8 @@ The implementation follows the local `v2` OpenAPI dump for `sgroups.io/v1alpha1`
 
 ## Schema source
 
+Use the local `v2` and `v3sgroups` OpenAPI dumps for the Kubernetes resource shape. For field validation gaps not emitted into the OpenAPI schema, use the extracted backend sources in `tmp`.
+
 Relevant fields:
 
 - `Host.spec.displayName`
@@ -91,3 +93,9 @@ Relevant fields:
 - `Host.spec.metaInfo`
 - `HostBinding.spec.addressGroup`
 - `HostBinding.spec.host`
+
+Validation notes:
+
+- `Host.metadata.name` and `Host.metadata.namespace` follow the backend resource-name regex: lower-case alphanumeric or `-`, start/end with alphanumeric, max 63 chars.
+- `Host.spec.displayName` is limited to 63 characters by the backend `DisplayName` validator.
+- `Host.spec.description` and `Host.spec.comment` are strings in the local OpenAPI dump and currently have no stricter documented limits.

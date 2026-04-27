@@ -30,6 +30,8 @@ import {
 } from './utils'
 import { Styled } from './styled'
 
+const DISPLAY_NAME_MAX_LENGTH = 63
+
 export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   cluster,
   namespace,
@@ -258,7 +260,13 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   }
 
   const handleSubmit = async () => {
-    const values = await form.validateFields()
+    let values: TAddressGroupFormValues
+
+    try {
+      values = await form.validateFields()
+    } catch {
+      return
+    }
 
     setIsSubmitting(true)
 
@@ -387,7 +395,16 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                 >
                   <Input placeholder="e.g. server-01-prod" disabled={isEditMode} />
                 </Form.Item>
-                <Form.Item name="displayName" label="Display name">
+                <Form.Item
+                  name="displayName"
+                  label="Display name"
+                  rules={[
+                    {
+                      max: DISPLAY_NAME_MAX_LENGTH,
+                      message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+                    },
+                  ]}
+                >
                   <Input placeholder="e.g. server-01.prod" />
                 </Form.Item>
                 <Styled.SwitchRow>

@@ -109,4 +109,24 @@ describe('AddressGroupFormModal', () => {
     expect(mockMessage.success).toHaveBeenCalledWith('Address group created')
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('validates display name length before submit', async () => {
+    const onClose = jest.fn()
+
+    renderModal(<AddressGroupFormModal cluster="cluster-a" namespace="tenant-a" open onClose={onClose} />)
+
+    fireEvent.change(await screen.findByPlaceholderText('e.g. server-01-prod'), {
+      target: { value: 'ag-new' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('e.g. server-01.prod'), {
+      target: { value: 'a'.repeat(64) },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Display name must be 63 characters or less')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(mockCreateNewEntry).not.toHaveBeenCalled()
+    })
+    expect(onClose).not.toHaveBeenCalled()
+  })
 })

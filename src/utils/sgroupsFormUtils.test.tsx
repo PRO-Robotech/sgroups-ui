@@ -14,6 +14,7 @@ import {
   runSequentialRequests,
   sanitizeBindingName,
   validateCIDR,
+  validateNetworkCIDR,
   validatePortToken,
 } from './sgroupsFormUtils'
 
@@ -133,6 +134,17 @@ describe('sgroupsFormUtils', () => {
     expect(validateCIDR('2001:db8:::/64')).toBe(false)
     expect(validateCIDR('not-a-cidr')).toBe(false)
     expect(validateCIDR('   ')).toBe(false)
+  })
+
+  it('validates network CIDRs with zero host bits', () => {
+    expect(validateNetworkCIDR('10.0.0.0/8')).toBe(true)
+    expect(validateNetworkCIDR('0.0.0.0/0')).toBe(true)
+    expect(validateNetworkCIDR('192.168.1.0/24')).toBe(true)
+    expect(validateNetworkCIDR('2001:db8::/64')).toBe(true)
+    expect(validateNetworkCIDR('::/0')).toBe(true)
+    expect(validateNetworkCIDR('5.5.5.5/8')).toBe(false)
+    expect(validateNetworkCIDR('::1/8')).toBe(false)
+    expect(validateNetworkCIDR('1.1.1.1')).toBe(false)
   })
 
   it('validates port tokens and comma-separated separators', () => {

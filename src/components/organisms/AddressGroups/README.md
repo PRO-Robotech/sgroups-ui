@@ -8,7 +8,7 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. AddressGroup namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
-- `Display name`: optional.
+- `Display name`: optional. Max 63 characters.
 - `Allow access`: maps to `spec.defaultAction`.
   - enabled: `Allow`
   - disabled: `Deny`

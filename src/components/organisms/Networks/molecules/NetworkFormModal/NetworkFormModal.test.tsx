@@ -96,4 +96,43 @@ describe('NetworkFormModal', () => {
     expect(mockMessage.success).toHaveBeenCalledWith('Network created')
     expect(onClose).toHaveBeenCalled()
   })
+
+  it('blocks backend-invalid network CIDR values before submit', async () => {
+    const onClose = jest.fn()
+
+    renderModal(<NetworkFormModal cluster="cluster-a" namespace="tenant-a" open onClose={onClose} />)
+
+    fireEvent.change(await screen.findByPlaceholderText('e.g. h-api-prod-01'), {
+      target: { value: 'net-new' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('e.g. 10.0.0.0/8'), {
+      target: { value: '5.5.5.5/8' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Use a valid network CIDR like 10.0.0.0/8 or 2001:db8::/64')).toBeInTheDocument()
+    expect(mockCreateNewEntry).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('blocks display names longer than the backend limit', async () => {
+    const onClose = jest.fn()
+
+    renderModal(<NetworkFormModal cluster="cluster-a" namespace="tenant-a" open onClose={onClose} />)
+
+    fireEvent.change(await screen.findByPlaceholderText('e.g. h-api-prod-01'), {
+      target: { value: 'net-new' },
+    })
+    fireEvent.change(screen.getByPlaceholderText('e.g. server-01.prod'), {
+      target: { value: 'x'.repeat(64) },
+    })
+    fireEvent.change(screen.getByPlaceholderText('e.g. 10.0.0.0/8'), {
+      target: { value: '10.20.0.0/16' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    expect(await screen.findByText('Display name must be 63 characters or less')).toBeInTheDocument()
+    expect(mockCreateNewEntry).not.toHaveBeenCalled()
+    expect(onClose).not.toHaveBeenCalled()
+  })
 })
