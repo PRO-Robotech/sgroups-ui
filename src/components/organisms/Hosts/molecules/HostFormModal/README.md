@@ -17,6 +17,7 @@ The form stores UI-friendly values:
 - `namespace` and `name` identify the Host.
 - `displayName`, `description`, and `comment` map to editable `spec` fields.
 - `addressGroups` stores selected AddressGroups as namespaced values.
+- AddressGroup options are disabled until `namespace` is selected, then filtered to AddressGroups in that namespace. Changing `namespace` in create mode clears `addressGroups`.
 
 Host IPs and metainfo are backend-owned in this modal flow and are not edited here. Reads should tolerate both `spec`-nested and legacy flattened payloads until the backend shape is consistent.
 
@@ -53,6 +54,7 @@ Edit mode receives an existing `host` prop.
 - Cleared optional strings use `patchEntryWithDeleteOp`.
 - Changed values use `patchEntryWithReplaceOp`.
 - AddressGroup selection is initialized from existing `HostBinding` resources, not from `refs`.
+- AddressGroup options remain scoped to the Host namespace.
 - Removed selections delete bindings.
 - Added selections create bindings in the Host namespace.
 - If no editable fields or bindings changed, no update request is sent.
@@ -61,6 +63,6 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 ## Lifecycle
 
-The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnClose` and resets refs/state after close. This hard reset is intentional and matches the other resource modals.
+The parent conditionally renders the modal only while it is open and increments a modal instance `key` before each create/edit open. This forces a real React unmount/remount for modal-local hooks and state. The AntD modal still uses `destroyOnHidden` for its internal subtree, but lifecycle correctness must not rely on that alone.
 
 Edit prefill should run once per open cycle after the full async resource set is ready.

@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined } from '@ant-design/icons'
 import { Empty, Form, Input, message, Modal, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
@@ -19,7 +19,6 @@ import {
   API_VERSION,
   buildNamespacedValue,
   compactSpec,
-  getAddressGroupOptions,
   getApiEndpoint,
   getNamespaceOptions,
   NAME_PATTERN,
@@ -43,6 +42,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
   const formValues = Form.useWatch([], form) as THostFormValues | undefined
+  const selectedHostNamespace = formValues?.namespace || host?.metadata.namespace || namespace
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(host)
 
@@ -132,10 +132,31 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
   })
 
   const namespaceOptions = useMemo(() => getNamespaceOptions(tenantsData?.items), [tenantsData?.items])
-  const addressGroupOptions = useMemo(
-    () => getAddressGroupOptions(addressGroupsData?.items),
-    [addressGroupsData?.items],
-  )
+  const addressGroupOptions = useMemo(() => {
+    if (!selectedHostNamespace) {
+      return []
+    }
+
+    return (addressGroupsData?.items || [])
+      .reduce<Array<{ value: string; label: ReactNode; searchText: string }>>((acc, addressGroup) => {
+        const resourceName = addressGroup.metadata.name
+        const resourceNamespace = addressGroup.metadata.namespace
+
+        if (!resourceName || resourceNamespace !== selectedHostNamespace) {
+          return acc
+        }
+
+        const displayName = addressGroup.spec?.displayName || resourceName
+        acc.push({
+          value: buildNamespacedValue({ namespace: resourceNamespace, name: resourceName }) || resourceName,
+          label: renderBadgeWithValue('Address Group', displayName),
+          searchText: `${resourceName} ${addressGroup.spec?.displayName || ''}`.trim(),
+        })
+
+        return acc
+      }, [])
+      .sort((first, second) => first.searchText.localeCompare(second.searchText))
+  }, [addressGroupsData?.items, selectedHostNamespace])
   const currentBindings = useMemo(
     () => buildCurrentBindings(host, hostBindingsData?.items),
     [host, hostBindingsData?.items],
@@ -353,6 +374,9 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
                     loading={isTenantsLoading}
                     disabled={isEditMode}
                     status={tenantsError ? 'error' : undefined}
+                    onChange={() => {
+                      form.setFieldValue('addressGroups', [])
+                    }}
                   />
                 </Form.Item>
                 <Form.Item
@@ -386,10 +410,11 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
                   <Select
                     mode="multiple"
                     showSearch
-                    placeholder="Select address groups"
+                    placeholder={selectedHostNamespace ? 'Select address groups' : 'Select namespace first'}
                     optionFilterProp="searchText"
                     options={addressGroupOptions}
                     loading={isAddressGroupsLoading}
+                    disabled={!selectedHostNamespace}
                   />
                 </Form.Item>
                 <Form.Item name="description" label="Description">
