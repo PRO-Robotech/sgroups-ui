@@ -9,7 +9,7 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 - `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
 - `Display name`: optional, max 63 chars.
-- `Address group`: optional multi-select. Loaded from all namespaces and displayed as `namespace / displayName-or-name`.
+- `Address group`: optional multi-select. Disabled until `Namespace` is selected. Options are limited to AddressGroups in the selected Host namespace and are displayed with the Address Group badge plus display name or resource name.
 - `Description`: optional.
 - `Comment`: optional.
 
@@ -49,6 +49,7 @@ In edit mode:
 - `Display name`, `Description`, and `Comment` are editable and saved with toolkit patch helpers.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
 - AddressGroup membership is initialized from existing `HostBinding` resources and remains editable.
+- AddressGroup options are scoped to the Host namespace. Changing the namespace in create mode clears the current AddressGroup selection.
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Host namespace.
 - If no editable field changed and no binding changed, no update request is sent.
@@ -77,8 +78,8 @@ The implementation follows the local `v2` OpenAPI dump for `sgroups.io/v1alpha1`
 
 ## Modal lifecycle
 
-- The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
-- That hard reset is intentional and matches the other resource modals.
+- The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
+- That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
 
 ## Schema source
 

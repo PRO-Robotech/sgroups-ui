@@ -21,8 +21,6 @@ export const AppInner: FC<TAppInnerProps> = ({
   toggleTheme,
 }) => {
   const inRouter = useInRouterContext()
-  // eslint-disable-next-line no-console
-  console.log('Plugin sees router context?', inRouter)
 
   if (!inRouter) return <div>Plugin is NOT under host Router (likely duplicate react-router-dom)</div>
 

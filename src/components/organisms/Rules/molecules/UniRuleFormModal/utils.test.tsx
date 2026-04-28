@@ -100,6 +100,17 @@ describe('UniRuleFormModal utils', () => {
     )
   })
 
+  it('normalizes backend traffic casing for the select value', () => {
+    expect(
+      buildFormValuesFromRule({
+        metadata: { namespace: 'tenant-a', name: 'rule-a' },
+        spec: {
+          session: { traffic: 'Ingress' },
+        },
+      } as any).traffic,
+    ).toBe('ingress')
+  })
+
   it('builds overview nodes for local and remote trees', () => {
     expect(
       buildOverviewTreeData({

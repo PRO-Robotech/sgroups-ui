@@ -45,6 +45,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
   const [selectedHostKey, setSelectedHostKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [editingHost, setEditingHost] = useState<THostRow | null>(null)
+  const [formModalInstanceKey, setFormModalInstanceKey] = useState(0)
   const [deletingHost, setDeletingHost] = useState<TDeleteModalResource | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
@@ -72,11 +73,13 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
   })
 
   const openCreateModal = useCallback(() => {
+    setFormModalInstanceKey(currentValue => currentValue + 1)
     setEditingHost(null)
     setIsFormModalOpen(true)
   }, [])
 
   const openEditModal = useCallback((hostRecord: THostRow) => {
+    setFormModalInstanceKey(currentValue => currentValue + 1)
     setEditingHost(hostRecord)
     setIsFormModalOpen(true)
   }, [])
@@ -266,6 +269,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
       </Flex>
       {isFormModalOpen && (
         <HostFormModal
+          key={formModalInstanceKey}
           cluster={cluster}
           namespace={namespace}
           host={editingHost}

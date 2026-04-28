@@ -9,7 +9,7 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 - `Namespace`: required. Network namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
 - `Display name`: optional, max 63 chars.
-- `Address group`: optional multi-select. Loaded from all namespaces and displayed as `namespace / displayName-or-name`.
+- `Address group`: optional multi-select. Disabled until `Namespace` is selected. Options are limited to AddressGroups in the selected Network namespace and are displayed with the Address Group badge plus display name or resource name.
 - `CIDR`: required. The form validates CIDR shape and requires a network address with zero host bits, for example `10.0.0.0/8` or `2001:db8::/64`.
 - `Description`: optional.
 - `Comment`: optional.
@@ -51,6 +51,7 @@ In edit mode:
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
 - `CIDR` is validated as a network CIDR and patched only when its trimmed value actually changed.
 - AddressGroup membership is initialized from existing `NetworkBinding` resources and remains editable.
+- AddressGroup options are scoped to the Network namespace. Changing the namespace in create mode clears the current AddressGroup selection.
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Network namespace.
 - If no editable field changed and no binding changed, no update request is sent.
@@ -69,8 +70,8 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 ## Modal lifecycle
 
-- The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
-- That hard reset is intentional and matches the other resource modals.
+- The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
+- That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
 
 ## Schema source
 

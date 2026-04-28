@@ -51,6 +51,7 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [editingNetwork, setEditingNetwork] = useState<TNetworkRow | null>(null)
+  const [formModalInstanceKey, setFormModalInstanceKey] = useState(0)
   const [deletingNetwork, setDeletingNetwork] = useState<TDeleteModalResource | null>(null)
   const [isResizing, setIsResizing] = useState(false)
   const [verboseWidth, setVerboseWidth] = useState(() => {
@@ -78,11 +79,13 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
   })
 
   const openCreateModal = useCallback(() => {
+    setFormModalInstanceKey(currentValue => currentValue + 1)
     setEditingNetwork(null)
     setIsFormModalOpen(true)
   }, [])
 
   const openEditModal = useCallback((networkRecord: TNetworkRow) => {
+    setFormModalInstanceKey(currentValue => currentValue + 1)
     setEditingNetwork(networkRecord)
     setIsFormModalOpen(true)
   }, [])
@@ -276,6 +279,7 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
       </Flex>
       {isFormModalOpen && (
         <NetworkFormModal
+          key={formModalInstanceKey}
           cluster={cluster}
           namespace={namespace}
           network={editingNetwork}

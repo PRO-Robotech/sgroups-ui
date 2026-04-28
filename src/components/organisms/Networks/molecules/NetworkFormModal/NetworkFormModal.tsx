@@ -1,4 +1,4 @@
-import { FC, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined } from '@ant-design/icons'
 import { Empty, Form, Input, message, Modal, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
@@ -18,7 +18,6 @@ import {
   API_VERSION,
   buildNamespacedValue,
   compactSpec,
-  getAddressGroupOptions,
   getApiEndpoint,
   getNamespaceOptions,
   NAME_PATTERN,
@@ -43,6 +42,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
   const formValues = Form.useWatch([], form) as TNetworkFormValues | undefined
+  const selectedNetworkNamespace = formValues?.namespace || network?.metadata.namespace || namespace
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(network)
 
@@ -132,10 +132,31 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
   })
 
   const namespaceOptions = useMemo(() => getNamespaceOptions(tenantsData?.items), [tenantsData?.items])
-  const addressGroupOptions = useMemo(
-    () => getAddressGroupOptions(addressGroupsData?.items),
-    [addressGroupsData?.items],
-  )
+  const addressGroupOptions = useMemo(() => {
+    if (!selectedNetworkNamespace) {
+      return []
+    }
+
+    return (addressGroupsData?.items || [])
+      .reduce<Array<{ value: string; label: ReactNode; searchText: string }>>((acc, addressGroup) => {
+        const resourceName = addressGroup.metadata.name
+        const resourceNamespace = addressGroup.metadata.namespace
+
+        if (!resourceName || resourceNamespace !== selectedNetworkNamespace) {
+          return acc
+        }
+
+        const displayName = addressGroup.spec?.displayName || resourceName
+        acc.push({
+          value: buildNamespacedValue({ namespace: resourceNamespace, name: resourceName }) || resourceName,
+          label: renderBadgeWithValue('Address Group', displayName),
+          searchText: `${resourceName} ${addressGroup.spec?.displayName || ''}`.trim(),
+        })
+
+        return acc
+      }, [])
+      .sort((first, second) => first.searchText.localeCompare(second.searchText))
+  }, [addressGroupsData?.items, selectedNetworkNamespace])
   const currentBindings = useMemo(
     () => buildCurrentBindings(network, networkBindingsData?.items),
     [network, networkBindingsData?.items],
@@ -363,6 +384,9 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                     loading={isTenantsLoading}
                     disabled={isEditMode}
                     status={tenantsError ? 'error' : undefined}
+                    onChange={() => {
+                      form.setFieldValue('addressGroups', [])
+                    }}
                   />
                 </Form.Item>
                 <Form.Item
@@ -396,10 +420,11 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                   <Select
                     mode="multiple"
                     showSearch
-                    placeholder="Select address groups"
+                    placeholder={selectedNetworkNamespace ? 'Select address groups' : 'Select namespace first'}
                     optionFilterProp="searchText"
                     options={addressGroupOptions}
                     loading={isAddressGroupsLoading}
+                    disabled={!selectedNetworkNamespace}
                   />
                 </Form.Item>
                 <Form.Item
