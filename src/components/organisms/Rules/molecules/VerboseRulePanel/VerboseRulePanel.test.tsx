@@ -81,7 +81,7 @@ describe('VerboseRulePanel', () => {
             spec: {
               displayName: 'Rule A',
               action: 'Allow',
-              session: { traffic: 'ingress' },
+              session: { traffic: 'Ingress' },
               transport: {
                 protocol: 'TCP',
                 IPv: 'IPv4',

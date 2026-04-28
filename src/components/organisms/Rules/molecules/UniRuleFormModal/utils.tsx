@@ -22,9 +22,9 @@ export const ACTION_OPTIONS = [
 ] as const
 
 export const TRAFFIC_OPTIONS = [
-  { label: 'Both', value: 'both' },
-  { label: 'Ingress', value: 'ingress' },
-  { label: 'Egress', value: 'egress' },
+  { label: 'Both', value: 'Both' },
+  { label: 'Ingress', value: 'Ingress' },
+  { label: 'Egress', value: 'Egress' },
 ] as const
 
 export const buildEndpointPayload = (endpoint?: TEndpointFormValues): TRuleEndpoint | undefined => {

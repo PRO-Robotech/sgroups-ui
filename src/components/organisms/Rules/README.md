@@ -10,7 +10,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
 - `Display name`: optional, max 63 chars.
 - `Action`: required. AntD validates `Allow` or `Deny`.
-- `Traffic`: required. UI labels are `Both`, `Ingress`, or `Egress`; saved `spec.session.traffic` values are lowercase: `both`, `ingress`, or `egress`.
+- `Traffic`: required. UI labels and saved `spec.session.traffic` values are `Both`, `Ingress`, or `Egress`.
 - `Local`: required endpoint block.
 - `Remote`: required endpoint block.
 - `Description`: optional.
@@ -74,9 +74,7 @@ Rule.spec.session
 
 ## Backend Casing Workaround
 
-TODO after backend fix: remove the traffic casing normalization once the backend consistently returns lowercase enum values.
-
-Current backend reads may return capitalized traffic values such as `Ingress`, while the API expects lowercase values when saving. The UI keeps labels capitalized for users, but form/select values must be normalized to lowercase before prefill and before writes so AntD selects can match the current option and save requests send `both`, `ingress`, or `egress`.
+Traffic values are normalized to the local OpenAPI enum casing (`Both`, `Ingress`, or `Egress`) before form prefill and before writes.
 
 ## Edit modal
 

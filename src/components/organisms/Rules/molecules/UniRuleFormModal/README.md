@@ -19,9 +19,9 @@ The form stores UI-friendly values:
 - `local` and `remote` endpoint blocks map to `spec.endpoints.local` and `spec.endpoints.remote`.
 - Transport panel values normalize back to `spec.transport` at submit time.
 
-`traffic` is stored in the form as the lowercase select value (`both`, `ingress`, or `egress`) while the UI renders capitalized labels.
+`traffic` is stored in the form as the capitalized select value (`Both`, `Ingress`, or `Egress`) and saved with the same casing.
 
-TODO after backend fix: remove traffic read normalization when backend responses stop returning capitalized enum values. Until then, edit prefill must lowercase backend traffic values before calling `setFieldsValue`; otherwise AntD cannot match the current select option.
+Edit prefill normalizes backend traffic values before calling `setFieldsValue` so AntD can match the current select option.
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 
@@ -48,7 +48,7 @@ Create submits a single `Rule` resource.
 
 There are no Host, Service, Network, or AddressGroup binding resources in this flow. Endpoint references are written directly into the Rule payload.
 
-Create payloads must also normalize `spec.session.traffic` to lowercase. The backend may read back capitalized values, but it expects lowercase values on write.
+Create payloads normalize `spec.session.traffic` to the local OpenAPI enum casing (`Both`, `Ingress`, or `Egress`).
 
 ## Edit Flow
 

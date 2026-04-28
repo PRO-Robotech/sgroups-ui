@@ -72,7 +72,7 @@ describe('UniRuleFormModal utils', () => {
         spec: {
           displayName: 'Rule A',
           action: 'Deny',
-          session: { traffic: 'ingress' },
+          session: { traffic: 'Ingress' },
           endpoints: {
             local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
             remote: { type: 'CIDR', value: '10.0.0.0/24' },
@@ -90,7 +90,7 @@ describe('UniRuleFormModal utils', () => {
         name: 'rule-a',
         displayName: 'Rule A',
         action: 'Deny',
-        traffic: 'ingress',
+        traffic: 'Ingress',
         local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a', value: undefined },
         remote: { type: 'CIDR', namespace: undefined, name: undefined, value: '10.0.0.0/24' },
         transportIPv: 'IPv4',
@@ -108,7 +108,7 @@ describe('UniRuleFormModal utils', () => {
           session: { traffic: 'Ingress' },
         },
       } as any).traffic,
-    ).toBe('ingress')
+    ).toBe('Ingress')
   })
 
   it('builds overview nodes for local and remote trees', () => {
@@ -133,7 +133,7 @@ describe('UniRuleFormModal utils', () => {
           action: 'Allow',
           description: 'remove',
           comment: 'same',
-          session: { traffic: 'both' },
+          session: { traffic: 'Both' },
           endpoints: {
             local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
             remote: { type: 'FQDN', value: 'old.example.com' },

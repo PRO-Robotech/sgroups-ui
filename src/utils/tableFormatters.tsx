@@ -66,14 +66,14 @@ export const normalizeTrafficValue = (value?: string) => {
   const normalizedValue = value?.toLowerCase()
 
   return normalizedValue && TRAFFIC_LABELS[normalizedValue]
-    ? (normalizedValue as 'both' | 'ingress' | 'egress')
+    ? (TRAFFIC_LABELS[normalizedValue] as 'Both' | 'Ingress' | 'Egress')
     : undefined
 }
 
 export const formatTrafficValue = (value?: string): string => {
   const normalizedValue = normalizeTrafficValue(value)
 
-  return normalizedValue ? TRAFFIC_LABELS[normalizedValue] : value || EMPTY_VALUE
+  return normalizedValue || value || EMPTY_VALUE
 }
 
 export const renderBadge = (value: string) =>
