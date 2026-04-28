@@ -72,6 +72,12 @@ Session direction is written into:
 Rule.spec.session
 ```
 
+## Backend Casing Workaround
+
+TODO after backend fix: remove the traffic casing normalization once the backend consistently returns lowercase enum values.
+
+Current backend reads may return capitalized traffic values such as `Ingress`, while the API expects lowercase values when saving. The UI keeps labels capitalized for users, but form/select values must be normalized to lowercase before prefill and before writes so AntD selects can match the current option and save requests send `both`, `ingress`, or `egress`.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

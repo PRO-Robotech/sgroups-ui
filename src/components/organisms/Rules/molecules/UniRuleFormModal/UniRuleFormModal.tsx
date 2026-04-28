@@ -25,6 +25,7 @@ import {
   IPV_OPTIONS,
   NAME_PATTERN,
   normalizeOptionalString,
+  normalizeTrafficValue,
   PORT_VALUE_SEPARATOR,
   PROTOCOL_OPTIONS,
   renderBadgeWithValue,
@@ -331,6 +332,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
 
     const localEndpoint = buildEndpointPayload(values.local)
     const remoteEndpoint = buildEndpointPayload(values.remote)
+    const traffic = normalizeTrafficValue(values.traffic)
 
     if (!localEndpoint || !remoteEndpoint) {
       message.error('Configure both local and remote endpoints')
@@ -365,7 +367,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
               local: localEndpoint,
               remote: remoteEndpoint,
             },
-            session: values.traffic ? { traffic: values.traffic } : undefined,
+            session: traffic ? { traffic } : undefined,
             transport,
           }).filter(([, value]) => value !== undefined),
         ),
