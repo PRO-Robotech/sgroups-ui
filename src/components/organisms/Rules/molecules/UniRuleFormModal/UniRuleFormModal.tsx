@@ -276,7 +276,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
         name: undefined,
         displayName: undefined,
         action: 'Allow',
-        traffic: 'both',
+        traffic: 'Both',
         description: undefined,
         comment: undefined,
         local: {

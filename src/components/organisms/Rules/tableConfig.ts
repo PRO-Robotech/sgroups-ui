@@ -35,7 +35,7 @@ export type TRuleTransport = {
 }
 
 export type TRuleSession = {
-  traffic?: 'both' | 'ingress' | 'egress'
+  traffic?: 'Both' | 'Ingress' | 'Egress'
 }
 
 export type TRuleResource = {
