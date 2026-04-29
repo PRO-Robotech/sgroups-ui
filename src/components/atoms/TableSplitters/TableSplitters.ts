@@ -80,7 +80,7 @@ export const ResizeHandle = styled.div`
   display: flex;
   justify-content: center;
   cursor: col-resize;
-  background: var(--table-splitter-layout-bg, whitesmoke);
+  background: var(--table-splitter-bg-color, white);
 
   &:before {
     content: '';
