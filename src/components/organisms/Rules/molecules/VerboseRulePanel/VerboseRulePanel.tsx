@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 import React, { FC, useMemo, useState } from 'react'
 import {
   ApartmentOutlined,
@@ -9,7 +10,7 @@ import {
   PartitionOutlined,
   UpOutlined,
 } from '@ant-design/icons'
-import { Spin, Tree, Typography, theme as antdTheme } from 'antd'
+import { Spin, Tooltip, Tree, Typography, theme as antdTheme } from 'antd'
 import type { TreeDataNode } from 'antd'
 import { useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import {
@@ -42,12 +43,13 @@ import {
   TServiceResource,
 } from 'localTypes'
 import {
-  formatDateTime,
+  formatAnnotationEntries,
   formatMapEntries,
   formatTrafficValue,
   renderBadgeWithValue,
   renderNamespacedResourceValue,
   renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
 } from 'utils'
 import { buildRuleEndpointTree } from './contentsTree'
 import { TRuleEndpoint, TRuleRow, TRuleTransportEntry } from '../../tableConfig'
@@ -121,32 +123,49 @@ const TagList: FC<{ values: string[] }> = ({ values }) => {
 
 const renderTagList = (values: string[]) => <TagList values={values} />
 
-const formatTransportEntries = (entries?: TRuleTransportEntry[]) => {
-  if (!entries || entries.length === 0) {
-    return []
+const formatTransportEntryText = (entry: TRuleTransportEntry, index: number) => {
+  const parts = []
+
+  if (entry.ports) {
+    parts.push(`Ports: ${entry.ports}`)
   }
 
-  return entries.map((entry, index) => {
-    const parts = []
+  if (entry.types && entry.types.length > 0) {
+    parts.push(`Types: ${entry.types.join(', ')}`)
+  }
 
-    if (entry.ports) {
-      parts.push(`Ports: ${entry.ports}`)
-    }
+  if (entry.description && !entry.ports) {
+    parts.push(`Description: ${entry.description}`)
+  }
 
-    if (entry.types && entry.types.length > 0) {
-      parts.push(`Types: ${entry.types.join(', ')}`)
-    }
+  if (entry.comment) {
+    parts.push(`Comment: ${entry.comment}`)
+  }
 
-    if (entry.description) {
-      parts.push(`Description: ${entry.description}`)
-    }
+  return parts.join(' | ') || `Entry ${index + 1}`
+}
 
-    if (entry.comment) {
-      parts.push(`Comment: ${entry.comment}`)
-    }
+const TransportEntries: FC<{ entries?: TRuleTransportEntry[] }> = ({ entries }) => {
+  if (!entries || entries.length === 0) {
+    return <>-</>
+  }
 
-    return parts.join(' | ') || `Entry ${index + 1}`
-  })
+  return (
+    <TagsContainer>
+      {entries.map((entry, index) => {
+        const text = formatTransportEntryText(entry, index)
+        const tag = <InfoTag key={`${text}-${index}`}>{text}</InfoTag>
+
+        return entry.ports && entry.description ? (
+          <Tooltip key={`${text}-${index}`} title={entry.description}>
+            {tag}
+          </Tooltip>
+        ) : (
+          tag
+        )
+      })}
+    </TagsContainer>
+  )
 }
 
 export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
@@ -225,12 +244,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
   })
 
   const labels = useMemo(() => formatMapEntries(rule.metadata.labels), [rule.metadata.labels])
-  const annotations = useMemo(() => formatMapEntries(rule.metadata.annotations), [rule.metadata.annotations])
-  const transportEntries = useMemo(
-    () => formatTransportEntries(rule.spec?.transport?.entries),
-    [rule.spec?.transport?.entries],
-  )
-
+  const annotations = useMemo(() => formatAnnotationEntries(rule.metadata.annotations), [rule.metadata.annotations])
   const localTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildRuleEndpointTree({
@@ -360,7 +374,9 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             <div>{renderValue(rule.spec?.transport?.IPv)}</div>
 
             <Typography.Text type="secondary">Transport Entries</Typography.Text>
-            <div>{renderTagList(transportEntries)}</div>
+            <div>
+              <TransportEntries entries={rule.spec?.transport?.entries} />
+            </div>
 
             <Typography.Text type="secondary">Local</Typography.Text>
             <div>{renderEndpointSummary(rule.spec?.endpoints?.local)}</div>
@@ -375,7 +391,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             <div>{renderValue(rule.spec?.comment)}</div>
 
             <Typography.Text type="secondary">Created</Typography.Text>
-            <div>{formatDateTime(rule.metadata.creationTimestamp)}</div>
+            <div>{renderTimestampWithIcon(rule.metadata.creationTimestamp)}</div>
 
             <Typography.Text type="secondary">Labels</Typography.Text>
             <div>{renderTagList(labels)}</div>

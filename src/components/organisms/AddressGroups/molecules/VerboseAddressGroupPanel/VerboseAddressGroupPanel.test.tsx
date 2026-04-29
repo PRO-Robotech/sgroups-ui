@@ -125,6 +125,5 @@ describe('VerboseAddressGroupPanel', () => {
     expect(screen.getByText('Host A')).toBeInTheDocument()
     expect(screen.getByText('Network A')).toBeInTheDocument()
     expect(screen.getByText('Service A')).toBeInTheDocument()
-    expect(screen.getByText('HostBinding / tenant-a / host-binding-a')).toBeInTheDocument()
   })
 })

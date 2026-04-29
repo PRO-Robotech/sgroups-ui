@@ -4,6 +4,7 @@ import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
 import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
+import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { RootState } from 'store/store'
 import { getDeleteModalResource, TDeleteModalResource } from 'utils'
 import { HostFormModal, VerboseHostPanel } from './molecules'
@@ -39,6 +40,7 @@ const clampVerboseWidth = (width: number, containerWidth?: number) => {
 export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
   const theme = useSelector((state: RootState) => state.theme.theme)
   const { token } = antdTheme.useToken()
+  const contentCardHeight = useContentCardHeight()
 
   const splitLayoutRef = useRef<HTMLDivElement>(null)
 
@@ -194,7 +196,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
   }
 
   return (
-    <ContentCard displayFlex flexFlow="column" flexGrow={1}>
+    <ContentCard displayFlex flexFlow="column" flexGrow={1} maxHeight={contentCardHeight}>
       <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
         <TenantSelector cluster={cluster} tenant={namespace} />
         {error && <Alert type="error" message={`Failed to load hosts: ${String(error)}`} showIcon />}
@@ -238,6 +240,8 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
                   />
                   <Styled.DetailPane>
                     <VerboseHostPanel
+                      cluster={cluster}
+                      namespace={namespace}
                       host={selectedHost}
                       width={verboseWidth}
                       onClose={closeVerbose}
@@ -251,6 +255,8 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
             {selectedHost && (
               <Styled.MobileDetailPane style={hostsLayoutStyle}>
                 <VerboseHostPanel
+                  cluster={cluster}
+                  namespace={namespace}
                   host={selectedHost}
                   onClose={closeVerbose}
                   onCollapse={collapseVerbose}

@@ -2,6 +2,7 @@ import React from 'react'
 import { render, screen } from '@testing-library/react'
 import {
   formatArrayForCell,
+  formatAnnotationEntries,
   formatBooleanFlag,
   formatDateTime,
   formatMapEntries,
@@ -26,6 +27,15 @@ describe('tableFormatters', () => {
     expect(formatArrayForCell()).toBe('-')
     expect(formatArrayForCell([])).toBe('-')
     expect(formatArrayForCell(['host-a', 'host-b'])).toBe('host-a, host-b')
+  })
+
+  it('filters kubectl annotations from verbose annotation entries', () => {
+    expect(
+      formatAnnotationEntries({
+        owner: 'netops',
+        'kubectl.kubernetes.io/last-applied-configuration': '{"kind":"Service"}',
+      }),
+    ).toEqual(['owner: netops'])
   })
 
   it('renders a badge with uppercase initials from camel-case values', () => {

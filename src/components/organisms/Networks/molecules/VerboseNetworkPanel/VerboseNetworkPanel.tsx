@@ -33,11 +33,12 @@ import {
 } from 'components/atoms'
 import { TAddressGroupResource, TNetworkBindingResource, TResourceIdentifier } from 'localTypes'
 import {
-  formatDateTime,
+  formatAnnotationEntries,
   formatMapEntries,
   renderBadgeWithValue,
   renderNamespacedResourceValue,
   renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
 } from 'utils'
 import { TNetworkRow } from '../../tableConfig'
 
@@ -113,16 +114,6 @@ const TagList: FC<{ values: string[] }> = ({ values }) => {
 }
 
 const renderTagList = (values: string[]) => <TagList values={values} />
-
-const renderRefs = (network: TNetworkRow) => {
-  if (!network.refs || network.refs.length === 0) {
-    return <Typography.Text type="secondary">No related refs</Typography.Text>
-  }
-
-  const values = network.refs.map(ref => `${ref.kind || 'Unknown kind'} / ${ref.namespace || '-'} / ${ref.name || '-'}`)
-
-  return renderTagList(values)
-}
 
 const buildBoundAddressGroupsTree = ({
   network,
@@ -221,7 +212,10 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
   })
 
   const labels = useMemo(() => formatMapEntries(network.metadata.labels), [network.metadata.labels])
-  const annotations = useMemo(() => formatMapEntries(network.metadata.annotations), [network.metadata.annotations])
+  const annotations = useMemo(
+    () => formatAnnotationEntries(network.metadata.annotations),
+    [network.metadata.annotations],
+  )
   const boundAddressGroupsTree = useMemo<TreeDataNode[]>(
     () =>
       buildBoundAddressGroupsTree({
@@ -279,16 +273,13 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
             <div>{renderValue(network.spec?.comment)}</div>
 
             <Typography.Text type="secondary">Created</Typography.Text>
-            <div>{formatDateTime(network.metadata.creationTimestamp)}</div>
+            <div>{renderTimestampWithIcon(network.metadata.creationTimestamp)}</div>
 
             <Typography.Text type="secondary">Labels</Typography.Text>
             <div>{renderTagList(labels)}</div>
 
             <Typography.Text type="secondary">Annotations</Typography.Text>
             <div>{renderTagList(annotations)}</div>
-
-            <Typography.Text type="secondary">Related Refs</Typography.Text>
-            <div>{renderRefs(network)}</div>
           </SpecGrid>
 
           <DividerLine $backgroundColor={token.colorBorder} />

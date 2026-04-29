@@ -1,5 +1,7 @@
 import React, { FC, useMemo, useState } from 'react'
 import {
+  ApartmentOutlined,
+  CaretDownOutlined,
   CloseOutlined,
   CompressOutlined,
   CopyOutlined,
@@ -7,28 +9,45 @@ import {
   ExpandOutlined,
   UpOutlined,
 } from '@ant-design/icons'
-import { message, Typography } from 'antd'
+import { message, Spin, Tree, Typography, theme as antdTheme } from 'antd'
+import type { TreeDataNode } from 'antd'
+import { useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import {
   CloseButton,
   CustomCard,
   DETAIL_PANEL_MIN_WIDTH,
+  DividerLine,
   ExpandCollapseButton,
+  Icon,
   InfoTag,
   OverflowContainer,
   SpecGrid,
+  Subtitle,
+  SubtitleWithIcon,
   TagsContainer,
   Title,
   TitleAndControlsRow,
   TitleAndExpandCollapse,
+  TreeContainer,
   VerboseContainer,
   ViewMoreTag,
 } from 'components/atoms'
-import { formatDateTime, formatMapEntries, renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
+import { TAddressGroupResource, THostBindingResource, TResourceIdentifier } from 'localTypes'
+import {
+  formatAnnotationEntries,
+  formatMapEntries,
+  renderBadgeWithValue,
+  renderNamespacedResourceValue,
+  renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
+} from 'utils'
 import { THostRow } from '../../tableConfig'
 
 const SpecGridHosts = SpecGrid
 
 type TVerboseHostPanelProps = {
+  cluster?: string
+  namespace?: string
   host: THostRow
   width?: number
   onClose: () => void
@@ -39,6 +58,38 @@ type TVerboseHostPanelProps = {
 const renderValue = (value?: string) => value || '-'
 
 const MAX_VISIBLE_TAGS = 5
+const EMPTY_LEAF_TITLE = 'No bound address groups'
+const ERROR_LEAF_TITLE = 'Error while fetching'
+const NOT_FOUND_LEAF_TITLE = 'Not found'
+
+const makeLookupKey = (identifier?: TResourceIdentifier) =>
+  `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
+
+const withNamespaceLabel = (name?: string, namespace?: string) => {
+  if (!name) {
+    return 'Unknown'
+  }
+
+  return renderNamespacedResourceValue('Address Group', namespace, name)
+}
+
+const renderAddressGroupLabel = (addressGroup?: TAddressGroupResource, fallback?: TResourceIdentifier) => {
+  if (addressGroup?.spec?.displayName) {
+    return withNamespaceLabel(addressGroup.spec.displayName, addressGroup.metadata.namespace || fallback?.namespace)
+  }
+
+  if (addressGroup?.metadata?.name) {
+    return withNamespaceLabel(addressGroup.metadata.name, addressGroup.metadata.namespace)
+  }
+
+  return withNamespaceLabel(fallback?.name, fallback?.namespace)
+}
+
+const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
+  title,
+  key,
+  isLeaf: true,
+})
 
 const TagList: FC<{ values: string[]; onCopy?: boolean }> = ({ values, onCopy }) => {
   const [messageApi, contextHolder] = message.useMessage()
@@ -89,19 +140,123 @@ const TagList: FC<{ values: string[]; onCopy?: boolean }> = ({ values, onCopy })
 
 const renderTagList = (values: string[], onCopy?: boolean) => <TagList values={values} onCopy={onCopy} />
 
-const renderRefs = (host: THostRow) => {
-  if (!host.refs || host.refs.length === 0) {
-    return <Typography.Text type="secondary">No related refs</Typography.Text>
+const buildBoundAddressGroupsTree = ({
+  host,
+  bindings,
+  addressGroups,
+  bindingsError,
+  addressGroupsError,
+  countColor,
+}: {
+  host: THostRow
+  bindings?: THostBindingResource[]
+  addressGroups?: TAddressGroupResource[]
+  bindingsError?: boolean
+  addressGroupsError?: boolean
+  countColor?: string
+}): TreeDataNode[] => {
+  if (bindingsError) {
+    return [createLeaf(ERROR_LEAF_TITLE, 'host-bindings-error')]
   }
 
-  const values = host.refs.map(ref => `${ref.kind || 'Unknown kind'} / ${ref.namespace || '-'} / ${ref.name || '-'}`)
+  const targetKey = makeLookupKey(host.metadata)
+  const addressGroupsByKey = Object.fromEntries(
+    (addressGroups || []).map(group => [makeLookupKey(group.metadata), group]),
+  )
 
-  return renderTagList(values)
+  const matchedBindings = (bindings || []).filter(binding => makeLookupKey(binding.spec?.host) === targetKey)
+  const children = matchedBindings.map(binding => {
+    const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]
+    const bindingKey = `host-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`
+    const title =
+      binding.spec?.displayName ||
+      binding.metadata.name ||
+      renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup)
+
+    if (!addressGroup) {
+      return {
+        title,
+        key: bindingKey,
+        children: [createLeaf(addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `${bindingKey}-status`)],
+      }
+    }
+
+    return {
+      title,
+      key: bindingKey,
+      children: [createLeaf(renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup), `${bindingKey}-group`)],
+    }
+  })
+
+  return [
+    {
+      title: (
+        <>
+          Bound Address Groups <span style={{ color: countColor, fontWeight: 600 }}>({children.length})</span>
+        </>
+      ),
+      key: 'bound-address-groups-root',
+      children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, 'bound-address-groups-empty')],
+    },
+  ]
 }
 
-export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({ host, width, onClose, onExpand, onCollapse }) => {
+export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
+  cluster,
+  namespace,
+  host,
+  width,
+  onClose,
+  onExpand,
+  onCollapse,
+}) => {
+  const { token } = antdTheme.useToken()
+  const resourceRequestBase = {
+    cluster: cluster || '',
+    namespace,
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    isEnabled: Boolean(cluster),
+  } as const
+
+  const {
+    data: hostBindingsData,
+    isLoading: isHostBindingsLoading,
+    error: hostBindingsError,
+  } = useK8sSmartResource<{ items: THostBindingResource[] }>({
+    ...resourceRequestBase,
+    plural: 'hostbindings',
+  })
+  const {
+    data: addressGroupsData,
+    isLoading: isAddressGroupsLoading,
+    error: addressGroupsError,
+  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
+    ...resourceRequestBase,
+    plural: 'addressgroups',
+  })
+
   const labels = useMemo(() => formatMapEntries(host.metadata.labels), [host.metadata.labels])
-  const annotations = useMemo(() => formatMapEntries(host.metadata.annotations), [host.metadata.annotations])
+  const annotations = useMemo(() => formatAnnotationEntries(host.metadata.annotations), [host.metadata.annotations])
+  const boundAddressGroupsTree = useMemo<TreeDataNode[]>(
+    () =>
+      buildBoundAddressGroupsTree({
+        host,
+        bindings: hostBindingsData?.items,
+        addressGroups: addressGroupsData?.items,
+        bindingsError: Boolean(hostBindingsError),
+        addressGroupsError: Boolean(addressGroupsError),
+        countColor: token.colorPrimaryActive,
+      }),
+    [
+      host,
+      hostBindingsData?.items,
+      addressGroupsData?.items,
+      hostBindingsError,
+      addressGroupsError,
+      token.colorPrimaryActive,
+    ],
+  )
   const metaInfo = host.metaInfo || host.spec?.metaInfo
   const ips = host.ips || host.spec?.IPs
 
@@ -163,17 +318,35 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({ host, width, onCl
             <div>{renderTagList(ips?.IPv6 || [], true)}</div>
 
             <Typography.Text type="secondary">Created</Typography.Text>
-            <div>{formatDateTime(host.metadata.creationTimestamp)}</div>
+            <div>{renderTimestampWithIcon(host.metadata.creationTimestamp)}</div>
 
             <Typography.Text type="secondary">Labels</Typography.Text>
             <div>{renderTagList(labels)}</div>
 
             <Typography.Text type="secondary">Annotations</Typography.Text>
             <div>{renderTagList(annotations)}</div>
-
-            <Typography.Text type="secondary">Related Refs</Typography.Text>
-            <div>{renderRefs(host)}</div>
           </SpecGridHosts>
+
+          <DividerLine $backgroundColor={token.colorBorder} />
+
+          <SubtitleWithIcon>
+            <Icon>
+              <ApartmentOutlined />
+            </Icon>
+            <Subtitle>Bound Address Groups</Subtitle>
+          </SubtitleWithIcon>
+          {isHostBindingsLoading || isAddressGroupsLoading ? (
+            <Spin />
+          ) : (
+            <TreeContainer>
+              <Tree
+                showLine
+                switcherIcon={<CaretDownOutlined />}
+                defaultExpandedKeys={['bound-address-groups-root']}
+                treeData={boundAddressGroupsTree}
+              />
+            </TreeContainer>
+          )}
         </OverflowContainer>
       </CustomCard>
     </VerboseContainer>

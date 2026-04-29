@@ -38,6 +38,7 @@ export const CustomCard = styled(Card)`
   flex: 1;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 
   .ant-card-body {
     display: flex;
@@ -146,7 +147,8 @@ export const InfoTag = styled(Tag)`
 
 export const TagsContainer = styled.div`
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 8px;
 `
 
@@ -162,4 +164,23 @@ export const ViewMoreTag = styled.div`
   svg {
     margin-left: 4px;
   }
+`
+
+export const TransportGroup = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+`
+
+export const TransportTitle = styled.div`
+  font-weight: 600;
+  line-height: 20px;
+`
+
+export const TransportEntries = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding-left: 12px;
 `

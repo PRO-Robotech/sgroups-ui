@@ -1,6 +1,6 @@
 # VerboseAddressGroupPanel
 
-Side detail panel for viewing an `AddressGroup` resource, its computed refs, and the resources bound to it.
+Side detail panel for viewing an `AddressGroup` resource and the resources bound to it.
 
 ## Files
 
@@ -19,9 +19,10 @@ The panel renders read-only values from the selected table row:
 - `spec.description` and `spec.comment`
 - `metadata.creationTimestamp`
 - `metadata.labels` and `metadata.annotations`
-- computed `refs`
 
-`AddressGroup.refs` is displayed only as backend-computed data. This panel must not treat refs as editable source data.
+`metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix. `AddressGroup.refs` is backend-computed data and is not displayed by this panel.
+
+Tags are stacked vertically in the verbose layout.
 
 ## Bound Entities Tree
 
