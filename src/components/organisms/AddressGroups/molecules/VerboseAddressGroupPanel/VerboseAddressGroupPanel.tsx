@@ -29,11 +29,12 @@ import {
   VerboseContainer,
 } from 'components/atoms'
 import {
+  formatAnnotationEntries,
   formatBooleanFlag,
-  formatDateTime,
   formatMapEntries,
   renderBadgeWithValue,
   renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
 } from 'utils'
 import {
   THostBindingResource,
@@ -58,8 +59,8 @@ type TVerboseAddressGroupPanelProps = {
 
 const renderValue = (value?: string) => value || '-'
 
-const renderMapValues = (value?: Record<string, string>) => {
-  const entries = formatMapEntries(value)
+const renderMapValues = (value?: Record<string, string>, options?: { excludeKubectlAnnotations?: boolean }) => {
+  const entries = options?.excludeKubectlAnnotations ? formatAnnotationEntries(value) : formatMapEntries(value)
 
   if (entries.length === 0) {
     return '-'
@@ -70,24 +71,6 @@ const renderMapValues = (value?: Record<string, string>) => {
       {entries.map(item => (
         <InfoTag key={item}>{item}</InfoTag>
       ))}
-    </TagsContainer>
-  )
-}
-
-const renderRefs = (addressGroup: TAddressGroupRow) => {
-  if (!addressGroup.refs || addressGroup.refs.length === 0) {
-    return <Typography.Text type="secondary">No related refs</Typography.Text>
-  }
-
-  return (
-    <TagsContainer>
-      {addressGroup.refs.map(ref => {
-        const key = `${ref.kind || 'unknown'}-${ref.namespace || 'all'}-${ref.name || 'unnamed'}`
-
-        return (
-          <InfoTag key={key}>{`${ref.kind || 'Unknown kind'} / ${ref.namespace || '-'} / ${ref.name || '-'}`}</InfoTag>
-        )
-      })}
     </TagsContainer>
   )
 }
@@ -269,13 +252,13 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             <div>{renderValue(addressGroup.spec?.comment)}</div>
 
             <Typography.Text type="secondary">Created</Typography.Text>
-            <div>{formatDateTime(addressGroup.metadata.creationTimestamp)}</div>
+            <div>{renderTimestampWithIcon(addressGroup.metadata.creationTimestamp)}</div>
 
             <Typography.Text type="secondary">Labels</Typography.Text>
             <div>{renderMapValues(addressGroup.metadata.labels)}</div>
 
             <Typography.Text type="secondary">Annotations</Typography.Text>
-            <div>{renderMapValues(addressGroup.metadata.annotations)}</div>
+            <div>{renderMapValues(addressGroup.metadata.annotations, { excludeKubectlAnnotations: true })}</div>
           </SpecGrid>
 
           <DividerLine $backgroundColor={token.colorBorder} />
@@ -298,16 +281,6 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
               />
             </TreeContainer>
           )}
-
-          <DividerLine $backgroundColor={token.colorBorder} />
-
-          <SubtitleWithIcon>
-            <Icon>
-              <ApartmentOutlined />
-            </Icon>
-            <Subtitle>Related Refs</Subtitle>
-          </SubtitleWithIcon>
-          {renderRefs(addressGroup)}
         </OverflowContainer>
       </CustomCard>
     </VerboseContainer>

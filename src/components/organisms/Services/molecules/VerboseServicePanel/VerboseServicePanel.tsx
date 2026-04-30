@@ -1,13 +1,16 @@
 import React, { FC, useMemo, useState } from 'react'
 import {
   ApartmentOutlined,
+  CaretDownOutlined,
   CloseOutlined,
   CompressOutlined,
   DownOutlined,
   ExpandOutlined,
   UpOutlined,
 } from '@ant-design/icons'
-import { Typography, theme as antdTheme } from 'antd'
+import { Spin, Tooltip, Tree, Typography, theme as antdTheme } from 'antd'
+import type { TreeDataNode } from 'antd'
+import { useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import {
   CloseButton,
   CustomCard,
@@ -24,13 +27,27 @@ import {
   Title,
   TitleAndControlsRow,
   TitleAndExpandCollapse,
+  TransportEntries,
+  TransportGroup,
+  TransportTitle,
+  TreeContainer,
   VerboseContainer,
   ViewMoreTag,
 } from 'components/atoms'
-import { formatDateTime, formatMapEntries, renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
+import { TAddressGroupResource, TResourceIdentifier, TServiceBindingResource } from 'localTypes'
+import {
+  formatAnnotationEntries,
+  formatMapEntries,
+  renderBadgeWithValue,
+  renderNamespacedResourceValue,
+  renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
+} from 'utils'
 import { TServiceRow, TServiceTransport, TServiceTransportEntry } from '../../tableConfig'
 
 type TVerboseServicePanelProps = {
+  cluster?: string
+  namespace?: string
   service: TServiceRow
   width?: number
   onClose: () => void
@@ -39,8 +56,40 @@ type TVerboseServicePanelProps = {
 }
 
 const MAX_VISIBLE_TAGS = 5
+const EMPTY_LEAF_TITLE = 'No bound address groups'
+const ERROR_LEAF_TITLE = 'Error while fetching'
+const NOT_FOUND_LEAF_TITLE = 'Not found'
 
 const renderValue = (value?: string) => value || '-'
+
+const makeLookupKey = (identifier?: TResourceIdentifier) =>
+  `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
+
+const withNamespaceLabel = (name?: string, namespace?: string) => {
+  if (!name) {
+    return 'Unknown'
+  }
+
+  return renderNamespacedResourceValue('Address Group', namespace, name)
+}
+
+const renderAddressGroupLabel = (addressGroup?: TAddressGroupResource, fallback?: TResourceIdentifier) => {
+  if (addressGroup?.spec?.displayName) {
+    return withNamespaceLabel(addressGroup.spec.displayName, addressGroup.metadata.namespace || fallback?.namespace)
+  }
+
+  if (addressGroup?.metadata?.name) {
+    return withNamespaceLabel(addressGroup.metadata.name, addressGroup.metadata.namespace)
+  }
+
+  return withNamespaceLabel(fallback?.name, fallback?.namespace)
+}
+
+const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
+  title,
+  key,
+  isLeaf: true,
+})
 
 const TagList: FC<{ values: string[] }> = ({ values }) => {
   const [expanded, setExpanded] = useState(false)
@@ -69,7 +118,7 @@ const TagList: FC<{ values: string[] }> = ({ values }) => {
 
 const renderTagList = (values: string[]) => <TagList values={values} />
 
-const formatTransportEntry = (entry: TServiceTransportEntry, index: number) => {
+const formatTransportEntryText = (entry: TServiceTransportEntry, index: number) => {
   const parts = []
 
   if (entry.ports) {
@@ -80,7 +129,7 @@ const formatTransportEntry = (entry: TServiceTransportEntry, index: number) => {
     parts.push(`Types: ${entry.types.join(', ')}`)
   }
 
-  if (entry.description) {
+  if (entry.description && !entry.ports) {
     parts.push(`Description: ${entry.description}`)
   }
 
@@ -91,25 +140,103 @@ const formatTransportEntry = (entry: TServiceTransportEntry, index: number) => {
   return parts.join(' | ') || `Entry ${index + 1}`
 }
 
-const formatTransport = (transport: TServiceTransport, index: number) => {
-  const headerParts = [transport.protocol, transport.IPv].filter(Boolean)
-  const header = headerParts.length > 0 ? headerParts.join(' / ') : `Transport ${index + 1}`
-  const entries = transport.entries?.map(formatTransportEntry) || []
+const renderTransportEntry = (entry: TServiceTransportEntry, index: number) => {
+  const text = formatTransportEntryText(entry, index)
+  const tag = <InfoTag key={`${text}-${index}`}>{text}</InfoTag>
 
-  return entries.length > 0 ? [`${header}:`, ...entries.map(entry => `  ${entry}`)].join('\n') : `${header}: No entries`
+  return entry.ports && entry.description ? (
+    <Tooltip key={`${text}-${index}`} title={entry.description}>
+      {tag}
+    </Tooltip>
+  ) : (
+    tag
+  )
 }
 
-const renderRefs = (service: TServiceRow) => {
-  if (!service.refs || service.refs.length === 0) {
-    return <Typography.Text type="secondary">No related refs</Typography.Text>
+const renderTransport = (transport: TServiceTransport, index: number) => {
+  const headerParts = [transport.protocol, transport.IPv].filter(Boolean)
+  const header = headerParts.length > 0 ? headerParts.join(' / ') : `Transport ${index + 1}`
+
+  return (
+    <div key={`${header}-${index}`}>
+      <TransportGroup>
+        <TransportTitle>{header}</TransportTitle>
+        <TransportEntries>
+          {transport.entries && transport.entries.length > 0 ? (
+            transport.entries.map(renderTransportEntry)
+          ) : (
+            <InfoTag>No entries</InfoTag>
+          )}
+        </TransportEntries>
+      </TransportGroup>
+    </div>
+  )
+}
+
+const buildBoundAddressGroupsTree = ({
+  service,
+  bindings,
+  addressGroups,
+  bindingsError,
+  addressGroupsError,
+  countColor,
+}: {
+  service: TServiceRow
+  bindings?: TServiceBindingResource[]
+  addressGroups?: TAddressGroupResource[]
+  bindingsError?: boolean
+  addressGroupsError?: boolean
+  countColor?: string
+}): TreeDataNode[] => {
+  if (bindingsError) {
+    return [createLeaf(ERROR_LEAF_TITLE, 'service-bindings-error')]
   }
 
-  const values = service.refs.map(ref => `${ref.kind || 'Unknown kind'} / ${ref.namespace || '-'} / ${ref.name || '-'}`)
+  const targetKey = makeLookupKey(service.metadata)
+  const addressGroupsByKey = Object.fromEntries(
+    (addressGroups || []).map(group => [makeLookupKey(group.metadata), group]),
+  )
 
-  return renderTagList(values)
+  const matchedBindings = (bindings || []).filter(binding => makeLookupKey(binding.spec?.service) === targetKey)
+  const children = matchedBindings.map(binding => {
+    const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]
+    const bindingKey = `service-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`
+    const title =
+      binding.spec?.displayName ||
+      binding.metadata.name ||
+      renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup)
+
+    if (!addressGroup) {
+      return {
+        title,
+        key: bindingKey,
+        children: [createLeaf(addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `${bindingKey}-status`)],
+      }
+    }
+
+    return {
+      title,
+      key: bindingKey,
+      children: [createLeaf(renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup), `${bindingKey}-group`)],
+    }
+  })
+
+  return [
+    {
+      title: (
+        <>
+          Bound Address Groups <span style={{ color: countColor, fontWeight: 600 }}>({children.length})</span>
+        </>
+      ),
+      key: 'bound-address-groups-root',
+      children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, 'bound-address-groups-empty')],
+    },
+  ]
 }
 
 export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
+  cluster,
+  namespace,
   service,
   width,
   onClose,
@@ -117,10 +244,57 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
   onCollapse,
 }) => {
   const { token } = antdTheme.useToken()
+  const resourceRequestBase = {
+    cluster: cluster || '',
+    namespace,
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    isEnabled: Boolean(cluster),
+  } as const
+
+  const {
+    data: serviceBindingsData,
+    isLoading: isServiceBindingsLoading,
+    error: serviceBindingsError,
+  } = useK8sSmartResource<{ items: TServiceBindingResource[] }>({
+    ...resourceRequestBase,
+    plural: 'servicebindings',
+  })
+  const {
+    data: addressGroupsData,
+    isLoading: isAddressGroupsLoading,
+    error: addressGroupsError,
+  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
+    ...resourceRequestBase,
+    plural: 'addressgroups',
+  })
+
   const labels = useMemo(() => formatMapEntries(service.metadata.labels), [service.metadata.labels])
-  const annotations = useMemo(() => formatMapEntries(service.metadata.annotations), [service.metadata.annotations])
+  const annotations = useMemo(
+    () => formatAnnotationEntries(service.metadata.annotations),
+    [service.metadata.annotations],
+  )
+  const boundAddressGroupsTree = useMemo<TreeDataNode[]>(
+    () =>
+      buildBoundAddressGroupsTree({
+        service,
+        bindings: serviceBindingsData?.items,
+        addressGroups: addressGroupsData?.items,
+        bindingsError: Boolean(serviceBindingsError),
+        addressGroupsError: Boolean(addressGroupsError),
+        countColor: token.colorPrimaryActive,
+      }),
+    [
+      service,
+      serviceBindingsData?.items,
+      addressGroupsData?.items,
+      serviceBindingsError,
+      addressGroupsError,
+      token.colorPrimaryActive,
+    ],
+  )
   const transportDetails = useMemo(
-    () => (service.spec?.transports || []).map(formatTransport),
+    () => (service.spec?.transports || []).map(renderTransport),
     [service.spec?.transports],
   )
 
@@ -158,7 +332,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             <div>{renderValue(service.spec?.comment)}</div>
 
             <Typography.Text type="secondary">Created</Typography.Text>
-            <div>{formatDateTime(service.metadata.creationTimestamp)}</div>
+            <div>{renderTimestampWithIcon(service.metadata.creationTimestamp)}</div>
 
             <Typography.Text type="secondary">Labels</Typography.Text>
             <div>{renderTagList(labels)}</div>
@@ -175,7 +349,9 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             </Icon>
             <Subtitle>Transports</Subtitle>
           </SubtitleWithIcon>
-          <div>{renderTagList(transportDetails)}</div>
+          <TagsContainer>
+            {transportDetails.length > 0 ? transportDetails : <InfoTag>No transports</InfoTag>}
+          </TagsContainer>
 
           <DividerLine $backgroundColor={token.colorBorder} />
 
@@ -183,9 +359,20 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             <Icon>
               <ApartmentOutlined />
             </Icon>
-            <Subtitle>Related Refs</Subtitle>
+            <Subtitle>Bound Address Groups</Subtitle>
           </SubtitleWithIcon>
-          {renderRefs(service)}
+          {isServiceBindingsLoading || isAddressGroupsLoading ? (
+            <Spin />
+          ) : (
+            <TreeContainer>
+              <Tree
+                showLine
+                switcherIcon={<CaretDownOutlined />}
+                defaultExpandedKeys={['bound-address-groups-root']}
+                treeData={boundAddressGroupsTree}
+              />
+            </TreeContainer>
+          )}
         </OverflowContainer>
       </CustomCard>
     </VerboseContainer>

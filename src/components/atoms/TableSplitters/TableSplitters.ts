@@ -80,7 +80,7 @@ export const ResizeHandle = styled.div`
   display: flex;
   justify-content: center;
   cursor: col-resize;
-  background: var(--table-splitter-layout-bg, whitesmoke);
+  background: var(--table-splitter-bg-color, white);
 
   &:before {
     content: '';
@@ -98,7 +98,7 @@ export const ResizeHandle = styled.div`
 export const DetailPane = styled.aside`
   height: 100%;
   min-width: 0;
-  overflow: auto;
+  overflow: hidden;
   border-left: 1px solid var(--table-splitter-border-secondary-color, #f0f0f0);
 
   @media (width <= 1100px) {
@@ -111,6 +111,8 @@ export const MobileDetailPane = styled.div`
 
   @media (width <= 1100px) {
     display: block;
+    height: min(520px, 50vh);
+    min-height: 0;
     border: 1px solid var(--table-splitter-border-color, #d9d9d9);
     border-radius: 12px;
     overflow: hidden;

@@ -4,6 +4,7 @@ import { PlusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
 import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
+import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { RootState } from 'store/store'
 import { getDeleteModalResource, TDeleteModalResource } from 'utils'
 import { AddressGroupFormModal, VerboseAddressGroupPanel } from './molecules'
@@ -45,6 +46,7 @@ const clampVerboseWidth = (width: number, containerWidth?: number) => {
 export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) => {
   const theme = useSelector((state: RootState) => state.theme.theme)
   const { token } = antdTheme.useToken()
+  const contentCardHeight = useContentCardHeight()
 
   const splitLayoutRef = useRef<HTMLDivElement>(null)
 
@@ -197,7 +199,7 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   }
 
   return (
-    <ContentCard displayFlex flexFlow="column" flexGrow={1}>
+    <ContentCard displayFlex flexFlow="column" flexGrow={1} maxHeight={contentCardHeight}>
       <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
         <TenantSelector cluster={cluster} tenant={namespace} />
         {error && <Alert type="error" message={`Failed to load address groups: ${String(error)}`} showIcon />}

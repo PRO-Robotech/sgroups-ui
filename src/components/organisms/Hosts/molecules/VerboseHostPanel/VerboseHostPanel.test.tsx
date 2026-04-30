@@ -2,12 +2,55 @@
 import React from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
 
+const mockUseK8sSmartResource = jest.fn()
+
+jest.mock(
+  '@prorobotech/openapi-k8s-toolkit',
+  () => ({
+    useK8sSmartResource: (...args: unknown[]) => mockUseK8sSmartResource(...args),
+  }),
+  { virtual: true },
+)
+
+// eslint-disable-next-line import/first
 import { VerboseHostPanel } from './VerboseHostPanel'
 
 describe('VerboseHostPanel', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockUseK8sSmartResource.mockImplementation((params: { plural?: string }) => ({
+      data: {
+        items:
+          // eslint-disable-next-line no-nested-ternary
+          params.plural === 'hostbindings'
+            ? [
+                {
+                  metadata: { name: 'host-binding-a', namespace: 'tenant-a' },
+                  spec: {
+                    host: { name: 'host-a', namespace: 'tenant-a' },
+                    addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+                  },
+                },
+              ]
+            : params.plural === 'addressgroups'
+            ? [
+                {
+                  metadata: { name: 'ag-a', namespace: 'tenant-a' },
+                  spec: { displayName: 'Address Group A' },
+                },
+              ]
+            : [],
+      },
+      error: undefined,
+      isLoading: false,
+    }))
+  })
+
   it('renders host details, backend-owned IPs, refs, and expandable tag lists', () => {
     render(
       <VerboseHostPanel
+        cluster="cluster-a"
+        namespace="tenant-a"
         host={
           {
             metadata: {
@@ -57,7 +100,8 @@ describe('VerboseHostPanel', () => {
     expect(screen.getByText('ubuntu')).toBeInTheDocument()
     expect(screen.getByText('10.0.0.10')).toBeInTheDocument()
     expect(screen.getByText('2001:db8::10')).toBeInTheDocument()
-    expect(screen.getByText('HostBinding / tenant-a / host-binding-a')).toBeInTheDocument()
+    expect(screen.getAllByText('Bound Address Groups').length).toBeGreaterThan(0)
+    expect(screen.getByText('host-binding-a')).toBeInTheDocument()
     expect(screen.queryByText('label6: six')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Show more (1)'))

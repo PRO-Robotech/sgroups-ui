@@ -25,7 +25,11 @@ The panel renders read-only values from the selected table row:
 - `metadata.creationTimestamp`
 - `metadata.labels` and `metadata.annotations`
 
-Actions are shown as colored tags. Transport entries are flattened into readable tag strings.
+`metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix.
+
+Actions are shown as colored tags. Transport entries are shown as tags; port descriptions are shown in tooltips instead of inline text.
+
+Long tag groups show the first five values and expose a show more/less control. Tags are stacked vertically in the verbose layout.
 
 ## Endpoint Trees
 

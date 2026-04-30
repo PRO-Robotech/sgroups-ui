@@ -13,6 +13,8 @@ const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
   timeStyle: 'short',
 })
 
+const KUBECTL_ANNOTATION_PREFIX = 'kubectl.kubernetes.io/'
+
 const getBadgeColor = (value: string): string => {
   let hash = 0
 
@@ -52,6 +54,16 @@ export const formatMapEntries = (value?: Record<string, string>): string[] => {
   }
 
   return Object.entries(value).map(([key, itemValue]) => `${key}: ${itemValue}`)
+}
+
+export const formatAnnotationEntries = (value?: Record<string, string>): string[] => {
+  if (!value) {
+    return []
+  }
+
+  return Object.entries(value)
+    .filter(([key]) => !key.startsWith(KUBECTL_ANNOTATION_PREFIX))
+    .map(([key, itemValue]) => `${key}: ${itemValue}`)
 }
 
 export const formatBooleanFlag = (value?: boolean): string => {

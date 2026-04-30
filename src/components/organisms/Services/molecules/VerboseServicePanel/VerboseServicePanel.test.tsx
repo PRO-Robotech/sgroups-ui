@@ -2,12 +2,55 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 
+const mockUseK8sSmartResource = jest.fn()
+
+jest.mock(
+  '@prorobotech/openapi-k8s-toolkit',
+  () => ({
+    useK8sSmartResource: (...args: unknown[]) => mockUseK8sSmartResource(...args),
+  }),
+  { virtual: true },
+)
+
+// eslint-disable-next-line import/first
 import { VerboseServicePanel } from './VerboseServicePanel'
 
 describe('VerboseServicePanel', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockUseK8sSmartResource.mockImplementation((params: { plural?: string }) => ({
+      data: {
+        items:
+          // eslint-disable-next-line no-nested-ternary
+          params.plural === 'servicebindings'
+            ? [
+                {
+                  metadata: { name: 'service-binding-a', namespace: 'tenant-a' },
+                  spec: {
+                    service: { name: 'svc-a', namespace: 'tenant-a' },
+                    addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+                  },
+                },
+              ]
+            : params.plural === 'addressgroups'
+            ? [
+                {
+                  metadata: { name: 'ag-a', namespace: 'tenant-a' },
+                  spec: { displayName: 'Address Group A' },
+                },
+              ]
+            : [],
+      },
+      error: undefined,
+      isLoading: false,
+    }))
+  })
+
   it('renders service details, transport summaries, and refs', () => {
     render(
       <VerboseServicePanel
+        cluster="cluster-a"
+        namespace="tenant-a"
         service={
           {
             metadata: {
@@ -47,10 +90,12 @@ describe('VerboseServicePanel', () => {
     expect(screen.getByText('API service')).toBeInTheDocument()
     expect(screen.getByText('app: api')).toBeInTheDocument()
     expect(screen.getByText('owner: platform')).toBeInTheDocument()
-    expect(screen.getByText(/TCP \/ IPv4:/)).toBeInTheDocument()
+    expect(screen.getByText('TCP / IPv4')).toBeInTheDocument()
     expect(screen.getByText(/Ports: 443/)).toBeInTheDocument()
-    expect(screen.getByText(/ICMP \/ IPv4:/)).toBeInTheDocument()
+    expect(screen.queryByText(/Description: https/)).not.toBeInTheDocument()
+    expect(screen.getByText('ICMP / IPv4')).toBeInTheDocument()
     expect(screen.getByText(/Types: 8, 0/)).toBeInTheDocument()
-    expect(screen.getByText('ServiceBinding / tenant-a / service-binding-a')).toBeInTheDocument()
+    expect(screen.getAllByText('Bound Address Groups').length).toBeGreaterThan(0)
+    expect(screen.getByText('service-binding-a')).toBeInTheDocument()
   })
 })

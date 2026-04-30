@@ -17,9 +17,10 @@ The panel renders read-only values from the selected table row:
 - `spec.description` and `spec.comment`
 - `metadata.creationTimestamp`
 - `metadata.labels` and `metadata.annotations`
-- computed `refs`
 
-`Network.refs` is displayed only as backend-computed data. AddressGroup membership for Networks is managed through `NetworkBinding` resources elsewhere.
+`metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix. `Network.refs` is backend-computed data and is not displayed by this panel.
+
+Long tag groups show the first five values and expose a show more/less control. Tags are stacked vertically in the verbose layout.
 
 ## Bound AddressGroups Tree
 
