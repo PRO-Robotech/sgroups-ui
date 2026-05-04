@@ -67,6 +67,12 @@ Edit mode receives an existing `service` prop.
 
 Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
+## Structure Overview
+
+The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. It reuses the AddressGroup contents tree builder.
+
+Each selected AddressGroup overview node passes its own `overview-{namespace/name}` key as the tree key prefix. Nested section, binding, transport, entry, empty, and error keys then extend their parent key so repeated resources remain unique across the full AntD Tree.
+
 ## Transport Rules
 
 Transport entries support `TCP`, `UDP`, and `ICMP`.

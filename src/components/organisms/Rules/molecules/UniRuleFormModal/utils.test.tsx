@@ -118,8 +118,11 @@ describe('UniRuleFormModal utils', () => {
         remoteTreeData: [{ key: 'remote-a' }, { key: 'remote-b' }],
       }),
     ).toEqual([
-      expect.objectContaining({ key: 'overview-local', children: [{ key: 'local-a' }] }),
-      expect.objectContaining({ key: 'overview-remote', children: [{ key: 'remote-a' }, { key: 'remote-b' }] }),
+      expect.objectContaining({ key: 'overview-local', children: [{ key: 'overview-local-local-a' }] }),
+      expect.objectContaining({
+        key: 'overview-remote',
+        children: [{ key: 'overview-remote-remote-a' }, { key: 'overview-remote-remote-b' }],
+      }),
     ])
   })
 

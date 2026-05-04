@@ -40,6 +40,8 @@ The `AddressGroup.refs` field is intentionally not written by the UI. It is trea
 
 The modal structure overview is a single AddressGroup tree. It does not model local/remote groups; services keep their namespace in the displayed label.
 
+The overview tree uses parent-derived AntD Tree keys. When the shared AddressGroup contents tree is reused inside another modal overview, callers prefix it with the selected AddressGroup overview key so repeated section and resource nodes remain unique.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

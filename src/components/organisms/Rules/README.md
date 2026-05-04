@@ -134,6 +134,7 @@ The right sidebar renders a `Structure Overview` tree with separate top-level `L
 - `AddressGroup` and `Service` endpoints reuse the existing rule verbose tree builder
 - the tree expands through the current host, network, and service binding graph
 - `FQDN` and `CIDR` endpoints render as direct endpoint leaves
+- local and remote endpoint children are recursively prefixed by `overview-local` or `overview-remote` so repeated endpoint shapes keep unique AntD Tree keys
 
 ## Modal lifecycle
 

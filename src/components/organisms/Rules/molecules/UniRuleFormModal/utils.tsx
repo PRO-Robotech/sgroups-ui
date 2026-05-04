@@ -124,6 +124,15 @@ const renderOverviewTitle = (label: 'Local' | 'Remote', count: number) => (
   </span>
 )
 
+const makeChildKey = (parentKey: string, key: string) => `${parentKey}-${key}`
+
+const prefixTreeNodeKeys = (nodes: TreeDataNode[], parentKey: string): TreeDataNode[] =>
+  nodes.map(node => {
+    const key = makeChildKey(parentKey, String(node.key))
+
+    return node.children ? { ...node, key, children: prefixTreeNodeKeys(node.children, key) } : { ...node, key }
+  })
+
 export const buildOverviewTreeData = ({
   localTreeData,
   remoteTreeData,
@@ -134,12 +143,12 @@ export const buildOverviewTreeData = ({
   {
     title: renderOverviewTitle('Local', localTreeData.length),
     key: 'overview-local',
-    children: localTreeData,
+    children: prefixTreeNodeKeys(localTreeData, 'overview-local'),
   },
   {
     title: renderOverviewTitle('Remote', remoteTreeData.length),
     key: 'overview-remote',
-    children: remoteTreeData,
+    children: prefixTreeNodeKeys(remoteTreeData, 'overview-remote'),
   },
 ]
 

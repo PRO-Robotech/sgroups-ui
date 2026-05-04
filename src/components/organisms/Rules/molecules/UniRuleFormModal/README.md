@@ -74,6 +74,12 @@ Patched fields include:
 - `spec.session`
 - `spec.transport`
 
+## Structure Overview
+
+The sidebar wraps local and remote endpoint trees under `overview-local` and `overview-remote`.
+
+Endpoint tree keys are recursively prefixed with the wrapping overview key. This keeps repeated endpoint keys such as `service-endpoint`, `address-group-endpoint`, and their nested transport or binding children unique when Local and Remote render similar resources in the same AntD Tree.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.

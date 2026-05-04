@@ -41,6 +41,8 @@ The `Source` and `Destination` sections resolve endpoint contents from the curre
 
 Missing resources render as `Not found`; failed lookups render as `Error while fetching`.
 
+Tree node keys are parent-derived. Service transport entries extend the service endpoint or binding resource key, and AddressGroup endpoint branches extend `address-group-endpoint` through Hosts, Networks, Services, bindings, resources, transports, and leaves. This keeps keys unique when the same endpoint tree is rendered beside another tree or embedded in the UniRule Structure Overview.
+
 ## Lifecycle
 
 The parent table owns selection and visibility. The panel exposes `onClose`, `onExpand`, and `onCollapse` callbacks and switches the expand/collapse icon based on `DETAIL_PANEL_MIN_WIDTH`.

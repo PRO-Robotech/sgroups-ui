@@ -59,6 +59,12 @@ Edit mode receives an existing `addressGroup` prop.
 
 Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
+## Structure Overview
+
+The sidebar renders a single AddressGroup contents tree from the selected Hosts, Services, and Networks.
+
+Tree keys are parent-derived by the shared contents tree builder. If this tree is later embedded under another overview node, pass that parent key as the builder prefix instead of relying on short repeated section keys.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnClose` and resets refs/state after close. This hard reset is intentional because partial async prefills can leave AntD multi-selects visually broken on reopen.

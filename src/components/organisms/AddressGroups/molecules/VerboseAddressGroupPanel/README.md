@@ -34,6 +34,8 @@ The `Entities` tree is derived from current binding resources and resource looku
 
 Bindings are matched by `spec.addressGroup.name` and `spec.addressGroup.namespace`. Missing resources render as `Not found`; failed lookups render as `Error while fetching`.
 
+Tree node keys are built from their parent key. When this builder is reused inside another Structure Overview, callers pass the overview node key as a prefix so repeated Hosts, Networks, Services, transports, and empty/error leaves stay unique across the full AntD Tree.
+
 ## Lifecycle
 
 The parent table owns selection and visibility. The panel exposes `onClose`, `onExpand`, and `onCollapse` callbacks and switches the expand/collapse icon based on `DETAIL_PANEL_MIN_WIDTH`.

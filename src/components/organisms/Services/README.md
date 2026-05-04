@@ -36,6 +36,8 @@ Each binding:
 
 The UI does not write a refs-like field on Service. AddressGroup membership is managed through `ServiceBinding` resources.
 
+The modal Structure Overview is derived from selected AddressGroups and the current binding graph. Overview tree keys are parent-derived and prefixed with each selected AddressGroup overview node key, so repeated resources remain unique in AntD Tree.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

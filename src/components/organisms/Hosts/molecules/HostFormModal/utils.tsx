@@ -197,6 +197,7 @@ export const buildOverviewTreeData = ({
     const branches = buildAddressGroupContentsTree({
       addressGroupName: parsedValue.name || '',
       addressGroupNamespace: parsedValue.namespace || '',
+      keyPrefix: `overview-${selectedValue}`,
       hostBindings: relatedHostBindings,
       networkBindings: relatedNetworkBindings,
       serviceBindings: relatedServiceBindings,

@@ -91,6 +91,8 @@ const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
   isLeaf: true,
 })
 
+const makeChildKey = (parentKey: string, key: string) => `${parentKey}-${key}`
+
 const TagList: FC<{ values: string[] }> = ({ values }) => {
   const [expanded, setExpanded] = useState(false)
   const visibleValues = expanded ? values : values.slice(0, MAX_VISIBLE_TAGS)
@@ -188,8 +190,10 @@ const buildBoundAddressGroupsTree = ({
   addressGroupsError?: boolean
   countColor?: string
 }): TreeDataNode[] => {
+  const rootKey = 'bound-address-groups-root'
+
   if (bindingsError) {
-    return [createLeaf(ERROR_LEAF_TITLE, 'service-bindings-error')]
+    return [createLeaf(ERROR_LEAF_TITLE, makeChildKey(rootKey, 'service-bindings-error'))]
   }
 
   const targetKey = makeLookupKey(service.metadata)
@@ -200,7 +204,10 @@ const buildBoundAddressGroupsTree = ({
   const matchedBindings = (bindings || []).filter(binding => makeLookupKey(binding.spec?.service) === targetKey)
   const children = matchedBindings.map(binding => {
     const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]
-    const bindingKey = `service-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`
+    const bindingKey = makeChildKey(
+      rootKey,
+      `service-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`,
+    )
     const title =
       binding.spec?.displayName ||
       binding.metadata.name ||
@@ -210,14 +217,21 @@ const buildBoundAddressGroupsTree = ({
       return {
         title,
         key: bindingKey,
-        children: [createLeaf(addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `${bindingKey}-status`)],
+        children: [
+          createLeaf(addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, makeChildKey(bindingKey, 'status')),
+        ],
       }
     }
 
     return {
       title,
       key: bindingKey,
-      children: [createLeaf(renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup), `${bindingKey}-group`)],
+      children: [
+        createLeaf(
+          renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup),
+          makeChildKey(bindingKey, 'group'),
+        ),
+      ],
     }
   })
 
@@ -228,8 +242,8 @@ const buildBoundAddressGroupsTree = ({
           Bound Address Groups <span style={{ color: countColor, fontWeight: 600 }}>({children.length})</span>
         </>
       ),
-      key: 'bound-address-groups-root',
-      children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, 'bound-address-groups-empty')],
+      key: rootKey,
+      children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
     },
   ]
 }

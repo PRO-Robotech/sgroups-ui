@@ -34,6 +34,8 @@ Bindings are matched by comparing `binding.spec.service` with the current Servic
 
 Missing AddressGroups render as `Not found`; failed lookups render as `Error while fetching`.
 
+Tree node keys are derived from the root `bound-address-groups-root` key, then from each binding node. Child status/group leaves extend the binding key so repeated binding names or fallback states do not collide in AntD Tree.
+
 ## Lifecycle
 
 The parent table owns selection and visibility. The panel exposes `onClose`, `onExpand`, and `onCollapse` callbacks and switches the expand/collapse icon based on `DETAIL_PANEL_MIN_WIDTH`.

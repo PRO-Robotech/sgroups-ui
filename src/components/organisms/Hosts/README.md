@@ -37,6 +37,8 @@ The UI does not write `Host.refs`. Treat it as computed/read-only backend data.
 
 The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. It reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
 
+Overview tree keys are parent-derived and prefixed with each selected AddressGroup overview node key, so repeated resources remain unique in AntD Tree.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

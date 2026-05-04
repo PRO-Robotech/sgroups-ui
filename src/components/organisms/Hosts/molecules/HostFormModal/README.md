@@ -61,6 +61,12 @@ Edit mode receives an existing `host` prop.
 
 Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
+## Structure Overview
+
+The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. It reuses the AddressGroup contents tree builder.
+
+Each selected AddressGroup overview node passes its own `overview-{namespace/name}` key as the tree key prefix. Nested section, binding, transport, entry, empty, and error keys then extend their parent key so repeated resources remain unique across the full AntD Tree.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open and increments a modal instance `key` before each create/edit open. This forces a real React unmount/remount for modal-local hooks and state. The AntD modal still uses `destroyOnHidden` for its internal subtree, but lifecycle correctness must not rely on that alone.

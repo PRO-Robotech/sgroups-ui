@@ -39,6 +39,8 @@ const NOT_FOUND_LEAF_TITLE = 'Not found'
 const makeLookupKey = (identifier?: TResourceIdentifier) =>
   `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
 
+const makeChildKey = (parentKey: string, key: string) => `${parentKey}-${key}`
+
 const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
   title,
   key,
@@ -98,25 +100,30 @@ const renderLabel = (
 const buildHostBindingNode = (
   binding: THostBindingResource,
   hostsByKey: Record<string, THostResource>,
+  parentKey: string,
   hostsError?: boolean,
 ): TreeDataNode => {
   const target = binding.spec?.host
   const key = makeLookupKey(target)
   const host = hostsByKey[key]
-  const bindingKey = `host-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`
+  const bindingKey = makeChildKey(
+    parentKey,
+    `host-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
+  )
   const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Host', host, target)
 
   if (!host) {
     return {
       title: bindingTitle,
       key: bindingKey,
-      children: [createLeaf(hostsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `${bindingKey}-status`)],
+      children: [createLeaf(hostsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, makeChildKey(bindingKey, 'status'))],
     }
   }
 
+  const resourceKey = makeChildKey(bindingKey, 'resource')
   const normalizedIps = host.ips || host.spec?.IPs
   const ipChildren = [...(normalizedIps?.IPv4 || []), ...(normalizedIps?.IPv6 || [])].map(ip =>
-    createLeaf(ip, `${bindingKey}-${ip}`),
+    createLeaf(ip, makeChildKey(resourceKey, `ip-${ip}`)),
   )
 
   return {
@@ -125,8 +132,8 @@ const buildHostBindingNode = (
     children: [
       {
         title: renderLabel('Host', host, target),
-        key: `${bindingKey}-resource`,
-        children: ipChildren.length > 0 ? ipChildren : [createLeaf('No IPs', `${bindingKey}-empty`)],
+        key: resourceKey,
+        children: ipChildren.length > 0 ? ipChildren : [createLeaf('No IPs', makeChildKey(resourceKey, 'empty'))],
       },
     ],
   }
@@ -135,21 +142,29 @@ const buildHostBindingNode = (
 const buildNetworkBindingNode = (
   binding: TNetworkBindingResource,
   networksByKey: Record<string, TNetworkResource>,
+  parentKey: string,
   networksError?: boolean,
 ): TreeDataNode => {
   const target = binding.spec?.network
   const key = makeLookupKey(target)
   const network = networksByKey[key]
-  const bindingKey = `network-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`
+  const bindingKey = makeChildKey(
+    parentKey,
+    `network-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
+  )
   const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Network', network, target)
 
   if (!network) {
     return {
       title: bindingTitle,
       key: bindingKey,
-      children: [createLeaf(networksError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `${bindingKey}-status`)],
+      children: [
+        createLeaf(networksError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, makeChildKey(bindingKey, 'status')),
+      ],
     }
   }
+
+  const resourceKey = makeChildKey(bindingKey, 'resource')
 
   return {
     title: bindingTitle,
@@ -157,8 +172,8 @@ const buildNetworkBindingNode = (
     children: [
       {
         title: renderLabel('Network', network, target),
-        key: `${bindingKey}-resource`,
-        children: [createLeaf(network.spec?.CIDR || 'No CIDR', `${bindingKey}-cidr`)],
+        key: resourceKey,
+        children: [createLeaf(network.spec?.CIDR || 'No CIDR', makeChildKey(resourceKey, 'cidr'))],
       },
     ],
   }
@@ -167,45 +182,59 @@ const buildNetworkBindingNode = (
 const buildServiceBindingNode = (
   binding: TServiceBindingResource,
   servicesByKey: Record<string, TServiceResource>,
+  parentKey: string,
   servicesError?: boolean,
 ): TreeDataNode => {
   const target = binding.spec?.service
   const key = makeLookupKey(target)
   const service = servicesByKey[key]
-  const bindingKey = `service-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`
+  const bindingKey = makeChildKey(
+    parentKey,
+    `service-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
+  )
   const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Service', service, target)
 
   if (!service) {
     return {
       title: bindingTitle,
       key: bindingKey,
-      children: [createLeaf(servicesError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `${bindingKey}-status`)],
+      children: [
+        createLeaf(servicesError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, makeChildKey(bindingKey, 'status')),
+      ],
     }
   }
 
+  const resourceKey = makeChildKey(bindingKey, 'resource')
   const transportChildren =
     service.spec?.transports && service.spec.transports.length > 0
-      ? service.spec.transports.map((transport, transportIndex) => ({
-          title: `${transport.protocol || 'Unknown protocol'} / ${transport.IPv || 'Unknown IP family'}`,
-          key: `${bindingKey}-transport-${transportIndex}`,
-          children:
-            transport.entries && transport.entries.length > 0
-              ? transport.entries.map((entry, entryIndex) => {
-                  const parts = []
+      ? service.spec.transports.map((transport, transportIndex) => {
+          const transportKey = makeChildKey(resourceKey, `transport-${transportIndex}`)
 
-                  if (entry.ports) {
-                    parts.push(`Ports: ${entry.ports}`)
-                  }
+          return {
+            title: `${transport.protocol || 'Unknown protocol'} / ${transport.IPv || 'Unknown IP family'}`,
+            key: transportKey,
+            children:
+              transport.entries && transport.entries.length > 0
+                ? transport.entries.map((entry, entryIndex) => {
+                    const parts = []
 
-                  if (entry.types && entry.types.length > 0) {
-                    parts.push(`Types: ${entry.types.join(', ')}`)
-                  }
+                    if (entry.ports) {
+                      parts.push(`Ports: ${entry.ports}`)
+                    }
 
-                  return createLeaf(parts.join(' | ') || 'Empty entry', `${bindingKey}-entry-${entryIndex}`)
-                })
-              : [createLeaf('No entries', `${bindingKey}-transport-${transportIndex}-empty`)],
-        }))
-      : [createLeaf('No transports', `${bindingKey}-empty`)]
+                    if (entry.types && entry.types.length > 0) {
+                      parts.push(`Types: ${entry.types.join(', ')}`)
+                    }
+
+                    return createLeaf(
+                      parts.join(' | ') || 'Empty entry',
+                      makeChildKey(transportKey, `entry-${entryIndex}`),
+                    )
+                  })
+                : [createLeaf('No entries', makeChildKey(transportKey, 'empty'))],
+          }
+        })
+      : [createLeaf('No transports', makeChildKey(resourceKey, 'empty'))]
 
   return {
     title: bindingTitle,
@@ -213,7 +242,7 @@ const buildServiceBindingNode = (
     children: [
       {
         title: renderLabel('Service', service, target),
-        key: `${bindingKey}-resource`,
+        key: resourceKey,
         children: transportChildren,
       },
     ],
@@ -247,6 +276,7 @@ export const buildRuleEndpointTree = ({
   }
 
   if (endpoint.type === 'Service') {
+    const serviceEndpointKey = 'service-endpoint'
     const servicesByKey = Object.fromEntries(services.map(service => [makeLookupKey(service.metadata), service]))
     const targetKey = makeLookupKey({ name: endpoint.name, namespace: endpoint.namespace })
     const service = servicesByKey[targetKey]
@@ -255,40 +285,52 @@ export const buildRuleEndpointTree = ({
       return [
         {
           title: renderEndpointTitle(endpoint),
-          key: 'service-endpoint',
-          children: [createLeaf(servicesError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, 'service-endpoint-status')],
+          key: serviceEndpointKey,
+          children: [
+            createLeaf(
+              servicesError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE,
+              makeChildKey(serviceEndpointKey, 'status'),
+            ),
+          ],
         },
       ]
     }
 
     const transportChildren =
       service.spec?.transports && service.spec.transports.length > 0
-        ? service.spec.transports.map((transport, transportIndex) => ({
-            title: `${transport.protocol || 'Unknown protocol'} / ${transport.IPv || 'Unknown IP family'}`,
-            key: `service-endpoint-transport-${transportIndex}`,
-            children:
-              transport.entries && transport.entries.length > 0
-                ? transport.entries.map((entry, entryIndex) => {
-                    const parts = []
+        ? service.spec.transports.map((transport, transportIndex) => {
+            const transportKey = makeChildKey(serviceEndpointKey, `transport-${transportIndex}`)
 
-                    if (entry.ports) {
-                      parts.push(`Ports: ${entry.ports}`)
-                    }
+            return {
+              title: `${transport.protocol || 'Unknown protocol'} / ${transport.IPv || 'Unknown IP family'}`,
+              key: transportKey,
+              children:
+                transport.entries && transport.entries.length > 0
+                  ? transport.entries.map((entry, entryIndex) => {
+                      const parts = []
 
-                    if (entry.types && entry.types.length > 0) {
-                      parts.push(`Types: ${entry.types.join(', ')}`)
-                    }
+                      if (entry.ports) {
+                        parts.push(`Ports: ${entry.ports}`)
+                      }
 
-                    return createLeaf(parts.join(' | ') || 'Empty entry', `service-endpoint-entry-${entryIndex}`)
-                  })
-                : [createLeaf('No entries', `service-endpoint-transport-${transportIndex}-empty`)],
-          }))
-        : [createLeaf('No transports', 'service-endpoint-empty')]
+                      if (entry.types && entry.types.length > 0) {
+                        parts.push(`Types: ${entry.types.join(', ')}`)
+                      }
+
+                      return createLeaf(
+                        parts.join(' | ') || 'Empty entry',
+                        makeChildKey(transportKey, `entry-${entryIndex}`),
+                      )
+                    })
+                  : [createLeaf('No entries', makeChildKey(transportKey, 'empty'))],
+            }
+          })
+        : [createLeaf('No transports', makeChildKey(serviceEndpointKey, 'empty'))]
 
     return [
       {
         title: renderLabel('Service', service, { name: endpoint.name, namespace: endpoint.namespace }),
-        key: 'service-endpoint',
+        key: serviceEndpointKey,
         children: transportChildren,
       },
     ]
@@ -302,12 +344,17 @@ export const buildRuleEndpointTree = ({
   const addressGroup = addressGroupsByKey[targetKey]
 
   if (!addressGroup) {
+    const addressGroupEndpointKey = 'address-group-endpoint'
+
     return [
       {
         title: renderEndpointTitle(endpoint),
-        key: 'address-group-endpoint',
+        key: addressGroupEndpointKey,
         children: [
-          createLeaf(addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, 'address-group-endpoint-status'),
+          createLeaf(
+            addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE,
+            makeChildKey(addressGroupEndpointKey, 'status'),
+          ),
         ],
       },
     ]
@@ -320,25 +367,33 @@ export const buildRuleEndpointTree = ({
   const matchedServiceBindings = serviceBindings.filter(
     binding => makeLookupKey(binding.spec?.addressGroup) === targetKey,
   )
+  const addressGroupEndpointKey = 'address-group-endpoint'
+  const hostsRootKey = makeChildKey(addressGroupEndpointKey, 'rule-hosts-root')
+  const networksRootKey = makeChildKey(addressGroupEndpointKey, 'rule-networks-root')
+  const servicesRootKey = makeChildKey(addressGroupEndpointKey, 'rule-services-root')
 
   const hostChildren = hostBindingsError
-    ? [createLeaf(ERROR_LEAF_TITLE, 'rule-hosts-error')]
-    : matchedHostBindings.map(binding => buildHostBindingNode(binding, hostsByKey, hostsError))
+    ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(hostsRootKey, 'error'))]
+    : matchedHostBindings.map(binding => buildHostBindingNode(binding, hostsByKey, hostsRootKey, hostsError))
   const networkChildren = networkBindingsError
-    ? [createLeaf(ERROR_LEAF_TITLE, 'rule-networks-error')]
-    : matchedNetworkBindings.map(binding => buildNetworkBindingNode(binding, networksByKey, networksError))
+    ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(networksRootKey, 'error'))]
+    : matchedNetworkBindings.map(binding =>
+        buildNetworkBindingNode(binding, networksByKey, networksRootKey, networksError),
+      )
   const serviceChildren = serviceBindingsError
-    ? [createLeaf(ERROR_LEAF_TITLE, 'rule-services-error')]
-    : matchedServiceBindings.map(binding => buildServiceBindingNode(binding, servicesByKey, servicesError))
+    ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(servicesRootKey, 'error'))]
+    : matchedServiceBindings.map(binding =>
+        buildServiceBindingNode(binding, servicesByKey, servicesRootKey, servicesError),
+      )
 
   return [
     {
       title: renderLabel('Address Group', addressGroup, { name: endpoint.name, namespace: endpoint.namespace }),
-      key: 'address-group-endpoint',
+      key: addressGroupEndpointKey,
       children: [
-        createBranch('Hosts', 'rule-hosts-root', hostChildren, countColor),
-        createBranch('Networks', 'rule-networks-root', networkChildren, countColor),
-        createBranch('Services', 'rule-services-root', serviceChildren, countColor),
+        createBranch('Hosts', hostsRootKey, hostChildren, countColor),
+        createBranch('Networks', networksRootKey, networkChildren, countColor),
+        createBranch('Services', servicesRootKey, serviceChildren, countColor),
       ],
     },
   ]

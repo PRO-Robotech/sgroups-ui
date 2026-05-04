@@ -39,8 +39,8 @@ describe('buildRuleEndpointTree', () => {
             title: 'UDP / IPv6',
             key: 'service-endpoint-transport-0',
             children: [
-              { title: 'Ports: 53', key: 'service-endpoint-entry-0', isLeaf: true },
-              { title: 'Types: 8, 0', key: 'service-endpoint-entry-1', isLeaf: true },
+              { title: 'Ports: 53', key: 'service-endpoint-transport-0-entry-0', isLeaf: true },
+              { title: 'Types: 8, 0', key: 'service-endpoint-transport-0-entry-1', isLeaf: true },
             ],
           }),
         ],
@@ -132,14 +132,24 @@ describe('buildRuleEndpointTree', () => {
     const branches = addressGroupNode.children || []
 
     expect(addressGroupNode).toEqual(expect.objectContaining({ key: 'address-group-endpoint' }))
-    expect(branches.map(branch => branch.key)).toEqual(['rule-hosts-root', 'rule-networks-root', 'rule-services-root'])
+    expect(branches.map(branch => branch.key)).toEqual([
+      'address-group-endpoint-rule-hosts-root',
+      'address-group-endpoint-rule-networks-root',
+      'address-group-endpoint-rule-services-root',
+    ])
     expect(branches[0].children?.[0]).toEqual(
       expect.objectContaining({
         title: 'host-binding-a',
-        key: 'host-binding-tenant-a-host-binding-a',
+        key: 'address-group-endpoint-rule-hosts-root-host-binding-tenant-a-host-binding-a',
         children: [
           expect.objectContaining({
-            children: [{ title: '10.0.0.10', key: 'host-binding-tenant-a-host-binding-a-10.0.0.10', isLeaf: true }],
+            children: [
+              {
+                title: '10.0.0.10',
+                key: 'address-group-endpoint-rule-hosts-root-host-binding-tenant-a-host-binding-a-resource-ip-10.0.0.10',
+                isLeaf: true,
+              },
+            ],
           }),
         ],
       }),
@@ -147,10 +157,16 @@ describe('buildRuleEndpointTree', () => {
     expect(branches[1].children?.[0]).toEqual(
       expect.objectContaining({
         title: 'network-binding-a',
-        key: 'network-binding-tenant-a-network-binding-a',
+        key: 'address-group-endpoint-rule-networks-root-network-binding-tenant-a-network-binding-a',
         children: [
           expect.objectContaining({
-            children: [{ title: '10.0.0.0/24', key: 'network-binding-tenant-a-network-binding-a-cidr', isLeaf: true }],
+            children: [
+              {
+                title: '10.0.0.0/24',
+                key: 'address-group-endpoint-rule-networks-root-network-binding-tenant-a-network-binding-a-resource-cidr',
+                isLeaf: true,
+              },
+            ],
           }),
         ],
       }),
@@ -158,15 +174,19 @@ describe('buildRuleEndpointTree', () => {
     expect(branches[2].children?.[0]).toEqual(
       expect.objectContaining({
         title: 'service-binding-a',
-        key: 'service-binding-tenant-a-service-binding-a',
+        key: 'address-group-endpoint-rule-services-root-service-binding-tenant-a-service-binding-a',
         children: [
           expect.objectContaining({
             children: [
               expect.objectContaining({
                 title: 'TCP / IPv4',
-                key: 'service-binding-tenant-a-service-binding-a-transport-0',
+                key: 'address-group-endpoint-rule-services-root-service-binding-tenant-a-service-binding-a-resource-transport-0',
                 children: [
-                  { title: 'Ports: 443', key: 'service-binding-tenant-a-service-binding-a-entry-0', isLeaf: true },
+                  {
+                    title: 'Ports: 443',
+                    key: 'address-group-endpoint-rule-services-root-service-binding-tenant-a-service-binding-a-resource-transport-0-entry-0',
+                    isLeaf: true,
+                  },
                 ],
               }),
             ],
