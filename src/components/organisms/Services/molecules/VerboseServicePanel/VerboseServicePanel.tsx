@@ -181,19 +181,20 @@ const buildBoundAddressGroupsTree = ({
   addressGroups,
   bindingsError,
   addressGroupsError,
-  countColor,
 }: {
   service: TServiceRow
   bindings?: TServiceBindingResource[]
   addressGroups?: TAddressGroupResource[]
   bindingsError?: boolean
   addressGroupsError?: boolean
-  countColor?: string
-}): TreeDataNode[] => {
+}): { treeData: TreeDataNode[]; count: number } => {
   const rootKey = 'bound-address-groups-root'
 
   if (bindingsError) {
-    return [createLeaf(ERROR_LEAF_TITLE, makeChildKey(rootKey, 'service-bindings-error'))]
+    return {
+      treeData: [createLeaf(ERROR_LEAF_TITLE, makeChildKey(rootKey, 'service-bindings-error'))],
+      count: 0,
+    }
   }
 
   const targetKey = makeLookupKey(service.metadata)
@@ -235,17 +236,10 @@ const buildBoundAddressGroupsTree = ({
     }
   })
 
-  return [
-    {
-      title: (
-        <>
-          Bound Address Groups <span style={{ color: countColor, fontWeight: 600 }}>({children.length})</span>
-        </>
-      ),
-      key: rootKey,
-      children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
-    },
-  ]
+  return {
+    treeData: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
+    count: children.length,
+  }
 }
 
 export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
@@ -288,7 +282,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
     () => formatAnnotationEntries(service.metadata.annotations),
     [service.metadata.annotations],
   )
-  const boundAddressGroupsTree = useMemo<TreeDataNode[]>(
+  const boundAddressGroups = useMemo(
     () =>
       buildBoundAddressGroupsTree({
         service,
@@ -296,16 +290,8 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
         addressGroups: addressGroupsData?.items,
         bindingsError: Boolean(serviceBindingsError),
         addressGroupsError: Boolean(addressGroupsError),
-        countColor: token.colorPrimaryActive,
       }),
-    [
-      service,
-      serviceBindingsData?.items,
-      addressGroupsData?.items,
-      serviceBindingsError,
-      addressGroupsError,
-      token.colorPrimaryActive,
-    ],
+    [service, serviceBindingsData?.items, addressGroupsData?.items, serviceBindingsError, addressGroupsError],
   )
   const transportDetails = useMemo(
     () => (service.spec?.transports || []).map(renderTransport),
@@ -373,7 +359,10 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             <Icon>
               <ApartmentOutlined />
             </Icon>
-            <Subtitle>Bound Address Groups</Subtitle>
+            <Subtitle>
+              Bound Address Groups{' '}
+              <span style={{ color: token.colorPrimaryActive, fontWeight: 600 }}>({boundAddressGroups.count})</span>
+            </Subtitle>
           </SubtitleWithIcon>
           {isServiceBindingsLoading || isAddressGroupsLoading ? (
             <Spin />
@@ -382,8 +371,8 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
               <Tree
                 showLine
                 switcherIcon={<CaretDownOutlined />}
-                defaultExpandedKeys={['bound-address-groups-root']}
-                treeData={boundAddressGroupsTree}
+                defaultExpandedKeys={boundAddressGroups.treeData.map(node => String(node.key))}
+                treeData={boundAddressGroups.treeData}
               />
             </TreeContainer>
           )}

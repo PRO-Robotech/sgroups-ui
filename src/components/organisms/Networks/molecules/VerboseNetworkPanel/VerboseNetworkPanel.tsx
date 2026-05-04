@@ -123,19 +123,20 @@ const buildBoundAddressGroupsTree = ({
   addressGroups,
   bindingsError,
   addressGroupsError,
-  countColor,
 }: {
   network: TNetworkRow
   bindings?: TNetworkBindingResource[]
   addressGroups?: TAddressGroupResource[]
   bindingsError?: boolean
   addressGroupsError?: boolean
-  countColor?: string
-}): TreeDataNode[] => {
+}): { treeData: TreeDataNode[]; count: number } => {
   const rootKey = 'bound-address-groups-root'
 
   if (bindingsError) {
-    return [createLeaf(ERROR_LEAF_TITLE, makeChildKey(rootKey, 'network-bindings-error'))]
+    return {
+      treeData: [createLeaf(ERROR_LEAF_TITLE, makeChildKey(rootKey, 'network-bindings-error'))],
+      count: 0,
+    }
   }
 
   const targetKey = makeLookupKey(network.metadata)
@@ -177,17 +178,10 @@ const buildBoundAddressGroupsTree = ({
     }
   })
 
-  return [
-    {
-      title: (
-        <>
-          Bound Address Groups <span style={{ color: countColor, fontWeight: 600 }}>({children.length})</span>
-        </>
-      ),
-      key: rootKey,
-      children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
-    },
-  ]
+  return {
+    treeData: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
+    count: children.length,
+  }
 }
 
 export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
@@ -230,7 +224,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
     () => formatAnnotationEntries(network.metadata.annotations),
     [network.metadata.annotations],
   )
-  const boundAddressGroupsTree = useMemo<TreeDataNode[]>(
+  const boundAddressGroups = useMemo(
     () =>
       buildBoundAddressGroupsTree({
         network,
@@ -238,16 +232,8 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
         addressGroups: addressGroupsData?.items,
         bindingsError: Boolean(networkBindingsError),
         addressGroupsError: Boolean(addressGroupsError),
-        countColor: token.colorPrimaryActive,
       }),
-    [
-      network,
-      networkBindingsData?.items,
-      addressGroupsData?.items,
-      networkBindingsError,
-      addressGroupsError,
-      token.colorPrimaryActive,
-    ],
+    [network, networkBindingsData?.items, addressGroupsData?.items, networkBindingsError, addressGroupsError],
   )
 
   return (
@@ -302,7 +288,10 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
             <Icon>
               <ApartmentOutlined />
             </Icon>
-            <Subtitle>Bound Address Groups</Subtitle>
+            <Subtitle>
+              Bound Address Groups{' '}
+              <span style={{ color: token.colorPrimaryActive, fontWeight: 600 }}>({boundAddressGroups.count})</span>
+            </Subtitle>
           </SubtitleWithIcon>
           {isNetworkBindingsLoading || isAddressGroupsLoading ? (
             <Spin />
@@ -311,8 +300,8 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
               <Tree
                 showLine
                 switcherIcon={<CaretDownOutlined />}
-                defaultExpandedKeys={['bound-address-groups-root']}
-                treeData={boundAddressGroupsTree}
+                defaultExpandedKeys={boundAddressGroups.treeData.map(node => String(node.key))}
+                treeData={boundAddressGroups.treeData}
               />
             </TreeContainer>
           )}
