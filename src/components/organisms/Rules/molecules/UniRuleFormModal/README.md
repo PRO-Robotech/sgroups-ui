@@ -84,6 +84,8 @@ Patched fields include:
 
 The sidebar wraps local and remote endpoint trees under `overview-local` and `overview-remote`.
 
+In edit mode, changed Local or Remote endpoint selections are shown with a subtle green background and left accent on both the Local/Remote overview wrapper and the changed endpoint root node. This highlight is based on normalized endpoint payload comparison, so unchanged fields do not mark the overview.
+
 Endpoint tree keys are recursively prefixed with the wrapping overview key. This keeps repeated endpoint keys such as `service-endpoint`, `address-group-endpoint`, and their nested transport or binding children unique when Local and Remote render similar resources in the same AntD Tree.
 
 ## Lifecycle

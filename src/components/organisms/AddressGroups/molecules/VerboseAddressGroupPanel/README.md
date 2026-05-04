@@ -36,6 +36,8 @@ Bindings are matched by `spec.addressGroup.name` and `spec.addressGroup.namespac
 
 Tree node keys are built from their parent key. When this builder is reused inside another Structure Overview, callers pass the overview node key as a prefix so repeated Hosts, Networks, Services, transports, and empty/error leaves stay unique across the full AntD Tree.
 
+The shared tree builder accepts highlighted Host, Network, and Service value lists. Modal overviews use this to mark pending edit additions with a subtle green background and left accent without changing the saved binding data.
+
 ## Lifecycle
 
 The parent table owns selection and visibility. The panel exposes `onClose`, `onExpand`, and `onCollapse` callbacks and switches the expand/collapse icon based on `DETAIL_PANEL_MIN_WIDTH`.

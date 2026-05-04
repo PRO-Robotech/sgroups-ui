@@ -68,6 +68,8 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. It reuses the AddressGroup contents tree builder.
 
+In edit mode, newly selected AddressGroups are shown with a subtle green background and left accent. The pending Network binding is also injected into that AddressGroup branch so the overview previews the post-save graph.
+
 Each selected AddressGroup overview node passes its own `overview-{namespace/name}` key as the tree key prefix. Nested section, binding, transport, entry, empty, and error keys then extend their parent key so repeated resources remain unique across the full AntD Tree.
 
 ## Lifecycle

@@ -43,6 +43,8 @@ Missing resources render as `Not found`; failed lookups render as `Error while f
 
 Tree node keys are parent-derived. Service transport entries extend the service endpoint or binding resource key, and AddressGroup endpoint branches extend `address-group-endpoint` through Hosts, Networks, Services, bindings, resources, transports, and leaves. This keeps keys unique when the same endpoint tree is rendered beside another tree or embedded in the UniRule Structure Overview.
 
+The UniRule form wraps this endpoint tree for editable overviews. When an edit changes the Local or Remote endpoint, the wrapper highlights the changed endpoint root; the verbose read-only panel itself does not apply pending-change highlights.
+
 ## Lifecycle
 
 The parent table owns selection and visibility. The panel exposes `onClose`, `onExpand`, and `onCollapse` callbacks and switches the expand/collapse icon based on `DETAIL_PANEL_MIN_WIDTH`.

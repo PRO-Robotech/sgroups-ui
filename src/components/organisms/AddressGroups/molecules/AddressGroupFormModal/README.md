@@ -69,6 +69,8 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 The sidebar renders a single AddressGroup contents tree from the selected Hosts, Services, and Networks.
 
+In edit mode, newly added selections are shown with a subtle green background and left accent. Removed selections disappear from the overview immediately because the sidebar reflects the current form selection, not the saved backend state.
+
 Tree keys are parent-derived by the shared contents tree builder. If this tree is later embedded under another overview node, pass that parent key as the builder prefix instead of relying on short repeated section keys.
 
 ## Lifecycle
