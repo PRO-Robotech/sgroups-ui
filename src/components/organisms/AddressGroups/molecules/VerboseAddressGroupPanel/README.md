@@ -12,9 +12,9 @@ Side detail panel for viewing an `AddressGroup` resource and the resources bound
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` and `metadata.namespace`
+- `metadata.name` and `spec.defaultAction` in the panel title
+- `metadata.namespace`
 - `spec.displayName`
-- `spec.defaultAction`
 - `spec.logs` and `spec.trace`
 - `spec.description` and `spec.comment`
 - `metadata.creationTimestamp`

@@ -11,7 +11,8 @@ Side detail panel for viewing a `Host` resource and backend-owned host inventory
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` and `metadata.namespace`
+- `metadata.name` in the panel title
+- `metadata.namespace`
 - `spec.displayName`
 - `spec.description` and `spec.comment`
 - host metainfo such as host name, OS, platform, platform family, platform version, and kernel version

@@ -119,6 +119,7 @@ describe('VerboseAddressGroupPanel', () => {
     expect(screen.getAllByText('ag-a').length).toBeGreaterThan(0)
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
     expect(screen.getByText('Allow')).toBeInTheDocument()
+    expect(screen.queryByText('Default Action')).not.toBeInTheDocument()
     expect(screen.getByText('Production access group')).toBeInTheDocument()
     expect(screen.getByText('env: prod')).toBeInTheDocument()
     expect(screen.getByText('owner: netops')).toBeInTheDocument()

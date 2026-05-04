@@ -12,7 +12,8 @@ Side detail panel for viewing a `Rule` resource, transport details, and resolved
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` and `metadata.namespace`
+- `metadata.name` in the panel title
+- `metadata.namespace`
 - `spec.displayName`
 - `spec.action`
 - `spec.session.traffic`

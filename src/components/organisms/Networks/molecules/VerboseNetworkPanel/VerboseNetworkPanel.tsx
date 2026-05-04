@@ -254,9 +254,6 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGrid>
-            <Typography.Text type="secondary">Name</Typography.Text>
-            <div>{renderValue(network.metadata.name)}</div>
-
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(network.metadata.namespace)}</div>
 

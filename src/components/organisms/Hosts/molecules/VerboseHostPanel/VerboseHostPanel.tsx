@@ -278,9 +278,6 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGridHosts>
-            <Typography.Text type="secondary">Name</Typography.Text>
-            <div>{renderValue(host.metadata.name)}</div>
-
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(host.metadata.namespace)}</div>
 
