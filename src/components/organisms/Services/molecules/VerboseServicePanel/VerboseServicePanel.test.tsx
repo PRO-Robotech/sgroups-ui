@@ -93,6 +93,7 @@ describe('VerboseServicePanel', () => {
     expect(screen.getByText('TCP / IPv4')).toBeInTheDocument()
     expect(screen.getByText(/Ports: 443/)).toBeInTheDocument()
     expect(screen.queryByText(/Description: https/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Comment: public/)).not.toBeInTheDocument()
     expect(screen.getByText('ICMP / IPv4')).toBeInTheDocument()
     expect(screen.getByText(/Types: 8, 0/)).toBeInTheDocument()
     expect(screen.getAllByText('Bound Address Groups').length).toBeGreaterThan(0)

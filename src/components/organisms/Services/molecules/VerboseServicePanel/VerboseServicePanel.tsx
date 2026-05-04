@@ -131,23 +131,42 @@ const formatTransportEntryText = (entry: TServiceTransportEntry, index: number) 
     parts.push(`Types: ${entry.types.join(', ')}`)
   }
 
-  if (entry.description && !entry.ports) {
-    parts.push(`Description: ${entry.description}`)
+  return parts.join(' | ') || `Entry ${index + 1}`
+}
+
+const renderTransportEntryTooltip = (entry: TServiceTransportEntry) => {
+  const details = []
+
+  if (entry.description) {
+    details.push(['Description', entry.description])
   }
 
   if (entry.comment) {
-    parts.push(`Comment: ${entry.comment}`)
+    details.push(['Comment', entry.comment])
   }
 
-  return parts.join(' | ') || `Entry ${index + 1}`
+  if (details.length === 0) {
+    return undefined
+  }
+
+  return (
+    <>
+      {details.map(([label, value]) => (
+        <div key={label}>
+          <Typography.Text strong>{label}:</Typography.Text> {value}
+        </div>
+      ))}
+    </>
+  )
 }
 
 const renderTransportEntry = (entry: TServiceTransportEntry, index: number) => {
   const text = formatTransportEntryText(entry, index)
+  const tooltip = renderTransportEntryTooltip(entry)
   const tag = <InfoTag key={`${text}-${index}`}>{text}</InfoTag>
 
-  return entry.ports && entry.description ? (
-    <Tooltip key={`${text}-${index}`} title={entry.description}>
+  return tooltip ? (
+    <Tooltip key={`${text}-${index}`} title={tooltip}>
       {tag}
     </Tooltip>
   ) : (

@@ -28,7 +28,7 @@ The panel renders read-only values from the selected table row:
 
 `metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix.
 
-Actions are shown as colored tags. Transport entries are shown as tags; port descriptions are shown in tooltips instead of inline text.
+Actions are shown as colored tags. Transport entries are shown as tags; entry descriptions and comments are shown in tooltips instead of inline tag text.
 
 Long tag groups show the first five values and expose a show more/less control. Tags are stacked vertically in the verbose layout.
 
@@ -39,6 +39,8 @@ The `Source` and `Destination` sections resolve endpoint contents from the curre
 - `CIDR` and `FQDN` endpoints render as leaf values.
 - `Service` endpoints resolve service transports directly.
 - AddressGroup-style endpoints resolve AddressGroups, then expand matching Host, Network, and Service bindings.
+
+Service transport leaves in endpoint trees keep only ports/types visible. If an entry has a description or comment, those details are attached to the leaf tooltip.
 
 Missing resources render as `Not found`; failed lookups render as `Error while fetching`.
 

@@ -1,4 +1,5 @@
 import React from 'react'
+import { Tooltip, Typography } from 'antd'
 import type { TreeDataNode } from 'antd'
 import {
   TBindingBase,
@@ -109,6 +110,69 @@ const createBranch = (label: string, key: string, children: TreeDataNode[], coun
   children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, `${key}-empty`)],
 })
 
+const formatTransportEntryText = (entry: {
+  ports?: string
+  types?: number[]
+  description?: string
+  comment?: string
+}) => {
+  const parts = []
+
+  if (entry.ports) {
+    parts.push(`Ports: ${entry.ports}`)
+  }
+
+  if (entry.types && entry.types.length > 0) {
+    parts.push(`Types: ${entry.types.join(', ')}`)
+  }
+
+  return parts.join(' | ') || 'Empty entry'
+}
+
+const renderTransportEntryTooltip = (entry: { description?: string; comment?: string }) => {
+  const details: Array<[string, string]> = []
+
+  if (entry.description) {
+    details.push(['Description', entry.description])
+  }
+
+  if (entry.comment) {
+    details.push(['Comment', entry.comment])
+  }
+
+  if (details.length === 0) {
+    return undefined
+  }
+
+  return (
+    <>
+      {details.map(([label, value]) => (
+        <div key={label}>
+          <Typography.Text strong>{label}:</Typography.Text> {value}
+        </div>
+      ))}
+    </>
+  )
+}
+
+const renderTransportEntryTitle = (entry: {
+  ports?: string
+  types?: number[]
+  description?: string
+  comment?: string
+}) => {
+  const text = formatTransportEntryText(entry)
+  const tooltip = renderTransportEntryTooltip(entry)
+
+  return tooltip ? (
+    <Tooltip title={tooltip}>
+      <span>{text}</span>
+    </Tooltip>
+  ) : (
+    text
+  )
+}
+
 const matchesAddressGroup = (binding: TBindingBase, addressGroupName?: string, addressGroupNamespace?: string) =>
   binding.spec?.addressGroup?.name === addressGroupName &&
   (binding.spec?.addressGroup?.namespace || '') === (addressGroupNamespace || '')
@@ -210,18 +274,8 @@ const buildServiceNode = (
           children:
             transport.entries && transport.entries.length > 0
               ? transport.entries.map((entry, entryIndex) => {
-                  const parts = []
-
-                  if (entry.ports) {
-                    parts.push(`Ports: ${entry.ports}`)
-                  }
-
-                  if (entry.types && entry.types.length > 0) {
-                    parts.push(`Types: ${entry.types.join(', ')}`)
-                  }
-
                   return createLeaf(
-                    parts.join(' | ') || 'Empty entry',
+                    renderTransportEntryTitle(entry),
                     `${nodeKey}-transport-${transportIndex}-entry-${entryIndex}`,
                   )
                 })

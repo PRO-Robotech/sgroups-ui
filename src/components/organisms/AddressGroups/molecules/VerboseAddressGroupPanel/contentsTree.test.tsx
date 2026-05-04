@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react'
+import { render, screen } from '@testing-library/react'
 import { buildAddressGroupContentsTree } from './contentsTree'
+
+const getTooltipTitle = (title: unknown) => {
+  expect(React.isValidElement(title)).toBe(true)
+
+  return (title as React.ReactElement<{ title?: React.ReactNode }>).props.title
+}
 
 describe('buildAddressGroupContentsTree', () => {
   it('builds host, network, and service branches for bindings that match the address group', () => {
@@ -111,6 +119,49 @@ describe('buildAddressGroupContentsTree', () => {
     expect(tree[0].children).toEqual([{ title: 'No bound resources', key: 'hosts-root-empty', isLeaf: true }])
     expect(tree[1].children).toEqual([{ title: 'No bound resources', key: 'networks-root-empty', isLeaf: true }])
     expect(tree[2].children).toEqual([{ title: 'No bound resources', key: 'services-root-empty', isLeaf: true }])
+  })
+
+  it('keeps service transport entry description and comment in the tooltip', () => {
+    const tree = buildAddressGroupContentsTree({
+      addressGroupName: 'ag-a',
+      addressGroupNamespace: 'tenant-a',
+      serviceBindings: [
+        {
+          metadata: { name: 'service-binding-a', namespace: 'tenant-a' },
+          spec: {
+            addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+            service: { name: 'svc-a', namespace: 'tenant-a' },
+          },
+        },
+      ] as any,
+      services: [
+        {
+          metadata: { name: 'svc-a', namespace: 'tenant-a' },
+          spec: {
+            transports: [
+              {
+                protocol: 'UDP',
+                IPv: 'IPv4',
+                entries: [{ ports: '50004-50006', description: 'range 50004-50006', comment: 'service note' }],
+              },
+            ],
+          },
+        },
+      ] as any,
+    })
+
+    const title = tree[2].children?.[0].children?.[0].children?.[0].title
+
+    render(<>{title}</>)
+
+    expect(screen.getByText('Ports: 50004-50006')).toBeInTheDocument()
+    expect(screen.queryByText(/Description:/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Comment:/)).not.toBeInTheDocument()
+
+    render(<>{getTooltipTitle(title)}</>)
+
+    expect(screen.getByText(/range 50004-50006/)).toBeInTheDocument()
+    expect(screen.getByText(/service note/)).toBeInTheDocument()
   })
 
   it('marks missing resources as not found and uses error leaves when resource fetch failed', () => {

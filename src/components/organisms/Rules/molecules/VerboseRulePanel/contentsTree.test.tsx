@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react'
+import { render, screen } from '@testing-library/react'
 import { buildRuleEndpointTree } from './contentsTree'
+
+const getTooltipTitle = (title: unknown) => {
+  expect(React.isValidElement(title)).toBe(true)
+
+  return (title as React.ReactElement<{ title?: React.ReactNode }>).props.title
+}
 
 describe('buildRuleEndpointTree', () => {
   it('returns a single empty leaf when no endpoint is configured', () => {
@@ -70,6 +78,39 @@ describe('buildRuleEndpointTree', () => {
         children: [{ title: 'Error while fetching', key: 'service-endpoint-status', isLeaf: true }],
       }),
     ])
+  })
+
+  it('keeps service endpoint transport entry description and comment in the tooltip', () => {
+    const tree = buildRuleEndpointTree({
+      endpoint: { type: 'Service', name: 'svc-a', namespace: 'tenant-a' } as any,
+      services: [
+        {
+          metadata: { name: 'svc-a', namespace: 'tenant-a' },
+          spec: {
+            transports: [
+              {
+                protocol: 'UDP',
+                IPv: 'IPv4',
+                entries: [{ ports: '50004-50006', description: 'range 50004-50006', comment: 'service note' }],
+              },
+            ],
+          },
+        },
+      ] as any,
+    })
+
+    const title = tree[0].children?.[0].children?.[0].title
+
+    render(<>{title}</>)
+
+    expect(screen.getByText('Ports: 50004-50006')).toBeInTheDocument()
+    expect(screen.queryByText(/Description:/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Comment:/)).not.toBeInTheDocument()
+
+    render(<>{getTooltipTitle(title)}</>)
+
+    expect(screen.getByText(/range 50004-50006/)).toBeInTheDocument()
+    expect(screen.getByText(/service note/)).toBeInTheDocument()
   })
 
   it('expands an address group endpoint into binding branches', () => {

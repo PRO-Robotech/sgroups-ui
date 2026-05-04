@@ -23,7 +23,7 @@ The panel renders read-only values from the selected table row:
 
 ## Transport Display
 
-Each transport is grouped under a `protocol / IP family` heading. Port and ICMP type entries render as tags; port descriptions are shown in tooltips instead of inline text. Comments remain inline on the entry tag. Empty transports render a readable fallback instead of exposing raw payload shape.
+Each transport is grouped under a `protocol / IP family` heading. Port and ICMP type entries render as tags. Entry descriptions and comments are shown in tooltips instead of inline tag text. Empty transports render a readable fallback instead of exposing raw payload shape.
 
 Long tag groups show the first five values and expose a show more/less control. Tags are stacked vertically in the verbose layout.
 
