@@ -4,6 +4,9 @@ export const ModalContent = styled.div`
   display: grid;
   grid-template-columns: minmax(356px, 534px) minmax(280px, 450px);
   gap: 24px;
+  align-items: stretch;
+  height: min(720px, calc(100vh - 180px));
+  min-height: 0;
 
   @media (width <= 720px) {
     grid-template-columns: minmax(0, 1fr);
@@ -15,14 +18,24 @@ export const LoadingState = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 480px;
+  min-height: 0;
 `
 
 export const FormColumn = styled.div`
+  display: flex;
+  flex-direction: column;
   min-width: 0;
+  min-height: 0;
 
   .ant-form-item {
     margin-bottom: 8px;
+  }
+
+  .ant-form {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
   }
 `
 
@@ -41,6 +54,8 @@ export const Overview = styled.aside`
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-height: 0;
+  overflow: hidden;
   padding: 16px 0;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.04);
@@ -58,6 +73,9 @@ export const OverviewTitle = styled.div`
 `
 
 export const OverviewBody = styled.div`
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   padding: 28px 8px 16px;
 `
 
