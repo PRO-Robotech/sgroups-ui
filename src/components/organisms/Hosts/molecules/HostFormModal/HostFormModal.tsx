@@ -161,6 +161,19 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
     () => buildCurrentBindings(host, hostBindingsData?.items),
     [host, hostBindingsData?.items],
   )
+  const addedAddressGroupValues = useMemo(() => {
+    if (!host) {
+      return []
+    }
+
+    const currentAddressGroups = new Set(
+      currentBindings
+        .map(binding => buildNamespacedValue(binding.spec?.addressGroup))
+        .filter((value): value is string => Boolean(value)),
+    )
+
+    return selectedAddressGroups.filter(value => !currentAddressGroups.has(value))
+  }, [currentBindings, host, selectedAddressGroups])
   const overviewTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildOverviewTreeData({
@@ -172,9 +185,13 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
         hosts: hostsData?.items,
         networks: networksData?.items,
         services: servicesData?.items,
+        currentHost: host,
+        addedAddressGroupValues,
       }),
     [
+      addedAddressGroupValues,
       addressGroupsData?.items,
+      host,
       hostBindingsData?.items,
       hostsData?.items,
       networkBindingsData?.items,

@@ -7,8 +7,14 @@ Modal for creating and editing `Rule` resources. Unlike the resource membership 
 - `UniRuleFormModal.tsx`: modal shell, AntD form, segmented panels, async resource loading, create/edit submit flow, and lifecycle reset.
 - `types.ts`: component props and form value model.
 - `utils.tsx`: endpoint normalization, transport normalization, overview tree data, validation helpers, and editable spec patch logic.
-- `styled.ts`: modal layout, two-column grid, overview sidebar, segmented panels, and loading state styles.
+- `styled.ts`: fixed-height modal layout, two-column grid, independent form/overview scrolling, overview sidebar, segmented panels, and loading state styles.
 - `index.ts`: public export.
+
+## Layout
+
+The modal body is a fixed-height, viewport-bounded two-column shell. The left form column scrolls internally through the AntD form, while the right Structure Overview keeps its title fixed and scrolls only the overview body.
+
+On narrow screens, the overview sidebar is hidden and the form keeps the same internal scroll behavior.
 
 ## Form Model
 

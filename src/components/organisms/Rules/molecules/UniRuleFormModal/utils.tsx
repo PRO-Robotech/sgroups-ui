@@ -117,38 +117,61 @@ export const buildFormValuesFromRule = (rule?: TRuleResource | null): Partial<TU
     })) || [],
 })
 
-const renderOverviewTitle = (label: 'Local' | 'Remote', count: number) => (
-  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-    <span>{label}</span>
-    <Styled.Count>{count}</Styled.Count>
-  </span>
-)
+const renderOverviewTitle = (label: 'Local' | 'Remote', count: number, isChanged?: boolean) => {
+  const title = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+      <span>{label}</span>
+      <Styled.Count>{count}</Styled.Count>
+    </span>
+  )
+
+  return isChanged ? <Styled.NewHighlight>{title}</Styled.NewHighlight> : title
+}
+
+const renderChangedTitle = (title: TreeDataNode['title']) => {
+  if (typeof title === 'function') {
+    return title
+  }
+
+  return (
+    <Styled.NewHighlight>
+      <span style={{ minWidth: 0 }}>{title}</span>
+    </Styled.NewHighlight>
+  )
+}
 
 const makeChildKey = (parentKey: string, key: string) => `${parentKey}-${key}`
 
-const prefixTreeNodeKeys = (nodes: TreeDataNode[], parentKey: string): TreeDataNode[] =>
-  nodes.map(node => {
+const prefixTreeNodeKeys = (nodes: TreeDataNode[], parentKey: string, highlightRoot?: boolean): TreeDataNode[] =>
+  nodes.map((node, index) => {
     const key = makeChildKey(parentKey, String(node.key))
+    const title = highlightRoot && index === 0 ? renderChangedTitle(node.title) : node.title
 
-    return node.children ? { ...node, key, children: prefixTreeNodeKeys(node.children, key) } : { ...node, key }
+    return node.children
+      ? { ...node, title, key, children: prefixTreeNodeKeys(node.children, key) }
+      : { ...node, title, key }
   })
 
 export const buildOverviewTreeData = ({
   localTreeData,
   remoteTreeData,
+  isLocalChanged,
+  isRemoteChanged,
 }: {
   localTreeData: TreeDataNode[]
   remoteTreeData: TreeDataNode[]
+  isLocalChanged?: boolean
+  isRemoteChanged?: boolean
 }): TreeDataNode[] => [
   {
-    title: renderOverviewTitle('Local', localTreeData.length),
+    title: renderOverviewTitle('Local', localTreeData.length, isLocalChanged),
     key: 'overview-local',
-    children: prefixTreeNodeKeys(localTreeData, 'overview-local'),
+    children: prefixTreeNodeKeys(localTreeData, 'overview-local', isLocalChanged),
   },
   {
-    title: renderOverviewTitle('Remote', remoteTreeData.length),
+    title: renderOverviewTitle('Remote', remoteTreeData.length, isRemoteChanged),
     key: 'overview-remote',
-    children: prefixTreeNodeKeys(remoteTreeData, 'overview-remote'),
+    children: prefixTreeNodeKeys(remoteTreeData, 'overview-remote', isRemoteChanged),
   },
 ]
 

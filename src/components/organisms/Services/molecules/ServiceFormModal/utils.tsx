@@ -45,17 +45,24 @@ const isBindingRelatedToSelectedAddressGroups = (binding: TBindingBase, selected
   return relatedValue ? selectedAddressGroupValues.includes(relatedValue) : false
 }
 
-const renderOverviewTitle = (addressGroup?: TAddressGroupResource, value?: string, bindingsCount?: number) => {
+const renderOverviewTitle = (
+  addressGroup?: TAddressGroupResource,
+  value?: string,
+  bindingsCount?: number,
+  isNew?: boolean,
+) => {
   const parsedValue = value ? parseNamespacedValue(value) : undefined
   const displayName = addressGroup?.spec?.displayName || addressGroup?.metadata.name || parsedValue?.name || 'Unknown'
   const addressGroupNamespace = addressGroup?.metadata.namespace || parsedValue?.namespace
 
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+  const title = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
       {renderNamespacedResourceValue('Address Group', addressGroupNamespace, displayName)}
       <Styled.Count>{bindingsCount || 0}</Styled.Count>
     </span>
   )
+
+  return isNew ? <Styled.NewHighlight>{title}</Styled.NewHighlight> : title
 }
 
 export const buildCurrentBindings = (
@@ -72,6 +79,8 @@ export const buildOverviewTreeData = ({
   hosts,
   networks,
   services,
+  currentService,
+  addedAddressGroupValues = [],
 }: {
   addressGroups?: TAddressGroupResource[]
   selectedAddressGroupValues: string[]
@@ -81,7 +90,11 @@ export const buildOverviewTreeData = ({
   hosts?: THostResource[]
   networks?: TNetworkResource[]
   services?: TServiceResource[]
+  currentService?: TServiceResource | null
+  addedAddressGroupValues?: string[]
 }): TreeDataNode[] => {
+  const addedAddressGroups = new Set(addedAddressGroupValues)
+  const highlightedServiceValue = buildNamespacedValue(currentService?.metadata)
   const addressGroupsByKey = Object.fromEntries(
     (addressGroups || []).map(addressGroup => [
       buildNamespacedValue({
@@ -104,6 +117,27 @@ export const buildOverviewTreeData = ({
     const relatedServiceBindings = (serviceBindings || []).filter(binding =>
       isBindingRelatedToSelectedAddressGroups(binding, [selectedValue]),
     )
+    const nextServiceBindings =
+      currentService && addedAddressGroups.has(selectedValue)
+        ? [
+            ...relatedServiceBindings,
+            {
+              metadata: {
+                name: `pending-${currentService.metadata.namespace || 'all'}-${
+                  currentService.metadata.name || 'service'
+                }`,
+                namespace: currentService.metadata.namespace,
+              },
+              spec: {
+                addressGroup: parsedValue,
+                service: {
+                  name: currentService.metadata.name,
+                  namespace: currentService.metadata.namespace,
+                },
+              },
+            } as TServiceBindingResource,
+          ]
+        : relatedServiceBindings
 
     const branches = buildAddressGroupContentsTree({
       addressGroupName: parsedValue.name || '',
@@ -111,17 +145,20 @@ export const buildOverviewTreeData = ({
       keyPrefix: `overview-${selectedValue}`,
       hostBindings: relatedHostBindings,
       networkBindings: relatedNetworkBindings,
-      serviceBindings: relatedServiceBindings,
+      serviceBindings: nextServiceBindings,
       hosts,
       networks,
       services,
+      highlightedServices:
+        highlightedServiceValue && addedAddressGroups.has(selectedValue) ? [highlightedServiceValue] : [],
     })
 
     return {
       title: renderOverviewTitle(
         addressGroup,
         selectedValue,
-        relatedHostBindings.length + relatedNetworkBindings.length + relatedServiceBindings.length,
+        relatedHostBindings.length + relatedNetworkBindings.length + nextServiceBindings.length,
+        addedAddressGroups.has(selectedValue),
       ),
       key: `overview-${selectedValue}`,
       children: branches,

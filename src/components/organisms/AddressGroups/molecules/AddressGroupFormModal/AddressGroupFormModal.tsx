@@ -159,6 +159,43 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       ),
     [addressGroup, hostBindingsData?.items, networkBindingsData?.items, serviceBindingsData?.items],
   )
+  const addedHosts = useMemo(() => {
+    if (!addressGroup) {
+      return new Set<string>()
+    }
+
+    const currentHosts = new Set(
+      currentBindings.hosts.map(binding => binding.spec?.host?.name).filter((value): value is string => Boolean(value)),
+    )
+
+    return new Set(selectedHosts.filter(value => !currentHosts.has(value)))
+  }, [addressGroup, currentBindings.hosts, selectedHosts])
+  const addedServices = useMemo(() => {
+    if (!addressGroup) {
+      return new Set<string>()
+    }
+
+    const currentServices = new Set(
+      currentBindings.services
+        .map(binding => getBindingLookupKey(binding.spec?.service))
+        .filter((value): value is string => Boolean(value)),
+    )
+
+    return new Set(selectedServices.filter(value => !currentServices.has(value)))
+  }, [addressGroup, currentBindings.services, selectedServices])
+  const addedNetworks = useMemo(() => {
+    if (!addressGroup) {
+      return new Set<string>()
+    }
+
+    const currentNetworks = new Set(
+      currentBindings.networks
+        .map(binding => binding.spec?.network?.name)
+        .filter((value): value is string => Boolean(value)),
+    )
+
+    return new Set(selectedNetworks.filter(value => !currentNetworks.has(value)))
+  }, [addressGroup, currentBindings.networks, selectedNetworks])
   const parsedSelectedServices = useMemo(() => selectedServices.map(parseNamespacedValue), [selectedServices])
   const selectedItemsCount = selectedHosts.length + selectedServices.length + selectedNetworks.length
   const isNamespaceScopedResourcesLoading =
@@ -473,7 +510,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                           Hosts <Styled.Count>{selectedHosts.length}</Styled.Count>
                         </Styled.OverviewBranchTitle>
                         {selectedHosts.map(value => (
-                          <Styled.OverviewLeaf key={`host-${value}`}>
+                          <Styled.OverviewLeaf key={`host-${value}`} $isNew={addedHosts.has(value)}>
                             {renderResourceOptionLabel('Host', value)}
                           </Styled.OverviewLeaf>
                         ))}
@@ -481,7 +518,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                           Networks <Styled.Count>{selectedNetworks.length}</Styled.Count>
                         </Styled.OverviewBranchTitle>
                         {selectedNetworks.map(value => (
-                          <Styled.OverviewLeaf key={`network-${value}`}>
+                          <Styled.OverviewLeaf key={`network-${value}`} $isNew={addedNetworks.has(value)}>
                             {renderResourceOptionLabel('Network', value)}
                           </Styled.OverviewLeaf>
                         ))}
@@ -489,7 +526,10 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                           Services <Styled.Count>{parsedSelectedServices.length}</Styled.Count>
                         </Styled.OverviewBranchTitle>
                         {parsedSelectedServices.map(service => (
-                          <Styled.OverviewLeaf key={`service-${service.namespace}-${service.name}`}>
+                          <Styled.OverviewLeaf
+                            key={`service-${service.namespace}-${service.name}`}
+                            $isNew={addedServices.has(`${service.namespace}/${service.name}`)}
+                          >
                             {renderNamespacedResourceOptionLabel('Service', service.namespace, service.name)}
                           </Styled.OverviewLeaf>
                         ))}

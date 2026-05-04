@@ -147,6 +147,19 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     () => buildCurrentBindings(service, serviceBindingsData?.items),
     [service, serviceBindingsData?.items],
   )
+  const addedAddressGroupValues = useMemo(() => {
+    if (!service) {
+      return []
+    }
+
+    const currentAddressGroups = new Set(
+      currentBindings
+        .map(binding => buildNamespacedValue(binding.spec?.addressGroup))
+        .filter((value): value is string => Boolean(value)),
+    )
+
+    return selectedAddressGroups.filter(value => !currentAddressGroups.has(value))
+  }, [currentBindings, service, selectedAddressGroups])
   const overviewTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildOverviewTreeData({
@@ -158,14 +171,18 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
         hosts: hostsData?.items,
         networks: networksData?.items,
         services: servicesData?.items,
+        currentService: service,
+        addedAddressGroupValues,
       }),
     [
+      addedAddressGroupValues,
       addressGroupsData?.items,
       hostBindingsData?.items,
       hostsData?.items,
       networkBindingsData?.items,
       networksData?.items,
       selectedAddressGroups,
+      service,
       serviceBindingsData?.items,
       servicesData?.items,
     ],

@@ -178,11 +178,26 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     () => getNamespacedResourceOptions(servicesData?.items, 'Service'),
     [servicesData?.items],
   )
+  const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
 
   const localType = formValues?.local?.type
   const remoteType = formValues?.remote?.type
   const localNamespace = formValues?.local?.namespace
   const remoteNamespace = formValues?.remote?.namespace
+  const localEndpoint = useMemo(() => buildEndpointPayload(formValues?.local), [formValues?.local])
+  const remoteEndpoint = useMemo(() => buildEndpointPayload(formValues?.remote), [formValues?.remote])
+  const isLocalEndpointChanged = useMemo(
+    () =>
+      Boolean(rule) &&
+      JSON.stringify(localEndpoint) !== JSON.stringify(buildEndpointPayload(currentRuleFormValues.local)),
+    [currentRuleFormValues.local, localEndpoint, rule],
+  )
+  const isRemoteEndpointChanged = useMemo(
+    () =>
+      Boolean(rule) &&
+      JSON.stringify(remoteEndpoint) !== JSON.stringify(buildEndpointPayload(currentRuleFormValues.remote)),
+    [currentRuleFormValues.remote, remoteEndpoint, rule],
+  )
   const localResourceOptions = useMemo(
     () => getScopedResourceOptions(localType === 'Service' ? serviceOptions : addressGroupOptions, localNamespace),
     [addressGroupOptions, localNamespace, localType, serviceOptions],
@@ -194,7 +209,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const localTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildRuleEndpointTree({
-        endpoint: buildEndpointPayload(formValues?.local),
+        endpoint: localEndpoint,
         addressGroups: addressGroupsData?.items,
         hostBindings: hostBindingsData?.items,
         networkBindings: networkBindingsData?.items,
@@ -205,9 +220,9 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       }),
     [
       addressGroupsData?.items,
-      formValues?.local,
       hostBindingsData?.items,
       hostsData?.items,
+      localEndpoint,
       networkBindingsData?.items,
       networksData?.items,
       serviceBindingsData?.items,
@@ -217,7 +232,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const remoteTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildRuleEndpointTree({
-        endpoint: buildEndpointPayload(formValues?.remote),
+        endpoint: remoteEndpoint,
         addressGroups: addressGroupsData?.items,
         hostBindings: hostBindingsData?.items,
         networkBindings: networkBindingsData?.items,
@@ -228,18 +243,24 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       }),
     [
       addressGroupsData?.items,
-      formValues?.remote,
       hostBindingsData?.items,
       hostsData?.items,
       networkBindingsData?.items,
       networksData?.items,
       serviceBindingsData?.items,
       servicesData?.items,
+      remoteEndpoint,
     ],
   )
   const overviewTreeData = useMemo(
-    () => buildOverviewTreeData({ localTreeData, remoteTreeData }),
-    [localTreeData, remoteTreeData],
+    () =>
+      buildOverviewTreeData({
+        localTreeData,
+        remoteTreeData,
+        isLocalChanged: isLocalEndpointChanged,
+        isRemoteChanged: isRemoteEndpointChanged,
+      }),
+    [isLocalEndpointChanged, isRemoteEndpointChanged, localTreeData, remoteTreeData],
   )
 
   const isOverviewLoading =
@@ -954,24 +975,16 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
               <Styled.OverviewTitle>Structure Overview</Styled.OverviewTitle>
               <Styled.OverviewBody>
                 {isOverviewLoading && <Spin />}
-                {!isOverviewLoading &&
-                  !buildEndpointPayload(formValues?.local) &&
-                  !buildEndpointPayload(formValues?.remote) && (
-                    <Styled.OverviewEmpty>
-                      <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
-                    </Styled.OverviewEmpty>
-                  )}
-                {!isOverviewLoading &&
-                  (buildEndpointPayload(formValues?.local) || buildEndpointPayload(formValues?.remote)) && (
-                    <Styled.TreeContainer>
-                      <Tree
-                        showLine
-                        switcherIcon={<CaretDownOutlined />}
-                        defaultExpandAll
-                        treeData={overviewTreeData}
-                      />
-                    </Styled.TreeContainer>
-                  )}
+                {!isOverviewLoading && !localEndpoint && !remoteEndpoint && (
+                  <Styled.OverviewEmpty>
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
+                  </Styled.OverviewEmpty>
+                )}
+                {!isOverviewLoading && (localEndpoint || remoteEndpoint) && (
+                  <Styled.TreeContainer>
+                    <Tree showLine switcherIcon={<CaretDownOutlined />} defaultExpandAll treeData={overviewTreeData} />
+                  </Styled.TreeContainer>
+                )}
               </Styled.OverviewBody>
             </Styled.Overview>
           </>

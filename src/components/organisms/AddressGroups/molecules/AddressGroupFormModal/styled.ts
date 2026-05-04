@@ -114,10 +114,13 @@ export const OverviewBranchTitle = styled.div`
   gap: 8px;
 `
 
-export const OverviewLeaf = styled.div`
+export const OverviewLeaf = styled.div<{ $isNew?: boolean }>`
   display: flex;
   align-items: center;
   padding-left: 24px;
+  border-radius: 6px;
+  background: ${({ $isNew }) => ($isNew ? 'rgba(20, 120, 72, 0.1)' : 'transparent')};
+  box-shadow: ${({ $isNew }) => ($isNew ? 'inset 3px 0 0 rgba(20, 120, 72, 0.48)' : 'none')};
 `
 
 export const Count = styled.span`

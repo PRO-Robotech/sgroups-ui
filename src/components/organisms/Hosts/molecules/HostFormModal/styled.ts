@@ -119,6 +119,17 @@ export const Count = styled.span`
   line-height: 12px;
 `
 
+export const NewHighlight = styled.span`
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border-radius: 6px;
+  background: rgba(20, 120, 72, 0.1);
+  box-shadow: inset 3px 0 0 rgba(20, 120, 72, 0.48);
+`
+
 export const Styled = {
   ModalContent,
   LoadingState,
@@ -130,4 +141,5 @@ export const Styled = {
   OverviewEmpty,
   TreeContainer,
   Count,
+  NewHighlight,
 }
