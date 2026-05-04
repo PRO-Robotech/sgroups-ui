@@ -73,7 +73,8 @@ describe('buildAddressGroupContentsTree', () => {
 
     expect(tree).toHaveLength(3)
     expect(tree.map(node => node.key)).toEqual(['hosts-root', 'networks-root', 'services-root'])
-    expect(tree[0].children).toEqual([
+    expect(tree[0].children?.[0]).toEqual(expect.objectContaining({ key: 'hosts-root-namespace-tenant-a' }))
+    expect(tree[0].children?.[0].children).toEqual([
       expect.objectContaining({
         key: 'hosts-root-host-tenant-a-host-binding-a',
         children: [
@@ -82,7 +83,8 @@ describe('buildAddressGroupContentsTree', () => {
         ],
       }),
     ])
-    expect(tree[1].children).toEqual([
+    expect(tree[1].children?.[0]).toEqual(expect.objectContaining({ key: 'networks-root-namespace-tenant-a' }))
+    expect(tree[1].children?.[0].children).toEqual([
       expect.objectContaining({
         key: 'networks-root-network-tenant-a-network-binding-a',
         children: [
@@ -90,7 +92,8 @@ describe('buildAddressGroupContentsTree', () => {
         ],
       }),
     ])
-    expect(tree[2].children).toEqual([
+    expect(tree[2].children?.[0]).toEqual(expect.objectContaining({ key: 'services-root-namespace-tenant-a' }))
+    expect(tree[2].children?.[0].children).toEqual([
       expect.objectContaining({
         key: 'services-root-service-tenant-a-service-binding-a',
         children: [
@@ -150,9 +153,9 @@ describe('buildAddressGroupContentsTree', () => {
       ] as any,
     })
 
-    const title = tree[2].children?.[0].children?.[0].children?.[0].title
+    const title = tree[2].children?.[0].children?.[0].children?.[0].children?.[0].title
 
-    render(<>{title}</>)
+    render(title as React.ReactElement)
 
     expect(screen.getByText('Ports: 50004-50006')).toBeInTheDocument()
     expect(screen.queryByText(/Description:/)).not.toBeInTheDocument()
@@ -189,12 +192,12 @@ describe('buildAddressGroupContentsTree', () => {
       networksError: true,
     })
 
-    expect(tree[0].children?.[0]).toEqual(
+    expect(tree[0].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({
         children: [{ title: 'Not found', key: 'hosts-root-host-tenant-a-host-binding-a-status', isLeaf: true }],
       }),
     )
-    expect(tree[1].children?.[0]).toEqual(
+    expect(tree[1].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({
         children: [
           {
@@ -251,6 +254,11 @@ describe('buildAddressGroupContentsTree', () => {
       'overview-tenant-a/ag-a-services-root',
     ])
     expect(tree[2].children?.[0]).toEqual(
+      expect.objectContaining({
+        key: 'overview-tenant-a/ag-a-services-root-namespace-tenant-a',
+      }),
+    )
+    expect(tree[2].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({
         key: 'overview-tenant-a/ag-a-services-root-service-tenant-a-service-binding-a',
         children: [

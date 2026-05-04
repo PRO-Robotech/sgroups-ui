@@ -125,7 +125,8 @@ describe('HostFormModal utils', () => {
     })
 
     expect(treeData).toHaveLength(1)
-    expect(treeData[0]).toEqual(expect.objectContaining({ key: 'overview-tenant-a/ag-a' }))
-    expect(treeData[0].children).toEqual([{ key: 'contents' }])
+    expect(treeData[0]).toEqual(expect.objectContaining({ key: 'overview-namespace-tenant-a' }))
+    expect(treeData[0].children?.[0]).toEqual(expect.objectContaining({ key: 'overview-tenant-a/ag-a' }))
+    expect(treeData[0].children?.[0].children).toEqual([{ key: 'contents' }])
   })
 })

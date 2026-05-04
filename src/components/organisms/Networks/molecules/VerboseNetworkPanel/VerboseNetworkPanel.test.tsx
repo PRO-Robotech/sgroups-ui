@@ -80,6 +80,6 @@ describe('VerboseNetworkPanel', () => {
     expect(screen.getByText('Production subnet')).toBeInTheDocument()
     expect(screen.getByText('env: prod')).toBeInTheDocument()
     expect(screen.getByText('owner: netops')).toBeInTheDocument()
-    expect(screen.getByText('network-binding-a')).toBeInTheDocument()
+    expect(screen.getByText('Address Group A')).toBeInTheDocument()
   })
 })

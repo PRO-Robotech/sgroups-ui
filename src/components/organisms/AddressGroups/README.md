@@ -38,9 +38,9 @@ The binding `spec.addressGroup` points at the newly-created AddressGroup. Hosts 
 
 The `AddressGroup.refs` field is intentionally not written by the UI. It is treated as computed/read-only data and should be populated by backend/controller logic from bindings.
 
-The modal structure overview is a single AddressGroup tree. It does not model local/remote groups; services keep their namespace in the displayed label.
+The modal structure overview is a single AddressGroup tree. It does not model local/remote groups. Inside the tree, Hosts, Networks, and Services are grouped by their resource namespace before individual resource nodes.
 
-The overview tree uses parent-derived AntD Tree keys. When the shared AddressGroup contents tree is reused inside another modal overview, callers prefix it with the selected AddressGroup overview key so repeated section and resource nodes remain unique.
+The overview tree uses parent-derived AntD Tree keys. When the shared AddressGroup contents tree is reused inside another modal overview, callers prefix it with the selected AddressGroup overview key so repeated namespace, section, and resource nodes remain unique.
 
 ## Edit modal
 

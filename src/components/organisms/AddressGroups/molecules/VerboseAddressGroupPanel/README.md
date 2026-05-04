@@ -34,9 +34,9 @@ The `Entities` tree is derived from current binding resources and resource looku
 
 Service transport leaves keep only ports/types visible. If an entry has a description or comment, those details are attached to the leaf tooltip.
 
-Bindings are matched by `spec.addressGroup.name` and `spec.addressGroup.namespace`. Missing resources render as `Not found`; failed lookups render as `Error while fetching`.
+Bindings are matched by `spec.addressGroup.name` and `spec.addressGroup.namespace`. Inside the Hosts, Networks, and Services branches, matched resources are grouped by the target resource namespace before rendering the individual Host, Network, or Service child nodes. Missing resources render as `Not found`; failed lookups render as `Error while fetching`.
 
-Tree node keys are built from their parent key. When this builder is reused inside another Structure Overview, callers pass the overview node key as a prefix so repeated Hosts, Networks, Services, transports, and empty/error leaves stay unique across the full AntD Tree.
+Tree node keys are built from their parent key, including the namespace grouping layer. When this builder is reused inside another Structure Overview, callers pass the overview node key as a prefix so repeated namespace groups, Hosts, Networks, Services, transports, and empty/error leaves stay unique across the full AntD Tree.
 
 The shared tree builder accepts highlighted Host, Network, and Service value lists. Modal overviews use this to mark pending edit additions with a subtle green background and left accent without changing the saved binding data.
 

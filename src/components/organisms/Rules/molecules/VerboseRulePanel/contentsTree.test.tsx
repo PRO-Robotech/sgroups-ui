@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-useless-fragment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { render, screen } from '@testing-library/react'
@@ -179,6 +180,9 @@ describe('buildRuleEndpointTree', () => {
       'address-group-endpoint-rule-services-root',
     ])
     expect(branches[0].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'address-group-endpoint-rule-hosts-root-namespace-tenant-a' }),
+    )
+    expect(branches[0].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({
         title: 'host-binding-a',
         key: 'address-group-endpoint-rule-hosts-root-host-binding-tenant-a-host-binding-a',
@@ -196,6 +200,9 @@ describe('buildRuleEndpointTree', () => {
       }),
     )
     expect(branches[1].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'address-group-endpoint-rule-networks-root-namespace-tenant-a' }),
+    )
+    expect(branches[1].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({
         title: 'network-binding-a',
         key: 'address-group-endpoint-rule-networks-root-network-binding-tenant-a-network-binding-a',
@@ -213,6 +220,9 @@ describe('buildRuleEndpointTree', () => {
       }),
     )
     expect(branches[2].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'address-group-endpoint-rule-services-root-namespace-tenant-a' }),
+    )
+    expect(branches[2].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({
         title: 'service-binding-a',
         key: 'address-group-endpoint-rule-services-root-service-binding-tenant-a-service-binding-a',

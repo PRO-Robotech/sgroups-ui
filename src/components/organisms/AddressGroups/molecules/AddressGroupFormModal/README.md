@@ -67,11 +67,11 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 ## Structure Overview
 
-The sidebar renders a single AddressGroup contents tree from the selected Hosts, Services, and Networks.
+The sidebar renders a single AddressGroup contents tree from the selected Hosts, Services, and Networks. Hosts, Networks, and Services are grouped by resource namespace before individual resource nodes.
 
 In edit mode, newly added selections are shown with a subtle green background and left accent. Removed selections disappear from the overview immediately because the sidebar reflects the current form selection, not the saved backend state.
 
-Tree keys are parent-derived by the shared contents tree builder. If this tree is later embedded under another overview node, pass that parent key as the builder prefix instead of relying on short repeated section keys.
+Tree keys are parent-derived by the shared contents tree builder, including the namespace grouping layer. If this tree is later embedded under another overview node, pass that parent key as the builder prefix instead of relying on short repeated section keys.
 
 ## Lifecycle
 

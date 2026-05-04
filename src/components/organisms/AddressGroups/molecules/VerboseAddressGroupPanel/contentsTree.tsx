@@ -11,7 +11,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { buildNamespacedValue, renderNamespacedResourceValue } from 'utils'
+import { buildNamespacedValue, groupTreeDataByNamespace, renderBadgeWithValue } from 'utils'
 
 type TContentsTreeArgs = {
   addressGroupName?: string
@@ -74,12 +74,12 @@ const renderMaybeNew = (title: React.ReactNode, isNew?: boolean) => {
   )
 }
 
-const withNamespaceLabel = (kind: 'Host' | 'Network' | 'Service', name?: string, namespace?: string) => {
+const withNamespaceLabel = (kind: 'Host' | 'Network' | 'Service', name?: string) => {
   if (!name) {
     return 'Unknown'
   }
 
-  return renderNamespacedResourceValue(kind, namespace, name)
+  return renderBadgeWithValue(kind, name)
 }
 
 const getDisplayLabel = (
@@ -88,14 +88,14 @@ const getDisplayLabel = (
   identifier?: TResourceIdentifier,
 ) => {
   if (resource?.spec?.displayName) {
-    return withNamespaceLabel(kind, resource.spec.displayName, resource.metadata?.namespace || identifier?.namespace)
+    return withNamespaceLabel(kind, resource.spec.displayName)
   }
 
   if (resource?.metadata?.name) {
-    return withNamespaceLabel(kind, resource.metadata.name, resource.metadata?.namespace)
+    return withNamespaceLabel(kind, resource.metadata.name)
   }
 
-  return withNamespaceLabel(kind, identifier?.name, identifier?.namespace)
+  return withNamespaceLabel(kind, identifier?.name)
 }
 
 const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
@@ -104,8 +104,14 @@ const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
   isLeaf: true,
 })
 
-const createBranch = (label: string, key: string, children: TreeDataNode[], countColor?: string): TreeDataNode => ({
-  title: renderCount(label, children.length, countColor),
+const createBranch = (
+  label: string,
+  key: string,
+  children: TreeDataNode[],
+  countColor?: string,
+  count = children.length,
+): TreeDataNode => ({
+  title: renderCount(label, count, countColor),
   key,
   children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, `${key}-empty`)],
 })
@@ -333,25 +339,37 @@ export const buildAddressGroupContentsTree = ({
 
   const hostChildren = hostBindingsError
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(hostsRootKey, 'error'))]
-    : matchedHostBindings.map(binding =>
-        buildHostNode(binding, hostsByKey, hostsRootKey, hostsError, highlightedHostValues),
+    : groupTreeDataByNamespace(
+        matchedHostBindings.map(binding => ({
+          namespace: binding.spec?.host?.namespace,
+          node: buildHostNode(binding, hostsByKey, hostsRootKey, hostsError, highlightedHostValues),
+        })),
+        hostsRootKey,
       )
 
   const networkChildren = networkBindingsError
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(networksRootKey, 'error'))]
-    : matchedNetworkBindings.map(binding =>
-        buildNetworkNode(binding, networksByKey, networksRootKey, networksError, highlightedNetworkValues),
+    : groupTreeDataByNamespace(
+        matchedNetworkBindings.map(binding => ({
+          namespace: binding.spec?.network?.namespace,
+          node: buildNetworkNode(binding, networksByKey, networksRootKey, networksError, highlightedNetworkValues),
+        })),
+        networksRootKey,
       )
 
   const serviceChildren = serviceBindingsError
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(servicesRootKey, 'error'))]
-    : matchedServiceBindings.map(binding =>
-        buildServiceNode(binding, servicesByKey, servicesRootKey, servicesError, highlightedServiceValues),
+    : groupTreeDataByNamespace(
+        matchedServiceBindings.map(binding => ({
+          namespace: binding.spec?.service?.namespace,
+          node: buildServiceNode(binding, servicesByKey, servicesRootKey, servicesError, highlightedServiceValues),
+        })),
+        servicesRootKey,
       )
 
   return [
-    createBranch('Hosts', hostsRootKey, hostChildren, countColor),
-    createBranch('Networks', networksRootKey, networkChildren, countColor),
-    createBranch('Services', servicesRootKey, serviceChildren, countColor),
+    createBranch('Hosts', hostsRootKey, hostChildren, countColor, matchedHostBindings.length),
+    createBranch('Networks', networksRootKey, networkChildren, countColor, matchedNetworkBindings.length),
+    createBranch('Services', servicesRootKey, serviceChildren, countColor, matchedServiceBindings.length),
   ]
 }

@@ -108,7 +108,7 @@ describe('VerboseRulePanel', () => {
     expect(screen.getByText('Ingress')).toBeInTheDocument()
     expect(screen.getByText('TCP')).toBeInTheDocument()
     expect(screen.getByText('IPv4')).toBeInTheDocument()
-    expect(screen.getByText(/Ports: 443/)).toBeInTheDocument()
+    expect(screen.getAllByText(/Ports: 443/).length).toBeGreaterThan(0)
     expect(screen.queryByText(/Description: https/)).not.toBeInTheDocument()
     expect(screen.queryByText(/Comment: public/)).not.toBeInTheDocument()
     expect(screen.getByText('ag-a')).toBeInTheDocument()

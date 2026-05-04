@@ -97,6 +97,6 @@ describe('VerboseServicePanel', () => {
     expect(screen.getByText('ICMP / IPv4')).toBeInTheDocument()
     expect(screen.getByText(/Types: 8, 0/)).toBeInTheDocument()
     expect(screen.getAllByText('Bound Address Groups').length).toBeGreaterThan(0)
-    expect(screen.getByText('service-binding-a')).toBeInTheDocument()
+    expect(screen.getByText('Address Group A')).toBeInTheDocument()
   })
 })

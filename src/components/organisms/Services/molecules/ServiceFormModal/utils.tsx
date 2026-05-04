@@ -21,9 +21,10 @@ import {
   buildNamespacedValue,
   getApiEndpoint,
   getBindingLookupKey,
+  groupTreeDataByNamespace,
   normalizeOptionalString,
   parseNamespacedValue,
-  renderNamespacedResourceValue,
+  renderBadgeWithValue,
   runSequentialRequests,
   sanitizeBindingName,
 } from 'utils'
@@ -53,11 +54,10 @@ const renderOverviewTitle = (
 ) => {
   const parsedValue = value ? parseNamespacedValue(value) : undefined
   const displayName = addressGroup?.spec?.displayName || addressGroup?.metadata.name || parsedValue?.name || 'Unknown'
-  const addressGroupNamespace = addressGroup?.metadata.namespace || parsedValue?.namespace
 
   const title = (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-      {renderNamespacedResourceValue('Address Group', addressGroupNamespace, displayName)}
+      {renderBadgeWithValue('Address Group', displayName)}
       <Styled.Count>{bindingsCount || 0}</Styled.Count>
     </span>
   )
@@ -105,7 +105,7 @@ export const buildOverviewTreeData = ({
     ]),
   )
 
-  return selectedAddressGroupValues.map(selectedValue => {
+  const addressGroupNodes = selectedAddressGroupValues.map(selectedValue => {
     const parsedValue = parseNamespacedValue(selectedValue)
     const addressGroup = addressGroupsByKey[selectedValue]
     const relatedHostBindings = (hostBindings || []).filter(binding =>
@@ -154,16 +154,21 @@ export const buildOverviewTreeData = ({
     })
 
     return {
-      title: renderOverviewTitle(
-        addressGroup,
-        selectedValue,
-        relatedHostBindings.length + relatedNetworkBindings.length + nextServiceBindings.length,
-        addedAddressGroups.has(selectedValue),
-      ),
-      key: `overview-${selectedValue}`,
-      children: branches,
+      namespace: addressGroup?.metadata.namespace || parsedValue.namespace,
+      node: {
+        title: renderOverviewTitle(
+          addressGroup,
+          selectedValue,
+          relatedHostBindings.length + relatedNetworkBindings.length + nextServiceBindings.length,
+          addedAddressGroups.has(selectedValue),
+        ),
+        key: `overview-${selectedValue}`,
+        children: branches,
+      },
     }
   })
+
+  return groupTreeDataByNamespace(addressGroupNodes, 'overview')
 }
 
 export const patchEditableSpec = async (endpoint: string, service: TServiceResource, values: TServiceFormValues) => {

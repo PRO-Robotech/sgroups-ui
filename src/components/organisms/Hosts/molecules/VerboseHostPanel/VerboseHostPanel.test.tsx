@@ -101,7 +101,7 @@ describe('VerboseHostPanel', () => {
     expect(screen.getByText('10.0.0.10')).toBeInTheDocument()
     expect(screen.getByText('2001:db8::10')).toBeInTheDocument()
     expect(screen.getAllByText('Bound Address Groups').length).toBeGreaterThan(0)
-    expect(screen.getByText('host-binding-a')).toBeInTheDocument()
+    expect(screen.getByText('Address Group A')).toBeInTheDocument()
     expect(screen.queryByText('label6: six')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Show more (1)'))

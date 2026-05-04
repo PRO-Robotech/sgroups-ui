@@ -431,6 +431,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
               <Tree
                 showLine
                 switcherIcon={<CaretDownOutlined />}
+                defaultExpandAll
                 defaultExpandedKeys={['address-group-endpoint']}
                 treeData={localTreeData}
               />
@@ -452,6 +453,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
               <Tree
                 showLine
                 switcherIcon={<CaretDownOutlined />}
+                defaultExpandAll
                 defaultExpandedKeys={['address-group-endpoint']}
                 treeData={remoteTreeData}
               />

@@ -11,7 +11,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { renderNamespacedResourceValue } from 'utils'
+import { groupTreeDataByNamespace, renderBadgeWithValue, renderNamespacedResourceValue } from 'utils'
 import { TRuleEndpoint } from '../../tableConfig'
 
 type TContentsTreeArgs = {
@@ -48,10 +48,16 @@ const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
   isLeaf: true,
 })
 
-const createBranch = (label: string, key: string, children: TreeDataNode[], countColor?: string): TreeDataNode => ({
+const createBranch = (
+  label: string,
+  key: string,
+  children: TreeDataNode[],
+  countColor?: string,
+  count = children.length,
+): TreeDataNode => ({
   title: (
     <>
-      {label} <span style={{ color: countColor, fontWeight: 600 }}>({children.length})</span>
+      {label} <span style={{ color: countColor, fontWeight: 600 }}>({count})</span>
     </>
   ),
   key,
@@ -143,19 +149,15 @@ const renderLabel = (
   fallback?: TResourceIdentifier,
 ) => {
   if (resource?.spec?.displayName) {
-    return renderNamespacedResourceValue(
-      badgeValue,
-      resource.metadata?.namespace || fallback?.namespace,
-      resource.spec.displayName,
-    )
+    return renderBadgeWithValue(badgeValue, resource.spec.displayName)
   }
 
   if (resource?.metadata?.name) {
-    return renderNamespacedResourceValue(badgeValue, resource.metadata.namespace, resource.metadata.name)
+    return renderBadgeWithValue(badgeValue, resource.metadata.name)
   }
 
   if (fallback?.name) {
-    return renderNamespacedResourceValue(badgeValue, fallback.namespace, fallback.name)
+    return renderBadgeWithValue(badgeValue, fallback.name)
   }
 
   return 'Unknown'
@@ -418,16 +420,30 @@ export const buildRuleEndpointTree = ({
 
   const hostChildren = hostBindingsError
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(hostsRootKey, 'error'))]
-    : matchedHostBindings.map(binding => buildHostBindingNode(binding, hostsByKey, hostsRootKey, hostsError))
+    : groupTreeDataByNamespace(
+        matchedHostBindings.map(binding => ({
+          namespace: binding.spec?.host?.namespace,
+          node: buildHostBindingNode(binding, hostsByKey, hostsRootKey, hostsError),
+        })),
+        hostsRootKey,
+      )
   const networkChildren = networkBindingsError
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(networksRootKey, 'error'))]
-    : matchedNetworkBindings.map(binding =>
-        buildNetworkBindingNode(binding, networksByKey, networksRootKey, networksError),
+    : groupTreeDataByNamespace(
+        matchedNetworkBindings.map(binding => ({
+          namespace: binding.spec?.network?.namespace,
+          node: buildNetworkBindingNode(binding, networksByKey, networksRootKey, networksError),
+        })),
+        networksRootKey,
       )
   const serviceChildren = serviceBindingsError
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(servicesRootKey, 'error'))]
-    : matchedServiceBindings.map(binding =>
-        buildServiceBindingNode(binding, servicesByKey, servicesRootKey, servicesError),
+    : groupTreeDataByNamespace(
+        matchedServiceBindings.map(binding => ({
+          namespace: binding.spec?.service?.namespace,
+          node: buildServiceBindingNode(binding, servicesByKey, servicesRootKey, servicesError),
+        })),
+        servicesRootKey,
       )
 
   return [
@@ -435,9 +451,9 @@ export const buildRuleEndpointTree = ({
       title: renderLabel('Address Group', addressGroup, { name: endpoint.name, namespace: endpoint.namespace }),
       key: addressGroupEndpointKey,
       children: [
-        createBranch('Hosts', hostsRootKey, hostChildren, countColor),
-        createBranch('Networks', networksRootKey, networkChildren, countColor),
-        createBranch('Services', servicesRootKey, serviceChildren, countColor),
+        createBranch('Hosts', hostsRootKey, hostChildren, countColor, matchedHostBindings.length),
+        createBranch('Networks', networksRootKey, networkChildren, countColor, matchedNetworkBindings.length),
+        createBranch('Services', servicesRootKey, serviceChildren, countColor, matchedServiceBindings.length),
       ],
     },
   ]

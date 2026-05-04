@@ -40,11 +40,13 @@ The `Source` and `Destination` sections resolve endpoint contents from the curre
 - `Service` endpoints resolve service transports directly.
 - AddressGroup-style endpoints resolve AddressGroups, then expand matching Host, Network, and Service bindings.
 
+AddressGroup endpoint branches group matched Hosts, Networks, and Services by the target resource namespace before rendering individual binding/resource nodes.
+
 Service transport leaves in endpoint trees keep only ports/types visible. If an entry has a description or comment, those details are attached to the leaf tooltip.
 
 Missing resources render as `Not found`; failed lookups render as `Error while fetching`.
 
-Tree node keys are parent-derived. Service transport entries extend the service endpoint or binding resource key, and AddressGroup endpoint branches extend `address-group-endpoint` through Hosts, Networks, Services, bindings, resources, transports, and leaves. This keeps keys unique when the same endpoint tree is rendered beside another tree or embedded in the UniRule Structure Overview.
+Tree node keys are parent-derived. Service transport entries extend the service endpoint or binding resource key, and AddressGroup endpoint branches extend `address-group-endpoint` through Hosts, Networks, Services, namespace groups, bindings, resources, transports, and leaves. This keeps keys unique when the same endpoint tree is rendered beside another tree or embedded in the UniRule Structure Overview.
 
 The UniRule form wraps this endpoint tree for editable overviews. When an edit changes the Local or Remote endpoint, the wrapper highlights the changed endpoint root; the verbose read-only panel itself does not apply pending-change highlights.
 

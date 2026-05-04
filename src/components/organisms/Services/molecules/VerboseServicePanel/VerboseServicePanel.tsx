@@ -38,8 +38,8 @@ import { TAddressGroupResource, TResourceIdentifier, TServiceBindingResource } f
 import {
   formatAnnotationEntries,
   formatMapEntries,
+  groupTreeDataByNamespace,
   renderBadgeWithValue,
-  renderNamespacedResourceValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
@@ -65,24 +65,24 @@ const renderValue = (value?: string) => value || '-'
 const makeLookupKey = (identifier?: TResourceIdentifier) =>
   `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
 
-const withNamespaceLabel = (name?: string, namespace?: string) => {
+const withNamespaceLabel = (name?: string) => {
   if (!name) {
     return 'Unknown'
   }
 
-  return renderNamespacedResourceValue('Address Group', namespace, name)
+  return renderBadgeWithValue('Address Group', name)
 }
 
 const renderAddressGroupLabel = (addressGroup?: TAddressGroupResource, fallback?: TResourceIdentifier) => {
   if (addressGroup?.spec?.displayName) {
-    return withNamespaceLabel(addressGroup.spec.displayName, addressGroup.metadata.namespace || fallback?.namespace)
+    return withNamespaceLabel(addressGroup.spec.displayName)
   }
 
   if (addressGroup?.metadata?.name) {
-    return withNamespaceLabel(addressGroup.metadata.name, addressGroup.metadata.namespace)
+    return withNamespaceLabel(addressGroup.metadata.name)
   }
 
-  return withNamespaceLabel(fallback?.name, fallback?.namespace)
+  return withNamespaceLabel(fallback?.name)
 }
 
 const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
@@ -228,35 +228,37 @@ const buildBoundAddressGroupsTree = ({
       rootKey,
       `service-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`,
     )
-    const title =
-      binding.spec?.displayName ||
-      binding.metadata.name ||
-      renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup)
+    const title = renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup)
 
     if (!addressGroup) {
       return {
-        title,
-        key: bindingKey,
-        children: [
-          createLeaf(addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, makeChildKey(bindingKey, 'status')),
-        ],
+        namespace: binding.spec?.addressGroup?.namespace,
+        node: {
+          title,
+          key: bindingKey,
+          children: [
+            createLeaf(
+              addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE,
+              makeChildKey(bindingKey, 'status'),
+            ),
+          ],
+        },
       }
     }
 
     return {
-      title,
-      key: bindingKey,
-      children: [
-        createLeaf(
-          renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup),
-          makeChildKey(bindingKey, 'group'),
-        ),
-      ],
+      namespace: addressGroup.metadata.namespace || binding.spec?.addressGroup?.namespace,
+      node: {
+        title,
+        key: bindingKey,
+        isLeaf: true,
+      },
     }
   })
+  const treeData = groupTreeDataByNamespace(children, rootKey)
 
   return {
-    treeData: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
+    treeData: treeData.length > 0 ? treeData : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
     count: children.length,
   }
 }

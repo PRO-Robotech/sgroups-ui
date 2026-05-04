@@ -35,13 +35,13 @@ Long tag groups show the first five values and expose a show more/less control. 
 
 The `Bound Address Groups` tree is derived from current `HostBinding` resources and AddressGroup lookups.
 
-The section subtitle includes the bound AddressGroup count. The AntD tree starts directly from the matching binding nodes instead of rendering a duplicate `Bound Address Groups` root row.
+The section subtitle includes the bound AddressGroup count. The AntD tree starts from AddressGroup namespace nodes instead of rendering a duplicate `Bound Address Groups` root row.
 
-Bindings are matched by comparing `binding.spec.host` with the current Host `metadata.name` and `metadata.namespace`. Each binding node shows the binding display name or metadata name when available, then resolves the target AddressGroup label from `spec.displayName` or metadata.
+Bindings are matched by comparing `binding.spec.host` with the current Host `metadata.name` and `metadata.namespace`. Matching bindings are grouped by `spec.addressGroup.namespace`. Under each namespace node, each child shows the resolved AddressGroup label from `spec.displayName` or metadata.
 
 Missing AddressGroups render as `Not found`; failed lookups render as `Error while fetching`.
 
-Tree node keys are derived from the `bound-address-groups-root` prefix and each binding node. Child status/group leaves extend the binding key so repeated binding names or fallback states do not collide in AntD Tree.
+Tree node keys are derived from the `bound-address-groups-root` prefix, the namespace node, and each binding/resource node. Child status leaves extend the binding key so repeated binding names or fallback states do not collide in AntD Tree.
 
 ## Lifecycle
 
