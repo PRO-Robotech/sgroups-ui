@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined } from '@ant-design/icons'
 import { Empty, Form, Input, message, Modal, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
@@ -19,6 +19,7 @@ import {
   API_VERSION,
   buildNamespacedValue,
   compactSpec,
+  getAddressGroupOptions,
   getApiEndpoint,
   getNamespaceOptions,
   NAME_PATTERN,
@@ -42,7 +43,6 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
   const formValues = Form.useWatch([], form) as THostFormValues | undefined
-  const selectedHostNamespace = formValues?.namespace || host?.metadata.namespace || namespace
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(host)
 
@@ -55,19 +55,6 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
     apiGroup: API_GROUP,
     apiVersion: API_VERSION,
     plural: 'tenants',
-    isEnabled: open,
-  })
-
-  const {
-    data: addressGroupsData,
-    isLoading: isAddressGroupsLoading,
-    error: addressGroupsError,
-  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
-    cluster,
-    namespace: undefined,
-    apiGroup: API_GROUP,
-    apiVersion: API_VERSION,
-    plural: 'addressgroups',
     isEnabled: open,
   })
 
@@ -132,34 +119,49 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
   })
 
   const namespaceOptions = useMemo(() => getNamespaceOptions(tenantsData?.items), [tenantsData?.items])
-  const addressGroupOptions = useMemo(() => {
-    if (!selectedHostNamespace) {
-      return []
-    }
-
-    return (addressGroupsData?.items || [])
-      .reduce<Array<{ value: string; label: ReactNode; searchText: string }>>((acc, addressGroup) => {
-        const resourceName = addressGroup.metadata.name
-        const resourceNamespace = addressGroup.metadata.namespace
-
-        if (!resourceName || resourceNamespace !== selectedHostNamespace) {
-          return acc
-        }
-
-        const displayName = addressGroup.spec?.displayName || resourceName
-        acc.push({
-          value: buildNamespacedValue({ namespace: resourceNamespace, name: resourceName }) || resourceName,
-          label: renderBadgeWithValue('Address Group', displayName),
-          searchText: `${resourceName} ${addressGroup.spec?.displayName || ''}`.trim(),
-        })
-
-        return acc
-      }, [])
-      .sort((first, second) => first.searchText.localeCompare(second.searchText))
-  }, [addressGroupsData?.items, selectedHostNamespace])
   const currentBindings = useMemo(
     () => buildCurrentBindings(host, hostBindingsData?.items),
     [host, hostBindingsData?.items],
+  )
+  const selectedAddressGroupNamespace = formValues
+    ? formValues.addressGroupNamespace
+    : currentBindings[0]?.spec?.addressGroup?.namespace || namespace
+  const isAddressGroupsQueryEnabled = open && Boolean(selectedAddressGroupNamespace)
+  const {
+    data: addressGroupsData,
+    isLoading: isAddressGroupsLoading,
+    error: addressGroupsError,
+  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
+    cluster,
+    namespace: selectedAddressGroupNamespace,
+    apiGroup: API_GROUP,
+    apiVersion: API_VERSION,
+    plural: 'addressgroups',
+    isEnabled: isAddressGroupsQueryEnabled,
+  })
+  const addressGroupOptions = useMemo(
+    () => getAddressGroupOptions(addressGroupsData?.items, { showNamespace: false }),
+    [addressGroupsData?.items],
+  )
+  const scopedAddressGroups = useMemo(
+    () =>
+      selectedAddressGroupNamespace
+        ? (addressGroupsData?.items || []).filter(
+            addressGroup => addressGroup.metadata.namespace === selectedAddressGroupNamespace,
+          )
+        : [],
+    [addressGroupsData?.items, selectedAddressGroupNamespace],
+  )
+  const scopedSelectedAddressGroups = useMemo(
+    () =>
+      selectedAddressGroupNamespace
+        ? selectedAddressGroups.filter(value => value.startsWith(`${selectedAddressGroupNamespace}/`))
+        : [],
+    [selectedAddressGroupNamespace, selectedAddressGroups],
+  )
+  const overviewKey = useMemo(
+    () => `host-overview-${selectedAddressGroupNamespace || 'none'}-${scopedSelectedAddressGroups.join('|')}`,
+    [scopedSelectedAddressGroups, selectedAddressGroupNamespace],
   )
   const addedAddressGroupValues = useMemo(() => {
     if (!host) {
@@ -172,13 +174,13 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
         .filter((value): value is string => Boolean(value)),
     )
 
-    return selectedAddressGroups.filter(value => !currentAddressGroups.has(value))
-  }, [currentBindings, host, selectedAddressGroups])
+    return scopedSelectedAddressGroups.filter(value => !currentAddressGroups.has(value))
+  }, [currentBindings, host, scopedSelectedAddressGroups])
   const overviewTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildOverviewTreeData({
-        addressGroups: addressGroupsData?.items,
-        selectedAddressGroupValues: selectedAddressGroups,
+        addressGroups: scopedAddressGroups,
+        selectedAddressGroupValues: scopedSelectedAddressGroups,
         hostBindings: hostBindingsData?.items,
         networkBindings: networkBindingsData?.items,
         serviceBindings: serviceBindingsData?.items,
@@ -190,28 +192,29 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
       }),
     [
       addedAddressGroupValues,
-      addressGroupsData?.items,
       host,
       hostBindingsData?.items,
       hostsData?.items,
       networkBindingsData?.items,
       networksData?.items,
-      selectedAddressGroups,
+      scopedAddressGroups,
+      scopedSelectedAddressGroups,
       serviceBindingsData?.items,
       servicesData?.items,
     ],
   )
   const isOverviewLoading =
-    isAddressGroupsLoading ||
-    isHostBindingsLoading ||
-    isNetworkBindingsLoading ||
-    isServiceBindingsLoading ||
-    isHostsLoading ||
-    isNetworksLoading ||
-    isServicesLoading
-  const isFormResourcesLoading = isTenantsLoading || isOverviewLoading
+    !isInitialized &&
+    ((isAddressGroupsQueryEnabled && isAddressGroupsLoading) ||
+      isHostBindingsLoading ||
+      isNetworkBindingsLoading ||
+      isServiceBindingsLoading ||
+      isHostsLoading ||
+      isNetworksLoading ||
+      isServicesLoading)
+  const isFormResourcesLoading = isTenantsLoading || Boolean(host && isHostBindingsLoading)
   const isInitialLoadPending = open && !isInitialized
-  const isModalInitializing = isFormResourcesLoading || isInitialLoadPending
+  const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
 
   useEffect(() => {
     if (!open) {
@@ -229,6 +232,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
         displayName: host.spec?.displayName,
         description: host.spec?.description,
         comment: host.spec?.comment,
+        addressGroupNamespace: currentBindings[0]?.spec?.addressGroup?.namespace || namespace,
         addressGroups: currentBindings
           .map(binding => buildNamespacedValue(binding.spec?.addressGroup))
           .filter((value): value is string => Boolean(value)),
@@ -243,6 +247,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
         namespace,
         name: undefined,
         displayName: undefined,
+        addressGroupNamespace: namespace,
         addressGroups: [],
         description: undefined,
         comment: undefined,
@@ -278,11 +283,20 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
         ['namespace'],
         ['name'],
         ['displayName'],
+        ['addressGroupNamespace'],
         ['addressGroups'],
         ['description'],
         ['comment'],
       ])
-      const values = form.getFieldsValue(true) as THostFormValues
+      const formStoreValues = form.getFieldsValue(true) as THostFormValues
+      const values = {
+        ...formStoreValues,
+        addressGroups: formStoreValues.addressGroupNamespace
+          ? (formStoreValues.addressGroups || []).filter(value =>
+              value.startsWith(`${formStoreValues.addressGroupNamespace}/`),
+            )
+          : [],
+      }
       setIsSubmitting(true)
 
       const hostIdentifier = {
@@ -420,6 +434,26 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
                   <Input placeholder="e.g. server-01.prod" />
                 </Form.Item>
                 <Form.Item
+                  name="addressGroupNamespace"
+                  label="Address group namespace"
+                  rules={[
+                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
+                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                  ]}
+                >
+                  <Select
+                    showSearch
+                    allowClear
+                    placeholder="Select namespace"
+                    options={namespaceOptions}
+                    loading={isTenantsLoading}
+                    status={tenantsError ? 'error' : undefined}
+                    onChange={() => {
+                      form.setFieldValue('addressGroups', [])
+                    }}
+                  />
+                </Form.Item>
+                <Form.Item
                   name="addressGroups"
                   label="Address group"
                   validateStatus={addressGroupsError ? 'error' : undefined}
@@ -427,11 +461,11 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
                   <Select
                     mode="multiple"
                     showSearch
-                    placeholder={selectedHostNamespace ? 'Select address groups' : 'Select namespace first'}
+                    placeholder={selectedAddressGroupNamespace ? 'Select address groups' : 'Select namespace first'}
                     optionFilterProp="searchText"
                     options={addressGroupOptions}
                     loading={isAddressGroupsLoading}
-                    disabled={!selectedHostNamespace}
+                    disabled={!selectedAddressGroupNamespace}
                   />
                 </Form.Item>
                 <Form.Item name="description" label="Description">
@@ -449,14 +483,20 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
               <Styled.OverviewTitle>Structure Overview</Styled.OverviewTitle>
               <Styled.OverviewBody>
                 {isOverviewLoading && <Spin />}
-                {!isOverviewLoading && selectedAddressGroups.length === 0 && (
+                {!isOverviewLoading && scopedSelectedAddressGroups.length === 0 && (
                   <Styled.OverviewEmpty>
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
                   </Styled.OverviewEmpty>
                 )}
-                {!isOverviewLoading && selectedAddressGroups.length > 0 && (
-                  <Styled.TreeContainer>
-                    <Tree showLine switcherIcon={<CaretDownOutlined />} defaultExpandAll treeData={overviewTreeData} />
+                {!isOverviewLoading && scopedSelectedAddressGroups.length > 0 && (
+                  <Styled.TreeContainer key={overviewKey}>
+                    <Tree
+                      key={overviewKey}
+                      showLine
+                      switcherIcon={<CaretDownOutlined />}
+                      defaultExpandAll
+                      treeData={overviewTreeData}
+                    />
                   </Styled.TreeContainer>
                 )}
               </Styled.OverviewBody>

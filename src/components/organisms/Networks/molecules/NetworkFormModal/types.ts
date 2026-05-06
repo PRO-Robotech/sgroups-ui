@@ -12,6 +12,7 @@ export type TNetworkFormValues = {
   namespace: string
   name: string
   displayName?: string
+  addressGroupNamespace?: string
   addressGroups?: string[]
   cidr: string
   description?: string

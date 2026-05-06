@@ -12,6 +12,7 @@ export type THostFormValues = {
   namespace: string
   name: string
   displayName?: string
+  addressGroupNamespace?: string
   addressGroups?: string[]
   description?: string
   comment?: string

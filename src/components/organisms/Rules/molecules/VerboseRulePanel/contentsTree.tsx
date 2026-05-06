@@ -163,6 +163,12 @@ const renderLabel = (
   return 'Unknown'
 }
 
+const renderBindingLabel = (
+  badgeValue: 'HostBinding' | 'NetworkBinding' | 'ServiceBinding',
+  binding: THostBindingResource | TNetworkBindingResource | TServiceBindingResource,
+  fallback: React.ReactNode,
+) => renderBadgeWithValue(badgeValue, binding.spec?.displayName || binding.metadata.name || fallback)
+
 const buildHostBindingNode = (
   binding: THostBindingResource,
   hostsByKey: Record<string, THostResource>,
@@ -176,7 +182,7 @@ const buildHostBindingNode = (
     parentKey,
     `host-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
   )
-  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Host', host, target)
+  const bindingTitle = renderBindingLabel('HostBinding', binding, renderLabel('Host', host, target))
 
   if (!host) {
     return {
@@ -218,7 +224,7 @@ const buildNetworkBindingNode = (
     parentKey,
     `network-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
   )
-  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Network', network, target)
+  const bindingTitle = renderBindingLabel('NetworkBinding', binding, renderLabel('Network', network, target))
 
   if (!network) {
     return {
@@ -258,7 +264,7 @@ const buildServiceBindingNode = (
     parentKey,
     `service-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`,
   )
-  const bindingTitle = binding.spec?.displayName || binding.metadata.name || renderLabel('Service', service, target)
+  const bindingTitle = renderBindingLabel('ServiceBinding', binding, renderLabel('Service', service, target))
 
   if (!service) {
     return {

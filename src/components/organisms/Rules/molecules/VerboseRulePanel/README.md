@@ -40,7 +40,7 @@ The `Source` and `Destination` sections resolve endpoint contents from the curre
 - `Service` endpoints resolve service transports directly.
 - AddressGroup-style endpoints resolve AddressGroups, then expand matching Host, Network, and Service bindings.
 
-AddressGroup endpoint branches group matched Hosts, Networks, and Services by the target resource namespace before rendering individual binding/resource nodes.
+AddressGroup endpoint branches group matched Hosts, Networks, and Services by the target resource namespace before rendering individual binding/resource nodes. Binding nodes render with resource badges (`HostBinding`, `NetworkBinding`, or `ServiceBinding`) and then expand to the resolved Host, Network, or Service resource badge and details.
 
 Service transport leaves in endpoint trees keep only ports/types visible. If an entry has a description or comment, those details are attached to the leaf tooltip.
 

@@ -5,6 +5,7 @@ import {
   compactSpec,
   FQDN_PATTERN,
   getApiEndpoint,
+  getAddressGroupOptions,
   getBindingLookupKey,
   getNamespacedResourceOptions,
   getNamespaceOptions,
@@ -128,6 +129,20 @@ describe('sgroupsFormUtils', () => {
 
     render(<div>{scopedOptions[0].label}</div>)
     expect(screen.getByText('Service A')).toBeInTheDocument()
+    expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
+  })
+
+  it('can build AddressGroup options without namespace in the visible label', () => {
+    const options = getAddressGroupOptions(
+      [{ metadata: { namespace: 'tenant-a', name: 'ag-a' }, spec: { displayName: 'Address Group A' } }],
+      { showNamespace: false },
+    )
+
+    expect(options[0].value).toBe('tenant-a/ag-a')
+    expect(options[0].searchText).toBe('tenant-a ag-a Address Group A')
+
+    render(<div>{options[0].label}</div>)
+    expect(screen.getByText('Address Group A')).toBeInTheDocument()
     expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
   })
 

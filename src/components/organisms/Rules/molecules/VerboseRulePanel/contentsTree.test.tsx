@@ -182,9 +182,12 @@ describe('buildRuleEndpointTree', () => {
     expect(branches[0].children?.[0]).toEqual(
       expect.objectContaining({ key: 'address-group-endpoint-rule-hosts-root-namespace-tenant-a' }),
     )
-    expect(branches[0].children?.[0].children?.[0]).toEqual(
+    const hostBindingNode = branches[0].children?.[0].children?.[0]
+    const networkBindingNode = branches[1].children?.[0].children?.[0]
+    const serviceBindingNode = branches[2].children?.[0].children?.[0]
+
+    expect(hostBindingNode).toEqual(
       expect.objectContaining({
-        title: 'host-binding-a',
         key: 'address-group-endpoint-rule-hosts-root-host-binding-tenant-a-host-binding-a',
         children: [
           expect.objectContaining({
@@ -199,12 +202,15 @@ describe('buildRuleEndpointTree', () => {
         ],
       }),
     )
+    render(<>{hostBindingNode?.title}</>)
+    expect(screen.getByText('HB')).toBeInTheDocument()
+    expect(screen.getByText('host-binding-a')).toBeInTheDocument()
+
     expect(branches[1].children?.[0]).toEqual(
       expect.objectContaining({ key: 'address-group-endpoint-rule-networks-root-namespace-tenant-a' }),
     )
-    expect(branches[1].children?.[0].children?.[0]).toEqual(
+    expect(networkBindingNode).toEqual(
       expect.objectContaining({
-        title: 'network-binding-a',
         key: 'address-group-endpoint-rule-networks-root-network-binding-tenant-a-network-binding-a',
         children: [
           expect.objectContaining({
@@ -219,12 +225,15 @@ describe('buildRuleEndpointTree', () => {
         ],
       }),
     )
+    render(<>{networkBindingNode?.title}</>)
+    expect(screen.getByText('NB')).toBeInTheDocument()
+    expect(screen.getByText('network-binding-a')).toBeInTheDocument()
+
     expect(branches[2].children?.[0]).toEqual(
       expect.objectContaining({ key: 'address-group-endpoint-rule-services-root-namespace-tenant-a' }),
     )
-    expect(branches[2].children?.[0].children?.[0]).toEqual(
+    expect(serviceBindingNode).toEqual(
       expect.objectContaining({
-        title: 'service-binding-a',
         key: 'address-group-endpoint-rule-services-root-service-binding-tenant-a-service-binding-a',
         children: [
           expect.objectContaining({
@@ -245,6 +254,9 @@ describe('buildRuleEndpointTree', () => {
         ],
       }),
     )
+    render(<>{serviceBindingNode?.title}</>)
+    expect(screen.getByText('SB')).toBeInTheDocument()
+    expect(screen.getByText('service-binding-a')).toBeInTheDocument()
   })
 
   it('marks a missing address group endpoint with not found or fetch error', () => {

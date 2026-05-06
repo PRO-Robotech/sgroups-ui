@@ -85,6 +85,13 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const queryClient = useQueryClient()
   const formValues = Form.useWatch([], form) as TUniRuleFormValues | undefined
   const isEditMode = Boolean(rule)
+  const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
+  const localType = formValues ? formValues.local?.type : currentRuleFormValues.local?.type
+  const remoteType = formValues ? formValues.remote?.type : currentRuleFormValues.remote?.type
+  const localNamespace = formValues ? formValues.local?.namespace : currentRuleFormValues.local?.namespace
+  const remoteNamespace = formValues ? formValues.remote?.namespace : currentRuleFormValues.remote?.namespace
+  const isLocalAddressGroupsQueryEnabled = open && localType === 'AddressGroup' && Boolean(localNamespace)
+  const isRemoteAddressGroupsQueryEnabled = open && remoteType === 'AddressGroup' && Boolean(remoteNamespace)
 
   const {
     data: tenantsData,
@@ -98,15 +105,26 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     isEnabled: open,
   })
 
-  const { data: addressGroupsData, isLoading: isAddressGroupsLoading } = useK8sSmartResource<{
+  const { data: localAddressGroupsData, isLoading: isLocalAddressGroupsLoading } = useK8sSmartResource<{
     items: TAddressGroupResource[]
   }>({
     cluster,
-    namespace: undefined,
+    namespace: localNamespace,
     apiGroup: API_GROUP,
     apiVersion: API_VERSION,
     plural: 'addressgroups',
-    isEnabled: open,
+    isEnabled: isLocalAddressGroupsQueryEnabled,
+  })
+
+  const { data: remoteAddressGroupsData, isLoading: isRemoteAddressGroupsLoading } = useK8sSmartResource<{
+    items: TAddressGroupResource[]
+  }>({
+    cluster,
+    namespace: remoteNamespace,
+    apiGroup: API_GROUP,
+    apiVersion: API_VERSION,
+    plural: 'addressgroups',
+    isEnabled: isRemoteAddressGroupsQueryEnabled,
   })
 
   const { data: servicesData, isLoading: isServicesLoading } = useK8sSmartResource<{ items: TServiceResource[] }>({
@@ -170,20 +188,40 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   })
 
   const namespaceOptions = useMemo(() => getNamespaceOptions(tenantsData?.items), [tenantsData?.items])
-  const addressGroupOptions = useMemo(
-    () => getNamespacedResourceOptions(addressGroupsData?.items, 'Address Group'),
-    [addressGroupsData?.items],
+  const addressGroups = useMemo(() => {
+    const itemsByKey = new Map<string, TAddressGroupResource>()
+
+    ;[...(localAddressGroupsData?.items || []), ...(remoteAddressGroupsData?.items || [])].forEach(addressGroup => {
+      const resourceName = addressGroup.metadata.name
+      const resourceNamespace = addressGroup.metadata.namespace
+
+      if (resourceName && resourceNamespace) {
+        itemsByKey.set(`${resourceNamespace}/${resourceName}`, addressGroup)
+      }
+    })
+
+    return [...itemsByKey.values()]
+  }, [localAddressGroupsData?.items, remoteAddressGroupsData?.items])
+  const localAddressGroupOptions = useMemo(
+    () =>
+      getScopedResourceOptions(
+        getNamespacedResourceOptions(localAddressGroupsData?.items, 'Address Group'),
+        localNamespace,
+      ),
+    [localAddressGroupsData?.items, localNamespace],
+  )
+  const remoteAddressGroupOptions = useMemo(
+    () =>
+      getScopedResourceOptions(
+        getNamespacedResourceOptions(remoteAddressGroupsData?.items, 'Address Group'),
+        remoteNamespace,
+      ),
+    [remoteAddressGroupsData?.items, remoteNamespace],
   )
   const serviceOptions = useMemo(
     () => getNamespacedResourceOptions(servicesData?.items, 'Service'),
     [servicesData?.items],
   )
-  const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
-
-  const localType = formValues?.local?.type
-  const remoteType = formValues?.remote?.type
-  const localNamespace = formValues?.local?.namespace
-  const remoteNamespace = formValues?.remote?.namespace
   const localEndpoint = useMemo(() => buildEndpointPayload(formValues?.local), [formValues?.local])
   const remoteEndpoint = useMemo(() => buildEndpointPayload(formValues?.remote), [formValues?.remote])
   const isLocalEndpointChanged = useMemo(
@@ -199,18 +237,20 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     [currentRuleFormValues.remote, remoteEndpoint, rule],
   )
   const localResourceOptions = useMemo(
-    () => getScopedResourceOptions(localType === 'Service' ? serviceOptions : addressGroupOptions, localNamespace),
-    [addressGroupOptions, localNamespace, localType, serviceOptions],
+    () =>
+      localType === 'Service' ? getScopedResourceOptions(serviceOptions, localNamespace) : localAddressGroupOptions,
+    [localAddressGroupOptions, localNamespace, localType, serviceOptions],
   )
   const remoteResourceOptions = useMemo(
-    () => getScopedResourceOptions(remoteType === 'Service' ? serviceOptions : addressGroupOptions, remoteNamespace),
-    [addressGroupOptions, remoteNamespace, remoteType, serviceOptions],
+    () =>
+      remoteType === 'Service' ? getScopedResourceOptions(serviceOptions, remoteNamespace) : remoteAddressGroupOptions,
+    [remoteAddressGroupOptions, remoteNamespace, remoteType, serviceOptions],
   )
   const localTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildRuleEndpointTree({
         endpoint: localEndpoint,
-        addressGroups: addressGroupsData?.items,
+        addressGroups,
         hostBindings: hostBindingsData?.items,
         networkBindings: networkBindingsData?.items,
         serviceBindings: serviceBindingsData?.items,
@@ -219,7 +259,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
         services: servicesData?.items,
       }),
     [
-      addressGroupsData?.items,
+      addressGroups,
       hostBindingsData?.items,
       hostsData?.items,
       localEndpoint,
@@ -233,7 +273,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     () =>
       buildRuleEndpointTree({
         endpoint: remoteEndpoint,
-        addressGroups: addressGroupsData?.items,
+        addressGroups,
         hostBindings: hostBindingsData?.items,
         networkBindings: networkBindingsData?.items,
         serviceBindings: serviceBindingsData?.items,
@@ -242,7 +282,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
         services: servicesData?.items,
       }),
     [
-      addressGroupsData?.items,
+      addressGroups,
       hostBindingsData?.items,
       hostsData?.items,
       networkBindingsData?.items,
@@ -264,16 +304,18 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   )
 
   const isOverviewLoading =
-    isAddressGroupsLoading ||
-    isServicesLoading ||
-    isHostBindingsLoading ||
-    isNetworkBindingsLoading ||
-    isServiceBindingsLoading ||
-    isHostsLoading ||
-    isNetworksLoading
-  const isFormResourcesLoading = isTenantsLoading || isOverviewLoading
+    !isInitialized &&
+    ((isLocalAddressGroupsQueryEnabled && isLocalAddressGroupsLoading) ||
+      (isRemoteAddressGroupsQueryEnabled && isRemoteAddressGroupsLoading) ||
+      isServicesLoading ||
+      isHostBindingsLoading ||
+      isNetworkBindingsLoading ||
+      isServiceBindingsLoading ||
+      isHostsLoading ||
+      isNetworksLoading)
+  const isFormResourcesLoading = isTenantsLoading
   const isInitialLoadPending = open && !isInitialized
-  const isModalInitializing = isFormResourcesLoading || isInitialLoadPending
+  const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
 
   useEffect(() => {
     if (!open) {
@@ -866,6 +908,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                         ) : null}
                         <Collapse
                           items={fields.map(field => {
+                            const { key: fieldKey, ...fieldItemProps } = field
                             const protocol = form.getFieldValue('transportProtocol') as
                               | 'TCP'
                               | 'UDP'
@@ -873,7 +916,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                               | undefined
 
                             return {
-                              key: String(field.key),
+                              key: `transport-entry-${field.name}-${fieldKey}`,
                               label: `Port ${field.name + 1}`,
                               extra: (
                                 <Button
@@ -890,7 +933,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                 <>
                                   {protocol === 'ICMP' ? (
                                     <Form.Item
-                                      {...field}
+                                      {...fieldItemProps}
                                       name={[field.name, 'types']}
                                       label="ICMP types"
                                       rules={[
@@ -915,7 +958,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                     </Form.Item>
                                   ) : (
                                     <Form.Item
-                                      {...field}
+                                      {...fieldItemProps}
                                       name={[field.name, 'ports']}
                                       label="Port"
                                       rules={[
@@ -945,10 +988,10 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                       <Input placeholder="e.g. 443 or 5000-6000, 6500" />
                                     </Form.Item>
                                   )}
-                                  <Form.Item {...field} name={[field.name, 'description']} label="Description">
+                                  <Form.Item {...fieldItemProps} name={[field.name, 'description']} label="Description">
                                     <Input placeholder="Briefly describe this entry" />
                                   </Form.Item>
-                                  <Form.Item {...field} name={[field.name, 'comment']} label="Comment">
+                                  <Form.Item {...fieldItemProps} name={[field.name, 'comment']} label="Comment">
                                     <Input.TextArea
                                       placeholder="Add any additional notes here..."
                                       autoSize={{ minRows: 2, maxRows: 4 }}

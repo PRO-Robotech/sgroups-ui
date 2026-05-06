@@ -22,8 +22,11 @@ The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Network.
 - `displayName`, `CIDR`, `description`, and `comment` map to editable `spec` fields.
+- `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
-- AddressGroup options are disabled until `namespace` is selected, then filtered to AddressGroups in that namespace. Changing `namespace` in create mode clears `addressGroups`.
+- AddressGroup option labels omit the namespace because the namespace is chosen in the preceding selector.
+- AddressGroup options are disabled until `addressGroupNamespace` is selected. Changing `addressGroupNamespace` clears `addressGroups`.
+- Submit filters stale `addressGroups` values to the current `addressGroupNamespace` so retained AntD form state cannot save bindings from a previous namespace.
 
 The local `v2` OpenAPI dump is the source of truth for the resource shape. Do not write `Network.refs` from this modal. It is backend-computed data.
 
@@ -33,6 +36,7 @@ AntD form rules mirror the local API docs and backend test fixtures:
 
 - `namespace` and `name` are required Kubernetes DNS labels, max 63 chars.
 - `displayName` is optional, max 63 chars.
+- `addressGroupNamespace` is an optional Kubernetes DNS label, max 63 chars.
 - `CIDR` is required and must be a network CIDR with zero host bits. Values like `10.0.0.0/8`, `0.0.0.0/0`, and `2001:db8::/64` are valid; host-address CIDRs like `5.5.5.5/8` and `::1/8` are rejected before submit.
 
 ## Create Flow
@@ -57,7 +61,7 @@ Edit mode receives an existing `network` prop.
 - Changed values use `patchEntryWithReplaceOp`.
 - `CIDR` is validated as a network CIDR and patched only when its trimmed value actually changed.
 - AddressGroup selection is initialized from existing `NetworkBinding` resources, not from `refs`.
-- AddressGroup options remain scoped to the Network namespace.
+- AddressGroup namespace is initialized from the first existing `NetworkBinding.spec.addressGroup.namespace` when available.
 - Removed selections delete bindings.
 - Added selections create bindings in the Network namespace.
 - If no editable fields or bindings changed, no update request is sent.
@@ -66,14 +70,16 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 ## Structure Overview
 
-The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
+The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are filtered to the current `addressGroupNamespace`, grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
 
 In edit mode, newly selected AddressGroups are shown with a subtle green background and left accent. The pending Network binding is also injected into that AddressGroup branch so the overview previews the post-save graph.
 
 Each selected AddressGroup overview node passes its own `overview-{namespace/name}` key as the tree key prefix. Nested namespace, section, binding, transport, entry, empty, and error keys then extend their parent key so repeated resources remain unique across the full AntD Tree.
 
+The overview tree is remounted when AddressGroup namespace or selection changes. Overview graph fetches do not block the form after initial prefill; the sidebar renders from currently available data instead of holding an infinite spinner.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open and increments a modal instance `key` before each create/edit open. This forces a real React unmount/remount for modal-local hooks and state. The AntD modal still uses `destroyOnHidden` for its internal subtree, but lifecycle correctness must not rely on that alone.
 
-Edit prefill should run once per open cycle after the full async resource set is ready.
+Edit prefill should run once per open cycle after resources needed for the form are ready.

@@ -23,10 +23,14 @@ The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Service.
 - `displayName`, `description`, and `comment` map to editable `spec` fields.
+- `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
+- AddressGroup option labels omit the namespace because the namespace is chosen in the preceding selector.
 - `transportEntries` stores repeated UI rows and is normalized back to `spec.transports` only at submit time.
 
 The submit handler validates and reads the full form store, including fields hidden behind the segmented panel.
+
+Changing `addressGroupNamespace` clears `addressGroups`. Submit also filters stale `addressGroups` values to the current `addressGroupNamespace` so retained AntD form state cannot save bindings from a previous namespace.
 
 ## Validation
 
@@ -35,6 +39,7 @@ The modal uses AntD form rules for backend-backed constraints:
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
 - `name`: required Kubernetes resource name, max 63 chars.
 - `displayName`: optional, max 63 chars.
+- `addressGroupNamespace`: optional Kubernetes resource namespace, max 63 chars.
 - `transportEntries[].IPv`: required, must be `IPv4` or `IPv6`.
 - `transportEntries[].protocol`: required, must be `TCP`, `UDP`, or `ICMP`.
 - `transportEntries[].ports`: required for `TCP` and `UDP`; accepts comma-separated ports and ranges.
@@ -67,6 +72,7 @@ Edit mode receives an existing `service` prop.
 - Changed values use `patchEntryWithReplaceOp`.
 - `spec.transports` is patched only when normalized transport data changed.
 - AddressGroup selection is initialized from existing `ServiceBinding` resources.
+- AddressGroup namespace is initialized from the first existing `ServiceBinding.spec.addressGroup.namespace` when available.
 - Removed selections delete bindings.
 - Added selections create bindings in the Service namespace.
 - If no editable fields or bindings changed, no update request is sent.
@@ -75,11 +81,13 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 ## Structure Overview
 
-The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
+The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are filtered to the current `addressGroupNamespace`, grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
 
 In edit mode, newly selected AddressGroups are shown with a subtle green background and left accent. The pending Service binding is also injected into that AddressGroup branch so the overview previews the post-save graph.
 
 Each selected AddressGroup overview node passes its own `overview-{namespace/name}` key as the tree key prefix. Nested namespace, section, binding, transport, entry, empty, and error keys then extend their parent key so repeated resources remain unique across the full AntD Tree.
+
+The overview tree is remounted when AddressGroup namespace or selection changes. Overview graph fetches do not block the form after initial prefill; the sidebar renders from currently available data instead of holding an infinite spinner.
 
 ## Transport Rules
 
@@ -93,4 +101,4 @@ Transport entries support `TCP`, `UDP`, and `ICMP`.
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after the full async resource set is ready. Keep segmented panel state independent from shared overview data so hidden panel fields do not break submit or overview rendering.
+Edit prefill should run once per open cycle after resources needed for the form are ready. Keep segmented panel state independent from shared overview data so hidden panel fields do not break submit or overview rendering.

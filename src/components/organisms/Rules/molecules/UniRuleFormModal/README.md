@@ -31,6 +31,8 @@ Edit prefill normalizes backend traffic values before calling `setFieldsValue` s
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 
+For `AddressGroup` endpoints, the endpoint namespace controls the AddressGroup query. AddressGroups are not fetched until the corresponding Local or Remote namespace is selected. Services still use the shared service option list and are scoped client-side by the chosen endpoint namespace.
+
 ## Validation
 
 AntD form validation runs before the create or patch flow reads the full form store.
@@ -88,8 +90,10 @@ In edit mode, changed Local or Remote endpoint selections are shown with a subtl
 
 Endpoint tree keys are recursively prefixed with the wrapping overview key. This keeps repeated endpoint keys such as `service-endpoint`, `address-group-endpoint`, namespace groups, and their nested transport or binding children unique when Local and Remote render similar resources in the same AntD Tree.
 
+Overview graph lookups do not block form initialization after the form is ready. The sidebar renders from currently available data, so slow or disabled related-resource queries should produce partial or empty overview content rather than an infinite loading state.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after resources needed for selects and the Structure Overview are ready. Modal loading gates should use React state, not refs read during render.
+Edit prefill should run once per open cycle after resources needed for the form are ready. Modal loading gates should use React state, not refs read during render.

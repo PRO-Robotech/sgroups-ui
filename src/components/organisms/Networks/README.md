@@ -9,7 +9,8 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 - `Namespace`: required. Network namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
 - `Display name`: optional, max 63 chars.
-- `Address group`: optional multi-select. Disabled until `Namespace` is selected. Options are limited to AddressGroups in the selected Network namespace and are displayed with the Address Group badge plus display name or resource name.
+- `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
+- `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace, displayed without repeating the namespace, and stored as `namespace/name` values.
 - `CIDR`: required. The form validates CIDR shape and requires a network address with zero host bits, for example `10.0.0.0/8` or `2001:db8::/64`.
 - `Description`: optional.
 - `Comment`: optional.
@@ -36,7 +37,7 @@ Each binding:
 
 The UI does not write `Network.refs`. Treat it as computed/read-only backend data.
 
-The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. Selected AddressGroups are grouped by namespace first, and each AddressGroup child reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
+The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. Selected AddressGroups are filtered to the current AddressGroup namespace before rendering or submit, then grouped by namespace first. Each AddressGroup child reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
 
 Overview tree keys are parent-derived and prefixed with the namespace and selected AddressGroup overview node keys, so repeated resources remain unique in AntD Tree.
 
@@ -53,7 +54,8 @@ In edit mode:
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
 - `CIDR` is validated as a network CIDR and patched only when its trimmed value actually changed.
 - AddressGroup membership is initialized from existing `NetworkBinding` resources and remains editable.
-- AddressGroup options are scoped to the Network namespace. Changing the namespace in create mode clears the current AddressGroup selection.
+- AddressGroup namespace is initialized from existing `NetworkBinding.spec.addressGroup.namespace` when available.
+- Changing AddressGroup namespace clears the current AddressGroup selection.
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Network namespace.
 - If no editable field changed and no binding changed, no update request is sent.
@@ -74,6 +76,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 - The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
 - That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
+- Edit prefill waits only for resources needed to initialize the form. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
 
 ## Schema source
 
