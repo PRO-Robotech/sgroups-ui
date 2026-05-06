@@ -428,13 +428,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                switcherIcon={<CaretDownOutlined />}
-                defaultExpandAll
-                defaultExpandedKeys={['address-group-endpoint']}
-                treeData={localTreeData}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={localTreeData} />
             </TreeContainer>
           )}
 
@@ -450,13 +444,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                switcherIcon={<CaretDownOutlined />}
-                defaultExpandAll
-                defaultExpandedKeys={['address-group-endpoint']}
-                treeData={remoteTreeData}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={remoteTreeData} />
             </TreeContainer>
           )}
         </OverflowContainer>

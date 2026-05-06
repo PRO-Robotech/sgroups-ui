@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable no-nested-ternary */
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 
 const mockUseK8sSmartResource = jest.fn()
 
@@ -15,6 +15,12 @@ jest.mock(
 
 // eslint-disable-next-line import/first
 import { VerboseNetworkPanel } from './VerboseNetworkPanel'
+
+const expandTreeNodes = (container: HTMLElement) => {
+  Array.from(container.querySelectorAll('.ant-tree-switcher_close')).forEach(switcher => {
+    fireEvent.click(switcher)
+  })
+}
 
 describe('VerboseNetworkPanel', () => {
   beforeEach(() => {
@@ -47,7 +53,7 @@ describe('VerboseNetworkPanel', () => {
   })
 
   it('renders network details, refs, and bound address groups', () => {
-    render(
+    const { container } = render(
       <VerboseNetworkPanel
         cluster="cluster-a"
         namespace="tenant-a"
@@ -80,6 +86,10 @@ describe('VerboseNetworkPanel', () => {
     expect(screen.getByText('Production subnet')).toBeInTheDocument()
     expect(screen.getByText('env: prod')).toBeInTheDocument()
     expect(screen.getByText('owner: netops')).toBeInTheDocument()
+    expect(screen.queryByText('Address Group A')).not.toBeInTheDocument()
+
+    expandTreeNodes(container)
+
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
   })
 })

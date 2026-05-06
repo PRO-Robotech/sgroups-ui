@@ -519,13 +519,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                 )}
                 {!isOverviewLoading && scopedSelectedAddressGroups.length > 0 && (
                   <Styled.TreeContainer key={overviewKey}>
-                    <Tree
-                      key={overviewKey}
-                      showLine
-                      switcherIcon={<CaretDownOutlined />}
-                      defaultExpandAll
-                      treeData={overviewTreeData}
-                    />
+                    <Tree key={overviewKey} showLine switcherIcon={<CaretDownOutlined />} treeData={overviewTreeData} />
                   </Styled.TreeContainer>
                 )}
               </Styled.OverviewBody>

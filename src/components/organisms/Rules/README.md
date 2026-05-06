@@ -140,6 +140,7 @@ The right sidebar renders a `Structure Overview` tree with separate top-level `L
 - `FQDN` and `CIDR` endpoints render as direct endpoint leaves
 - local and remote endpoint children are recursively prefixed by `overview-local` or `overview-remote` so repeated endpoint shapes keep unique AntD Tree keys
 - overview graph lookups do not block modal initialization after the form is ready; the sidebar renders from currently available data
+- the tree starts collapsed by default; users expand Local, Remote, endpoint, namespace, and resource branches as needed
 
 ## Modal lifecycle
 

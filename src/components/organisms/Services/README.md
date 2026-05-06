@@ -39,6 +39,8 @@ The UI does not write a refs-like field on Service. AddressGroup membership is m
 
 The modal Structure Overview is derived from selected AddressGroups and the current binding graph. Selected AddressGroups are filtered to the current AddressGroup namespace before rendering or submit, then grouped by namespace first. Overview tree keys are parent-derived and prefixed with the namespace and selected AddressGroup overview node keys, so repeated resources remain unique in AntD Tree.
 
+Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

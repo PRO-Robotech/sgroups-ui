@@ -40,6 +40,8 @@ Tree node keys are built from their parent key, including the namespace grouping
 
 The shared tree builder accepts highlighted Host, Network, and Service value lists. Modal overviews use this to mark pending edit additions with a subtle green background and left accent without changing the saved binding data.
 
+The entities tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` unless a specific detail view needs initial expansion.
+
 ## Lifecycle
 
 The parent table owns selection and visibility. The panel exposes `onClose`, `onExpand`, and `onCollapse` callbacks and switches the expand/collapse icon based on `DETAIL_PANEL_MIN_WIDTH`.

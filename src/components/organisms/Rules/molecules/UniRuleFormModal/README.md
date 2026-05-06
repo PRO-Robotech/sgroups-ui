@@ -92,6 +92,8 @@ Endpoint tree keys are recursively prefixed with the wrapping overview key. This
 
 Overview graph lookups do not block form initialization after the form is ready. The sidebar renders from currently available data, so slow or disabled related-resource queries should produce partial or empty overview content rather than an infinite loading state.
 
+The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.

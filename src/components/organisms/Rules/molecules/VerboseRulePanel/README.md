@@ -50,6 +50,8 @@ Tree node keys are parent-derived. Service transport entries extend the service 
 
 The UniRule form wraps this endpoint tree for editable overviews. When an edit changes the Local or Remote endpoint, the wrapper highlights the changed endpoint root; the verbose read-only panel itself does not apply pending-change highlights.
 
+Endpoint trees start collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` unless a specific read-only view needs initial expansion.
+
 ## Lifecycle
 
 The parent table owns selection and visibility. The panel exposes `onClose`, `onExpand`, and `onCollapse` callbacks and switches the expand/collapse icon based on `DETAIL_PANEL_MIN_WIDTH`.

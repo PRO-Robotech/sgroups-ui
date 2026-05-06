@@ -78,6 +78,8 @@ In edit mode, newly added selections are shown with a subtle green background an
 
 Tree keys are parent-derived by the shared contents tree builder, including the namespace grouping layer. If this tree is later embedded under another overview node, pass that parent key as the builder prefix instead of relying on short repeated section keys.
 
+The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close. This hard reset is intentional because partial async prefills can leave AntD multi-selects visually broken on reopen.

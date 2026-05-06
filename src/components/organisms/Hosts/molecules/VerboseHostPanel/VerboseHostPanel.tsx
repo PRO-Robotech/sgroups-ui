@@ -341,12 +341,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                switcherIcon={<CaretDownOutlined />}
-                defaultExpandedKeys={boundAddressGroups.treeData.map(node => String(node.key))}
-                treeData={boundAddressGroups.treeData}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={boundAddressGroups.treeData} />
             </TreeContainer>
           )}
         </OverflowContainer>

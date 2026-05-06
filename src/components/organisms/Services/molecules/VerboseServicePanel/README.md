@@ -39,6 +39,8 @@ Missing AddressGroups render as `Not found`; failed lookups render as `Error whi
 
 Tree node keys are derived from the `bound-address-groups-root` prefix, the namespace node, and each binding/resource node. Child status leaves extend the binding key so repeated binding names or fallback states do not collide in AntD Tree.
 
+The bound AddressGroups tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` unless a specific detail view needs initial expansion.
+
 ## Lifecycle
 
 The parent table owns selection and visibility. The panel exposes `onClose`, `onExpand`, and `onCollapse` callbacks and switches the expand/collapse icon based on `DETAIL_PANEL_MIN_WIDTH`.

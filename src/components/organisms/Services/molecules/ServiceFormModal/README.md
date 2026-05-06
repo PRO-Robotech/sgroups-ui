@@ -89,6 +89,8 @@ Each selected AddressGroup overview node passes its own `overview-{namespace/nam
 
 The overview tree is remounted when AddressGroup namespace or selection changes. Overview graph fetches do not block the form after initial prefill; the sidebar renders from currently available data instead of holding an infinite spinner.
 
+The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
+
 ## Transport Rules
 
 Transport entries support `TCP`, `UDP`, and `ICMP`.

@@ -272,13 +272,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                defaultExpandAll
-                defaultExpandedKeys={['hosts-root', 'networks-root', 'services-root']}
-                switcherIcon={<CaretDownOutlined />}
-                treeData={treeData}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={treeData} />
             </TreeContainer>
           )}
         </OverflowContainer>

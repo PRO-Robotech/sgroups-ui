@@ -240,13 +240,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     remoteNamespace,
   ])
   const localAddressGroupOptions = useMemo(
-    () =>
-      getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'Address Group'), localNamespace),
+    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'Address Group'), localNamespace),
     [addressGroups, localNamespace],
   )
   const remoteAddressGroupOptions = useMemo(
-    () =>
-      getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'Address Group'), remoteNamespace),
+    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'Address Group'), remoteNamespace),
     [addressGroups, remoteNamespace],
   )
   const serviceOptions = useMemo(
@@ -1059,7 +1057,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                 )}
                 {!isOverviewLoading && (localEndpoint || remoteEndpoint) && (
                   <Styled.TreeContainer>
-                    <Tree showLine switcherIcon={<CaretDownOutlined />} defaultExpandAll treeData={overviewTreeData} />
+                    <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={overviewTreeData} />
                   </Styled.TreeContainer>
                 )}
               </Styled.OverviewBody>

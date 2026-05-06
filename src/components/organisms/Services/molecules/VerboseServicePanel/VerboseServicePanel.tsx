@@ -25,8 +25,8 @@ import {
   SubtitleWithIcon,
   TagsContainer,
   Title,
-  TitleAndControlsRow,
   TitleAndExpandCollapse,
+  TitleAndControlsRow,
   TransportEntries,
   TransportGroup,
   TransportTitle,
@@ -386,12 +386,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                switcherIcon={<CaretDownOutlined />}
-                defaultExpandedKeys={boundAddressGroups.treeData.map(node => String(node.key))}
-                treeData={boundAddressGroups.treeData}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={boundAddressGroups.treeData} />
             </TreeContainer>
           )}
         </OverflowContainer>

@@ -46,6 +46,8 @@ Changing the AddressGroup namespace clears selected Hosts and Networks because t
 
 The overview tree uses parent-derived AntD Tree keys. When the shared AddressGroup contents tree is reused inside another modal overview, callers prefix it with the selected AddressGroup overview key so repeated namespace, section, and resource nodes remain unique.
 
+Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

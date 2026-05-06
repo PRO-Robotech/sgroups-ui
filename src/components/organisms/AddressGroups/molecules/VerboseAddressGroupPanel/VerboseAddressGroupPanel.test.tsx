@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 
 const mockUseK8sSmartResource = jest.fn()
 
@@ -14,6 +14,14 @@ jest.mock(
 
 // eslint-disable-next-line import/first
 import { VerboseAddressGroupPanel } from './VerboseAddressGroupPanel'
+
+const expandTreeNodes = (container: HTMLElement) => {
+  for (let index = 0; index < 3; index += 1) {
+    Array.from(container.querySelectorAll('.ant-tree-switcher_close')).forEach(switcher => {
+      fireEvent.click(switcher)
+    })
+  }
+}
 
 const getItemsForPlural = (plural?: string) => {
   switch (plural) {
@@ -87,7 +95,7 @@ describe('VerboseAddressGroupPanel', () => {
   })
 
   it('renders address group details, related refs, and bound entities', () => {
-    render(
+    const { container } = render(
       <VerboseAddressGroupPanel
         cluster="cluster-a"
         namespace="tenant-a"
@@ -123,6 +131,12 @@ describe('VerboseAddressGroupPanel', () => {
     expect(screen.getByText('Production access group')).toBeInTheDocument()
     expect(screen.getByText('env: prod')).toBeInTheDocument()
     expect(screen.getByText('owner: netops')).toBeInTheDocument()
+    expect(screen.queryByText('Host A')).not.toBeInTheDocument()
+    expect(screen.queryByText('Network A')).not.toBeInTheDocument()
+    expect(screen.queryByText('Service A')).not.toBeInTheDocument()
+
+    expandTreeNodes(container)
+
     expect(screen.getByText('Host A')).toBeInTheDocument()
     expect(screen.getByText('Network A')).toBeInTheDocument()
     expect(screen.getByText('Service A')).toBeInTheDocument()
