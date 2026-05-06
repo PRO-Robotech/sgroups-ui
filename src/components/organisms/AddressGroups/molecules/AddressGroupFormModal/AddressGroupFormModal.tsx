@@ -447,7 +447,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('Address Group', modalTitle)}</Styled.Header>
+              <Styled.Header>{renderBadgeWithValue('AddressGroup', modalTitle)}</Styled.Header>
               <Form<TAddressGroupFormValues> form={form} layout="vertical" requiredMark>
                 <Form.Item
                   name="namespace"

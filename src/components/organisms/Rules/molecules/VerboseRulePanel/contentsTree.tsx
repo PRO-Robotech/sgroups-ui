@@ -454,7 +454,7 @@ export const buildRuleEndpointTree = ({
 
   return [
     {
-      title: renderLabel('Address Group', addressGroup, { name: endpoint.name, namespace: endpoint.namespace }),
+      title: renderLabel('AddressGroup', addressGroup, { name: endpoint.name, namespace: endpoint.namespace }),
       key: addressGroupEndpointKey,
       children: [
         createBranch('Hosts', hostsRootKey, hostChildren, countColor, matchedHostBindings.length),

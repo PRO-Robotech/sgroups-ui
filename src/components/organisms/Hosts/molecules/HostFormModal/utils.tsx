@@ -44,7 +44,7 @@ const renderOverviewTitle = (
 
   const title = (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-      {renderBadgeWithValue('Address Group', displayName)}
+      {renderBadgeWithValue('AddressGroup', displayName)}
       <Styled.Count>{bindingsCount || 0}</Styled.Count>
     </span>
   )

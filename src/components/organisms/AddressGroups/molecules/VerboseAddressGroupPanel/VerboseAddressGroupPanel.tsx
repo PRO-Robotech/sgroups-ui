@@ -221,7 +221,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             )}
             <Title>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                {renderBadgeWithValue('Address Group', addressGroup.metadata.name || 'Address Group')}
+                {renderBadgeWithValue('AddressGroup', addressGroup.metadata.name || 'Address Group')}
                 {renderDefaultAction(addressGroup.spec?.defaultAction)}
               </span>
             </Title>

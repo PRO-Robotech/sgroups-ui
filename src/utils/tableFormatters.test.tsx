@@ -44,6 +44,16 @@ describe('tableFormatters', () => {
     expect(screen.getByText('AG')).toBeInTheDocument()
   })
 
+  it('uses the full kind value for badge color instead of the displayed abbreviation', () => {
+    const { container, rerender } = render(<>{renderBadge('AddressGroup')}</>)
+    const fullKindColor = container.querySelector('span')?.style.backgroundColor
+
+    rerender(<>{renderBadge('AG')}</>)
+
+    expect(screen.getByText('AG')).toBeInTheDocument()
+    expect(container.querySelector('span')?.style.backgroundColor).not.toBe(fullKindColor)
+  })
+
   it('renders a badge with value and fallback placeholder', () => {
     const { rerender } = render(<>{renderBadgeWithValue('Service', 'tenant-a / api')}</>)
 

@@ -65,6 +65,7 @@ In edit mode:
 - In edit mode, namespace-scoped resource and binding queries must start from `addressGroup.metadata.namespace` immediately. Waiting for the form watcher alone causes partial prefills.
 - Edit prefill should run only once per modal open, after host/network/service binding queries are ready. Repeated partial `setFieldsValue` calls can leave AntD selects visually stuck on reopen.
 - Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview.
+- Badge color inputs must be canonical resource kinds so colors match `openapi-ui` / `openapi-k8s-toolkit`: use `AddressGroup`, `Namespace`, `HostBinding`, `NetworkBinding`, and `ServiceBinding`, not display labels or abbreviations such as `Address Group`, `AG`, or `NS`.
 
 ## Delete modal
 

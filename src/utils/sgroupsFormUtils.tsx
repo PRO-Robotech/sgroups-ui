@@ -29,7 +29,7 @@ export type TResourceOption = {
   value: string
   label: ReactNode
   searchText: string
-  badgeLabel?: 'Address Group' | 'Service'
+  badgeLabel?: 'AddressGroup' | 'Service'
   resourceLabel?: string
 }
 
@@ -134,7 +134,7 @@ export const getNamespaceOptions = (items?: Array<{ metadata?: { name?: string }
 
 export const getNamespacedResourceOptions = (
   items: TNamespacedResource[] | undefined,
-  badgeLabel: 'Address Group' | 'Service',
+  badgeLabel: 'AddressGroup' | 'Service',
   config: TNamespacedResourceOptionsConfig = {},
 ): TResourceOption[] =>
   [
@@ -171,7 +171,7 @@ export const getNamespacedResourceOptions = (
   ].sort((first, second) => first.searchText.localeCompare(second.searchText))
 
 export const getAddressGroupOptions = (items?: TAddressGroupResource[], config?: TNamespacedResourceOptionsConfig) =>
-  getNamespacedResourceOptions(items, 'Address Group', config)
+  getNamespacedResourceOptions(items, 'AddressGroup', config)
 
 export const getScopedResourceOptions = (options: TResourceOption[], selectedNamespace?: string) =>
   selectedNamespace

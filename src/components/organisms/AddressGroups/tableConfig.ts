@@ -108,7 +108,7 @@ export const buildAddressGroupsColumns = ({
       fixed: 'left',
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
-      render: value => renderBadgeWithValue('Address Group', value),
+      render: value => renderBadgeWithValue('AddressGroup', value),
     },
     {
       title: 'Namespace',

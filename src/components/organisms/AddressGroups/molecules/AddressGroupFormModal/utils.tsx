@@ -120,7 +120,7 @@ export const buildCurrentBindings = (
 
 const renderOverviewRootTitle = (displayName: string, count: number) => (
   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-    {renderBadgeWithValue('Address Group', displayName)}
+    {renderBadgeWithValue('AddressGroup', displayName)}
     <Styled.Count>{count}</Styled.Count>
   </span>
 )

@@ -70,7 +70,7 @@ const withNamespaceLabel = (name?: string) => {
     return 'Unknown'
   }
 
-  return renderBadgeWithValue('Address Group', name)
+  return renderBadgeWithValue('AddressGroup', name)
 }
 
 const renderAddressGroupLabel = (addressGroup?: TAddressGroupResource, fallback?: TResourceIdentifier) => {

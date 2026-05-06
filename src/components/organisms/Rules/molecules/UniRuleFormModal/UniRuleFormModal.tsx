@@ -240,11 +240,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     remoteNamespace,
   ])
   const localAddressGroupOptions = useMemo(
-    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'Address Group'), localNamespace),
+    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'AddressGroup'), localNamespace),
     [addressGroups, localNamespace],
   )
   const remoteAddressGroupOptions = useMemo(
-    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'Address Group'), remoteNamespace),
+    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'AddressGroup'), remoteNamespace),
     [addressGroups, remoteNamespace],
   )
   const serviceOptions = useMemo(
