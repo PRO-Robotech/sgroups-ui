@@ -59,7 +59,7 @@ Do not write `Host.refs` from this modal. It is backend-computed data.
 
 Edit mode receives an existing `host` prop.
 
-- `namespace` and `name` are read-only identifiers.
+- `namespace` and `name` are hidden immutable identifiers; keep their values registered in the AntD form store so submit can build patch and binding endpoints.
 - Editable fields are patched only when changed.
 - Cleared optional strings use `patchEntryWithDeleteOp`.
 - Changed values use `patchEntryWithReplaceOp`.

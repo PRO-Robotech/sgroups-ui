@@ -57,7 +57,7 @@ Binding requests are intentionally executed one at a time. The backend can rejec
 
 Edit mode receives an existing `addressGroup` prop.
 
-- `namespace` and `name` are read-only identifiers.
+- `namespace` and `name` are hidden immutable identifiers; keep their values registered in the AntD form store so submit can build patch endpoints.
 - Editable fields are patched only when changed.
 - Cleared optional strings use `patchEntryWithDeleteOp`.
 - Changed values use `patchEntryWithReplaceOp`.

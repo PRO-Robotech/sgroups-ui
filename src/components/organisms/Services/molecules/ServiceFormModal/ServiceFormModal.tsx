@@ -431,6 +431,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="namespace"
                     label="Namespace"
+                    hidden={isEditMode}
                     rules={[
                       { required: true, message: 'Select namespace' },
                       { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
@@ -449,6 +450,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="name"
                     label="Name"
+                    hidden={isEditMode}
                     rules={[
                       { required: true, message: 'Enter name' },
                       { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
