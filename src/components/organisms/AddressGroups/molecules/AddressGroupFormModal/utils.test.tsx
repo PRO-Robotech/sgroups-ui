@@ -18,6 +18,7 @@ jest.mock(
 
 import {
   buildCurrentBindings,
+  buildOverviewTreeData,
   getNamespacedResourceOptions,
   getResourceOptions,
   parseNamespacedValue,
@@ -77,6 +78,27 @@ describe('AddressGroupFormModal utils', () => {
     expect(bindings.hosts).toHaveLength(1)
     expect(bindings.services).toHaveLength(1)
     expect(bindings.networks).toHaveLength(0)
+  })
+
+  it('renders selected services in create overview before an address group name is entered', () => {
+    const treeData = buildOverviewTreeData({
+      values: {
+        namespace: 'tenant-a',
+        name: '',
+        services: ['tenant-service/svc-a'],
+      },
+      services: [
+        {
+          metadata: { name: 'svc-a', namespace: 'tenant-service' },
+          spec: { transports: [] },
+        },
+      ] as any,
+    })
+    const servicesRoot = treeData[0].children?.find(node => node.key === 'overview-address-group-services-root')
+    const serviceNamespace = servicesRoot?.children?.[0]
+
+    expect(serviceNamespace?.key).toBe('overview-address-group-services-root-namespace-tenant-service')
+    expect(serviceNamespace?.children).toHaveLength(1)
   })
 
   it('patches only changed editable fields and deletes cleared optional fields', async () => {

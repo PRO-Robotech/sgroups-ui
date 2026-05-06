@@ -79,6 +79,33 @@ export const OverviewBody = styled.div`
   padding: 28px 8px 16px;
 `
 
+export const OverviewEmpty = styled.div`
+  padding: 0 8px;
+`
+
+export const TreeContainer = styled.div`
+  padding: 0 8px;
+  overflow-y: auto;
+
+  .ant-tree {
+    background: transparent;
+  }
+
+  .ant-tree-switcher {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ant-tree-switcher:before {
+    top: initial !important;
+  }
+
+  .ant-tree .ant-tree-node-content-wrapper {
+    overflow-wrap: anywhere;
+  }
+`
+
 export const OverviewTree = styled.div`
   display: flex;
   flex-direction: column;
@@ -151,6 +178,8 @@ export const Styled = {
   Overview,
   OverviewTitle,
   OverviewBody,
+  OverviewEmpty,
+  TreeContainer,
   OverviewTree,
   OverviewGroup,
   OverviewGroupTitle,
