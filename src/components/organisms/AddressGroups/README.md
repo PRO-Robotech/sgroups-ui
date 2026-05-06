@@ -40,6 +40,10 @@ The `AddressGroup.refs` field is intentionally not written by the UI. It is trea
 
 The modal structure overview is a single AddressGroup tree. It does not model local/remote groups. Inside the tree, Hosts, Networks, and Services are grouped by their resource namespace before individual resource nodes.
 
+In create mode, the overview is derived from the current form selection before the AddressGroup resource exists. Until `name` is entered, the overview builder uses a stable pending AddressGroup identifier internally so selected Hosts, Networks, and Services still match the shared contents tree filters.
+
+Changing the AddressGroup namespace clears selected Hosts and Networks because those resources are namespace-scoped to the future AddressGroup namespace. Selected Services are not cleared by namespace changes because Services can be selected from any namespace and their bindings are created in the selected Service namespace.
+
 The overview tree uses parent-derived AntD Tree keys. When the shared AddressGroup contents tree is reused inside another modal overview, callers prefix it with the selected AddressGroup overview key so repeated namespace, section, and resource nodes remain unique.
 
 ## Edit modal

@@ -31,7 +31,7 @@ Edit prefill normalizes backend traffic values before calling `setFieldsValue` s
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 
-For `AddressGroup` endpoints, the endpoint namespace controls the AddressGroup query. AddressGroups are not fetched until the corresponding Local or Remote namespace is selected. Services still use the shared service option list and are scoped client-side by the chosen endpoint namespace.
+For `AddressGroup` endpoints, the endpoint namespace scopes the visible options. The modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in the Local and Remote namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Services still use the shared service option list and are scoped client-side by the chosen endpoint namespace.
 
 ## Validation
 

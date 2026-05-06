@@ -45,6 +45,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
   const formValues = Form.useWatch([], form) as THostFormValues | undefined
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(host)
+  const modalTitle = host?.metadata.name || 'Host'
 
   const {
     data: tenantsData,
@@ -387,7 +388,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('Host', 'Host')}</Styled.Header>
+              <Styled.Header>{renderBadgeWithValue('Host', modalTitle)}</Styled.Header>
               <Form<THostFormValues> form={form} layout="vertical" requiredMark>
                 <Form.Item
                   name="namespace"

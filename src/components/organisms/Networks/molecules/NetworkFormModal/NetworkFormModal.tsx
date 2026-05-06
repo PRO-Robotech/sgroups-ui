@@ -45,6 +45,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
   const formValues = Form.useWatch([], form) as TNetworkFormValues | undefined
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(network)
+  const modalTitle = network?.metadata.name || 'Network'
 
   const {
     data: tenantsData,
@@ -397,7 +398,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('Network', 'Network')}</Styled.Header>
+              <Styled.Header>{renderBadgeWithValue('Network', modalTitle)}</Styled.Header>
               <Form<TNetworkFormValues> form={form} layout="vertical" requiredMark>
                 <Form.Item
                   name="namespace"

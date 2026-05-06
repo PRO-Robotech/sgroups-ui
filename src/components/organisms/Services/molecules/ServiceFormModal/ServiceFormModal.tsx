@@ -52,6 +52,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
   const formValues = Form.useWatch([], form) as TServiceFormValues | undefined
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(service)
+  const modalTitle = service?.metadata.name || 'Service'
 
   const {
     data: tenantsData,
@@ -414,7 +415,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('Service', 'Service')}</Styled.Header>
+              <Styled.Header>{renderBadgeWithValue('Service', modalTitle)}</Styled.Header>
               <Styled.SegmentedWrap>
                 <Segmented
                   options={[

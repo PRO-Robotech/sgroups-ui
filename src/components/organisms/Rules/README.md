@@ -38,7 +38,8 @@ For `AddressGroup` and `Service` endpoints:
 - namespace is not locked to the rule namespace
 - the `Name` select is scoped by the chosen resource namespace
 - services can be chosen from any namespace
-- AddressGroups are fetched only after their endpoint namespace is chosen
+- AddressGroup options are scoped by the chosen endpoint namespace, using the cluster-wide AddressGroup list plus local/remote namespace-scoped query results as fallbacks
+- namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal fills it from the selected endpoint namespace before building options
 - selected resource namespace and name are validated as Kubernetes DNS labels, max 63 chars
 
 For string endpoints:

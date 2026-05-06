@@ -74,6 +74,21 @@ const isLocalEndpointTypeValue = (value?: string) =>
 const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
 const isProtocolValue = (value?: string) => !value || PROTOCOL_VALUES.some(optionValue => optionValue === value)
 const isAntdValidationError = (error: unknown) => Boolean(error && typeof error === 'object' && 'errorFields' in error)
+const withFallbackNamespace = <TResource extends { metadata: { namespace?: string } }>(
+  items: TResource[] | undefined,
+  fallbackNamespace?: string,
+) =>
+  items?.map(item =>
+    item.metadata.namespace || !fallbackNamespace
+      ? item
+      : {
+          ...item,
+          metadata: {
+            ...item.metadata,
+            namespace: fallbackNamespace,
+          },
+        },
+  )
 
 export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespace, open, rule, onClose }) => {
   const [form] = Form.useForm<TUniRuleFormValues>()
@@ -85,6 +100,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const queryClient = useQueryClient()
   const formValues = Form.useWatch([], form) as TUniRuleFormValues | undefined
   const isEditMode = Boolean(rule)
+  const modalTitle = rule?.metadata.name || 'UniRule'
   const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
   const localType = formValues ? formValues.local?.type : currentRuleFormValues.local?.type
   const remoteType = formValues ? formValues.remote?.type : currentRuleFormValues.remote?.type
@@ -125,6 +141,17 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     apiVersion: API_VERSION,
     plural: 'addressgroups',
     isEnabled: isRemoteAddressGroupsQueryEnabled,
+  })
+
+  const { data: allAddressGroupsData, isLoading: isAllAddressGroupsLoading } = useK8sSmartResource<{
+    items: TAddressGroupResource[]
+  }>({
+    cluster,
+    namespace: undefined,
+    apiGroup: API_GROUP,
+    apiVersion: API_VERSION,
+    plural: 'addressgroups',
+    isEnabled: open,
   })
 
   const { data: servicesData, isLoading: isServicesLoading } = useK8sSmartResource<{ items: TServiceResource[] }>({
@@ -191,7 +218,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const addressGroups = useMemo(() => {
     const itemsByKey = new Map<string, TAddressGroupResource>()
 
-    ;[...(localAddressGroupsData?.items || []), ...(remoteAddressGroupsData?.items || [])].forEach(addressGroup => {
+    ;[
+      ...(allAddressGroupsData?.items || []),
+      ...(withFallbackNamespace(localAddressGroupsData?.items, localNamespace) || []),
+      ...(withFallbackNamespace(remoteAddressGroupsData?.items, remoteNamespace) || []),
+    ].forEach(addressGroup => {
       const resourceName = addressGroup.metadata.name
       const resourceNamespace = addressGroup.metadata.namespace
 
@@ -201,22 +232,22 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     })
 
     return [...itemsByKey.values()]
-  }, [localAddressGroupsData?.items, remoteAddressGroupsData?.items])
+  }, [
+    allAddressGroupsData?.items,
+    localAddressGroupsData?.items,
+    localNamespace,
+    remoteAddressGroupsData?.items,
+    remoteNamespace,
+  ])
   const localAddressGroupOptions = useMemo(
     () =>
-      getScopedResourceOptions(
-        getNamespacedResourceOptions(localAddressGroupsData?.items, 'Address Group'),
-        localNamespace,
-      ),
-    [localAddressGroupsData?.items, localNamespace],
+      getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'Address Group'), localNamespace),
+    [addressGroups, localNamespace],
   )
   const remoteAddressGroupOptions = useMemo(
     () =>
-      getScopedResourceOptions(
-        getNamespacedResourceOptions(remoteAddressGroupsData?.items, 'Address Group'),
-        remoteNamespace,
-      ),
-    [remoteAddressGroupsData?.items, remoteNamespace],
+      getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'Address Group'), remoteNamespace),
+    [addressGroups, remoteNamespace],
   )
   const serviceOptions = useMemo(
     () => getNamespacedResourceOptions(servicesData?.items, 'Service'),
@@ -307,6 +338,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     !isInitialized &&
     ((isLocalAddressGroupsQueryEnabled && isLocalAddressGroupsLoading) ||
       (isRemoteAddressGroupsQueryEnabled && isRemoteAddressGroupsLoading) ||
+      isAllAddressGroupsLoading ||
       isServicesLoading ||
       isHostBindingsLoading ||
       isNetworkBindingsLoading ||
@@ -495,7 +527,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('UniRule', 'UniRule')}</Styled.Header>
+              <Styled.Header>{renderBadgeWithValue('UniRule', modalTitle)}</Styled.Header>
               <Styled.SegmentedWrap>
                 <Segmented
                   options={[
