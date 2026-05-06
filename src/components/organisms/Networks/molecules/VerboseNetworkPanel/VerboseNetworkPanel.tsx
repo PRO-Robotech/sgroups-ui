@@ -35,8 +35,8 @@ import { TAddressGroupResource, TNetworkBindingResource, TResourceIdentifier } f
 import {
   formatAnnotationEntries,
   formatMapEntries,
+  groupTreeDataByNamespace,
   renderBadgeWithValue,
-  renderNamespacedResourceValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
@@ -62,24 +62,24 @@ const renderValue = (value?: string) => value || '-'
 const makeLookupKey = (identifier?: TResourceIdentifier) =>
   `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
 
-const withNamespaceLabel = (name?: string, namespace?: string) => {
+const withNamespaceLabel = (name?: string) => {
   if (!name) {
     return 'Unknown'
   }
 
-  return renderNamespacedResourceValue('Address Group', namespace, name)
+  return renderBadgeWithValue('AddressGroup', name)
 }
 
 const renderAddressGroupLabel = (addressGroup?: TAddressGroupResource, fallback?: TResourceIdentifier) => {
   if (addressGroup?.spec?.displayName) {
-    return withNamespaceLabel(addressGroup.spec.displayName, addressGroup.metadata.namespace || fallback?.namespace)
+    return withNamespaceLabel(addressGroup.spec.displayName)
   }
 
   if (addressGroup?.metadata?.name) {
-    return withNamespaceLabel(addressGroup.metadata.name, addressGroup.metadata.namespace)
+    return withNamespaceLabel(addressGroup.metadata.name)
   }
 
-  return withNamespaceLabel(fallback?.name, fallback?.namespace)
+  return withNamespaceLabel(fallback?.name)
 }
 
 const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
@@ -87,6 +87,8 @@ const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
   key,
   isLeaf: true,
 })
+
+const makeChildKey = (parentKey: string, key: string) => `${parentKey}-${key}`
 
 const TagList: FC<{ values: string[] }> = ({ values }) => {
   const [expanded, setExpanded] = useState(false)
@@ -121,17 +123,20 @@ const buildBoundAddressGroupsTree = ({
   addressGroups,
   bindingsError,
   addressGroupsError,
-  countColor,
 }: {
   network: TNetworkRow
   bindings?: TNetworkBindingResource[]
   addressGroups?: TAddressGroupResource[]
   bindingsError?: boolean
   addressGroupsError?: boolean
-  countColor?: string
-}): TreeDataNode[] => {
+}): { treeData: TreeDataNode[]; count: number } => {
+  const rootKey = 'bound-address-groups-root'
+
   if (bindingsError) {
-    return [createLeaf(ERROR_LEAF_TITLE, 'network-bindings-error')]
+    return {
+      treeData: [createLeaf(ERROR_LEAF_TITLE, makeChildKey(rootKey, 'network-bindings-error'))],
+      count: 0,
+    }
   }
 
   const targetKey = makeLookupKey(network.metadata)
@@ -142,38 +147,43 @@ const buildBoundAddressGroupsTree = ({
   const matchedBindings = (bindings || []).filter(binding => makeLookupKey(binding.spec?.network) === targetKey)
   const children = matchedBindings.map(binding => {
     const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]
-    const bindingKey = `network-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`
-    const title =
-      binding.spec?.displayName ||
-      binding.metadata.name ||
-      renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup)
+    const bindingKey = makeChildKey(
+      rootKey,
+      `network-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`,
+    )
+    const title = renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup)
 
     if (!addressGroup) {
       return {
-        title,
-        key: bindingKey,
-        children: [createLeaf(addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `${bindingKey}-status`)],
+        namespace: binding.spec?.addressGroup?.namespace,
+        node: {
+          title,
+          key: bindingKey,
+          children: [
+            createLeaf(
+              addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE,
+              makeChildKey(bindingKey, 'status'),
+            ),
+          ],
+        },
       }
     }
 
     return {
-      title,
-      key: bindingKey,
-      children: [createLeaf(renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup), `${bindingKey}-group`)],
+      namespace: addressGroup.metadata.namespace || binding.spec?.addressGroup?.namespace,
+      node: {
+        title,
+        key: bindingKey,
+        isLeaf: true,
+      },
     }
   })
+  const treeData = groupTreeDataByNamespace(children, rootKey)
 
-  return [
-    {
-      title: (
-        <>
-          Bound Address Groups <span style={{ color: countColor, fontWeight: 600 }}>({children.length})</span>
-        </>
-      ),
-      key: 'bound-address-groups-root',
-      children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, 'bound-address-groups-empty')],
-    },
-  ]
+  return {
+    treeData: treeData.length > 0 ? treeData : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
+    count: children.length,
+  }
 }
 
 export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
@@ -216,7 +226,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
     () => formatAnnotationEntries(network.metadata.annotations),
     [network.metadata.annotations],
   )
-  const boundAddressGroupsTree = useMemo<TreeDataNode[]>(
+  const boundAddressGroups = useMemo(
     () =>
       buildBoundAddressGroupsTree({
         network,
@@ -224,16 +234,8 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
         addressGroups: addressGroupsData?.items,
         bindingsError: Boolean(networkBindingsError),
         addressGroupsError: Boolean(addressGroupsError),
-        countColor: token.colorPrimaryActive,
       }),
-    [
-      network,
-      networkBindingsData?.items,
-      addressGroupsData?.items,
-      networkBindingsError,
-      addressGroupsError,
-      token.colorPrimaryActive,
-    ],
+    [network, networkBindingsData?.items, addressGroupsData?.items, networkBindingsError, addressGroupsError],
   )
 
   return (
@@ -254,9 +256,6 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGrid>
-            <Typography.Text type="secondary">Name</Typography.Text>
-            <div>{renderValue(network.metadata.name)}</div>
-
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(network.metadata.namespace)}</div>
 
@@ -288,18 +287,16 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
             <Icon>
               <ApartmentOutlined />
             </Icon>
-            <Subtitle>Bound Address Groups</Subtitle>
+            <Subtitle>
+              Bound Address Groups{' '}
+              <span style={{ color: token.colorPrimaryActive, fontWeight: 600 }}>({boundAddressGroups.count})</span>
+            </Subtitle>
           </SubtitleWithIcon>
           {isNetworkBindingsLoading || isAddressGroupsLoading ? (
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                switcherIcon={<CaretDownOutlined />}
-                defaultExpandedKeys={['bound-address-groups-root']}
-                treeData={boundAddressGroupsTree}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={boundAddressGroups.treeData} />
             </TreeContainer>
           )}
         </OverflowContainer>

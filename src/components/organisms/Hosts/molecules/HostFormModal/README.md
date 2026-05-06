@@ -7,8 +7,14 @@ Modal for creating and editing `Host` resources and their AddressGroup membershi
 - `HostFormModal.tsx`: modal shell, AntD form, async resource loading, create/edit submit flow, and lifecycle reset.
 - `types.ts`: component props and form value model.
 - `utils.tsx`: current binding lookup, binding diff helpers, overview tree data, and editable spec patch logic.
-- `styled.ts`: modal layout, two-column grid, overview sidebar, and loading state styles.
+- `styled.ts`: fixed-height modal layout, two-column grid, independent form/overview scrolling, overview sidebar, and loading state styles.
 - `index.ts`: public export.
+
+## Layout
+
+The modal body is a fixed-height, viewport-bounded two-column shell. The left form column scrolls internally through the AntD form, while the right Structure Overview keeps its title fixed and scrolls only the overview body.
+
+On narrow screens, the overview sidebar is hidden and the form keeps the same internal scroll behavior.
 
 ## Form Model
 
@@ -16,8 +22,11 @@ The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Host.
 - `displayName`, `description`, and `comment` map to editable `spec` fields.
+- `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
-- AddressGroup options are disabled until `namespace` is selected, then filtered to AddressGroups in that namespace. Changing `namespace` in create mode clears `addressGroups`.
+- AddressGroup option labels omit the namespace because the namespace is chosen in the preceding selector.
+- AddressGroup options are disabled until `addressGroupNamespace` is selected. Changing `addressGroupNamespace` clears `addressGroups`.
+- Submit filters stale `addressGroups` values to the current `addressGroupNamespace` so retained AntD form state cannot save bindings from a previous namespace.
 
 Host IPs and metainfo are backend-owned in this modal flow and are not edited here. Reads should tolerate both `spec`-nested and legacy flattened payloads until the backend shape is consistent.
 
@@ -28,6 +37,7 @@ The modal uses AntD form rules for backend-backed constraints:
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
 - `name`: required Kubernetes resource name, max 63 chars.
 - `displayName`: optional, max 63 chars.
+- `addressGroupNamespace`: optional Kubernetes resource namespace, max 63 chars.
 
 The local `v2` and `v3sgroups` OpenAPI HostSpec only declares `displayName`, `description`, and `comment` as strings. The display-name length comes from the extracted backend validator in `tmp`; `description` and `comment` currently have no stricter documented limits.
 
@@ -49,20 +59,32 @@ Do not write `Host.refs` from this modal. It is backend-computed data.
 
 Edit mode receives an existing `host` prop.
 
-- `namespace` and `name` are read-only identifiers.
+- `namespace` and `name` are hidden immutable identifiers; keep their values registered in the AntD form store so submit can build patch and binding endpoints.
 - Editable fields are patched only when changed.
 - Cleared optional strings use `patchEntryWithDeleteOp`.
 - Changed values use `patchEntryWithReplaceOp`.
 - AddressGroup selection is initialized from existing `HostBinding` resources, not from `refs`.
-- AddressGroup options remain scoped to the Host namespace.
+- AddressGroup namespace is initialized from the first existing `HostBinding.spec.addressGroup.namespace` when available.
 - Removed selections delete bindings.
 - Added selections create bindings in the Host namespace.
 - If no editable fields or bindings changed, no update request is sent.
 
 Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
+## Structure Overview
+
+The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are filtered to the current `addressGroupNamespace`, grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
+
+In edit mode, newly selected AddressGroups are shown with a subtle green background and left accent. The pending Host binding is also injected into that AddressGroup branch so the overview previews the post-save graph.
+
+Each selected AddressGroup overview node passes its own `overview-{namespace/name}` key as the tree key prefix. Nested namespace, section, binding, transport, entry, empty, and error keys then extend their parent key so repeated resources remain unique across the full AntD Tree.
+
+The overview tree is remounted when AddressGroup namespace or selection changes. Overview graph fetches do not block the form after initial prefill; the sidebar renders from currently available data instead of holding an infinite spinner.
+
+The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open and increments a modal instance `key` before each create/edit open. This forces a real React unmount/remount for modal-local hooks and state. The AntD modal still uses `destroyOnHidden` for its internal subtree, but lifecycle correctness must not rely on that alone.
 
-Edit prefill should run once per open cycle after the full async resource set is ready.
+Edit prefill should run once per open cycle after resources needed for the form are ready.

@@ -7,16 +7,23 @@ Modal for creating and editing `AddressGroup` resources and their host, service,
 - `AddressGroupFormModal.tsx`: modal shell, AntD form, async resource loading, create/edit submit flow, and lifecycle reset.
 - `types.ts`: component props and form value model.
 - `utils.tsx`: binding diff helpers, overview tree data, and editable spec patch logic.
-- `styled.ts`: modal layout, two-column grid, overview sidebar, and loading state styles.
+- `styled.ts`: fixed-height modal layout, two-column grid, independent form/overview scrolling, overview sidebar, and loading state styles.
 - `index.ts`: public export.
+
+## Layout
+
+The modal body is a fixed-height, viewport-bounded two-column shell. The left form column scrolls internally through the AntD form, while the right Structure Overview keeps its title fixed and scrolls only the overview body.
+
+On narrow screens, the overview sidebar is hidden and the form keeps the same internal scroll behavior.
 
 ## Form Model
 
 The form stores UI-friendly values:
 
 - `namespace` and `name` identify the AddressGroup.
-- `displayName`, `defaultAction`, `description`, and `comment` map to editable `spec` fields.
-- `hosts`, `services`, and `networks` are selected as namespaced values and synced through binding resources.
+- `displayName`, `allowAccess`, `description`, and `comment` map to editable `spec` fields.
+- `hosts` and `networks` are selected by name from the AddressGroup namespace and synced through binding resources.
+- `services` are selected as `namespace/name` values from all namespaces and synced through binding resources.
 
 Do not write `AddressGroup.refs` from this modal. It is backend-computed data.
 
@@ -42,13 +49,15 @@ Create submits the AddressGroup first, then creates selected bindings:
 
 Hosts and Networks are selected from the future AddressGroup namespace. Services can be selected from any namespace and are labeled as `namespace / serviceName`.
 
+Changing `namespace` clears the selected Hosts and Networks because those selections are scoped to the future AddressGroup namespace. It must not clear selected Services; Service bindings are created in each selected Service namespace.
+
 Binding requests are intentionally executed one at a time. The backend can reject concurrent binding sync with serialization errors, so do not replace this with `Promise.all`.
 
 ## Edit Flow
 
 Edit mode receives an existing `addressGroup` prop.
 
-- `namespace` and `name` are read-only identifiers.
+- `namespace` and `name` are hidden immutable identifiers; keep their values registered in the AntD form store so submit can build patch endpoints.
 - Editable fields are patched only when changed.
 - Cleared optional strings use `patchEntryWithDeleteOp`.
 - Changed values use `patchEntryWithReplaceOp`.
@@ -59,8 +68,20 @@ Edit mode receives an existing `addressGroup` prop.
 
 Patch and binding requests are intentionally executed one at a time. The backend can reject concurrent updates, so keep this flow sequential even when several fields or bindings changed.
 
+## Structure Overview
+
+The sidebar renders a single AddressGroup contents tree from the selected Hosts, Services, and Networks. Hosts, Networks, and Services are grouped by resource namespace before individual resource nodes.
+
+Create mode builds synthetic binding objects from the current form selection so the overview can reuse the same AddressGroup contents tree as edit mode and verbose panels. Before the user enters an AddressGroup `name`, the overview uses a stable pending internal AddressGroup name; otherwise the shared tree filters can drop selected resources because the synthetic binding target does not match the tree root.
+
+In edit mode, newly added selections are shown with a subtle green background and left accent. Removed selections disappear from the overview immediately because the sidebar reflects the current form selection, not the saved backend state.
+
+Tree keys are parent-derived by the shared contents tree builder, including the namespace grouping layer. If this tree is later embedded under another overview node, pass that parent key as the builder prefix instead of relying on short repeated section keys.
+
+The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
+
 ## Lifecycle
 
-The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnClose` and resets refs/state after close. This hard reset is intentional because partial async prefills can leave AntD multi-selects visually broken on reopen.
+The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close. This hard reset is intentional because partial async prefills can leave AntD multi-selects visually broken on reopen.
 
 Edit prefill should run once per open cycle after the full async resource set is ready.

@@ -1,5 +1,6 @@
 import { FC, useEffect, useMemo, useRef, useState } from 'react'
-import { Empty, Form, Input, message, Modal, Select, Spin, Switch } from 'antd'
+import { CaretDownOutlined } from '@ant-design/icons'
+import { Empty, Form, Input, message, Modal, Select, Spin, Switch, Tree } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import {
@@ -17,16 +18,14 @@ import {
   API_RESOURCE_VERSION,
   API_VERSION,
   buildCurrentBindings,
+  buildOverviewTreeData,
   compactSpec,
   getApiEndpoint,
   getBindingLookupKey,
   getNamespacedResourceOptions,
   getResourceOptions,
   NAME_PATTERN,
-  parseNamespacedValue,
   patchEditableSpec,
-  renderNamespacedResourceOptionLabel,
-  renderResourceOptionLabel,
   syncBindings,
 } from './utils'
 import { Styled } from './styled'
@@ -46,6 +45,8 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
   const selectedNamespace = Form.useWatch('namespace', form)
+  const selectedName = Form.useWatch('name', form)
+  const selectedDisplayName = Form.useWatch('displayName', form)
   const selectedHostsRaw = Form.useWatch('hosts', form)
   const selectedServicesRaw = Form.useWatch('services', form)
   const selectedNetworksRaw = Form.useWatch('networks', form)
@@ -54,6 +55,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   const selectedNetworks = useMemo(() => selectedNetworksRaw || [], [selectedNetworksRaw])
   const effectiveAddressGroupNamespace = selectedNamespace || addressGroup?.metadata.namespace || namespace
   const isEditMode = Boolean(addressGroup)
+  const modalTitle = addressGroup?.metadata.name || 'Address group'
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
@@ -159,13 +161,96 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
       ),
     [addressGroup, hostBindingsData?.items, networkBindingsData?.items, serviceBindingsData?.items],
   )
-  const parsedSelectedServices = useMemo(() => selectedServices.map(parseNamespacedValue), [selectedServices])
+  const addedHosts = useMemo(() => {
+    if (!addressGroup) {
+      return new Set<string>()
+    }
+
+    const currentHosts = new Set(
+      currentBindings.hosts.map(binding => binding.spec?.host?.name).filter((value): value is string => Boolean(value)),
+    )
+
+    return new Set(selectedHosts.filter(value => !currentHosts.has(value)))
+  }, [addressGroup, currentBindings.hosts, selectedHosts])
+  const addedServices = useMemo(() => {
+    if (!addressGroup) {
+      return new Set<string>()
+    }
+
+    const currentServices = new Set(
+      currentBindings.services
+        .map(binding => getBindingLookupKey(binding.spec?.service))
+        .filter((value): value is string => Boolean(value)),
+    )
+
+    return new Set(selectedServices.filter(value => !currentServices.has(value)))
+  }, [addressGroup, currentBindings.services, selectedServices])
+  const addedNetworks = useMemo(() => {
+    if (!addressGroup) {
+      return new Set<string>()
+    }
+
+    const currentNetworks = new Set(
+      currentBindings.networks
+        .map(binding => binding.spec?.network?.name)
+        .filter((value): value is string => Boolean(value)),
+    )
+
+    return new Set(selectedNetworks.filter(value => !currentNetworks.has(value)))
+  }, [addressGroup, currentBindings.networks, selectedNetworks])
   const selectedItemsCount = selectedHosts.length + selectedServices.length + selectedNetworks.length
+  const overviewKey = useMemo(
+    () =>
+      [
+        effectiveAddressGroupNamespace || 'none',
+        selectedName || 'unnamed',
+        selectedHosts.join('|'),
+        selectedNetworks.join('|'),
+        selectedServices.join('|'),
+      ].join('::'),
+    [effectiveAddressGroupNamespace, selectedHosts, selectedName, selectedNetworks, selectedServices],
+  )
+  const overviewTreeData = useMemo(
+    () =>
+      buildOverviewTreeData({
+        addressGroup,
+        values: {
+          namespace: effectiveAddressGroupNamespace || '',
+          name: selectedName || '',
+          displayName: selectedDisplayName,
+          hosts: selectedHosts,
+          networks: selectedNetworks,
+          services: selectedServices,
+        },
+        hosts: hostsData?.items,
+        networks: networksData?.items,
+        services: servicesData?.items,
+        addedHosts: [...addedHosts],
+        addedNetworks: [...addedNetworks],
+        addedServices: [...addedServices],
+      }),
+    [
+      addedHosts,
+      addedNetworks,
+      addedServices,
+      addressGroup,
+      effectiveAddressGroupNamespace,
+      hostsData?.items,
+      networksData?.items,
+      selectedDisplayName,
+      selectedHosts,
+      selectedName,
+      selectedNetworks,
+      selectedServices,
+      servicesData?.items,
+    ],
+  )
   const isNamespaceScopedResourcesLoading =
     Boolean(effectiveAddressGroupNamespace) &&
     (isHostsLoading || isNetworksLoading || isHostBindingsLoading || isNetworkBindingsLoading)
   const isFormResourcesLoading =
     isTenantsLoading || isServicesLoading || isServiceBindingsLoading || isNamespaceScopedResourcesLoading
+  const isOverviewLoading = isServicesLoading || isNamespaceScopedResourcesLoading
   const isInitialLoadPending = open && !isInitialized
   const isModalInitializing = isInitialLoadPending
 
@@ -362,11 +447,12 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('Address Group', 'Address group')}</Styled.Header>
+              <Styled.Header>{renderBadgeWithValue('AddressGroup', modalTitle)}</Styled.Header>
               <Form<TAddressGroupFormValues> form={form} layout="vertical" requiredMark>
                 <Form.Item
                   name="namespace"
                   label="Namespace"
+                  hidden={isEditMode}
                   rules={[
                     { required: true, message: 'Select namespace' },
                     { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
@@ -388,6 +474,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                 <Form.Item
                   name="name"
                   label="Name"
+                  hidden={isEditMode}
                   rules={[
                     { required: true, message: 'Enter name' },
                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
@@ -460,42 +547,16 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
             <Styled.Overview>
               <Styled.OverviewTitle>Structure Overview</Styled.OverviewTitle>
               <Styled.OverviewBody>
-                {selectedItemsCount === 0 ? (
-                  <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
-                ) : (
-                  <Styled.OverviewTree>
-                    <Styled.OverviewGroup>
-                      <Styled.OverviewGroupTitle>
-                        Address group <Styled.Count>{selectedItemsCount}</Styled.Count>
-                      </Styled.OverviewGroupTitle>
-                      <Styled.OverviewBranch>
-                        <Styled.OverviewBranchTitle>
-                          Hosts <Styled.Count>{selectedHosts.length}</Styled.Count>
-                        </Styled.OverviewBranchTitle>
-                        {selectedHosts.map(value => (
-                          <Styled.OverviewLeaf key={`host-${value}`}>
-                            {renderResourceOptionLabel('Host', value)}
-                          </Styled.OverviewLeaf>
-                        ))}
-                        <Styled.OverviewBranchTitle>
-                          Networks <Styled.Count>{selectedNetworks.length}</Styled.Count>
-                        </Styled.OverviewBranchTitle>
-                        {selectedNetworks.map(value => (
-                          <Styled.OverviewLeaf key={`network-${value}`}>
-                            {renderResourceOptionLabel('Network', value)}
-                          </Styled.OverviewLeaf>
-                        ))}
-                        <Styled.OverviewBranchTitle>
-                          Services <Styled.Count>{parsedSelectedServices.length}</Styled.Count>
-                        </Styled.OverviewBranchTitle>
-                        {parsedSelectedServices.map(service => (
-                          <Styled.OverviewLeaf key={`service-${service.namespace}-${service.name}`}>
-                            {renderNamespacedResourceOptionLabel('Service', service.namespace, service.name)}
-                          </Styled.OverviewLeaf>
-                        ))}
-                      </Styled.OverviewBranch>
-                    </Styled.OverviewGroup>
-                  </Styled.OverviewTree>
+                {isOverviewLoading && <Spin />}
+                {!isOverviewLoading && selectedItemsCount === 0 && (
+                  <Styled.OverviewEmpty>
+                    <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
+                  </Styled.OverviewEmpty>
+                )}
+                {!isOverviewLoading && selectedItemsCount > 0 && (
+                  <Styled.TreeContainer key={overviewKey}>
+                    <Tree key={overviewKey} showLine switcherIcon={<CaretDownOutlined />} treeData={overviewTreeData} />
+                  </Styled.TreeContainer>
                 )}
               </Styled.OverviewBody>
             </Styled.Overview>

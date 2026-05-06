@@ -1,4 +1,4 @@
-import { FC, ReactNode, useEffect, useMemo, useRef, useState } from 'react'
+import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined } from '@ant-design/icons'
 import { Empty, Form, Input, message, Modal, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
@@ -18,6 +18,7 @@ import {
   API_VERSION,
   buildNamespacedValue,
   compactSpec,
+  getAddressGroupOptions,
   getApiEndpoint,
   getNamespaceOptions,
   NAME_PATTERN,
@@ -42,9 +43,9 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
   const formValues = Form.useWatch([], form) as TNetworkFormValues | undefined
-  const selectedNetworkNamespace = formValues?.namespace || network?.metadata.namespace || namespace
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(network)
+  const modalTitle = network?.metadata.name || 'Network'
 
   const {
     data: tenantsData,
@@ -55,19 +56,6 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
     apiGroup: API_GROUP,
     apiVersion: API_VERSION,
     plural: 'tenants',
-    isEnabled: open,
-  })
-
-  const {
-    data: addressGroupsData,
-    isLoading: isAddressGroupsLoading,
-    error: addressGroupsError,
-  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
-    cluster,
-    namespace: undefined,
-    apiGroup: API_GROUP,
-    apiVersion: API_VERSION,
-    plural: 'addressgroups',
     isEnabled: open,
   })
 
@@ -132,69 +120,102 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
   })
 
   const namespaceOptions = useMemo(() => getNamespaceOptions(tenantsData?.items), [tenantsData?.items])
-  const addressGroupOptions = useMemo(() => {
-    if (!selectedNetworkNamespace) {
-      return []
-    }
-
-    return (addressGroupsData?.items || [])
-      .reduce<Array<{ value: string; label: ReactNode; searchText: string }>>((acc, addressGroup) => {
-        const resourceName = addressGroup.metadata.name
-        const resourceNamespace = addressGroup.metadata.namespace
-
-        if (!resourceName || resourceNamespace !== selectedNetworkNamespace) {
-          return acc
-        }
-
-        const displayName = addressGroup.spec?.displayName || resourceName
-        acc.push({
-          value: buildNamespacedValue({ namespace: resourceNamespace, name: resourceName }) || resourceName,
-          label: renderBadgeWithValue('Address Group', displayName),
-          searchText: `${resourceName} ${addressGroup.spec?.displayName || ''}`.trim(),
-        })
-
-        return acc
-      }, [])
-      .sort((first, second) => first.searchText.localeCompare(second.searchText))
-  }, [addressGroupsData?.items, selectedNetworkNamespace])
   const currentBindings = useMemo(
     () => buildCurrentBindings(network, networkBindingsData?.items),
     [network, networkBindingsData?.items],
   )
+  const selectedAddressGroupNamespace = formValues
+    ? formValues.addressGroupNamespace
+    : currentBindings[0]?.spec?.addressGroup?.namespace || namespace
+  const isAddressGroupsQueryEnabled = open && Boolean(selectedAddressGroupNamespace)
+  const {
+    data: addressGroupsData,
+    isLoading: isAddressGroupsLoading,
+    error: addressGroupsError,
+  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
+    cluster,
+    namespace: selectedAddressGroupNamespace,
+    apiGroup: API_GROUP,
+    apiVersion: API_VERSION,
+    plural: 'addressgroups',
+    isEnabled: isAddressGroupsQueryEnabled,
+  })
+  const addressGroupOptions = useMemo(
+    () => getAddressGroupOptions(addressGroupsData?.items, { showNamespace: false }),
+    [addressGroupsData?.items],
+  )
+  const scopedAddressGroups = useMemo(
+    () =>
+      selectedAddressGroupNamespace
+        ? (addressGroupsData?.items || []).filter(
+            addressGroup => addressGroup.metadata.namespace === selectedAddressGroupNamespace,
+          )
+        : [],
+    [addressGroupsData?.items, selectedAddressGroupNamespace],
+  )
+  const scopedSelectedAddressGroups = useMemo(
+    () =>
+      selectedAddressGroupNamespace
+        ? selectedAddressGroups.filter(value => value.startsWith(`${selectedAddressGroupNamespace}/`))
+        : [],
+    [selectedAddressGroupNamespace, selectedAddressGroups],
+  )
+  const overviewKey = useMemo(
+    () => `network-overview-${selectedAddressGroupNamespace || 'none'}-${scopedSelectedAddressGroups.join('|')}`,
+    [scopedSelectedAddressGroups, selectedAddressGroupNamespace],
+  )
+  const addedAddressGroupValues = useMemo(() => {
+    if (!network) {
+      return []
+    }
+
+    const currentAddressGroups = new Set(
+      currentBindings
+        .map(binding => buildNamespacedValue(binding.spec?.addressGroup))
+        .filter((value): value is string => Boolean(value)),
+    )
+
+    return scopedSelectedAddressGroups.filter(value => !currentAddressGroups.has(value))
+  }, [currentBindings, network, scopedSelectedAddressGroups])
   const overviewTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildOverviewTreeData({
-        addressGroups: addressGroupsData?.items,
-        selectedAddressGroupValues: selectedAddressGroups,
+        addressGroups: scopedAddressGroups,
+        selectedAddressGroupValues: scopedSelectedAddressGroups,
         hostBindings: hostBindingsData?.items,
         networkBindings: networkBindingsData?.items,
         serviceBindings: serviceBindingsData?.items,
         hosts: hostsData?.items,
         networks: networksData?.items,
         services: servicesData?.items,
+        currentNetwork: network,
+        addedAddressGroupValues,
       }),
     [
-      addressGroupsData?.items,
+      addedAddressGroupValues,
       hostBindingsData?.items,
       hostsData?.items,
+      network,
       networkBindingsData?.items,
       networksData?.items,
-      selectedAddressGroups,
+      scopedAddressGroups,
+      scopedSelectedAddressGroups,
       serviceBindingsData?.items,
       servicesData?.items,
     ],
   )
   const isOverviewLoading =
-    isAddressGroupsLoading ||
-    isHostBindingsLoading ||
-    isNetworkBindingsLoading ||
-    isServiceBindingsLoading ||
-    isHostsLoading ||
-    isNetworksLoading ||
-    isServicesLoading
-  const isFormResourcesLoading = isTenantsLoading || isOverviewLoading
+    !isInitialized &&
+    ((isAddressGroupsQueryEnabled && isAddressGroupsLoading) ||
+      isHostBindingsLoading ||
+      isNetworkBindingsLoading ||
+      isServiceBindingsLoading ||
+      isHostsLoading ||
+      isNetworksLoading ||
+      isServicesLoading)
+  const isFormResourcesLoading = isTenantsLoading || Boolean(network && isNetworkBindingsLoading)
   const isInitialLoadPending = open && !isInitialized
-  const isModalInitializing = isFormResourcesLoading || isInitialLoadPending
+  const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
 
   useEffect(() => {
     if (!open) {
@@ -213,6 +234,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
         cidr: network.spec?.CIDR,
         description: network.spec?.description,
         comment: network.spec?.comment,
+        addressGroupNamespace: currentBindings[0]?.spec?.addressGroup?.namespace || namespace,
         addressGroups: currentBindings
           .map(binding => buildNamespacedValue(binding.spec?.addressGroup))
           .filter((value): value is string => Boolean(value)),
@@ -227,6 +249,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
         namespace,
         name: undefined,
         displayName: undefined,
+        addressGroupNamespace: namespace,
         addressGroups: [],
         cidr: undefined,
         description: undefined,
@@ -263,6 +286,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
         ['namespace'],
         ['name'],
         ['displayName'],
+        ['addressGroupNamespace'],
         ['addressGroups'],
         ['cidr'],
         ['description'],
@@ -277,7 +301,15 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
       return
     }
 
-    const values = form.getFieldsValue(true) as TNetworkFormValues
+    const formStoreValues = form.getFieldsValue(true) as TNetworkFormValues
+    const values = {
+      ...formStoreValues,
+      addressGroups: formStoreValues.addressGroupNamespace
+        ? (formStoreValues.addressGroups || []).filter(value =>
+            value.startsWith(`${formStoreValues.addressGroupNamespace}/`),
+          )
+        : [],
+    }
     setIsSubmitting(true)
 
     try {
@@ -366,11 +398,12 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('Network', 'Network')}</Styled.Header>
+              <Styled.Header>{renderBadgeWithValue('Network', modalTitle)}</Styled.Header>
               <Form<TNetworkFormValues> form={form} layout="vertical" requiredMark>
                 <Form.Item
                   name="namespace"
                   label="Namespace"
+                  hidden={isEditMode}
                   rules={[
                     { required: true, message: 'Select namespace' },
                     { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
@@ -392,6 +425,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                 <Form.Item
                   name="name"
                   label="Name"
+                  hidden={isEditMode}
                   rules={[
                     { required: true, message: 'Enter name' },
                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
@@ -413,6 +447,26 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                   <Input placeholder="e.g. server-01.prod" />
                 </Form.Item>
                 <Form.Item
+                  name="addressGroupNamespace"
+                  label="Address group namespace"
+                  rules={[
+                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
+                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                  ]}
+                >
+                  <Select
+                    showSearch
+                    allowClear
+                    placeholder="Select namespace"
+                    options={namespaceOptions}
+                    loading={isTenantsLoading}
+                    status={tenantsError ? 'error' : undefined}
+                    onChange={() => {
+                      form.setFieldValue('addressGroups', [])
+                    }}
+                  />
+                </Form.Item>
+                <Form.Item
                   name="addressGroups"
                   label="Address group"
                   validateStatus={addressGroupsError ? 'error' : undefined}
@@ -420,11 +474,11 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                   <Select
                     mode="multiple"
                     showSearch
-                    placeholder={selectedNetworkNamespace ? 'Select address groups' : 'Select namespace first'}
+                    placeholder={selectedAddressGroupNamespace ? 'Select address groups' : 'Select namespace first'}
                     optionFilterProp="searchText"
                     options={addressGroupOptions}
                     loading={isAddressGroupsLoading}
-                    disabled={!selectedNetworkNamespace}
+                    disabled={!selectedAddressGroupNamespace}
                   />
                 </Form.Item>
                 <Form.Item
@@ -458,14 +512,14 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
               <Styled.OverviewTitle>Structure Overview</Styled.OverviewTitle>
               <Styled.OverviewBody>
                 {isOverviewLoading && <Spin />}
-                {!isOverviewLoading && selectedAddressGroups.length === 0 && (
+                {!isOverviewLoading && scopedSelectedAddressGroups.length === 0 && (
                   <Styled.OverviewEmpty>
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
                   </Styled.OverviewEmpty>
                 )}
-                {!isOverviewLoading && selectedAddressGroups.length > 0 && (
-                  <Styled.TreeContainer>
-                    <Tree showLine switcherIcon={<CaretDownOutlined />} defaultExpandAll treeData={overviewTreeData} />
+                {!isOverviewLoading && scopedSelectedAddressGroups.length > 0 && (
+                  <Styled.TreeContainer key={overviewKey}>
+                    <Tree key={overviewKey} showLine switcherIcon={<CaretDownOutlined />} treeData={overviewTreeData} />
                   </Styled.TreeContainer>
                 )}
               </Styled.OverviewBody>

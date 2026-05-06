@@ -37,7 +37,9 @@ For `AddressGroup` and `Service` endpoints:
 - the form stores `namespace` and `name` separately
 - namespace is not locked to the rule namespace
 - the `Name` select is scoped by the chosen resource namespace
-- services and address groups can be chosen from any namespace
+- services can be chosen from any namespace
+- AddressGroup options are scoped by the chosen endpoint namespace, using the cluster-wide AddressGroup list plus local/remote namespace-scoped query results as fallbacks
+- namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal fills it from the selected endpoint namespace before building options
 - selected resource namespace and name are validated as Kubernetes DNS labels, max 63 chars
 
 For string endpoints:
@@ -133,12 +135,17 @@ The right sidebar renders a `Structure Overview` tree with separate top-level `L
 
 - `AddressGroup` and `Service` endpoints reuse the existing rule verbose tree builder
 - the tree expands through the current host, network, and service binding graph
+- AddressGroup endpoint contents are grouped by resource namespace before individual HostBinding, NetworkBinding, and ServiceBinding badge nodes
+- each binding badge node expands to the resolved Host, Network, or Service resource badge and its details
 - `FQDN` and `CIDR` endpoints render as direct endpoint leaves
+- local and remote endpoint children are recursively prefixed by `overview-local` or `overview-remote` so repeated endpoint shapes keep unique AntD Tree keys
+- overview graph lookups do not block modal initialization after the form is ready; the sidebar renders from currently available data
+- the tree starts collapsed by default; users expand Local, Remote, endpoint, namespace, and resource branches as needed
 
 ## Modal lifecycle
 
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
-- Edit prefill runs once per open cycle, after the async resources needed for the overview and selects are ready.
+- Edit prefill runs once per open cycle after the async resources needed for the form are ready.
 - The loading state uses React state, not refs read during render.
 
 ## Schema Source

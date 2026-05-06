@@ -12,7 +12,8 @@ Side detail panel for viewing a `Rule` resource, transport details, and resolved
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` and `metadata.namespace`
+- `metadata.name` in the panel title
+- `metadata.namespace`
 - `spec.displayName`
 - `spec.action`
 - `spec.session.traffic`
@@ -27,7 +28,7 @@ The panel renders read-only values from the selected table row:
 
 `metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix.
 
-Actions are shown as colored tags. Transport entries are shown as tags; port descriptions are shown in tooltips instead of inline text.
+Actions are shown as colored tags. Transport entries are shown as tags; entry descriptions and comments are shown in tooltips instead of inline tag text.
 
 Long tag groups show the first five values and expose a show more/less control. Tags are stacked vertically in the verbose layout.
 
@@ -39,7 +40,17 @@ The `Source` and `Destination` sections resolve endpoint contents from the curre
 - `Service` endpoints resolve service transports directly.
 - AddressGroup-style endpoints resolve AddressGroups, then expand matching Host, Network, and Service bindings.
 
+AddressGroup endpoint branches group matched Hosts, Networks, and Services by the target resource namespace before rendering individual binding/resource nodes. Binding nodes render with resource badges (`HostBinding`, `NetworkBinding`, or `ServiceBinding`) and then expand to the resolved Host, Network, or Service resource badge and details.
+
+Service transport leaves in endpoint trees keep only ports/types visible. If an entry has a description or comment, those details are attached to the leaf tooltip.
+
 Missing resources render as `Not found`; failed lookups render as `Error while fetching`.
+
+Tree node keys are parent-derived. Service transport entries extend the service endpoint or binding resource key, and AddressGroup endpoint branches extend `address-group-endpoint` through Hosts, Networks, Services, namespace groups, bindings, resources, transports, and leaves. This keeps keys unique when the same endpoint tree is rendered beside another tree or embedded in the UniRule Structure Overview.
+
+The UniRule form wraps this endpoint tree for editable overviews. When an edit changes the Local or Remote endpoint, the wrapper highlights the changed endpoint root; the verbose read-only panel itself does not apply pending-change highlights.
+
+Endpoint trees start collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` unless a specific read-only view needs initial expansion.
 
 ## Lifecycle
 

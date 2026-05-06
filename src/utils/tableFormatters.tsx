@@ -15,17 +15,31 @@ const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
 
 const KUBECTL_ANNOTATION_PREFIX = 'kubectl.kubernetes.io/'
 
-const getBadgeColor = (value: string): string => {
-  let hash = 0
-
-  for (let index = 0; index < value.length; index += 1) {
+const fnv1a32 = (value: string): number => {
+  const hash = [...value].reduce((acc, char) => {
     // eslint-disable-next-line no-bitwise
-    hash = value.charCodeAt(index) + ((hash << 5) - hash)
-  }
+    const nextHash = acc ^ (char.codePointAt(0) || 0)
 
-  const hue = Math.abs(hash) % 360
+    // eslint-disable-next-line no-bitwise
+    return (nextHash >>> 0) * 0x01000193
+  }, 0x811c9dc5)
 
-  return `hsl(${hue} 55% 78%)`
+  // eslint-disable-next-line no-bitwise
+  return hash >>> 0
+}
+
+const pickInRange = (value: number, min: number, max: number): number => min + (value % (max - min + 1))
+
+const getBadgeColor = (value: string): string => {
+  const hash = fnv1a32(value)
+  const hue = hash % 345
+
+  // eslint-disable-next-line no-bitwise
+  const saturation = pickInRange(hash >>> 8, 90, 100)
+  // eslint-disable-next-line no-bitwise
+  const lightness = pickInRange(hash >>> 16, 78, 80)
+
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`
 }
 
 const getBadgeText = (value: string): string => {

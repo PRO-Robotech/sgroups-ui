@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 
 const mockUseK8sSmartResource = jest.fn()
 
@@ -14,6 +14,12 @@ jest.mock(
 
 // eslint-disable-next-line import/first
 import { VerboseServicePanel } from './VerboseServicePanel'
+
+const expandTreeNodes = (container: HTMLElement) => {
+  Array.from(container.querySelectorAll('.ant-tree-switcher_close')).forEach(switcher => {
+    fireEvent.click(switcher)
+  })
+}
 
 describe('VerboseServicePanel', () => {
   beforeEach(() => {
@@ -47,7 +53,7 @@ describe('VerboseServicePanel', () => {
   })
 
   it('renders service details, transport summaries, and refs', () => {
-    render(
+    const { container } = render(
       <VerboseServicePanel
         cluster="cluster-a"
         namespace="tenant-a"
@@ -93,9 +99,14 @@ describe('VerboseServicePanel', () => {
     expect(screen.getByText('TCP / IPv4')).toBeInTheDocument()
     expect(screen.getByText(/Ports: 443/)).toBeInTheDocument()
     expect(screen.queryByText(/Description: https/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Comment: public/)).not.toBeInTheDocument()
     expect(screen.getByText('ICMP / IPv4')).toBeInTheDocument()
     expect(screen.getByText(/Types: 8, 0/)).toBeInTheDocument()
     expect(screen.getAllByText('Bound Address Groups').length).toBeGreaterThan(0)
-    expect(screen.getByText('service-binding-a')).toBeInTheDocument()
+    expect(screen.queryByText('Address Group A')).not.toBeInTheDocument()
+
+    expandTreeNodes(container)
+
+    expect(screen.getByText('Address Group A')).toBeInTheDocument()
   })
 })

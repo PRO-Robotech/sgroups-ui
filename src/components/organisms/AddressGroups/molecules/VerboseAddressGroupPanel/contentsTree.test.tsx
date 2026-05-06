@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react'
+import { render, screen } from '@testing-library/react'
 import { buildAddressGroupContentsTree } from './contentsTree'
+
+const getTooltipTitle = (title: unknown) => {
+  expect(React.isValidElement(title)).toBe(true)
+
+  return (title as React.ReactElement<{ title?: React.ReactNode }>).props.title
+}
 
 describe('buildAddressGroupContentsTree', () => {
   it('builds host, network, and service branches for bindings that match the address group', () => {
@@ -65,29 +73,40 @@ describe('buildAddressGroupContentsTree', () => {
 
     expect(tree).toHaveLength(3)
     expect(tree.map(node => node.key)).toEqual(['hosts-root', 'networks-root', 'services-root'])
-    expect(tree[0].children).toEqual([
+    expect(tree[0].children?.[0]).toEqual(expect.objectContaining({ key: 'hosts-root-namespace-tenant-a' }))
+    expect(tree[0].children?.[0].children).toEqual([
       expect.objectContaining({
-        key: 'host-tenant-a-host-binding-a',
+        key: 'hosts-root-host-tenant-a-host-binding-a',
         children: [
-          { title: '10.0.0.10', key: 'host-tenant-a::host-a-10.0.0.10', isLeaf: true },
-          { title: '2001:db8::10', key: 'host-tenant-a::host-a-2001:db8::10', isLeaf: true },
+          { title: '10.0.0.10', key: 'hosts-root-host-tenant-a-host-binding-a-ip-10.0.0.10', isLeaf: true },
+          { title: '2001:db8::10', key: 'hosts-root-host-tenant-a-host-binding-a-ip-2001:db8::10', isLeaf: true },
         ],
       }),
     ])
-    expect(tree[1].children).toEqual([
+    expect(tree[1].children?.[0]).toEqual(expect.objectContaining({ key: 'networks-root-namespace-tenant-a' }))
+    expect(tree[1].children?.[0].children).toEqual([
       expect.objectContaining({
-        key: 'network-tenant-a-network-binding-a',
-        children: [{ title: '10.0.0.0/24', key: 'network-tenant-a::net-a-cidr', isLeaf: true }],
+        key: 'networks-root-network-tenant-a-network-binding-a',
+        children: [
+          { title: '10.0.0.0/24', key: 'networks-root-network-tenant-a-network-binding-a-cidr', isLeaf: true },
+        ],
       }),
     ])
-    expect(tree[2].children).toEqual([
+    expect(tree[2].children?.[0]).toEqual(expect.objectContaining({ key: 'services-root-namespace-tenant-a' }))
+    expect(tree[2].children?.[0].children).toEqual([
       expect.objectContaining({
-        key: 'service-tenant-a-service-binding-a',
+        key: 'services-root-service-tenant-a-service-binding-a',
         children: [
           expect.objectContaining({
             title: 'TCP / IPv4',
-            key: 'service-tenant-a::svc-a-transport-0',
-            children: [{ title: 'Ports: 443', key: 'service-tenant-a::svc-a-entry-0', isLeaf: true }],
+            key: 'services-root-service-tenant-a-service-binding-a-transport-0',
+            children: [
+              {
+                title: 'Ports: 443',
+                key: 'services-root-service-tenant-a-service-binding-a-transport-0-entry-0',
+                isLeaf: true,
+              },
+            ],
           }),
         ],
       }),
@@ -103,6 +122,49 @@ describe('buildAddressGroupContentsTree', () => {
     expect(tree[0].children).toEqual([{ title: 'No bound resources', key: 'hosts-root-empty', isLeaf: true }])
     expect(tree[1].children).toEqual([{ title: 'No bound resources', key: 'networks-root-empty', isLeaf: true }])
     expect(tree[2].children).toEqual([{ title: 'No bound resources', key: 'services-root-empty', isLeaf: true }])
+  })
+
+  it('keeps service transport entry description and comment in the tooltip', () => {
+    const tree = buildAddressGroupContentsTree({
+      addressGroupName: 'ag-a',
+      addressGroupNamespace: 'tenant-a',
+      serviceBindings: [
+        {
+          metadata: { name: 'service-binding-a', namespace: 'tenant-a' },
+          spec: {
+            addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+            service: { name: 'svc-a', namespace: 'tenant-a' },
+          },
+        },
+      ] as any,
+      services: [
+        {
+          metadata: { name: 'svc-a', namespace: 'tenant-a' },
+          spec: {
+            transports: [
+              {
+                protocol: 'UDP',
+                IPv: 'IPv4',
+                entries: [{ ports: '50004-50006', description: 'range 50004-50006', comment: 'service note' }],
+              },
+            ],
+          },
+        },
+      ] as any,
+    })
+
+    const title = tree[2].children?.[0].children?.[0].children?.[0].children?.[0].title
+
+    render(title as React.ReactElement)
+
+    expect(screen.getByText('Ports: 50004-50006')).toBeInTheDocument()
+    expect(screen.queryByText(/Description:/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Comment:/)).not.toBeInTheDocument()
+
+    render(<>{getTooltipTitle(title)}</>)
+
+    expect(screen.getByText(/range 50004-50006/)).toBeInTheDocument()
+    expect(screen.getByText(/service note/)).toBeInTheDocument()
   })
 
   it('marks missing resources as not found and uses error leaves when resource fetch failed', () => {
@@ -130,14 +192,20 @@ describe('buildAddressGroupContentsTree', () => {
       networksError: true,
     })
 
-    expect(tree[0].children?.[0]).toEqual(
+    expect(tree[0].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({
-        children: [{ title: 'Not found', key: 'host-tenant-a::missing-host-status', isLeaf: true }],
+        children: [{ title: 'Not found', key: 'hosts-root-host-tenant-a-host-binding-a-status', isLeaf: true }],
       }),
     )
-    expect(tree[1].children?.[0]).toEqual(
+    expect(tree[1].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({
-        children: [{ title: 'Error while fetching', key: 'network-tenant-a::missing-network-status', isLeaf: true }],
+        children: [
+          {
+            title: 'Error while fetching',
+            key: 'networks-root-network-tenant-a-network-binding-a-status',
+            isLeaf: true,
+          },
+        ],
       }),
     )
   })
@@ -151,8 +219,61 @@ describe('buildAddressGroupContentsTree', () => {
       serviceBindingsError: true,
     })
 
-    expect(tree[0].children).toEqual([{ title: 'Error while fetching', key: 'hosts-error', isLeaf: true }])
-    expect(tree[1].children).toEqual([{ title: 'Error while fetching', key: 'networks-error', isLeaf: true }])
-    expect(tree[2].children).toEqual([{ title: 'Error while fetching', key: 'services-error', isLeaf: true }])
+    expect(tree[0].children).toEqual([{ title: 'Error while fetching', key: 'hosts-root-error', isLeaf: true }])
+    expect(tree[1].children).toEqual([{ title: 'Error while fetching', key: 'networks-root-error', isLeaf: true }])
+    expect(tree[2].children).toEqual([{ title: 'Error while fetching', key: 'services-root-error', isLeaf: true }])
+  })
+
+  it('scopes all generated keys when used inside a larger overview tree', () => {
+    const tree = buildAddressGroupContentsTree({
+      addressGroupName: 'ag-a',
+      addressGroupNamespace: 'tenant-a',
+      keyPrefix: 'overview-tenant-a/ag-a',
+      serviceBindings: [
+        {
+          metadata: { name: 'service-binding-a', namespace: 'tenant-a' },
+          spec: {
+            addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+            service: { name: 'svc-a', namespace: 'tenant-a' },
+          },
+        },
+      ] as any,
+      services: [
+        {
+          metadata: { name: 'svc-a', namespace: 'tenant-a' },
+          spec: {
+            transports: [{ protocol: 'TCP', IPv: 'IPv4', entries: [{ ports: '443' }] }],
+          },
+        },
+      ] as any,
+    })
+
+    expect(tree.map(node => node.key)).toEqual([
+      'overview-tenant-a/ag-a-hosts-root',
+      'overview-tenant-a/ag-a-networks-root',
+      'overview-tenant-a/ag-a-services-root',
+    ])
+    expect(tree[2].children?.[0]).toEqual(
+      expect.objectContaining({
+        key: 'overview-tenant-a/ag-a-services-root-namespace-tenant-a',
+      }),
+    )
+    expect(tree[2].children?.[0].children?.[0]).toEqual(
+      expect.objectContaining({
+        key: 'overview-tenant-a/ag-a-services-root-service-tenant-a-service-binding-a',
+        children: [
+          expect.objectContaining({
+            key: 'overview-tenant-a/ag-a-services-root-service-tenant-a-service-binding-a-transport-0',
+            children: [
+              {
+                title: 'Ports: 443',
+                key: 'overview-tenant-a/ag-a-services-root-service-tenant-a-service-binding-a-transport-0-entry-0',
+                isLeaf: true,
+              },
+            ],
+          }),
+        ],
+      }),
+    )
   })
 })

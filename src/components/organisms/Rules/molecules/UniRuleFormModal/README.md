@@ -7,8 +7,14 @@ Modal for creating and editing `Rule` resources. Unlike the resource membership 
 - `UniRuleFormModal.tsx`: modal shell, AntD form, segmented panels, async resource loading, create/edit submit flow, and lifecycle reset.
 - `types.ts`: component props and form value model.
 - `utils.tsx`: endpoint normalization, transport normalization, overview tree data, validation helpers, and editable spec patch logic.
-- `styled.ts`: modal layout, two-column grid, overview sidebar, segmented panels, and loading state styles.
+- `styled.ts`: fixed-height modal layout, two-column grid, independent form/overview scrolling, overview sidebar, segmented panels, and loading state styles.
 - `index.ts`: public export.
+
+## Layout
+
+The modal body is a fixed-height, viewport-bounded two-column shell. The left form column scrolls internally through the AntD form, while the right Structure Overview keeps its title fixed and scrolls only the overview body.
+
+On narrow screens, the overview sidebar is hidden and the form keeps the same internal scroll behavior.
 
 ## Form Model
 
@@ -24,6 +30,8 @@ The form stores UI-friendly values:
 Edit prefill normalizes backend traffic values before calling `setFieldsValue` so AntD can match the current select option.
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
+
+For `AddressGroup` endpoints, the endpoint namespace scopes the visible options. The modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in the Local and Remote namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Services still use the shared service option list and are scoped client-side by the chosen endpoint namespace.
 
 ## Validation
 
@@ -54,7 +62,7 @@ Create payloads normalize `spec.session.traffic` to the local OpenAPI enum casin
 
 Edit mode receives an existing `rule` prop.
 
-- `namespace` and `name` are read-only identifiers.
+- `namespace` and `name` are hidden immutable identifiers; keep their values registered in the AntD form store so submit can build the patch endpoint.
 - The modal does not use PUT.
 - Editable fields are patched only when changed.
 - Cleared optional strings use `patchEntryWithDeleteOp`.
@@ -74,8 +82,20 @@ Patched fields include:
 - `spec.session`
 - `spec.transport`
 
+## Structure Overview
+
+The sidebar wraps local and remote endpoint trees under `overview-local` and `overview-remote`. AddressGroup endpoint contents inherit the verbose rule tree shape, including namespace grouping for Hosts, Networks, and Services.
+
+In edit mode, changed Local or Remote endpoint selections are shown with a subtle green background and left accent on both the Local/Remote overview wrapper and the changed endpoint root node. This highlight is based on normalized endpoint payload comparison, so unchanged fields do not mark the overview.
+
+Endpoint tree keys are recursively prefixed with the wrapping overview key. This keeps repeated endpoint keys such as `service-endpoint`, `address-group-endpoint`, namespace groups, and their nested transport or binding children unique when Local and Remote render similar resources in the same AntD Tree.
+
+Overview graph lookups do not block form initialization after the form is ready. The sidebar renders from currently available data, so slow or disabled related-resource queries should produce partial or empty overview content rather than an infinite loading state.
+
+The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
+
 ## Lifecycle
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after resources needed for selects and the Structure Overview are ready. Modal loading gates should use React state, not refs read during render.
+Edit prefill should run once per open cycle after resources needed for the form are ready. Modal loading gates should use React state, not refs read during render.

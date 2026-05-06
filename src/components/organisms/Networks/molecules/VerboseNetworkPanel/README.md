@@ -11,7 +11,8 @@ Side detail panel for viewing a `Network` resource and the AddressGroups current
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` and `metadata.namespace`
+- `metadata.name` in the panel title
+- `metadata.namespace`
 - `spec.displayName`
 - `spec.CIDR`
 - `spec.description` and `spec.comment`
@@ -26,9 +27,15 @@ Long tag groups show the first five values and expose a show more/less control. 
 
 The `Bound Address Groups` tree is derived from current `NetworkBinding` resources and AddressGroup lookups.
 
-Bindings are matched by comparing `binding.spec.network` with the current Network `metadata.name` and `metadata.namespace`. Each binding node shows the binding display name or metadata name when available, then resolves the target AddressGroup label from `spec.displayName` or metadata.
+The section subtitle includes the bound AddressGroup count. The AntD tree starts from AddressGroup namespace nodes instead of rendering a duplicate `Bound Address Groups` root row.
+
+Bindings are matched by comparing `binding.spec.network` with the current Network `metadata.name` and `metadata.namespace`. Matching bindings are grouped by `spec.addressGroup.namespace`. Under each namespace node, each child shows the resolved AddressGroup label from `spec.displayName` or metadata.
 
 Missing AddressGroups render as `Not found`; failed lookups render as `Error while fetching`.
+
+Tree node keys are derived from the `bound-address-groups-root` prefix, the namespace node, and each binding/resource node. Child status leaves extend the binding key so repeated binding names or fallback states do not collide in AntD Tree.
+
+The bound AddressGroups tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` unless a specific detail view needs initial expansion.
 
 ## Lifecycle
 

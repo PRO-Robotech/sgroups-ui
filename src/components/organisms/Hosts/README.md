@@ -9,7 +9,8 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 - `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: required. Kubernetes DNS label format, max 63 chars.
 - `Display name`: optional, max 63 chars.
-- `Address group`: optional multi-select. Disabled until `Namespace` is selected. Options are limited to AddressGroups in the selected Host namespace and are displayed with the Address Group badge plus display name or resource name.
+- `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
+- `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace, displayed without repeating the namespace, and stored as `namespace/name` values.
 - `Description`: optional.
 - `Comment`: optional.
 
@@ -35,7 +36,11 @@ Each binding:
 
 The UI does not write `Host.refs`. Treat it as computed/read-only backend data.
 
-The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. It reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
+The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. Selected AddressGroups are filtered to the current AddressGroup namespace before rendering or submit, then grouped by namespace first. Each AddressGroup child reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
+
+Overview tree keys are parent-derived and prefixed with the namespace and selected AddressGroup overview node keys, so repeated resources remain unique in AntD Tree.
+
+Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
 ## Edit modal
 
@@ -49,7 +54,8 @@ In edit mode:
 - `Display name`, `Description`, and `Comment` are editable and saved with toolkit patch helpers.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
 - AddressGroup membership is initialized from existing `HostBinding` resources and remains editable.
-- AddressGroup options are scoped to the Host namespace. Changing the namespace in create mode clears the current AddressGroup selection.
+- AddressGroup namespace is initialized from existing `HostBinding.spec.addressGroup.namespace` when available.
+- Changing AddressGroup namespace clears the current AddressGroup selection.
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Host namespace.
 - If no editable field changed and no binding changed, no update request is sent.
@@ -80,6 +86,7 @@ The implementation follows the local `v2` OpenAPI dump for `sgroups.io/v1alpha1`
 
 - The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
 - That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
+- Edit prefill waits only for resources needed to initialize the form. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
 
 ## Schema source
 

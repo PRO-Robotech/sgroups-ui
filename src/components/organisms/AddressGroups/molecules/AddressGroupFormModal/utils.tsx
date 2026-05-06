@@ -1,12 +1,22 @@
+import type { TreeDataNode } from 'antd'
 import {
   createNewEntry,
   deleteEntry,
   patchEntryWithDeleteOp,
   patchEntryWithReplaceOp,
 } from '@prorobotech/openapi-k8s-toolkit'
+import { buildAddressGroupContentsTree } from 'components/organisms/AddressGroups/molecules/VerboseAddressGroupPanel/contentsTree'
 import { TAddressGroupResource } from 'components/organisms/AddressGroups/tableConfig'
-import { THostBindingResource, TNetworkBindingResource, TServiceBindingResource } from 'localTypes'
-import { renderBadgeWithValue, renderNamespacedResourceValue, runSequentialRequests } from 'utils'
+import {
+  THostBindingResource,
+  THostResource,
+  TNetworkBindingResource,
+  TNetworkResource,
+  TServiceBindingResource,
+  TServiceResource,
+} from 'localTypes'
+import { buildNamespacedValue, renderBadgeWithValue, renderNamespacedResourceValue, runSequentialRequests } from 'utils'
+import { Styled } from './styled'
 import { TAddressGroupFormValues, TCurrentBindings, TResourceOption, TSelectableResource } from './types'
 
 export const API_GROUP = 'sgroups.io'
@@ -107,6 +117,117 @@ export const buildCurrentBindings = (
   services: (serviceBindings || []).filter(binding => isSameAddressGroup(addressGroup, binding.spec?.addressGroup)),
   networks: (networkBindings || []).filter(binding => isSameAddressGroup(addressGroup, binding.spec?.addressGroup)),
 })
+
+const renderOverviewRootTitle = (displayName: string, count: number) => (
+  <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+    {renderBadgeWithValue('AddressGroup', displayName)}
+    <Styled.Count>{count}</Styled.Count>
+  </span>
+)
+
+export const buildOverviewTreeData = ({
+  addressGroup,
+  values,
+  hosts,
+  networks,
+  services,
+  addedHosts = [],
+  addedNetworks = [],
+  addedServices = [],
+}: {
+  addressGroup?: TAddressGroupResource | null
+  values: Pick<TAddressGroupFormValues, 'namespace' | 'name' | 'displayName' | 'hosts' | 'networks' | 'services'>
+  hosts?: THostResource[]
+  networks?: TNetworkResource[]
+  services?: TServiceResource[]
+  addedHosts?: string[]
+  addedNetworks?: string[]
+  addedServices?: string[]
+}): TreeDataNode[] => {
+  const addressGroupName = values.name || addressGroup?.metadata.name || 'pending-address-group'
+  const addressGroupNamespace = values.namespace || addressGroup?.metadata.namespace || ''
+  const addressGroupIdentifier = {
+    name: addressGroupName,
+    namespace: addressGroupNamespace,
+  }
+  const selectedHosts = values.hosts || []
+  const selectedNetworks = values.networks || []
+  const selectedServices = values.services || []
+  const selectedItemsCount = selectedHosts.length + selectedNetworks.length + selectedServices.length
+  const displayName = values.displayName || addressGroup?.spec?.displayName || addressGroupName || 'Address group'
+
+  const hostBindings = selectedHosts.map(
+    hostName =>
+      ({
+        metadata: {
+          name: `overview-host-${hostName}`,
+          namespace: addressGroupNamespace,
+        },
+        spec: {
+          addressGroup: addressGroupIdentifier,
+          host: {
+            name: hostName,
+            namespace: addressGroupNamespace,
+          },
+        },
+      }) as THostBindingResource,
+  )
+  const networkBindings = selectedNetworks.map(
+    networkName =>
+      ({
+        metadata: {
+          name: `overview-network-${networkName}`,
+          namespace: addressGroupNamespace,
+        },
+        spec: {
+          addressGroup: addressGroupIdentifier,
+          network: {
+            name: networkName,
+            namespace: addressGroupNamespace,
+          },
+        },
+      }) as TNetworkBindingResource,
+  )
+  const serviceBindings = selectedServices.map(serviceValue => {
+    const service = parseNamespacedValue(serviceValue)
+
+    return {
+      metadata: {
+        name: `overview-service-${service.namespace}-${service.name}`,
+        namespace: service.namespace,
+      },
+      spec: {
+        addressGroup: addressGroupIdentifier,
+        service,
+      },
+    } as TServiceBindingResource
+  })
+
+  return [
+    {
+      title: renderOverviewRootTitle(displayName, selectedItemsCount),
+      key: 'overview-address-group',
+      children: buildAddressGroupContentsTree({
+        addressGroupName,
+        addressGroupNamespace,
+        keyPrefix: 'overview-address-group',
+        hostBindings,
+        networkBindings,
+        serviceBindings,
+        hosts,
+        networks,
+        services,
+        highlightedHosts: addedHosts
+          .map(hostName => buildNamespacedValue({ name: hostName, namespace: addressGroupNamespace }))
+          .filter((value): value is string => Boolean(value)),
+        highlightedNetworks: addedNetworks
+          .map(networkName => buildNamespacedValue({ name: networkName, namespace: addressGroupNamespace }))
+          .filter((value): value is string => Boolean(value)),
+        highlightedServices: addedServices,
+      }),
+    },
+  ]
+}
 
 export const patchEditableSpec = async (
   endpoint: string,

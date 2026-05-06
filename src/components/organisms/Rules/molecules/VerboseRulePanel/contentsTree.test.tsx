@@ -1,5 +1,14 @@
+/* eslint-disable react/jsx-no-useless-fragment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react'
+import { render, screen } from '@testing-library/react'
 import { buildRuleEndpointTree } from './contentsTree'
+
+const getTooltipTitle = (title: unknown) => {
+  expect(React.isValidElement(title)).toBe(true)
+
+  return (title as React.ReactElement<{ title?: React.ReactNode }>).props.title
+}
 
 describe('buildRuleEndpointTree', () => {
   it('returns a single empty leaf when no endpoint is configured', () => {
@@ -39,8 +48,8 @@ describe('buildRuleEndpointTree', () => {
             title: 'UDP / IPv6',
             key: 'service-endpoint-transport-0',
             children: [
-              { title: 'Ports: 53', key: 'service-endpoint-entry-0', isLeaf: true },
-              { title: 'Types: 8, 0', key: 'service-endpoint-entry-1', isLeaf: true },
+              { title: 'Ports: 53', key: 'service-endpoint-transport-0-entry-0', isLeaf: true },
+              { title: 'Types: 8, 0', key: 'service-endpoint-transport-0-entry-1', isLeaf: true },
             ],
           }),
         ],
@@ -70,6 +79,39 @@ describe('buildRuleEndpointTree', () => {
         children: [{ title: 'Error while fetching', key: 'service-endpoint-status', isLeaf: true }],
       }),
     ])
+  })
+
+  it('keeps service endpoint transport entry description and comment in the tooltip', () => {
+    const tree = buildRuleEndpointTree({
+      endpoint: { type: 'Service', name: 'svc-a', namespace: 'tenant-a' } as any,
+      services: [
+        {
+          metadata: { name: 'svc-a', namespace: 'tenant-a' },
+          spec: {
+            transports: [
+              {
+                protocol: 'UDP',
+                IPv: 'IPv4',
+                entries: [{ ports: '50004-50006', description: 'range 50004-50006', comment: 'service note' }],
+              },
+            ],
+          },
+        },
+      ] as any,
+    })
+
+    const title = tree[0].children?.[0].children?.[0].title
+
+    render(<>{title}</>)
+
+    expect(screen.getByText('Ports: 50004-50006')).toBeInTheDocument()
+    expect(screen.queryByText(/Description:/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Comment:/)).not.toBeInTheDocument()
+
+    render(<>{getTooltipTitle(title)}</>)
+
+    expect(screen.getByText(/range 50004-50006/)).toBeInTheDocument()
+    expect(screen.getByText(/service note/)).toBeInTheDocument()
   })
 
   it('expands an address group endpoint into binding branches', () => {
@@ -132,41 +174,79 @@ describe('buildRuleEndpointTree', () => {
     const branches = addressGroupNode.children || []
 
     expect(addressGroupNode).toEqual(expect.objectContaining({ key: 'address-group-endpoint' }))
-    expect(branches.map(branch => branch.key)).toEqual(['rule-hosts-root', 'rule-networks-root', 'rule-services-root'])
+    expect(branches.map(branch => branch.key)).toEqual([
+      'address-group-endpoint-rule-hosts-root',
+      'address-group-endpoint-rule-networks-root',
+      'address-group-endpoint-rule-services-root',
+    ])
     expect(branches[0].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'address-group-endpoint-rule-hosts-root-namespace-tenant-a' }),
+    )
+    const hostBindingNode = branches[0].children?.[0].children?.[0]
+    const networkBindingNode = branches[1].children?.[0].children?.[0]
+    const serviceBindingNode = branches[2].children?.[0].children?.[0]
+
+    expect(hostBindingNode).toEqual(
       expect.objectContaining({
-        title: 'host-binding-a',
-        key: 'host-binding-tenant-a-host-binding-a',
+        key: 'address-group-endpoint-rule-hosts-root-host-binding-tenant-a-host-binding-a',
         children: [
           expect.objectContaining({
-            children: [{ title: '10.0.0.10', key: 'host-binding-tenant-a-host-binding-a-10.0.0.10', isLeaf: true }],
+            children: [
+              {
+                title: '10.0.0.10',
+                key: 'address-group-endpoint-rule-hosts-root-host-binding-tenant-a-host-binding-a-resource-ip-10.0.0.10',
+                isLeaf: true,
+              },
+            ],
           }),
         ],
       }),
     )
+    render(<>{hostBindingNode?.title}</>)
+    expect(screen.getByText('HB')).toBeInTheDocument()
+    expect(screen.getByText('host-binding-a')).toBeInTheDocument()
+
     expect(branches[1].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'address-group-endpoint-rule-networks-root-namespace-tenant-a' }),
+    )
+    expect(networkBindingNode).toEqual(
       expect.objectContaining({
-        title: 'network-binding-a',
-        key: 'network-binding-tenant-a-network-binding-a',
+        key: 'address-group-endpoint-rule-networks-root-network-binding-tenant-a-network-binding-a',
         children: [
           expect.objectContaining({
-            children: [{ title: '10.0.0.0/24', key: 'network-binding-tenant-a-network-binding-a-cidr', isLeaf: true }],
+            children: [
+              {
+                title: '10.0.0.0/24',
+                key: 'address-group-endpoint-rule-networks-root-network-binding-tenant-a-network-binding-a-resource-cidr',
+                isLeaf: true,
+              },
+            ],
           }),
         ],
       }),
     )
+    render(<>{networkBindingNode?.title}</>)
+    expect(screen.getByText('NB')).toBeInTheDocument()
+    expect(screen.getByText('network-binding-a')).toBeInTheDocument()
+
     expect(branches[2].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'address-group-endpoint-rule-services-root-namespace-tenant-a' }),
+    )
+    expect(serviceBindingNode).toEqual(
       expect.objectContaining({
-        title: 'service-binding-a',
-        key: 'service-binding-tenant-a-service-binding-a',
+        key: 'address-group-endpoint-rule-services-root-service-binding-tenant-a-service-binding-a',
         children: [
           expect.objectContaining({
             children: [
               expect.objectContaining({
                 title: 'TCP / IPv4',
-                key: 'service-binding-tenant-a-service-binding-a-transport-0',
+                key: 'address-group-endpoint-rule-services-root-service-binding-tenant-a-service-binding-a-resource-transport-0',
                 children: [
-                  { title: 'Ports: 443', key: 'service-binding-tenant-a-service-binding-a-entry-0', isLeaf: true },
+                  {
+                    title: 'Ports: 443',
+                    key: 'address-group-endpoint-rule-services-root-service-binding-tenant-a-service-binding-a-resource-transport-0-entry-0',
+                    isLeaf: true,
+                  },
                 ],
               }),
             ],
@@ -174,6 +254,9 @@ describe('buildRuleEndpointTree', () => {
         ],
       }),
     )
+    render(<>{serviceBindingNode?.title}</>)
+    expect(screen.getByText('SB')).toBeInTheDocument()
+    expect(screen.getByText('service-binding-a')).toBeInTheDocument()
   })
 
   it('marks a missing address group endpoint with not found or fetch error', () => {

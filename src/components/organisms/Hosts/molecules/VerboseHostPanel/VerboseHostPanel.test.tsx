@@ -15,6 +15,12 @@ jest.mock(
 // eslint-disable-next-line import/first
 import { VerboseHostPanel } from './VerboseHostPanel'
 
+const expandTreeNodes = (container: HTMLElement) => {
+  Array.from(container.querySelectorAll('.ant-tree-switcher_close')).forEach(switcher => {
+    fireEvent.click(switcher)
+  })
+}
+
 describe('VerboseHostPanel', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -47,7 +53,7 @@ describe('VerboseHostPanel', () => {
   })
 
   it('renders host details, backend-owned IPs, refs, and expandable tag lists', () => {
-    render(
+    const { container } = render(
       <VerboseHostPanel
         cluster="cluster-a"
         namespace="tenant-a"
@@ -101,7 +107,11 @@ describe('VerboseHostPanel', () => {
     expect(screen.getByText('10.0.0.10')).toBeInTheDocument()
     expect(screen.getByText('2001:db8::10')).toBeInTheDocument()
     expect(screen.getAllByText('Bound Address Groups').length).toBeGreaterThan(0)
-    expect(screen.getByText('host-binding-a')).toBeInTheDocument()
+    expect(screen.queryByText('Address Group A')).not.toBeInTheDocument()
+
+    expandTreeNodes(container)
+
+    expect(screen.getByText('Address Group A')).toBeInTheDocument()
     expect(screen.queryByText('label6: six')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Show more (1)'))

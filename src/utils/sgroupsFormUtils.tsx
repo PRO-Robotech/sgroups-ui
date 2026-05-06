@@ -29,7 +29,7 @@ export type TResourceOption = {
   value: string
   label: ReactNode
   searchText: string
-  badgeLabel?: 'Address Group' | 'Service'
+  badgeLabel?: 'AddressGroup' | 'Service'
   resourceLabel?: string
 }
 
@@ -41,6 +41,10 @@ export type TNamespacedResource = {
   spec?: {
     displayName?: string
   }
+}
+
+type TNamespacedResourceOptionsConfig = {
+  showNamespace?: boolean
 }
 
 export type TDeleteModalResource = {
@@ -124,40 +128,50 @@ export const getBindingLookupKey = (resource?: { name?: string; namespace?: stri
   resource?.name ? `${resource.namespace || ''}/${resource.name}` : null
 
 export const getNamespaceOptions = (items?: Array<{ metadata?: { name?: string } }>) =>
-  (items || [])
-    .map(item => item.metadata?.name)
-    .filter((value): value is string => Boolean(value))
+  [...new Set((items || []).map(item => item.metadata?.name).filter((value): value is string => Boolean(value)))]
     .sort((first, second) => first.localeCompare(second))
     .map(value => ({ value, label: renderNamespaceBadgeWithValue(value) }))
 
 export const getNamespacedResourceOptions = (
   items: TNamespacedResource[] | undefined,
-  badgeLabel: 'Address Group' | 'Service',
+  badgeLabel: 'AddressGroup' | 'Service',
+  config: TNamespacedResourceOptionsConfig = {},
 ): TResourceOption[] =>
-  (items || [])
-    .reduce<TResourceOption[]>((acc, item) => {
-      const resourceName = item.metadata.name
-      const resourceNamespace = item.metadata.namespace
+  [
+    ...new Map(
+      (items || []).reduce<Array<[string, TResourceOption]>>((acc, item) => {
+        const resourceName = item.metadata.name
+        const resourceNamespace = item.metadata.namespace
 
-      if (!resourceName || !resourceNamespace) {
+        if (!resourceName || !resourceNamespace) {
+          return acc
+        }
+
+        const displayName = item.spec?.displayName || resourceName
+        const value = `${resourceNamespace}/${resourceName}`
+        const label =
+          config.showNamespace === false
+            ? renderBadgeWithValue(badgeLabel, displayName)
+            : renderNamespacedResourceValue(badgeLabel, resourceNamespace, displayName)
+
+        acc.push([
+          value,
+          {
+            value,
+            label,
+            searchText: `${resourceNamespace} ${resourceName} ${item.spec?.displayName || ''}`.trim(),
+            badgeLabel,
+            resourceLabel: displayName,
+          },
+        ])
+
         return acc
-      }
+      }, []),
+    ).values(),
+  ].sort((first, second) => first.searchText.localeCompare(second.searchText))
 
-      const displayName = item.spec?.displayName || resourceName
-      acc.push({
-        value: `${resourceNamespace}/${resourceName}`,
-        label: renderNamespacedResourceValue(badgeLabel, resourceNamespace, displayName),
-        searchText: `${resourceNamespace} ${resourceName} ${item.spec?.displayName || ''}`.trim(),
-        badgeLabel,
-        resourceLabel: displayName,
-      })
-
-      return acc
-    }, [])
-    .sort((first, second) => first.searchText.localeCompare(second.searchText))
-
-export const getAddressGroupOptions = (items?: TAddressGroupResource[]) =>
-  getNamespacedResourceOptions(items, 'Address Group')
+export const getAddressGroupOptions = (items?: TAddressGroupResource[], config?: TNamespacedResourceOptionsConfig) =>
+  getNamespacedResourceOptions(items, 'AddressGroup', config)
 
 export const getScopedResourceOptions = (options: TResourceOption[], selectedNamespace?: string) =>
   selectedNamespace

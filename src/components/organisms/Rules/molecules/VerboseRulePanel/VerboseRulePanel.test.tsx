@@ -85,7 +85,7 @@ describe('VerboseRulePanel', () => {
               transport: {
                 protocol: 'TCP',
                 IPv: 'IPv4',
-                entries: [{ ports: '443', description: 'https' }],
+                entries: [{ ports: '443', description: 'https', comment: 'public' }],
               },
               endpoints: {
                 local: { type: 'AddressGroup', name: 'ag-a', namespace: 'tenant-a' },
@@ -108,8 +108,9 @@ describe('VerboseRulePanel', () => {
     expect(screen.getByText('Ingress')).toBeInTheDocument()
     expect(screen.getByText('TCP')).toBeInTheDocument()
     expect(screen.getByText('IPv4')).toBeInTheDocument()
-    expect(screen.getByText(/Ports: 443/)).toBeInTheDocument()
+    expect(screen.getAllByText(/Ports: 443/).length).toBeGreaterThan(0)
     expect(screen.queryByText(/Description: https/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Comment: public/)).not.toBeInTheDocument()
     expect(screen.getByText('ag-a')).toBeInTheDocument()
     expect(screen.getByText('svc-a')).toBeInTheDocument()
     expect(screen.getByText('Address Group A')).toBeInTheDocument()

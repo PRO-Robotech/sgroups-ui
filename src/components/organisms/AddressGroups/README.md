@@ -38,7 +38,15 @@ The binding `spec.addressGroup` points at the newly-created AddressGroup. Hosts 
 
 The `AddressGroup.refs` field is intentionally not written by the UI. It is treated as computed/read-only data and should be populated by backend/controller logic from bindings.
 
-The modal structure overview is a single AddressGroup tree. It does not model local/remote groups; services keep their namespace in the displayed label.
+The modal structure overview is a single AddressGroup tree. It does not model local/remote groups. Inside the tree, Hosts, Networks, and Services are grouped by their resource namespace before individual resource nodes.
+
+In create mode, the overview is derived from the current form selection before the AddressGroup resource exists. Until `name` is entered, the overview builder uses a stable pending AddressGroup identifier internally so selected Hosts, Networks, and Services still match the shared contents tree filters.
+
+Changing the AddressGroup namespace clears selected Hosts and Networks because those resources are namespace-scoped to the future AddressGroup namespace. Selected Services are not cleared by namespace changes because Services can be selected from any namespace and their bindings are created in the selected Service namespace.
+
+The overview tree uses parent-derived AntD Tree keys. When the shared AddressGroup contents tree is reused inside another modal overview, callers prefix it with the selected AddressGroup overview key so repeated namespace, section, and resource nodes remain unique.
+
+Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
 ## Edit modal
 
@@ -57,6 +65,7 @@ In edit mode:
 - In edit mode, namespace-scoped resource and binding queries must start from `addressGroup.metadata.namespace` immediately. Waiting for the form watcher alone causes partial prefills.
 - Edit prefill should run only once per modal open, after host/network/service binding queries are ready. Repeated partial `setFieldsValue` calls can leave AntD selects visually stuck on reopen.
 - Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview.
+- Badge color inputs must be canonical resource kinds so colors match `openapi-ui` / `openapi-k8s-toolkit`: use `AddressGroup`, `Namespace`, `HostBinding`, `NetworkBinding`, and `ServiceBinding`, not display labels or abbreviations such as `Address Group`, `AG`, or `NS`.
 
 ## Delete modal
 

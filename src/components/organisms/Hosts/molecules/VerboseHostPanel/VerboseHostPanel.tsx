@@ -36,8 +36,8 @@ import { TAddressGroupResource, THostBindingResource, TResourceIdentifier } from
 import {
   formatAnnotationEntries,
   formatMapEntries,
+  groupTreeDataByNamespace,
   renderBadgeWithValue,
-  renderNamespacedResourceValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
@@ -65,24 +65,24 @@ const NOT_FOUND_LEAF_TITLE = 'Not found'
 const makeLookupKey = (identifier?: TResourceIdentifier) =>
   `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
 
-const withNamespaceLabel = (name?: string, namespace?: string) => {
+const withNamespaceLabel = (name?: string) => {
   if (!name) {
     return 'Unknown'
   }
 
-  return renderNamespacedResourceValue('Address Group', namespace, name)
+  return renderBadgeWithValue('AddressGroup', name)
 }
 
 const renderAddressGroupLabel = (addressGroup?: TAddressGroupResource, fallback?: TResourceIdentifier) => {
   if (addressGroup?.spec?.displayName) {
-    return withNamespaceLabel(addressGroup.spec.displayName, addressGroup.metadata.namespace || fallback?.namespace)
+    return withNamespaceLabel(addressGroup.spec.displayName)
   }
 
   if (addressGroup?.metadata?.name) {
-    return withNamespaceLabel(addressGroup.metadata.name, addressGroup.metadata.namespace)
+    return withNamespaceLabel(addressGroup.metadata.name)
   }
 
-  return withNamespaceLabel(fallback?.name, fallback?.namespace)
+  return withNamespaceLabel(fallback?.name)
 }
 
 const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
@@ -90,6 +90,8 @@ const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
   key,
   isLeaf: true,
 })
+
+const makeChildKey = (parentKey: string, key: string) => `${parentKey}-${key}`
 
 const TagList: FC<{ values: string[]; onCopy?: boolean }> = ({ values, onCopy }) => {
   const [messageApi, contextHolder] = message.useMessage()
@@ -146,17 +148,20 @@ const buildBoundAddressGroupsTree = ({
   addressGroups,
   bindingsError,
   addressGroupsError,
-  countColor,
 }: {
   host: THostRow
   bindings?: THostBindingResource[]
   addressGroups?: TAddressGroupResource[]
   bindingsError?: boolean
   addressGroupsError?: boolean
-  countColor?: string
-}): TreeDataNode[] => {
+}): { treeData: TreeDataNode[]; count: number } => {
+  const rootKey = 'bound-address-groups-root'
+
   if (bindingsError) {
-    return [createLeaf(ERROR_LEAF_TITLE, 'host-bindings-error')]
+    return {
+      treeData: [createLeaf(ERROR_LEAF_TITLE, makeChildKey(rootKey, 'host-bindings-error'))],
+      count: 0,
+    }
   }
 
   const targetKey = makeLookupKey(host.metadata)
@@ -167,38 +172,43 @@ const buildBoundAddressGroupsTree = ({
   const matchedBindings = (bindings || []).filter(binding => makeLookupKey(binding.spec?.host) === targetKey)
   const children = matchedBindings.map(binding => {
     const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]
-    const bindingKey = `host-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`
-    const title =
-      binding.spec?.displayName ||
-      binding.metadata.name ||
-      renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup)
+    const bindingKey = makeChildKey(
+      rootKey,
+      `host-binding-${binding.metadata.namespace || 'all'}-${binding.metadata.name || 'unknown'}`,
+    )
+    const title = renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup)
 
     if (!addressGroup) {
       return {
-        title,
-        key: bindingKey,
-        children: [createLeaf(addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE, `${bindingKey}-status`)],
+        namespace: binding.spec?.addressGroup?.namespace,
+        node: {
+          title,
+          key: bindingKey,
+          children: [
+            createLeaf(
+              addressGroupsError ? ERROR_LEAF_TITLE : NOT_FOUND_LEAF_TITLE,
+              makeChildKey(bindingKey, 'status'),
+            ),
+          ],
+        },
       }
     }
 
     return {
-      title,
-      key: bindingKey,
-      children: [createLeaf(renderAddressGroupLabel(addressGroup, binding.spec?.addressGroup), `${bindingKey}-group`)],
+      namespace: addressGroup.metadata.namespace || binding.spec?.addressGroup?.namespace,
+      node: {
+        title,
+        key: bindingKey,
+        isLeaf: true,
+      },
     }
   })
+  const treeData = groupTreeDataByNamespace(children, rootKey)
 
-  return [
-    {
-      title: (
-        <>
-          Bound Address Groups <span style={{ color: countColor, fontWeight: 600 }}>({children.length})</span>
-        </>
-      ),
-      key: 'bound-address-groups-root',
-      children: children.length > 0 ? children : [createLeaf(EMPTY_LEAF_TITLE, 'bound-address-groups-empty')],
-    },
-  ]
+  return {
+    treeData: treeData.length > 0 ? treeData : [createLeaf(EMPTY_LEAF_TITLE, makeChildKey(rootKey, 'empty'))],
+    count: children.length,
+  }
 }
 
 export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
@@ -238,7 +248,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
 
   const labels = useMemo(() => formatMapEntries(host.metadata.labels), [host.metadata.labels])
   const annotations = useMemo(() => formatAnnotationEntries(host.metadata.annotations), [host.metadata.annotations])
-  const boundAddressGroupsTree = useMemo<TreeDataNode[]>(
+  const boundAddressGroups = useMemo(
     () =>
       buildBoundAddressGroupsTree({
         host,
@@ -246,16 +256,8 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
         addressGroups: addressGroupsData?.items,
         bindingsError: Boolean(hostBindingsError),
         addressGroupsError: Boolean(addressGroupsError),
-        countColor: token.colorPrimaryActive,
       }),
-    [
-      host,
-      hostBindingsData?.items,
-      addressGroupsData?.items,
-      hostBindingsError,
-      addressGroupsError,
-      token.colorPrimaryActive,
-    ],
+    [host, hostBindingsData?.items, addressGroupsData?.items, hostBindingsError, addressGroupsError],
   )
   const metaInfo = host.metaInfo || host.spec?.metaInfo
   const ips = host.ips || host.spec?.IPs
@@ -278,9 +280,6 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGridHosts>
-            <Typography.Text type="secondary">Name</Typography.Text>
-            <div>{renderValue(host.metadata.name)}</div>
-
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(host.metadata.namespace)}</div>
 
@@ -333,18 +332,16 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
             <Icon>
               <ApartmentOutlined />
             </Icon>
-            <Subtitle>Bound Address Groups</Subtitle>
+            <Subtitle>
+              Bound Address Groups{' '}
+              <span style={{ color: token.colorPrimaryActive, fontWeight: 600 }}>({boundAddressGroups.count})</span>
+            </Subtitle>
           </SubtitleWithIcon>
           {isHostBindingsLoading || isAddressGroupsLoading ? (
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                switcherIcon={<CaretDownOutlined />}
-                defaultExpandedKeys={['bound-address-groups-root']}
-                treeData={boundAddressGroupsTree}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={boundAddressGroups.treeData} />
             </TreeContainer>
           )}
         </OverflowContainer>

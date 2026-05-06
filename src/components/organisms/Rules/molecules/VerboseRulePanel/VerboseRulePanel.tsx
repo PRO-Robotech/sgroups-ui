@@ -134,15 +134,33 @@ const formatTransportEntryText = (entry: TRuleTransportEntry, index: number) => 
     parts.push(`Types: ${entry.types.join(', ')}`)
   }
 
-  if (entry.description && !entry.ports) {
-    parts.push(`Description: ${entry.description}`)
+  return parts.join(' | ') || `Entry ${index + 1}`
+}
+
+const renderTransportEntryTooltip = (entry: TRuleTransportEntry) => {
+  const details = []
+
+  if (entry.description) {
+    details.push(['Description', entry.description])
   }
 
   if (entry.comment) {
-    parts.push(`Comment: ${entry.comment}`)
+    details.push(['Comment', entry.comment])
   }
 
-  return parts.join(' | ') || `Entry ${index + 1}`
+  if (details.length === 0) {
+    return undefined
+  }
+
+  return (
+    <>
+      {details.map(([label, value]) => (
+        <div key={label}>
+          <Typography.Text strong>{label}:</Typography.Text> {value}
+        </div>
+      ))}
+    </>
+  )
 }
 
 const TransportEntries: FC<{ entries?: TRuleTransportEntry[] }> = ({ entries }) => {
@@ -154,10 +172,11 @@ const TransportEntries: FC<{ entries?: TRuleTransportEntry[] }> = ({ entries }) 
     <TagsContainer>
       {entries.map((entry, index) => {
         const text = formatTransportEntryText(entry, index)
+        const tooltip = renderTransportEntryTooltip(entry)
         const tag = <InfoTag key={`${text}-${index}`}>{text}</InfoTag>
 
-        return entry.ports && entry.description ? (
-          <Tooltip key={`${text}-${index}`} title={entry.description}>
+        return tooltip ? (
+          <Tooltip key={`${text}-${index}`} title={tooltip}>
             {tag}
           </Tooltip>
         ) : (
@@ -352,9 +371,6 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGrid>
-            <Typography.Text type="secondary">Name</Typography.Text>
-            <div>{renderValue(rule.metadata.name)}</div>
-
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(rule.metadata.namespace)}</div>
 
@@ -412,12 +428,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                switcherIcon={<CaretDownOutlined />}
-                defaultExpandedKeys={['address-group-endpoint']}
-                treeData={localTreeData}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={localTreeData} />
             </TreeContainer>
           )}
 
@@ -433,12 +444,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                switcherIcon={<CaretDownOutlined />}
-                defaultExpandedKeys={['address-group-endpoint']}
-                treeData={remoteTreeData}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={remoteTreeData} />
             </TreeContainer>
           )}
         </OverflowContainer>

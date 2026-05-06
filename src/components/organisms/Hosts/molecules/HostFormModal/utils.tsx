@@ -20,9 +20,10 @@ import {
   buildNamespacedValue,
   getApiEndpoint,
   getBindingLookupKey,
+  groupTreeDataByNamespace,
   normalizeOptionalString,
   parseNamespacedValue,
-  renderNamespacedResourceValue,
+  renderBadgeWithValue,
   runSequentialRequests,
   sanitizeBindingName,
 } from 'utils'
@@ -32,17 +33,23 @@ import { THostFormValues } from './types'
 const buildBindingName = (hostName: string, addressGroupNamespace: string, addressGroupName: string) =>
   sanitizeBindingName(`${hostName}-ag-${addressGroupNamespace}-${addressGroupName}`)
 
-const renderOverviewTitle = (addressGroup?: TAddressGroupResource, value?: string, bindingsCount?: number) => {
+const renderOverviewTitle = (
+  addressGroup?: TAddressGroupResource,
+  value?: string,
+  bindingsCount?: number,
+  isNew?: boolean,
+) => {
   const parsedValue = value ? parseNamespacedValue(value) : undefined
   const displayName = addressGroup?.spec?.displayName || addressGroup?.metadata.name || parsedValue?.name || 'Unknown'
-  const addressGroupNamespace = addressGroup?.metadata.namespace || parsedValue?.namespace
 
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-      {renderNamespacedResourceValue('Address Group', addressGroupNamespace, displayName)}
+  const title = (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+      {renderBadgeWithValue('AddressGroup', displayName)}
       <Styled.Count>{bindingsCount || 0}</Styled.Count>
     </span>
   )
+
+  return isNew ? <Styled.NewHighlight>{title}</Styled.NewHighlight> : title
 }
 
 const isSameHost = (resource: THostResource | null | undefined, hostRef?: { name?: string; namespace?: string }) =>
@@ -161,6 +168,8 @@ export const buildOverviewTreeData = ({
   hosts,
   networks,
   services,
+  currentHost,
+  addedAddressGroupValues = [],
 }: {
   addressGroups?: TAddressGroupResource[]
   selectedAddressGroupValues: string[]
@@ -170,7 +179,11 @@ export const buildOverviewTreeData = ({
   hosts?: THostResource[]
   networks?: TNetworkResource[]
   services?: TServiceResource[]
+  currentHost?: THostResource | null
+  addedAddressGroupValues?: string[]
 }): TreeDataNode[] => {
+  const addedAddressGroups = new Set(addedAddressGroupValues)
+  const highlightedHostValue = buildNamespacedValue(currentHost?.metadata)
   const addressGroupsByKey = Object.fromEntries(
     (addressGroups || []).map(addressGroup => [
       buildNamespacedValue({
@@ -181,7 +194,7 @@ export const buildOverviewTreeData = ({
     ]),
   )
 
-  return selectedAddressGroupValues.map(selectedValue => {
+  const addressGroupNodes = selectedAddressGroupValues.map(selectedValue => {
     const parsedValue = parseNamespacedValue(selectedValue)
     const addressGroup = addressGroupsByKey[selectedValue]
     const relatedHostBindings = (hostBindings || []).filter(
@@ -193,26 +206,53 @@ export const buildOverviewTreeData = ({
     const relatedServiceBindings = (serviceBindings || []).filter(
       binding => buildNamespacedValue(binding.spec?.addressGroup) === selectedValue,
     )
+    const nextHostBindings =
+      currentHost && addedAddressGroups.has(selectedValue)
+        ? [
+            ...relatedHostBindings,
+            {
+              metadata: {
+                name: `pending-${currentHost.metadata.namespace || 'all'}-${currentHost.metadata.name || 'host'}`,
+                namespace: currentHost.metadata.namespace,
+              },
+              spec: {
+                addressGroup: parsedValue,
+                host: {
+                  name: currentHost.metadata.name,
+                  namespace: currentHost.metadata.namespace,
+                },
+              },
+            } as THostBindingResource,
+          ]
+        : relatedHostBindings
 
     const branches = buildAddressGroupContentsTree({
       addressGroupName: parsedValue.name || '',
       addressGroupNamespace: parsedValue.namespace || '',
-      hostBindings: relatedHostBindings,
+      keyPrefix: `overview-${selectedValue}`,
+      hostBindings: nextHostBindings,
       networkBindings: relatedNetworkBindings,
       serviceBindings: relatedServiceBindings,
       hosts,
       networks,
       services,
+      highlightedHosts: highlightedHostValue && addedAddressGroups.has(selectedValue) ? [highlightedHostValue] : [],
     })
 
     return {
-      title: renderOverviewTitle(
-        addressGroup,
-        selectedValue,
-        relatedHostBindings.length + relatedNetworkBindings.length + relatedServiceBindings.length,
-      ),
-      key: `overview-${selectedValue}`,
-      children: branches,
+      namespace: addressGroup?.metadata.namespace || parsedValue.namespace,
+      node: {
+        title: renderOverviewTitle(
+          addressGroup,
+          selectedValue,
+          nextHostBindings.length + relatedNetworkBindings.length + relatedServiceBindings.length,
+          addedAddressGroups.has(selectedValue),
+        ),
+        key: `overview-${selectedValue}`,
+        children: branches,
+      },
     }
   })
+
+  return groupTreeDataByNamespace(addressGroupNodes, 'overview')
 }

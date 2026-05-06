@@ -219,7 +219,12 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{renderBadgeWithValue('Address Group', addressGroup.metadata.name || 'Address Group')}</Title>
+            <Title>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {renderBadgeWithValue('AddressGroup', addressGroup.metadata.name || 'Address Group')}
+                {renderDefaultAction(addressGroup.spec?.defaultAction)}
+              </span>
+            </Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -227,17 +232,11 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGrid>
-            <Typography.Text type="secondary">Name</Typography.Text>
-            <div>{renderValue(addressGroup.metadata.name)}</div>
-
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(addressGroup.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">Display Name</Typography.Text>
             <div>{renderValue(addressGroup.spec?.displayName)}</div>
-
-            <Typography.Text type="secondary">Default Action</Typography.Text>
-            <div>{renderDefaultAction(addressGroup.spec?.defaultAction)}</div>
 
             <Typography.Text type="secondary">Logs</Typography.Text>
             <div>{formatBooleanFlag(addressGroup.spec?.logs)}</div>
@@ -273,12 +272,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             <Spin />
           ) : (
             <TreeContainer>
-              <Tree
-                showLine
-                defaultExpandedKeys={['hosts-root', 'networks-root', 'services-root']}
-                switcherIcon={<CaretDownOutlined />}
-                treeData={treeData}
-              />
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={treeData} />
             </TreeContainer>
           )}
         </OverflowContainer>
