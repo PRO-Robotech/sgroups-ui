@@ -238,11 +238,7 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
 }
 
 export const HOSTS_TABLE_PROPS: Partial<TableProps<THostRow>> = {
-  pagination: {
-    position: ['bottomLeft'],
-    showSizeChanger: true,
-    hideOnSinglePage: false,
-  },
+  pagination: false,
   scroll: { x: 1790 },
   size: 'middle',
 }

@@ -5,8 +5,9 @@ import { useSelector } from 'react-redux'
 import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
+import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
-import { getDeleteModalResource, TDeleteModalResource } from 'utils'
+import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
 import { Styled } from './styled'
 import {
   buildServicesColumns,
@@ -49,6 +50,8 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
   const contentCardHeight = useContentCardHeight()
 
   const splitLayoutRef = useRef<HTMLDivElement>(null)
+  const tablePaneRef = useRef<HTMLDivElement>(null)
+  const tableBodyHeight = useTableBodyHeight(tablePaneRef)
 
   const [selectedServiceKey, setSelectedServiceKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
@@ -200,82 +203,79 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
 
   return (
     <ContentCard displayFlex flexFlow="column" flexGrow={1} maxHeight={contentCardHeight}>
-      <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
-        <TenantSelector cluster={cluster} tenant={namespace} />
-        {error && <Alert type="error" message={`Failed to load services: ${String(error)}`} showIcon />}
-        {isLoading && !servicesData && <Spin />}
-        {!error && servicesData && (
-          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
-            <Styled.SplitLayout
-              ref={splitLayoutRef}
-              $detailWidth={verboseWidth}
-              $isDetailOpen={Boolean(selectedService)}
-              style={servicesLayoutStyle}
-            >
-              <Styled.TablePane>
-                <EnrichedTable<TServiceRow>
-                  theme={theme}
-                  dataSource={dataSource}
-                  columns={columns}
-                  rowClickable
-                  rowClassName={record => (record.key === selectedServiceKey ? 'service-row-selected' : '')}
-                  onRow={record => ({
-                    onClick: () => handleRowClick(record),
-                  })}
-                  tableProps={{
-                    borderless: true,
-                    paginationPosition: ['bottomRight'],
-                    isTotalLeft: true,
-                    disablePagination: Boolean(SERVICES_TABLE_PROPS.pagination === false),
-                  }}
-                  withoutControls
-                />
-              </Styled.TablePane>
-              {selectedService && (
-                <>
-                  <Styled.ResizeHandle
-                    aria-label="Resize service details panel"
-                    role="separator"
-                    onMouseDown={event => {
-                      event.preventDefault()
-                      setIsResizing(true)
-                    }}
+      <Styled.TablePageShell $height={contentCardHeight}>
+        <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
+          <TenantSelector cluster={cluster} tenant={namespace} />
+          {error && <Alert type="error" message={`Failed to load services: ${String(error)}`} showIcon />}
+          {isLoading && !servicesData && <Spin />}
+          {!error && servicesData && (
+            <Flex vertical style={{ flex: 1, minHeight: 0 }}>
+              <Styled.SplitLayout
+                ref={splitLayoutRef}
+                $detailWidth={verboseWidth}
+                $isDetailOpen={Boolean(selectedService)}
+                style={servicesLayoutStyle}
+              >
+                <Styled.TablePane ref={tablePaneRef}>
+                  <EnrichedTable<TServiceRow>
+                    theme={theme}
+                    dataSource={dataSource}
+                    columns={columns}
+                    rowClickable
+                    rowClassName={record => (record.key === selectedServiceKey ? 'service-row-selected' : '')}
+                    onRow={record => ({
+                      onClick: () => handleRowClick(record),
+                    })}
+                    tableProps={getSgroupsTableProps(SERVICES_TABLE_PROPS.scroll?.x, tableBodyHeight)}
+                    withoutControls
                   />
-                  <Styled.DetailPane>
-                    <VerboseServicePanel
-                      cluster={cluster}
-                      namespace={namespace}
-                      service={selectedService}
-                      width={verboseWidth}
-                      onClose={closeVerbose}
-                      onCollapse={collapseVerbose}
-                      onExpand={expandVerbose}
+                </Styled.TablePane>
+                {selectedService && (
+                  <>
+                    <Styled.ResizeHandle
+                      aria-label="Resize service details panel"
+                      role="separator"
+                      onMouseDown={event => {
+                        event.preventDefault()
+                        setIsResizing(true)
+                      }}
                     />
-                  </Styled.DetailPane>
-                </>
+                    <Styled.DetailPane>
+                      <VerboseServicePanel
+                        cluster={cluster}
+                        namespace={namespace}
+                        service={selectedService}
+                        width={verboseWidth}
+                        onClose={closeVerbose}
+                        onCollapse={collapseVerbose}
+                        onExpand={expandVerbose}
+                      />
+                    </Styled.DetailPane>
+                  </>
+                )}
+              </Styled.SplitLayout>
+              {selectedService && (
+                <Styled.MobileDetailPane style={servicesLayoutStyle}>
+                  <VerboseServicePanel
+                    cluster={cluster}
+                    namespace={namespace}
+                    service={selectedService}
+                    onClose={closeVerbose}
+                    onCollapse={collapseVerbose}
+                    onExpand={expandVerbose}
+                  />
+                </Styled.MobileDetailPane>
               )}
-            </Styled.SplitLayout>
-            {selectedService && (
-              <Styled.MobileDetailPane style={servicesLayoutStyle}>
-                <VerboseServicePanel
-                  cluster={cluster}
-                  namespace={namespace}
-                  service={selectedService}
-                  onClose={closeVerbose}
-                  onCollapse={collapseVerbose}
-                  onExpand={expandVerbose}
-                />
-              </Styled.MobileDetailPane>
-            )}
-            <Styled.BottomActionBar style={servicesLayoutStyle}>
-              <Button type="primary" onClick={openCreateModal}>
-                <PlusOutlined />
-                Add Service
-              </Button>
-            </Styled.BottomActionBar>
-          </Flex>
-        )}
-      </Flex>
+              <Styled.BottomActionBar style={servicesLayoutStyle}>
+                <Button type="primary" onClick={openCreateModal}>
+                  <PlusOutlined />
+                  Add Service
+                </Button>
+              </Styled.BottomActionBar>
+            </Flex>
+          )}
+        </Flex>
+      </Styled.TablePageShell>
       {isFormModalOpen && (
         <ServiceFormModal
           cluster={cluster}

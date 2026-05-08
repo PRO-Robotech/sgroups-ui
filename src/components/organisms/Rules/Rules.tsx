@@ -5,8 +5,9 @@ import { useSelector } from 'react-redux'
 import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
+import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
-import { getDeleteModalResource, TDeleteModalResource } from 'utils'
+import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
 import { UniRuleFormModal, VerboseRulePanel } from './molecules'
 import { Styled } from './styled'
 import { buildRulesColumns, mapRulesToRows, RULES_TABLE_PROPS, TRuleResource, TRuleRow } from './tableConfig'
@@ -42,6 +43,8 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
   const { token } = antdTheme.useToken()
   const contentCardHeight = useContentCardHeight()
   const splitLayoutRef = useRef<HTMLDivElement>(null)
+  const tablePaneRef = useRef<HTMLDivElement>(null)
+  const tableBodyHeight = useTableBodyHeight(tablePaneRef)
   const [selectedRuleKey, setSelectedRuleKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
   const [editingRule, setEditingRule] = useState<TRuleRow | null>(null)
@@ -192,82 +195,79 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
 
   return (
     <ContentCard displayFlex flexFlow="column" flexGrow={1} maxHeight={contentCardHeight}>
-      <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
-        <TenantSelector cluster={cluster} tenant={namespace} />
-        {error && <Alert type="error" message={`Failed to load rules: ${String(error)}`} showIcon />}
-        {isLoading && !rulesData && <Spin />}
-        {!error && rulesData && (
-          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
-            <Styled.SplitLayout
-              ref={splitLayoutRef}
-              $detailWidth={verboseWidth}
-              $isDetailOpen={Boolean(selectedRule)}
-              style={rulesLayoutStyle}
-            >
-              <Styled.TablePane>
-                <EnrichedTable<TRuleRow>
-                  theme={theme}
-                  dataSource={dataSource}
-                  columns={columns}
-                  rowClickable
-                  rowClassName={record => (record.key === selectedRuleKey ? 'rule-row-selected' : '')}
-                  onRow={record => ({
-                    onClick: () => handleRowClick(record),
-                  })}
-                  tableProps={{
-                    borderless: true,
-                    paginationPosition: ['bottomRight'],
-                    isTotalLeft: true,
-                    disablePagination: Boolean(RULES_TABLE_PROPS.pagination === false),
-                  }}
-                  withoutControls
-                />
-              </Styled.TablePane>
-              {selectedRule && (
-                <>
-                  <Styled.ResizeHandle
-                    aria-label="Resize rule details panel"
-                    role="separator"
-                    onMouseDown={event => {
-                      event.preventDefault()
-                      setIsResizing(true)
-                    }}
+      <Styled.TablePageShell $height={contentCardHeight}>
+        <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
+          <TenantSelector cluster={cluster} tenant={namespace} />
+          {error && <Alert type="error" message={`Failed to load rules: ${String(error)}`} showIcon />}
+          {isLoading && !rulesData && <Spin />}
+          {!error && rulesData && (
+            <Flex vertical style={{ flex: 1, minHeight: 0 }}>
+              <Styled.SplitLayout
+                ref={splitLayoutRef}
+                $detailWidth={verboseWidth}
+                $isDetailOpen={Boolean(selectedRule)}
+                style={rulesLayoutStyle}
+              >
+                <Styled.TablePane ref={tablePaneRef}>
+                  <EnrichedTable<TRuleRow>
+                    theme={theme}
+                    dataSource={dataSource}
+                    columns={columns}
+                    rowClickable
+                    rowClassName={record => (record.key === selectedRuleKey ? 'rule-row-selected' : '')}
+                    onRow={record => ({
+                      onClick: () => handleRowClick(record),
+                    })}
+                    tableProps={getSgroupsTableProps(RULES_TABLE_PROPS.scroll?.x, tableBodyHeight)}
+                    withoutControls
                   />
-                  <Styled.DetailPane>
-                    <VerboseRulePanel
-                      cluster={cluster}
-                      namespace={namespace}
-                      rule={selectedRule}
-                      width={verboseWidth}
-                      onClose={closeVerbose}
-                      onCollapse={collapseVerbose}
-                      onExpand={expandVerbose}
+                </Styled.TablePane>
+                {selectedRule && (
+                  <>
+                    <Styled.ResizeHandle
+                      aria-label="Resize rule details panel"
+                      role="separator"
+                      onMouseDown={event => {
+                        event.preventDefault()
+                        setIsResizing(true)
+                      }}
                     />
-                  </Styled.DetailPane>
-                </>
+                    <Styled.DetailPane>
+                      <VerboseRulePanel
+                        cluster={cluster}
+                        namespace={namespace}
+                        rule={selectedRule}
+                        width={verboseWidth}
+                        onClose={closeVerbose}
+                        onCollapse={collapseVerbose}
+                        onExpand={expandVerbose}
+                      />
+                    </Styled.DetailPane>
+                  </>
+                )}
+              </Styled.SplitLayout>
+              {selectedRule && (
+                <Styled.MobileDetailPane style={rulesLayoutStyle}>
+                  <VerboseRulePanel
+                    cluster={cluster}
+                    namespace={namespace}
+                    rule={selectedRule}
+                    onClose={closeVerbose}
+                    onCollapse={collapseVerbose}
+                    onExpand={expandVerbose}
+                  />
+                </Styled.MobileDetailPane>
               )}
-            </Styled.SplitLayout>
-            {selectedRule && (
-              <Styled.MobileDetailPane style={rulesLayoutStyle}>
-                <VerboseRulePanel
-                  cluster={cluster}
-                  namespace={namespace}
-                  rule={selectedRule}
-                  onClose={closeVerbose}
-                  onCollapse={collapseVerbose}
-                  onExpand={expandVerbose}
-                />
-              </Styled.MobileDetailPane>
-            )}
-            <Styled.BottomActionBar style={rulesLayoutStyle}>
-              <Button type="primary" onClick={openCreateModal}>
-                <PlusOutlined />
-                Add UniRule
-              </Button>
-            </Styled.BottomActionBar>
-          </Flex>
-        )}
-      </Flex>
+              <Styled.BottomActionBar style={rulesLayoutStyle}>
+                <Button type="primary" onClick={openCreateModal}>
+                  <PlusOutlined />
+                  Add UniRule
+                </Button>
+              </Styled.BottomActionBar>
+            </Flex>
+          )}
+        </Flex>
+      </Styled.TablePageShell>
       {isFormModalOpen && (
         <UniRuleFormModal
           cluster={cluster}

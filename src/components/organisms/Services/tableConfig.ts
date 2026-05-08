@@ -262,11 +262,7 @@ export const buildServicesColumns = ({
 }
 
 export const SERVICES_TABLE_PROPS: Partial<TableProps<TServiceRow>> = {
-  pagination: {
-    position: ['bottomLeft'],
-    showSizeChanger: true,
-    hideOnSinglePage: false,
-  },
+  pagination: false,
   scroll: { x: 1990 },
   size: 'middle',
 }

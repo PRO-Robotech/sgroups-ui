@@ -213,11 +213,7 @@ export const buildAddressGroupsColumns = ({
 }
 
 export const ADDRESS_GROUPS_TABLE_PROPS: Partial<TableProps<TAddressGroupRow>> = {
-  pagination: {
-    position: ['bottomLeft'],
-    showSizeChanger: true,
-    hideOnSinglePage: false,
-  },
+  pagination: false,
   scroll: { x: 1700 },
   size: 'middle',
 }

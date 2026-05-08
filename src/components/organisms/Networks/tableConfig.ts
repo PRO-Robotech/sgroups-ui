@@ -159,11 +159,7 @@ export const buildNetworksColumns = ({
 }
 
 export const NETWORKS_TABLE_PROPS: Partial<TableProps<TNetworkRow>> = {
-  pagination: {
-    position: ['bottomLeft'],
-    showSizeChanger: true,
-    hideOnSinglePage: false,
-  },
+  pagination: false,
   scroll: { x: 1550 },
   size: 'middle',
 }

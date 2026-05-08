@@ -314,11 +314,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
 }
 
 export const RULES_TABLE_PROPS: Partial<TableProps<TRuleRow>> = {
-  pagination: {
-    position: ['bottomLeft'],
-    showSizeChanger: true,
-    hideOnSinglePage: false,
-  },
+  pagination: false,
   scroll: { x: 2290 },
   size: 'middle',
 }

@@ -6,6 +6,7 @@ import {
   MobileDetailPane,
   ResizeHandle,
   SplitLayout,
+  TablePageShell,
   TablePane,
 } from '../../atoms/TableSplitters'
 import {
@@ -42,6 +43,7 @@ const BottomActionBar = styled.div`
 export const Styled = {
   DETAIL_PANEL_MIN_WIDTH,
   DETAIL_PANEL_SPLITTER_WIDTH,
+  TablePageShell,
   SplitLayout,
   TablePane,
   ResizeHandle,
