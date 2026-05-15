@@ -22,6 +22,8 @@ The panel renders read-only values from the selected table row:
 
 `metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix. `AddressGroup.refs` is backend-computed data and is not displayed by this panel.
 
+`spec.logs` and `spec.trace` render with the same status icons used in the table: a green check for enabled and a red cross for disabled.
+
 Tags are stacked vertically in the verbose layout.
 
 ## Bound Entities Tree

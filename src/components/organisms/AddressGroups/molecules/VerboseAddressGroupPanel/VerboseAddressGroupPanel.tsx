@@ -30,8 +30,8 @@ import {
 } from 'components/atoms'
 import {
   formatAnnotationEntries,
-  formatBooleanFlag,
   formatMapEntries,
+  renderBooleanStatusIcon,
   renderBadgeWithValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
@@ -239,10 +239,10 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             <div>{renderValue(addressGroup.spec?.displayName)}</div>
 
             <Typography.Text type="secondary">Logs</Typography.Text>
-            <div>{formatBooleanFlag(addressGroup.spec?.logs)}</div>
+            <div>{renderBooleanStatusIcon(addressGroup.spec?.logs)}</div>
 
             <Typography.Text type="secondary">Trace</Typography.Text>
-            <div>{formatBooleanFlag(addressGroup.spec?.trace)}</div>
+            <div>{renderBooleanStatusIcon(addressGroup.spec?.trace)}</div>
 
             <Typography.Text type="secondary">Description</Typography.Text>
             <div>{renderValue(addressGroup.spec?.description)}</div>

@@ -141,8 +141,6 @@ export const TreeContainer = styled.div`
 
 export const InfoTag = styled(Tag)`
   margin-inline-end: 0;
-  padding-inline: 10px;
-  border-radius: 999px;
 `
 
 export const TagsContainer = styled.div`

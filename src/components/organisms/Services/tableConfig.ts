@@ -1,5 +1,6 @@
+/* eslint-disable react/no-array-index-key */
 import React from 'react'
-import { Button, Space, TableProps, Tag, Tooltip } from 'antd'
+import { Button, Space, TableProps, Tag, Tooltip, Typography } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
 import { formatDateTime, renderBadgeWithValue, renderNamespaceBadgeWithValue, renderTimestampWithIcon } from 'utils'
@@ -119,6 +120,69 @@ const renderTagList = (values: string[]) => {
   )
 }
 
+const formatTransportEntryText = (entry: TServiceTransportEntry, index: number) => {
+  const parts = []
+
+  if (entry.ports) {
+    parts.push(`Ports: ${entry.ports}`)
+  }
+
+  if (entry.types && entry.types.length > 0) {
+    parts.push(`Types: ${entry.types.join(', ')}`)
+  }
+
+  return parts.join(' | ') || `Entry ${index + 1}`
+}
+
+const renderTransportEntryTooltip = (entry: TServiceTransportEntry) => {
+  const details = []
+
+  if (entry.description) {
+    details.push(['Description', entry.description])
+  }
+
+  if (entry.comment) {
+    details.push(['Comment', entry.comment])
+  }
+
+  if (details.length === 0) {
+    return undefined
+  }
+
+  return React.createElement(
+    React.Fragment,
+    null,
+    ...details.map(([label, value]) =>
+      React.createElement(
+        'div',
+        { key: label },
+        React.createElement(Typography.Text, { strong: true }, `${label}:`),
+        ` ${value}`,
+      ),
+    ),
+  )
+}
+
+const renderTransportEntries = (transports?: TServiceTransport[]) => {
+  const entries = (transports || []).flatMap(transport => transport.entries || [])
+
+  if (entries.length === 0) {
+    return EMPTY_VALUE
+  }
+
+  return React.createElement(
+    Space,
+    { direction: 'vertical', size: 4 },
+    ...entries.map((entry, index) => {
+      const text = formatTransportEntryText(entry, index)
+      const tooltip = renderTransportEntryTooltip(entry)
+      const tag = React.createElement(Tag, { key: `${text}-${index}` }, text)
+
+      return tooltip ? React.createElement(Tooltip, { key: `${text}-${index}`, title: tooltip }, tag) : tag
+    }),
+  )
+}
+
 export const mapServicesToRows = (items: TServiceResource[]): TServiceRow[] =>
   items.map(item => {
     const transports = item.spec?.transports || []
@@ -195,6 +259,7 @@ export const buildServicesColumns = ({
       width: 320,
       sorter: (a, b) => stringSorter(a.transportEntries, b.transportEntries),
       ellipsis: true,
+      render: (_, record) => renderTransportEntries(record.spec?.transports),
     },
     {
       title: 'Description',

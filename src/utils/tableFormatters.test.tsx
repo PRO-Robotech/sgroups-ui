@@ -8,6 +8,7 @@ import {
   formatMapEntries,
   renderBadge,
   renderBadgeWithValue,
+  renderBooleanStatusIcon,
   renderTimestampWithIcon,
 } from './tableFormatters'
 
@@ -27,6 +28,22 @@ describe('tableFormatters', () => {
     expect(formatArrayForCell()).toBe('-')
     expect(formatArrayForCell([])).toBe('-')
     expect(formatArrayForCell(['host-a', 'host-b'])).toBe('host-a, host-b')
+  })
+
+  it('renders boolean status icons', () => {
+    const { container, rerender } = render(<>{renderBooleanStatusIcon(true)}</>)
+
+    expect(screen.getByRole('img', { name: 'Enabled' })).toBeInTheDocument()
+    expect(container.querySelector('span[title="Enabled"]')).toBeInTheDocument()
+
+    rerender(<>{renderBooleanStatusIcon(false)}</>)
+
+    expect(screen.getByRole('img', { name: 'Disabled' })).toBeInTheDocument()
+    expect(container.querySelector('span[title="Disabled"]')).toBeInTheDocument()
+
+    rerender(<>{renderBooleanStatusIcon()}</>)
+
+    expect(screen.getByText('-')).toBeInTheDocument()
   })
 
   it('filters kubectl annotations from verbose annotation entries', () => {

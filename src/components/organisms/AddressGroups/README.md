@@ -48,6 +48,14 @@ The overview tree uses parent-derived AntD Tree keys. When the shared AddressGro
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
+## Table display
+
+The AddressGroups table uses badge/tag/icon formatting consistently:
+
+- `Name` and `Namespace` render canonical resource-kind badges.
+- `Default Action` renders as a colored AntD tag.
+- `Logs` and `Trace` render as status icons: a green check for enabled and a red cross for disabled.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.
