@@ -1,4 +1,5 @@
 export * from './runtimeConfig'
 export * from './sgroupsFormUtils'
+export * from './sgroupsTableProps'
 export * from './tableFormatters'
 export * from './treeData'

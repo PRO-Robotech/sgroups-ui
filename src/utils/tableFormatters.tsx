@@ -1,4 +1,5 @@
 import React, { ReactNode } from 'react'
+import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons'
 
 const EMPTY_VALUE = '-'
 
@@ -86,6 +87,32 @@ export const formatBooleanFlag = (value?: boolean): string => {
   }
 
   return value ? 'Enabled' : 'Disabled'
+}
+
+export const renderBooleanStatusIcon = (value?: boolean) => {
+  if (typeof value !== 'boolean') {
+    return EMPTY_VALUE
+  }
+
+  const label = formatBooleanFlag(value)
+  const IconComponent = value ? CheckCircleOutlined : CloseCircleOutlined
+
+  return React.createElement(
+    'span',
+    {
+      'aria-label': label,
+      role: 'img',
+      title: label,
+      style: {
+        color: value ? '#52c41a' : '#ff4d4f',
+        display: 'inline-flex',
+        alignItems: 'center',
+        fontSize: 16,
+        lineHeight: 1,
+      },
+    },
+    React.createElement(IconComponent, { 'aria-hidden': true }),
+  )
 }
 
 export const normalizeTrafficValue = (value?: string) => {

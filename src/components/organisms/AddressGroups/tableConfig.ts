@@ -5,6 +5,7 @@ import React from 'react'
 import {
   formatBooleanFlag,
   formatDateTime,
+  renderBooleanStatusIcon,
   renderBadgeWithValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
@@ -139,6 +140,7 @@ export const buildAddressGroupsColumns = ({
       key: 'logs',
       width: 140,
       sorter: (a, b) => booleanSorter(a.spec?.logs, b.spec?.logs),
+      render: (_, record) => renderBooleanStatusIcon(record.spec?.logs),
     },
     {
       title: 'Trace',
@@ -146,6 +148,7 @@ export const buildAddressGroupsColumns = ({
       key: 'trace',
       width: 140,
       sorter: (a, b) => booleanSorter(a.spec?.trace, b.spec?.trace),
+      render: (_, record) => renderBooleanStatusIcon(record.spec?.trace),
     },
     {
       title: 'Description',
@@ -213,11 +216,7 @@ export const buildAddressGroupsColumns = ({
 }
 
 export const ADDRESS_GROUPS_TABLE_PROPS: Partial<TableProps<TAddressGroupRow>> = {
-  pagination: {
-    position: ['bottomLeft'],
-    showSizeChanger: true,
-    hideOnSinglePage: false,
-  },
+  pagination: false,
   scroll: { x: 1700 },
   size: 'middle',
 }

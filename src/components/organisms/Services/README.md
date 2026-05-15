@@ -41,6 +41,14 @@ The modal Structure Overview is derived from selected AddressGroups and the curr
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
+## Table display
+
+The Services table keeps transport display aligned with verbose panels:
+
+- `Protocols` and `IP Families` values render as AntD tags.
+- Transport entries render one tag per entry in the `Entries` column.
+- Entry descriptions and comments are shown in tooltips instead of inline tag text.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

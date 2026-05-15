@@ -5,8 +5,9 @@ import { useSelector } from 'react-redux'
 import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
+import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
-import { getDeleteModalResource, TDeleteModalResource } from 'utils'
+import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
 import { AddressGroupFormModal, VerboseAddressGroupPanel } from './molecules'
 import {
   ADDRESS_GROUPS_TABLE_PROPS,
@@ -49,6 +50,8 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   const contentCardHeight = useContentCardHeight()
 
   const splitLayoutRef = useRef<HTMLDivElement>(null)
+  const tablePaneRef = useRef<HTMLDivElement>(null)
+  const tableBodyHeight = useTableBodyHeight(tablePaneRef)
 
   const [selectedAddressGroupKey, setSelectedAddressGroupKey] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -200,82 +203,81 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
 
   return (
     <ContentCard displayFlex flexFlow="column" flexGrow={1} maxHeight={contentCardHeight}>
-      <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
-        <TenantSelector cluster={cluster} tenant={namespace} />
-        {error && <Alert type="error" message={`Failed to load address groups: ${String(error)}`} showIcon />}
-        {isLoading && !addressGroupsData && <Spin />}
-        {!error && addressGroupsData && (
-          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
-            <Styled.SplitLayout
-              ref={splitLayoutRef}
-              $detailWidth={verboseWidth}
-              $isDetailOpen={Boolean(selectedAddressGroup)}
-              style={addressGroupsLayoutStyle}
-            >
-              <Styled.TablePane>
-                <EnrichedTable<TAddressGroupRow>
-                  theme={theme}
-                  dataSource={dataSource}
-                  columns={columns}
-                  rowClickable
-                  rowClassName={record => (record.key === selectedAddressGroupKey ? 'address-group-row-selected' : '')}
-                  onRow={record => ({
-                    onClick: () => handleRowClick(record),
-                  })}
-                  tableProps={{
-                    borderless: true,
-                    paginationPosition: ['bottomRight'],
-                    isTotalLeft: true,
-                    disablePagination: Boolean(ADDRESS_GROUPS_TABLE_PROPS.pagination === false),
-                  }}
-                  withoutControls
-                />
-              </Styled.TablePane>
-              {selectedAddressGroup && (
-                <>
-                  <Styled.ResizeHandle
-                    aria-label="Resize address group details panel"
-                    role="separator"
-                    onMouseDown={event => {
-                      event.preventDefault()
-                      setIsResizing(true)
-                    }}
+      <Styled.TablePageShell $height={contentCardHeight}>
+        <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
+          <TenantSelector cluster={cluster} tenant={namespace} />
+          {error && <Alert type="error" message={`Failed to load address groups: ${String(error)}`} showIcon />}
+          {isLoading && !addressGroupsData && <Spin />}
+          {!error && addressGroupsData && (
+            <Flex vertical style={{ flex: 1, minHeight: 0 }}>
+              <Styled.SplitLayout
+                ref={splitLayoutRef}
+                $detailWidth={verboseWidth}
+                $isDetailOpen={Boolean(selectedAddressGroup)}
+                style={addressGroupsLayoutStyle}
+              >
+                <Styled.TablePane ref={tablePaneRef}>
+                  <EnrichedTable<TAddressGroupRow>
+                    theme={theme}
+                    dataSource={dataSource}
+                    columns={columns}
+                    rowClickable
+                    rowClassName={record =>
+                      record.key === selectedAddressGroupKey ? 'address-group-row-selected' : ''
+                    }
+                    onRow={record => ({
+                      onClick: () => handleRowClick(record),
+                    })}
+                    tableProps={getSgroupsTableProps(ADDRESS_GROUPS_TABLE_PROPS.scroll?.x, tableBodyHeight)}
+                    withoutControls
                   />
-                  <Styled.DetailPane>
-                    <VerboseAddressGroupPanel
-                      cluster={cluster}
-                      namespace={namespace}
-                      addressGroup={selectedAddressGroup}
-                      width={verboseWidth}
-                      onClose={closeVerbose}
-                      onCollapse={collapseVerbose}
-                      onExpand={expandVerbose}
+                </Styled.TablePane>
+                {selectedAddressGroup && (
+                  <>
+                    <Styled.ResizeHandle
+                      aria-label="Resize address group details panel"
+                      role="separator"
+                      onMouseDown={event => {
+                        event.preventDefault()
+                        setIsResizing(true)
+                      }}
                     />
-                  </Styled.DetailPane>
-                </>
+                    <Styled.DetailPane>
+                      <VerboseAddressGroupPanel
+                        cluster={cluster}
+                        namespace={namespace}
+                        addressGroup={selectedAddressGroup}
+                        width={verboseWidth}
+                        onClose={closeVerbose}
+                        onCollapse={collapseVerbose}
+                        onExpand={expandVerbose}
+                      />
+                    </Styled.DetailPane>
+                  </>
+                )}
+              </Styled.SplitLayout>
+              {selectedAddressGroup && (
+                <Styled.MobileDetailPane style={addressGroupsLayoutStyle}>
+                  <VerboseAddressGroupPanel
+                    cluster={cluster}
+                    namespace={namespace}
+                    addressGroup={selectedAddressGroup}
+                    onClose={closeVerbose}
+                    onCollapse={collapseVerbose}
+                    onExpand={expandVerbose}
+                  />
+                </Styled.MobileDetailPane>
               )}
-            </Styled.SplitLayout>
-            {selectedAddressGroup && (
-              <Styled.MobileDetailPane style={addressGroupsLayoutStyle}>
-                <VerboseAddressGroupPanel
-                  cluster={cluster}
-                  namespace={namespace}
-                  addressGroup={selectedAddressGroup}
-                  onClose={closeVerbose}
-                  onCollapse={collapseVerbose}
-                  onExpand={expandVerbose}
-                />
-              </Styled.MobileDetailPane>
-            )}
-            <Styled.BottomActionBar style={addressGroupsLayoutStyle}>
-              <Button type="primary" onClick={openCreateModal}>
-                <PlusOutlined />
-                Add Address Group
-              </Button>
-            </Styled.BottomActionBar>
-          </Flex>
-        )}
-      </Flex>
+              <Styled.BottomActionBar style={addressGroupsLayoutStyle}>
+                <Button type="primary" onClick={openCreateModal}>
+                  <PlusOutlined />
+                  Add Address Group
+                </Button>
+              </Styled.BottomActionBar>
+            </Flex>
+          )}
+        </Flex>
+      </Styled.TablePageShell>
       {isModalOpen && (
         <AddressGroupFormModal
           cluster={cluster}

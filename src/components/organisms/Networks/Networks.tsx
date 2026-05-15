@@ -5,8 +5,9 @@ import { useSelector } from 'react-redux'
 import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
+import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
-import { getDeleteModalResource, TDeleteModalResource } from 'utils'
+import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
 import { Styled } from './styled'
 import {
   buildNetworksColumns,
@@ -49,6 +50,8 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
   const contentCardHeight = useContentCardHeight()
 
   const splitLayoutRef = useRef<HTMLDivElement>(null)
+  const tablePaneRef = useRef<HTMLDivElement>(null)
+  const tableBodyHeight = useTableBodyHeight(tablePaneRef)
 
   const [selectedNetworkKey, setSelectedNetworkKey] = useState<string | null>(null)
   const [isFormModalOpen, setIsFormModalOpen] = useState(false)
@@ -203,82 +206,79 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
 
   return (
     <ContentCard displayFlex flexFlow="column" flexGrow={1} maxHeight={contentCardHeight}>
-      <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
-        <TenantSelector cluster={cluster} tenant={namespace} />
-        {error && <Alert type="error" message={`Failed to load networks: ${String(error)}`} showIcon />}
-        {isLoading && !networksData && <Spin />}
-        {!error && networksData && (
-          <Flex vertical style={{ flex: 1, minHeight: 0 }}>
-            <Styled.SplitLayout
-              ref={splitLayoutRef}
-              $detailWidth={verboseWidth}
-              $isDetailOpen={Boolean(selectedNetwork)}
-              style={networksLayoutStyle}
-            >
-              <Styled.TablePane>
-                <EnrichedTable<TNetworkRow>
-                  theme={theme}
-                  dataSource={dataSource}
-                  columns={columns}
-                  rowClickable
-                  rowClassName={record => (record.key === selectedNetworkKey ? 'network-row-selected' : '')}
-                  onRow={record => ({
-                    onClick: () => handleRowClick(record),
-                  })}
-                  tableProps={{
-                    borderless: true,
-                    paginationPosition: ['bottomRight'],
-                    isTotalLeft: true,
-                    disablePagination: Boolean(NETWORKS_TABLE_PROPS.pagination === false),
-                  }}
-                  withoutControls
-                />
-              </Styled.TablePane>
-              {selectedNetwork && (
-                <>
-                  <Styled.ResizeHandle
-                    aria-label="Resize network details panel"
-                    role="separator"
-                    onMouseDown={event => {
-                      event.preventDefault()
-                      setIsResizing(true)
-                    }}
+      <Styled.TablePageShell $height={contentCardHeight}>
+        <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
+          <TenantSelector cluster={cluster} tenant={namespace} />
+          {error && <Alert type="error" message={`Failed to load networks: ${String(error)}`} showIcon />}
+          {isLoading && !networksData && <Spin />}
+          {!error && networksData && (
+            <Flex vertical style={{ flex: 1, minHeight: 0 }}>
+              <Styled.SplitLayout
+                ref={splitLayoutRef}
+                $detailWidth={verboseWidth}
+                $isDetailOpen={Boolean(selectedNetwork)}
+                style={networksLayoutStyle}
+              >
+                <Styled.TablePane ref={tablePaneRef}>
+                  <EnrichedTable<TNetworkRow>
+                    theme={theme}
+                    dataSource={dataSource}
+                    columns={columns}
+                    rowClickable
+                    rowClassName={record => (record.key === selectedNetworkKey ? 'network-row-selected' : '')}
+                    onRow={record => ({
+                      onClick: () => handleRowClick(record),
+                    })}
+                    tableProps={getSgroupsTableProps(NETWORKS_TABLE_PROPS.scroll?.x, tableBodyHeight)}
+                    withoutControls
                   />
-                  <Styled.DetailPane>
-                    <VerboseNetworkPanel
-                      cluster={cluster}
-                      namespace={namespace}
-                      network={selectedNetwork}
-                      width={verboseWidth}
-                      onClose={closeVerbose}
-                      onCollapse={collapseVerbose}
-                      onExpand={expandVerbose}
+                </Styled.TablePane>
+                {selectedNetwork && (
+                  <>
+                    <Styled.ResizeHandle
+                      aria-label="Resize network details panel"
+                      role="separator"
+                      onMouseDown={event => {
+                        event.preventDefault()
+                        setIsResizing(true)
+                      }}
                     />
-                  </Styled.DetailPane>
-                </>
+                    <Styled.DetailPane>
+                      <VerboseNetworkPanel
+                        cluster={cluster}
+                        namespace={namespace}
+                        network={selectedNetwork}
+                        width={verboseWidth}
+                        onClose={closeVerbose}
+                        onCollapse={collapseVerbose}
+                        onExpand={expandVerbose}
+                      />
+                    </Styled.DetailPane>
+                  </>
+                )}
+              </Styled.SplitLayout>
+              {selectedNetwork && (
+                <Styled.MobileDetailPane style={networksLayoutStyle}>
+                  <VerboseNetworkPanel
+                    cluster={cluster}
+                    namespace={namespace}
+                    network={selectedNetwork}
+                    onClose={closeVerbose}
+                    onCollapse={collapseVerbose}
+                    onExpand={expandVerbose}
+                  />
+                </Styled.MobileDetailPane>
               )}
-            </Styled.SplitLayout>
-            {selectedNetwork && (
-              <Styled.MobileDetailPane style={networksLayoutStyle}>
-                <VerboseNetworkPanel
-                  cluster={cluster}
-                  namespace={namespace}
-                  network={selectedNetwork}
-                  onClose={closeVerbose}
-                  onCollapse={collapseVerbose}
-                  onExpand={expandVerbose}
-                />
-              </Styled.MobileDetailPane>
-            )}
-            <Styled.BottomActionBar style={networksLayoutStyle}>
-              <Button type="primary" onClick={openCreateModal}>
-                <PlusOutlined />
-                Add Network
-              </Button>
-            </Styled.BottomActionBar>
-          </Flex>
-        )}
-      </Flex>
+              <Styled.BottomActionBar style={networksLayoutStyle}>
+                <Button type="primary" onClick={openCreateModal}>
+                  <PlusOutlined />
+                  Add Network
+                </Button>
+              </Styled.BottomActionBar>
+            </Flex>
+          )}
+        </Flex>
+      </Styled.TablePageShell>
       {isFormModalOpen && (
         <NetworkFormModal
           key={formModalInstanceKey}

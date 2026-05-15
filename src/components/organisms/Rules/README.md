@@ -78,6 +78,16 @@ Rule.spec.session
 
 Traffic values are normalized to the local OpenAPI enum casing (`Both`, `Ingress`, or `Egress`) before form prefill and before writes.
 
+## Table display
+
+The Rules table uses badge/tag formatting consistently:
+
+- `Name` and `Namespace` render canonical resource-kind badges.
+- `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints; `FQDN` and `CIDR` endpoints render their direct values.
+- `Action`, `Protocol`, `IP family`, and transport entries render as AntD tags.
+- Transport entries render one tag per entry. Entry descriptions and comments are shown in tooltips instead of inline tag text.
+- `Name`, `Local`, `Remote`, and `Created` are intentionally wider than compact enum columns so common rule names, endpoint labels, and timestamps wrap less often.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

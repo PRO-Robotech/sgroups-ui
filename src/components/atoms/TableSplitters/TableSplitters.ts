@@ -8,6 +8,15 @@ export type TSplitLayoutProps = {
   $isDetailOpen: boolean
 }
 
+const MIN_TABLE_PAGE_HEIGHT = 240
+
+export const TablePageShell = styled.div<{ $height: number }>`
+  display: flex;
+  flex-direction: column;
+  height: ${({ $height }) => Math.max(MIN_TABLE_PAGE_HEIGHT, $height)}px;
+  min-height: 0;
+`
+
 export const SplitLayout = styled.div<TSplitLayoutProps>`
   display: grid;
   flex: 1;
@@ -39,23 +48,26 @@ export const TablePane = styled.div`
   min-width: 0;
   overflow: hidden;
 
+  > div,
+  > div > div {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    min-width: 0;
+  }
+
   .ant-table-wrapper,
   .ant-spin-nested-loading,
   .ant-spin-container {
-    height: 100%;
-  }
-
-  .ant-table-wrapper,
-  .ant-spin-nested-loading,
-  .ant-spin-container,
-  .ant-table {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-  }
-
-  .ant-table-container {
     flex: 1;
+    min-height: 0;
+    min-width: 0;
+  }
+
+  .ant-table-body {
+    overflow: auto !important;
+    scrollbar-width: thin;
   }
 
   .ant-table-tbody > .address-group-row-selected > td,

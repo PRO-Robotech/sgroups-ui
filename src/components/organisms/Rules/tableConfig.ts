@@ -1,5 +1,6 @@
+/* eslint-disable react/no-array-index-key */
 import React from 'react'
-import { Button, Space, TableProps, Tag, Tooltip } from 'antd'
+import { Button, Space, TableProps, Tag, Tooltip, Typography } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
 import {
@@ -93,6 +94,14 @@ const renderActionTag = (value?: string) => {
   return React.createElement(Tag, { color: value === 'Allow' ? 'green' : 'red' }, value)
 }
 
+const renderValueTag = (value?: string) => {
+  if (!value || value === EMPTY_VALUE) {
+    return EMPTY_VALUE
+  }
+
+  return React.createElement(Tag, null, value)
+}
+
 const formatEndpointLabel = (endpoint?: TRuleEndpoint): string => {
   if (!endpoint) {
     return EMPTY_VALUE
@@ -129,20 +138,65 @@ const renderEndpointLabel = (endpoint?: TRuleEndpoint) => {
   return renderNamespacedResourceValue(endpoint.type || 'Endpoint', endpoint.namespace, name)
 }
 
-const formatTransportSummary = (field: 'ports' | 'types', entries?: TRuleTransportEntry[]) => {
+const formatTransportEntryText = (entry: TRuleTransportEntry, index: number) => {
+  const parts = []
+
+  if (entry.ports) {
+    parts.push(`Ports: ${entry.ports}`)
+  }
+
+  if (entry.types && entry.types.length > 0) {
+    parts.push(`Types: ${entry.types.join(', ')}`)
+  }
+
+  return parts.join(' | ') || `Entry ${index + 1}`
+}
+
+const renderTransportEntryTooltip = (entry: TRuleTransportEntry) => {
+  const details = []
+
+  if (entry.description) {
+    details.push(['Description', entry.description])
+  }
+
+  if (entry.comment) {
+    details.push(['Comment', entry.comment])
+  }
+
+  if (details.length === 0) {
+    return undefined
+  }
+
+  return React.createElement(
+    React.Fragment,
+    null,
+    ...details.map(([label, value]) =>
+      React.createElement(
+        'div',
+        { key: label },
+        React.createElement(Typography.Text, { strong: true }, `${label}:`),
+        ` ${value}`,
+      ),
+    ),
+  )
+}
+
+const renderTransportEntries = (entries?: TRuleTransportEntry[]) => {
   if (!entries || entries.length === 0) {
     return EMPTY_VALUE
   }
 
-  const values = entries.flatMap(entry => {
-    if (field === 'ports') {
-      return entry.ports ? [entry.ports] : []
-    }
+  return React.createElement(
+    Space,
+    { direction: 'vertical', size: 4 },
+    ...entries.map((entry, index) => {
+      const text = formatTransportEntryText(entry, index)
+      const tooltip = renderTransportEntryTooltip(entry)
+      const tag = React.createElement(Tag, { key: `${text}-${index}` }, text)
 
-    return entry.types && entry.types.length > 0 ? [entry.types.join(', ')] : []
-  })
-
-  return values.length > 0 ? values.join(' | ') : EMPTY_VALUE
+      return tooltip ? React.createElement(Tooltip, { key: `${text}-${index}`, title: tooltip }, tag) : tag
+    }),
+  )
 }
 
 export const mapRulesToRows = (items: TRuleResource[]): TRuleRow[] =>
@@ -167,7 +221,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       dataIndex: ['metadata', 'name'],
       key: 'name',
       fixed: 'left',
-      width: 180,
+      width: 260,
       sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
       render: value => renderBadgeWithValue('Rule', value),
     },
@@ -207,6 +261,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       key: 'protocol',
       width: 140,
       sorter: (a, b) => stringSorter(a.protocol, b.protocol),
+      render: value => renderValueTag(value),
     },
     {
       title: 'IP Family',
@@ -214,12 +269,13 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       key: 'ipFamily',
       width: 140,
       sorter: (a, b) => stringSorter(a.ipFamily, b.ipFamily),
+      render: value => renderValueTag(value),
     },
     {
       title: 'Local',
       dataIndex: 'localEndpoint',
       key: 'localEndpoint',
-      width: 220,
+      width: 360,
       sorter: (a, b) => stringSorter(a.localEndpoint, b.localEndpoint),
       render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.local),
     },
@@ -227,7 +283,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       title: 'Remote',
       dataIndex: 'remoteEndpoint',
       key: 'remoteEndpoint',
-      width: 220,
+      width: 360,
       sorter: (a, b) => stringSorter(a.remoteEndpoint, b.remoteEndpoint),
       render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.remote),
     },
@@ -235,18 +291,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       title: 'Ports / Types',
       key: 'transportEntries',
       width: 240,
-      render: (_, record) => {
-        const ports = formatTransportSummary('ports', record.spec?.transport?.entries)
-        const types = formatTransportSummary('types', record.spec?.transport?.entries)
-
-        if (ports === EMPTY_VALUE && types === EMPTY_VALUE) {
-          return EMPTY_VALUE
-        }
-
-        return [ports !== EMPTY_VALUE ? `Ports: ${ports}` : '', types !== EMPTY_VALUE ? `Types: ${types}` : '']
-          .filter(Boolean)
-          .join(' | ')
-      },
+      render: (_, record) => renderTransportEntries(record.spec?.transport?.entries),
     },
     {
       title: 'Description',
@@ -260,7 +305,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       title: 'Created',
       dataIndex: ['metadata', 'creationTimestamp'],
       key: 'created',
-      width: 180,
+      width: 240,
       sorter: (a, b) =>
         new Date(a.metadata.creationTimestamp || 0).getTime() - new Date(b.metadata.creationTimestamp || 0).getTime(),
       render: value => renderTimestampWithIcon(value),
@@ -314,11 +359,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
 }
 
 export const RULES_TABLE_PROPS: Partial<TableProps<TRuleRow>> = {
-  pagination: {
-    position: ['bottomLeft'],
-    showSizeChanger: true,
-    hideOnSinglePage: false,
-  },
-  scroll: { x: 2290 },
+  pagination: false,
+  scroll: { x: 2710 },
   size: 'middle',
 }
