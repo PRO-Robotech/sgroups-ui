@@ -11,6 +11,8 @@ export type TSplitLayoutProps = {
 const MIN_TABLE_PAGE_HEIGHT = 240
 
 export const TablePageShell = styled.div<{ $height: number }>`
+  --enriched-table-scrollbar-bottom-offset: 0px;
+
   display: flex;
   flex-direction: column;
   height: ${({ $height }) => Math.max(MIN_TABLE_PAGE_HEIGHT, $height)}px;
@@ -67,7 +69,6 @@ export const TablePane = styled.div`
 
   .ant-table-body {
     overflow: auto !important;
-    scrollbar-width: thin;
   }
 
   .ant-table-tbody > .address-group-row-selected > td,
