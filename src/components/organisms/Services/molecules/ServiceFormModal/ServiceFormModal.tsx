@@ -28,6 +28,7 @@ import {
   PROTOCOL_OPTIONS,
   renderBadgeWithValue,
   validatePortToken,
+  withFallbackNamespace,
 } from 'utils'
 import { TServiceResource } from '../../tableConfig'
 import { buildServiceTransports, flattenServiceTransports } from './transportUtils'
@@ -51,8 +52,9 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
   const didApplyEditPrefillRef = useRef(false)
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
-  const formValues = Form.useWatch([], form) as TServiceFormValues | undefined
-  const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
+  const selectedAddressGroupNamespaceValue = Form.useWatch('addressGroupNamespace', form)
+  const selectedAddressGroupsValue = Form.useWatch('addressGroups', form)
+  const selectedAddressGroups = useMemo(() => selectedAddressGroupsValue || [], [selectedAddressGroupsValue])
   const isEditMode = Boolean(service)
   const modalTitle = service?.spec?.displayName || service?.metadata.name || 'Service'
 
@@ -133,9 +135,9 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     () => buildCurrentBindings(service, serviceBindingsData?.items),
     [service, serviceBindingsData?.items],
   )
-  const selectedAddressGroupNamespace = formValues
-    ? formValues.addressGroupNamespace
-    : currentBindings[0]?.spec?.addressGroup?.namespace || namespace
+  const selectedAddressGroupNamespace =
+    selectedAddressGroupNamespaceValue ??
+    (!isInitialized ? currentBindings[0]?.spec?.addressGroup?.namespace || namespace : undefined)
   const isAddressGroupsQueryEnabled = open && Boolean(selectedAddressGroupNamespace)
   const {
     data: addressGroupsData,
@@ -149,18 +151,22 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     plural: 'addressgroups',
     isEnabled: isAddressGroupsQueryEnabled,
   })
+  const addressGroups = useMemo(
+    () => withFallbackNamespace(addressGroupsData?.items, selectedAddressGroupNamespace),
+    [addressGroupsData?.items, selectedAddressGroupNamespace],
+  )
   const addressGroupOptions = useMemo(
-    () => getAddressGroupOptions(addressGroupsData?.items, { showNamespace: false }),
-    [addressGroupsData?.items],
+    () => getAddressGroupOptions(addressGroups, { showNamespace: false }),
+    [addressGroups],
   )
   const scopedAddressGroups = useMemo(
     () =>
       selectedAddressGroupNamespace
-        ? (addressGroupsData?.items || []).filter(
+        ? (addressGroups || []).filter(
             addressGroup => addressGroup.metadata.namespace === selectedAddressGroupNamespace,
           )
         : [],
-    [addressGroupsData?.items, selectedAddressGroupNamespace],
+    [addressGroups, selectedAddressGroupNamespace],
   )
   const scopedSelectedAddressGroups = useMemo(
     () =>
@@ -222,7 +228,9 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       isHostsLoading ||
       isNetworksLoading ||
       isServicesLoading)
-  const isFormResourcesLoading = isTenantsLoading || Boolean(service && isServiceBindingsLoading)
+  const isFormResourcesLoading =
+    isTenantsLoading ||
+    Boolean(service && (isServiceBindingsLoading || (isAddressGroupsQueryEnabled && isAddressGroupsLoading)))
   const isInitialLoadPending = open && !isInitialized
   const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
 

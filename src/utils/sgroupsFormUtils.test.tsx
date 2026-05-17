@@ -19,6 +19,7 @@ import {
   validateCIDR,
   validateNetworkCIDR,
   validatePortToken,
+  withFallbackNamespace,
 } from './sgroupsFormUtils'
 
 describe('sgroupsFormUtils', () => {
@@ -78,6 +79,21 @@ describe('sgroupsFormUtils', () => {
     expect(getBindingLookupKey({ namespace: 'tenant-a', name: 'resource-a' })).toBe('tenant-a/resource-a')
     expect(getBindingLookupKey({ name: 'resource-a' })).toBe('/resource-a')
     expect(getBindingLookupKey()).toBeNull()
+  })
+
+  it('applies fallback namespace to namespace-scoped resource responses', () => {
+    expect(
+      withFallbackNamespace(
+        [
+          { metadata: { name: 'ag-a' } },
+          { metadata: { namespace: 'tenant-b', name: 'ag-b' } },
+        ],
+        'tenant-a',
+      ),
+    ).toEqual([
+      { metadata: { namespace: 'tenant-a', name: 'ag-a' } },
+      { metadata: { namespace: 'tenant-b', name: 'ag-b' } },
+    ])
   })
 
   it('builds sorted namespace and namespaced resource options', () => {

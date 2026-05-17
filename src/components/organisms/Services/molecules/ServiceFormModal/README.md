@@ -26,6 +26,7 @@ The form stores UI-friendly values:
 - `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
 - AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because the namespace is chosen in the preceding selector.
+- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies `addressGroupNamespace` before building options so AntD can resolve selected values to badge labels.
 - `transportEntries` stores repeated UI rows and is normalized back to `spec.transports` only at submit time.
 
 The submit handler validates and reads the full form store, including fields hidden behind the segmented panel.
@@ -105,4 +106,6 @@ Transport entries support `TCP`, `UDP`, and `ICMP`.
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after resources needed for the form are ready. Keep segmented panel state independent from shared overview data so hidden panel fields do not break submit or overview rendering.
+Edit prefill should run once per open cycle after resources needed for the form are ready. That includes AddressGroup options for the selected AddressGroup namespace, otherwise AntD can render prefilled selections as raw `namespace/name` values instead of the same badge labels used after create-mode selection. Keep segmented panel state independent from shared overview data so hidden panel fields do not break submit or overview rendering.
+
+Use field-specific AntD watchers for `addressGroupNamespace` and `addressGroups`. Watching the whole form can return an empty object before initialization and accidentally disable the initial AddressGroup options query.

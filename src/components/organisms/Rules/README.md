@@ -162,7 +162,7 @@ The right sidebar renders a `Structure Overview` tree with separate top-level `L
 ## Modal lifecycle
 
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
-- Edit prefill runs once per open cycle after the async resources needed for the form are ready.
+- Edit prefill runs once per open cycle after the async resources needed for the form are ready, including endpoint options for selected AddressGroup and Service endpoints so edit labels render like create selections.
 - The loading state uses React state, not refs read during render.
 
 ## Schema Source

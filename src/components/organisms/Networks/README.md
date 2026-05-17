@@ -11,6 +11,7 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 - `Display name`: optional, max 63 chars. Create mode is prefilled with `networks-`.
 - `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
 - `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
+- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the selected AddressGroup namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
 - `CIDR`: required. The form validates CIDR shape and requires a network address with zero host bits, for example `10.0.0.0/8` or `2001:db8::/64`.
 - `Description`: optional.
 - `Comment`: optional.
@@ -87,7 +88,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 - The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
 - That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
-- Edit prefill waits only for resources needed to initialize the form. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
+- Edit prefill waits for existing `NetworkBinding` resources and AddressGroup options before setting selected AddressGroups, so edit tags render with the same badge labels as create selections. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
 
 ## Schema source
 

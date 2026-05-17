@@ -25,6 +25,7 @@ The form stores UI-friendly values:
 - `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
 - AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because the namespace is chosen in the preceding selector.
+- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies `addressGroupNamespace` before building options so AntD can resolve selected values to badge labels.
 - AddressGroup options are disabled until `addressGroupNamespace` is selected. Changing `addressGroupNamespace` clears `addressGroups`.
 - Submit filters stale `addressGroups` values to the current `addressGroupNamespace` so retained AntD form state cannot save bindings from a previous namespace.
 
@@ -67,6 +68,7 @@ Edit mode receives an existing `host` prop.
 - Changed values use `patchEntryWithReplaceOp`.
 - AddressGroup selection is initialized from existing `HostBinding` resources, not from `refs`.
 - AddressGroup namespace is initialized from the first existing `HostBinding.spec.addressGroup.namespace` when available.
+- Current `HostBinding` lookup falls back to `HostBinding.metadata.namespace` when `spec.host.namespace` is omitted, because Host bindings are created in the Host namespace.
 - Removed selections delete bindings.
 - Added selections create bindings in the Host namespace.
 - If no editable fields or bindings changed, no update request is sent.
@@ -89,4 +91,6 @@ The overview tree starts collapsed by default. Do not set `defaultExpandAll` or 
 
 The parent conditionally renders the modal only while it is open and increments a modal instance `key` before each create/edit open. This forces a real React unmount/remount for modal-local hooks and state. The AntD modal still uses `destroyOnHidden` for its internal subtree, but lifecycle correctness must not rely on that alone.
 
-Edit prefill should run once per open cycle after resources needed for the form are ready.
+Edit prefill should run once per open cycle after resources needed for the form are ready. That includes AddressGroup options for the selected AddressGroup namespace, otherwise AntD can render prefilled selections as raw `namespace/name` values instead of the same badge labels used after create-mode selection.
+
+Use field-specific AntD watchers for `addressGroupNamespace` and `addressGroups`. Watching the whole form can return an empty object before initialization and accidentally disable the initial AddressGroup options query.

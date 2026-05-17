@@ -27,7 +27,7 @@ The form stores UI-friendly values:
 
 `traffic` is stored in the form as the capitalized select value (`Both`, `Ingress`, or `Egress`) and saved with the same casing.
 
-Edit prefill normalizes backend traffic values before calling `setFieldsValue` so AntD can match the current select option.
+Edit prefill normalizes backend traffic values before calling `setFieldsValue` so AntD can match the current select option. It also waits for endpoint resource options needed by the current Local and Remote endpoint types, so prefilled AddressGroup and Service selections render with the same badge labels as create-mode selections.
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 
@@ -102,4 +102,6 @@ The overview tree starts collapsed by default. Do not set `defaultExpandAll` or 
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after resources needed for the form are ready. Modal loading gates should use React state, not refs read during render.
+Edit prefill should run once per open cycle after resources needed for the form are ready, including endpoint resource options for selected AddressGroup and Service endpoints. Modal loading gates should use React state, not refs read during render.
+
+Use field-specific AntD watchers for Local and Remote endpoint blocks. Watching the whole form can return an empty object before initialization and accidentally disable endpoint option queries that need edit-mode endpoint namespaces.

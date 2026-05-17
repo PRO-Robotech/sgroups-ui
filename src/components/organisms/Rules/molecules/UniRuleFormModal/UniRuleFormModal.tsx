@@ -100,14 +100,17 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const didApplyEditPrefillRef = useRef(false)
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
-  const formValues = Form.useWatch([], form) as TUniRuleFormValues | undefined
+  const localFormValue = Form.useWatch('local', form) as TUniRuleFormValues['local'] | undefined
+  const remoteFormValue = Form.useWatch('remote', form) as TUniRuleFormValues['remote'] | undefined
   const isEditMode = Boolean(rule)
   const modalTitle = rule?.spec?.displayName || rule?.metadata.name || 'UniRule'
   const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
-  const localType = formValues ? formValues.local?.type : currentRuleFormValues.local?.type
-  const remoteType = formValues ? formValues.remote?.type : currentRuleFormValues.remote?.type
-  const localNamespace = formValues ? formValues.local?.namespace : currentRuleFormValues.local?.namespace
-  const remoteNamespace = formValues ? formValues.remote?.namespace : currentRuleFormValues.remote?.namespace
+  const localFormEndpoint = localFormValue ?? (!isInitialized ? currentRuleFormValues.local : undefined)
+  const remoteFormEndpoint = remoteFormValue ?? (!isInitialized ? currentRuleFormValues.remote : undefined)
+  const localType = localFormEndpoint?.type
+  const remoteType = remoteFormEndpoint?.type
+  const localNamespace = localFormEndpoint?.namespace
+  const remoteNamespace = remoteFormEndpoint?.namespace
   const isLocalAddressGroupsQueryEnabled = open && localType === 'AddressGroup' && Boolean(localNamespace)
   const isRemoteAddressGroupsQueryEnabled = open && remoteType === 'AddressGroup' && Boolean(remoteNamespace)
 
@@ -253,8 +256,8 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     () => getNamespacedResourceOptions(servicesData?.items, 'Service'),
     [servicesData?.items],
   )
-  const localEndpoint = useMemo(() => buildEndpointPayload(formValues?.local), [formValues?.local])
-  const remoteEndpoint = useMemo(() => buildEndpointPayload(formValues?.remote), [formValues?.remote])
+  const localEndpoint = useMemo(() => buildEndpointPayload(localFormEndpoint), [localFormEndpoint])
+  const remoteEndpoint = useMemo(() => buildEndpointPayload(remoteFormEndpoint), [remoteFormEndpoint])
   const isLocalEndpointChanged = useMemo(
     () =>
       Boolean(rule) &&
@@ -345,7 +348,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       isServiceBindingsLoading ||
       isHostsLoading ||
       isNetworksLoading)
-  const isFormResourcesLoading = isTenantsLoading
+  const areEndpointOptionsLoading =
+    ((localType === 'Service' || remoteType === 'Service') && isServicesLoading) ||
+    (isLocalAddressGroupsQueryEnabled && isLocalAddressGroupsLoading) ||
+    (isRemoteAddressGroupsQueryEnabled && isRemoteAddressGroupsLoading)
+  const isFormResourcesLoading = isTenantsLoading || Boolean(rule && areEndpointOptionsLoading)
   const isInitialLoadPending = open && !isInitialized
   const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
 

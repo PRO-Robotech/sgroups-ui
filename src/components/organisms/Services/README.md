@@ -11,6 +11,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `Display name`: optional, max 63 chars. Create mode is prefilled with `services-`.
 - `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
 - `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
+- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the selected AddressGroup namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
 - `Description`: optional.
 - `Comment`: optional.
 - `Transports`: UI-friendly repeated entries that are normalized into `spec.transports` at submit time.
@@ -92,7 +93,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
 - Segmented content reads and submits the full form store, not only the currently visible panel fields.
 - Transport data is kept UI-friendly in the form and normalized back to `spec.transports` only at submit time.
-- Edit prefill waits only for resources needed to initialize the form. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
+- Edit prefill waits for existing `ServiceBinding` resources and AddressGroup options before setting selected AddressGroups, so edit tags render with the same badge labels as create selections. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
 
 ## Schema source
 

@@ -135,4 +135,18 @@ describe('NetworkFormModal', () => {
     expect(mockCreateNewEntry).not.toHaveBeenCalled()
     expect(onClose).not.toHaveBeenCalled()
   })
+
+  it('starts the address group options query from the initial namespace', async () => {
+    renderModal(<NetworkFormModal cluster="cluster-a" namespace="tenant-a" open onClose={jest.fn()} />)
+
+    await screen.findByPlaceholderText('e.g. h-api-prod-01')
+
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({
+        namespace: 'tenant-a',
+        plural: 'addressgroups',
+        isEnabled: true,
+      }),
+    )
+  })
 })

@@ -26,6 +26,7 @@ import {
   NAME_PATTERN,
   normalizeOptionalString,
   renderBadgeWithValue,
+  withFallbackNamespace,
 } from 'utils'
 import { THostFormModalProps, THostFormValues } from './types'
 import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAddressGroupBindings } from './utils'
@@ -44,8 +45,9 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
   const didApplyEditPrefillRef = useRef(false)
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
-  const formValues = Form.useWatch([], form) as THostFormValues | undefined
-  const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
+  const selectedAddressGroupNamespaceValue = Form.useWatch('addressGroupNamespace', form)
+  const selectedAddressGroupsValue = Form.useWatch('addressGroups', form)
+  const selectedAddressGroups = useMemo(() => selectedAddressGroupsValue || [], [selectedAddressGroupsValue])
   const isEditMode = Boolean(host)
   const modalTitle = host?.spec?.displayName || host?.metadata.name || 'Host'
 
@@ -126,9 +128,9 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
     () => buildCurrentBindings(host, hostBindingsData?.items),
     [host, hostBindingsData?.items],
   )
-  const selectedAddressGroupNamespace = formValues
-    ? formValues.addressGroupNamespace
-    : currentBindings[0]?.spec?.addressGroup?.namespace || namespace
+  const selectedAddressGroupNamespace =
+    selectedAddressGroupNamespaceValue ??
+    (!isInitialized ? currentBindings[0]?.spec?.addressGroup?.namespace || namespace : undefined)
   const isAddressGroupsQueryEnabled = open && Boolean(selectedAddressGroupNamespace)
   const {
     data: addressGroupsData,
@@ -142,18 +144,22 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
     plural: 'addressgroups',
     isEnabled: isAddressGroupsQueryEnabled,
   })
+  const addressGroups = useMemo(
+    () => withFallbackNamespace(addressGroupsData?.items, selectedAddressGroupNamespace),
+    [addressGroupsData?.items, selectedAddressGroupNamespace],
+  )
   const addressGroupOptions = useMemo(
-    () => getAddressGroupOptions(addressGroupsData?.items, { showNamespace: false }),
-    [addressGroupsData?.items],
+    () => getAddressGroupOptions(addressGroups, { showNamespace: false }),
+    [addressGroups],
   )
   const scopedAddressGroups = useMemo(
     () =>
       selectedAddressGroupNamespace
-        ? (addressGroupsData?.items || []).filter(
+        ? (addressGroups || []).filter(
             addressGroup => addressGroup.metadata.namespace === selectedAddressGroupNamespace,
           )
         : [],
-    [addressGroupsData?.items, selectedAddressGroupNamespace],
+    [addressGroups, selectedAddressGroupNamespace],
   )
   const scopedSelectedAddressGroups = useMemo(
     () =>
@@ -215,7 +221,9 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
       isHostsLoading ||
       isNetworksLoading ||
       isServicesLoading)
-  const isFormResourcesLoading = isTenantsLoading || Boolean(host && isHostBindingsLoading)
+  const isFormResourcesLoading =
+    isTenantsLoading ||
+    Boolean(host && (isHostBindingsLoading || (isAddressGroupsQueryEnabled && isAddressGroupsLoading)))
   const isInitialLoadPending = open && !isInitialized
   const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
 

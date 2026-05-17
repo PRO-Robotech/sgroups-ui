@@ -142,6 +142,22 @@ export const buildNamespacedValue = (resource?: { namespace?: string; name?: str
 export const getBindingLookupKey = (resource?: { name?: string; namespace?: string }) =>
   resource?.name ? `${resource.namespace || ''}/${resource.name}` : null
 
+export const withFallbackNamespace = <TResource extends { metadata: { namespace?: string } }>(
+  items: TResource[] | undefined,
+  fallbackNamespace?: string,
+) =>
+  items?.map(item =>
+    item.metadata.namespace || !fallbackNamespace
+      ? item
+      : {
+          ...item,
+          metadata: {
+            ...item.metadata,
+            namespace: fallbackNamespace,
+          },
+        },
+  )
+
 export const getNamespaceOptions = (items?: Array<{ metadata?: { name?: string } }>) =>
   [...new Set((items || []).map(item => item.metadata?.name).filter((value): value is string => Boolean(value)))]
     .sort((first, second) => first.localeCompare(second))
