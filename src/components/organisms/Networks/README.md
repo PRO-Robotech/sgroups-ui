@@ -9,9 +9,8 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 - `Namespace`: required. Network namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars. Create mode is prefilled with `networks-`.
-- `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
-- `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
-- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the selected AddressGroup namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
+- `Address group`: optional multi-select. Disabled until the Network namespace is known. Options are fetched only from the Network namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
+- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the Network namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
 - `CIDR`: required. The form validates CIDR shape and requires a network address with zero host bits, for example `10.0.0.0/8` or `2001:db8::/64`.
 - `Description`: optional.
 - `Comment`: optional.
@@ -38,7 +37,7 @@ Each binding:
 
 The UI does not write `Network.refs`. Treat it as computed/read-only backend data.
 
-The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. Selected AddressGroups are filtered to the current AddressGroup namespace before rendering or submit, then grouped by namespace first. Each AddressGroup child reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
+The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. Selected AddressGroups are filtered to the Network namespace before rendering or submit, then grouped by namespace first. Each AddressGroup child reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
 
 Overview tree keys are parent-derived and prefixed with the namespace and selected AddressGroup overview node keys, so repeated resources remain unique in AntD Tree.
 
@@ -64,8 +63,8 @@ In edit mode:
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
 - `CIDR` is validated as a network CIDR and patched only when its trimmed value actually changed.
 - AddressGroup membership is initialized from existing `NetworkBinding` resources and remains editable.
-- AddressGroup namespace is initialized from existing `NetworkBinding.spec.addressGroup.namespace` when available.
-- Changing AddressGroup namespace clears the current AddressGroup selection.
+- AddressGroup namespace is the Network namespace.
+- Changing the Network namespace clears the current AddressGroup selection.
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Network namespace.
 - If no editable field changed and no binding changed, no update request is sent.

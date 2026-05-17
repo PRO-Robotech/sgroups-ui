@@ -22,12 +22,12 @@ The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Network. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `CIDR`, `description`, and `comment` map to editable `spec` fields.
-- `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
+- `addressGroupNamespace` is hidden and mirrors the Network namespace. It controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
-- AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because the namespace is chosen in the preceding selector.
+- AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because AddressGroups are scoped to the Network namespace.
 - Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies `addressGroupNamespace` before building options so AntD can resolve selected values to badge labels.
-- AddressGroup options are disabled until `addressGroupNamespace` is selected. Changing `addressGroupNamespace` clears `addressGroups`.
-- Submit filters stale `addressGroups` values to the current `addressGroupNamespace` so retained AntD form state cannot save bindings from a previous namespace.
+- AddressGroup options are disabled until the Network namespace is known. Changing the Network namespace clears `addressGroups`.
+- Submit filters stale `addressGroups` values to the Network namespace so retained AntD form state cannot save bindings from another namespace.
 
 The local `v2` OpenAPI dump is the source of truth for the resource shape. Do not write `Network.refs` from this modal. It is backend-computed data.
 
@@ -38,7 +38,7 @@ AntD form rules mirror the local API docs and backend test fixtures:
 - `namespace` is a required Kubernetes DNS label, max 63 chars.
 - `name` is a hidden required Kubernetes DNS label, generated as a UUID in create mode, max 63 chars.
 - `displayName` is optional, max 63 chars. Create mode is prefilled with `networks-`.
-- `addressGroupNamespace` is an optional Kubernetes DNS label, max 63 chars.
+- `addressGroupNamespace` is a hidden Kubernetes DNS label mirrored from `namespace`.
 - `CIDR` is required and must be a network CIDR with zero host bits. Values like `10.0.0.0/8`, `0.0.0.0/0`, and `2001:db8::/64` are valid; host-address CIDRs like `5.5.5.5/8` and `::1/8` are rejected before submit.
 
 ## Create Flow
@@ -65,7 +65,7 @@ Edit mode receives an existing `network` prop.
 - Changed values use `patchEntryWithReplaceOp`.
 - `CIDR` is validated as a network CIDR and patched only when its trimmed value actually changed.
 - AddressGroup selection is initialized from existing `NetworkBinding` resources, not from `refs`.
-- AddressGroup namespace is initialized from the first existing `NetworkBinding.spec.addressGroup.namespace` when available.
+- AddressGroup namespace is initialized from the Network namespace.
 - Removed selections delete bindings.
 - Added selections create bindings in the Network namespace.
 - If no editable fields or bindings changed, no update request is sent.
@@ -74,7 +74,7 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 ## Structure Overview
 
-The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are filtered to the current `addressGroupNamespace`, grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
+The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are filtered to the Network namespace, grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
 
 In edit mode, newly selected AddressGroups are shown with a subtle green background and left accent. The pending Network binding is also injected into that AddressGroup branch so the overview previews the post-save graph.
 

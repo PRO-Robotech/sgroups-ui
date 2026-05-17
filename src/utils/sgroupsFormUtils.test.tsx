@@ -5,7 +5,10 @@ import {
   compactSpec,
   FQDN_PATTERN,
   getApiEndpoint,
+  getAddressGroupCascaderOptions,
+  getAddressGroupCascaderValue,
   getAddressGroupOptions,
+  getAddressGroupValuesFromCascader,
   getBindingLookupKey,
   getNamespacedResourceOptions,
   getNamespaceOptions,
@@ -84,10 +87,7 @@ describe('sgroupsFormUtils', () => {
   it('applies fallback namespace to namespace-scoped resource responses', () => {
     expect(
       withFallbackNamespace(
-        [
-          { metadata: { name: 'ag-a' } },
-          { metadata: { namespace: 'tenant-b', name: 'ag-b' } },
-        ],
+        [{ metadata: { name: 'ag-a' } }, { metadata: { namespace: 'tenant-b', name: 'ag-b' } }],
         'tenant-a',
       ),
     ).toEqual([
@@ -160,6 +160,31 @@ describe('sgroupsFormUtils', () => {
     render(<div>{options[0].label}</div>)
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
     expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
+  })
+
+  it('builds lazy AddressGroup cascader options and converts selected values', () => {
+    const options = getAddressGroupCascaderOptions({
+      namespaces: getNamespaceOptions([
+        { metadata: { name: 'tenant-a' } },
+        { metadata: { name: 'tenant-b' } },
+        { metadata: { name: 'tenant-c' } },
+      ]),
+      addressGroupsByNamespace: {
+        'tenant-a': [{ metadata: { namespace: 'tenant-a', name: 'ag-a' }, spec: { displayName: 'Address Group A' } }],
+      },
+      selectedValues: ['tenant-b/ag-b'],
+    })
+
+    expect(options.find(option => option.value === 'tenant-a')?.children?.[0].value).toBe('ag-a')
+    expect(options.find(option => option.value === 'tenant-b')?.children?.[0].value).toBe('ag-b')
+    expect(options.find(option => option.value === 'tenant-c')?.children).toBeUndefined()
+    expect(getAddressGroupCascaderValue(['tenant-a/ag-a'])).toEqual([['tenant-a', 'ag-a']])
+    expect(getAddressGroupValuesFromCascader([['tenant-a', 'ag-a']])).toEqual(['tenant-a/ag-a'])
+    expect(
+      getAddressGroupValuesFromCascader([['tenant-a']], {
+        'tenant-a': [{ metadata: { namespace: 'tenant-a', name: 'ag-a' }, spec: { displayName: 'Address Group A' } }],
+      }),
+    ).toEqual(['tenant-a/ag-a'])
   })
 
   it('validates Kubernetes names and FQDNs with exported patterns', () => {

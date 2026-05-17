@@ -2,7 +2,8 @@ import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined } from '@ant-design/icons'
 import { Empty, Form, Input, message, Modal, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
-import { useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -129,20 +130,22 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
     [network, networkBindingsData?.items],
   )
   const selectedAddressGroupNamespace =
-    selectedAddressGroupNamespaceValue ??
-    (!isInitialized ? currentBindings[0]?.spec?.addressGroup?.namespace || namespace : undefined)
+    selectedAddressGroupNamespaceValue ?? (!isInitialized ? network?.metadata.namespace || namespace : undefined)
   const isAddressGroupsQueryEnabled = open && Boolean(selectedAddressGroupNamespace)
   const {
     data: addressGroupsData,
     isLoading: isAddressGroupsLoading,
     error: addressGroupsError,
-  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
-    cluster,
-    namespace: selectedAddressGroupNamespace,
-    apiGroup: API_GROUP,
-    apiVersion: API_VERSION,
-    plural: 'addressgroups',
-    isEnabled: isAddressGroupsQueryEnabled,
+  } = useQuery({
+    queryKey: ['addressgroup-options', cluster, selectedAddressGroupNamespace],
+    queryFn: async () => {
+      const response = await axios.get<{ items: TAddressGroupResource[] }>(
+        getApiEndpoint(cluster, selectedAddressGroupNamespace || '', 'addressgroups'),
+      )
+
+      return response.data
+    },
+    enabled: isAddressGroupsQueryEnabled,
   })
   const addressGroups = useMemo(
     () => withFallbackNamespace(addressGroupsData?.items, selectedAddressGroupNamespace),
@@ -244,7 +247,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
         cidr: network.spec?.CIDR,
         description: network.spec?.description,
         comment: network.spec?.comment,
-        addressGroupNamespace: currentBindings[0]?.spec?.addressGroup?.namespace || namespace,
+        addressGroupNamespace: network.metadata.namespace || namespace,
         addressGroups: currentBindings
           .map(binding => buildNamespacedValue(binding.spec?.addressGroup))
           .filter((value): value is string => Boolean(value)),
@@ -427,7 +430,8 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                     loading={isTenantsLoading}
                     disabled={isEditMode}
                     status={tenantsError ? 'error' : undefined}
-                    onChange={() => {
+                    onChange={value => {
+                      form.setFieldValue('addressGroupNamespace', value)
                       form.setFieldValue('addressGroups', [])
                     }}
                   />
@@ -456,25 +460,8 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                 >
                   <Input placeholder="e.g. server-01.prod" />
                 </Form.Item>
-                <Form.Item
-                  name="addressGroupNamespace"
-                  label="Address group namespace"
-                  rules={[
-                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                    { max: 63, message: 'Namespace must be 63 characters or less' },
-                  ]}
-                >
-                  <Select
-                    showSearch
-                    allowClear
-                    placeholder="Select namespace"
-                    options={namespaceOptions}
-                    loading={isTenantsLoading}
-                    status={tenantsError ? 'error' : undefined}
-                    onChange={() => {
-                      form.setFieldValue('addressGroups', [])
-                    }}
-                  />
+                <Form.Item name="addressGroupNamespace" hidden>
+                  <Input />
                 </Form.Item>
                 <Form.Item
                   name="addressGroups"

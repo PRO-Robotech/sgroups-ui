@@ -9,9 +9,8 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `Namespace`: required. Service namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars. Create mode is prefilled with `services-`.
-- `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
-- `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
-- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the selected AddressGroup namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
+- `Address group`: optional multi-select Cascader. The first level is namespace and the second level is AddressGroup. AddressGroups can be selected from any namespace; each namespace branch is loaded only when needed. Selected tags include a canonical `Namespace` badge and `AddressGroup` badge. Values are stored as `namespace/name`.
+- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the Cascader branch namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
 - `Description`: optional.
 - `Comment`: optional.
 - `Transports`: UI-friendly repeated entries that are normalized into `spec.transports` at submit time.
@@ -38,7 +37,7 @@ Each binding:
 
 The UI does not write a refs-like field on Service. AddressGroup membership is managed through `ServiceBinding` resources.
 
-The modal Structure Overview is derived from selected AddressGroups and the current binding graph. Selected AddressGroups are filtered to the current AddressGroup namespace before rendering or submit, then grouped by namespace first. Overview tree keys are parent-derived and prefixed with the namespace and selected AddressGroup overview node keys, so repeated resources remain unique in AntD Tree.
+The modal Structure Overview is derived from selected AddressGroups and the current binding graph. Selected AddressGroups can span namespaces and are grouped by namespace first. Overview tree keys are parent-derived and prefixed with the namespace and selected AddressGroup overview node keys, so repeated resources remain unique in AntD Tree.
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
@@ -68,8 +67,8 @@ In edit mode:
 - Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared.
 - Changed values are saved with `patchEntryWithReplaceOp`.
 - AddressGroup membership is initialized from existing `ServiceBinding` resources and remains editable.
-- AddressGroup namespace is initialized from existing `ServiceBinding.spec.addressGroup.namespace` when available.
-- Changing AddressGroup namespace clears the current AddressGroup selection.
+- AddressGroup Cascader branches are lazy-loaded by namespace.
+- Changing or expanding one AddressGroup namespace does not clear selections from other namespaces.
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Service namespace.
 - If no editable field changed and no binding changed, no update request is sent.
@@ -93,7 +92,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
 - Segmented content reads and submits the full form store, not only the currently visible panel fields.
 - Transport data is kept UI-friendly in the form and normalized back to `spec.transports` only at submit time.
-- Edit prefill waits for existing `ServiceBinding` resources and AddressGroup options before setting selected AddressGroups, so edit tags render with the same badge labels as create selections. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
+- Edit prefill initializes selected AddressGroups from existing `ServiceBinding` resources. Cascader branches are loaded as needed so tags render with namespace and AddressGroup badges. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
 
 ## Schema source
 

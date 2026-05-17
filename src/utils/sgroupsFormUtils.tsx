@@ -33,6 +33,19 @@ export type TResourceOption = {
   resourceLabel?: string
 }
 
+export type TAddressGroupCascaderPath = [string, string]
+
+export type TAddressGroupCascaderOption = {
+  value: string
+  label: ReactNode
+  searchText?: string
+  resourceLabel?: string
+  isLeaf?: boolean
+  loading?: boolean
+  disabled?: boolean
+  children?: TAddressGroupCascaderOption[]
+}
+
 export type TNamespacedResource = {
   kind?: string
   metadata: {
@@ -203,6 +216,127 @@ export const getNamespacedResourceOptions = (
 
 export const getAddressGroupOptions = (items?: TAddressGroupResource[], config?: TNamespacedResourceOptionsConfig) =>
   getNamespacedResourceOptions(items, 'AddressGroup', config)
+
+export const getAddressGroupCascaderOptions = ({
+  namespaces,
+  addressGroupsByNamespace,
+  selectedValues = [],
+  loadingNamespace,
+}: {
+  namespaces?: Array<{ value: string; label: ReactNode }>
+  addressGroupsByNamespace: Record<string, TAddressGroupResource[] | undefined>
+  selectedValues?: string[]
+  loadingNamespace?: string
+}): TAddressGroupCascaderOption[] => {
+  const namespaceNames = new Set((namespaces || []).map(option => option.value))
+
+  selectedValues.forEach(value => {
+    const { namespace } = parseNamespacedValue(value)
+
+    if (namespace) {
+      namespaceNames.add(namespace)
+    }
+  })
+
+  return [...namespaceNames]
+    .sort((first, second) => first.localeCompare(second))
+    .map(namespaceValue => {
+      const namespaceOption = (namespaces || []).find(option => option.value === namespaceValue)
+      const isNamespaceCached = Object.prototype.hasOwnProperty.call(addressGroupsByNamespace, namespaceValue)
+      const isNamespaceLoading = loadingNamespace === namespaceValue
+      const loadedAddressGroups = addressGroupsByNamespace[namespaceValue]
+      const loadedChildren = getAddressGroupOptions(loadedAddressGroups, { showNamespace: false }).map(option => ({
+        value: parseNamespacedValue(option.value).name || option.value,
+        label: option.label,
+        searchText: option.searchText,
+        resourceLabel: option.resourceLabel,
+        isLeaf: true,
+      }))
+      const selectedChildren = selectedValues
+        .map(value => parseNamespacedValue(value))
+        .filter(value => value.namespace === namespaceValue && Boolean(value.name))
+        .map(value => ({
+          value: value.name || '',
+          label: renderBadgeWithValue('AddressGroup', value.name || ''),
+          searchText: `${namespaceValue} ${value.name || ''}`.trim(),
+          resourceLabel: value.name || '',
+          isLeaf: true,
+        }))
+      const childrenByValue = new Map([...selectedChildren, ...loadedChildren].map(option => [option.value, option]))
+
+      const children = [...childrenByValue.values()].sort((first, second) =>
+        (first.searchText || first.value).localeCompare(second.searchText || second.value),
+      )
+      let childOptions: TAddressGroupCascaderOption[] | undefined
+
+      if (children.length > 0) {
+        childOptions = children
+      } else if (isNamespaceLoading) {
+        childOptions = [{ value: '__loading__', label: 'Loading address groups...', disabled: true, isLeaf: true }]
+      } else if (isNamespaceCached) {
+        childOptions = [{ value: '__empty__', label: 'No address groups', disabled: true, isLeaf: true }]
+      }
+
+      return {
+        value: namespaceValue,
+        label: namespaceOption?.label || renderNamespaceBadgeWithValue(namespaceValue),
+        isLeaf: false,
+        loading: isNamespaceLoading,
+        ...(childOptions ? { children: childOptions } : {}),
+      }
+    })
+}
+
+export const getAddressGroupCascaderValue = (values?: string[]): TAddressGroupCascaderPath[] =>
+  (values || [])
+    .map(value => parseNamespacedValue(value))
+    .filter((value): value is { namespace: string; name: string } => Boolean(value.namespace && value.name))
+    .map(value => [value.namespace, value.name])
+
+export const renderAddressGroupCascaderSelection = (
+  labels: ReactNode[],
+  selectedOptions?: TAddressGroupCascaderOption[],
+) => {
+  const namespaceValue = String(selectedOptions?.[0]?.value || labels[0] || '')
+  const addressGroupOption = selectedOptions?.[1]
+  const addressGroupValue = String(addressGroupOption?.resourceLabel || addressGroupOption?.value || labels[1] || '')
+
+  if (!addressGroupValue || addressGroupValue.startsWith('__')) {
+    return renderNamespaceBadgeWithValue(namespaceValue)
+  }
+
+  return renderNamespacedResourceValue('AddressGroup', namespaceValue, addressGroupValue)
+}
+
+export const getAddressGroupValuesFromCascader = (
+  paths?: Array<Array<string | number>>,
+  addressGroupsByNamespace?: Record<string, TAddressGroupResource[] | undefined>,
+): string[] => [
+  ...new Set(
+    (paths || []).flatMap(path => {
+      const namespace = String(path[0] || '')
+      const name = String(path[1] || '')
+
+      if (!namespace) {
+        return []
+      }
+
+      if (!name && addressGroupsByNamespace?.[namespace]) {
+        return (addressGroupsByNamespace[namespace] || [])
+          .map(addressGroup => buildNamespacedValue({ namespace, name: addressGroup.metadata.name }))
+          .filter((value): value is string => Boolean(value))
+      }
+
+      if (name.startsWith('__')) {
+        return []
+      }
+
+      const value = buildNamespacedValue({ namespace, name })
+
+      return value ? [value] : []
+    }),
+  ),
+]
 
 export const getScopedResourceOptions = (options: TResourceOption[], selectedNamespace?: string) =>
   selectedNamespace

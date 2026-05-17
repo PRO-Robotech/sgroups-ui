@@ -23,15 +23,16 @@ The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Service. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `description`, and `comment` map to editable `spec` fields.
-- `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
+- `addressGroupNamespace` is hidden legacy form state kept for compatibility; Cascader branch loading is driven by modal state, not by this field.
 - `addressGroups` stores selected AddressGroups as namespaced values.
-- AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because the namespace is chosen in the preceding selector.
-- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies `addressGroupNamespace` before building options so AntD can resolve selected values to badge labels.
+- AddressGroup selection uses a multi-select Cascader. The first level is namespace and the second level is AddressGroup. AddressGroups can be selected from any namespace; each namespace branch is loaded only when needed.
+- Selected AddressGroup tags include namespace and AddressGroup badges. AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists.
+- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the Cascader branch namespace before building options so AntD can resolve selected values to badge labels.
 - `transportEntries` stores repeated UI rows and is normalized back to `spec.transports` only at submit time.
 
 The submit handler validates and reads the full form store, including fields hidden behind the segmented panel.
 
-Changing `addressGroupNamespace` clears `addressGroups`. Submit also filters stale `addressGroups` values to the current `addressGroupNamespace` so retained AntD form state cannot save bindings from a previous namespace.
+Changing or expanding one AddressGroup namespace does not clear selections from other namespaces. Submit preserves selected `namespace/name` values across namespaces.
 
 ## Validation
 
@@ -40,7 +41,7 @@ The modal uses AntD form rules for backend-backed constraints:
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 chars.
 - `displayName`: optional, max 63 chars. Create mode is prefilled with `services-`.
-- `addressGroupNamespace`: optional Kubernetes resource namespace, max 63 chars.
+- `addressGroupNamespace`: hidden compatibility field; not user-editable.
 - `transportEntries[].IPv`: required, must be `IPv4` or `IPv6`.
 - `transportEntries[].protocol`: required, must be `TCP`, `UDP`, or `ICMP`.
 - `transportEntries[].ports`: required for `TCP` and `UDP`; accepts comma-separated ports and ranges.
@@ -75,7 +76,7 @@ Edit mode receives an existing `service` prop.
 - Changed values use `patchEntryWithReplaceOp`.
 - `spec.transports` is patched only when normalized transport data changed.
 - AddressGroup selection is initialized from existing `ServiceBinding` resources.
-- AddressGroup namespace is initialized from the first existing `ServiceBinding.spec.addressGroup.namespace` when available.
+- AddressGroup Cascader selections are initialized from existing `ServiceBinding.spec.addressGroup` values.
 - Removed selections delete bindings.
 - Added selections create bindings in the Service namespace.
 - If no editable fields or bindings changed, no update request is sent.
@@ -84,13 +85,13 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 ## Structure Overview
 
-The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are filtered to the current `addressGroupNamespace`, grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
+The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups can span namespaces and are grouped by namespace first. Each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
 
 In edit mode, newly selected AddressGroups are shown with a subtle green background and left accent. The pending Service binding is also injected into that AddressGroup branch so the overview previews the post-save graph.
 
 Each selected AddressGroup overview node passes its own `overview-{namespace/name}` key as the tree key prefix. Nested namespace, section, binding, transport, entry, empty, and error keys then extend their parent key so repeated resources remain unique across the full AntD Tree.
 
-The overview tree is remounted when AddressGroup namespace or selection changes. Overview graph fetches do not block the form after initial prefill; the sidebar renders from currently available data instead of holding an infinite spinner.
+The overview tree is remounted when AddressGroup selection changes. Overview graph fetches do not block the form after initial prefill; the sidebar renders from currently available data instead of holding an infinite spinner.
 
 The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
 
@@ -106,6 +107,6 @@ Transport entries support `TCP`, `UDP`, and `ICMP`.
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after resources needed for the form are ready. That includes AddressGroup options for the selected AddressGroup namespace, otherwise AntD can render prefilled selections as raw `namespace/name` values instead of the same badge labels used after create-mode selection. Keep segmented panel state independent from shared overview data so hidden panel fields do not break submit or overview rendering.
+Edit prefill should run once per open cycle after resources needed for the form are ready. AddressGroup Cascader branches are loaded lazily by namespace; prefilled selections may add their namespaces to the Cascader tree before those branches are opened. Keep segmented panel state independent from shared overview data so hidden panel fields do not break submit or overview rendering.
 
-Use field-specific AntD watchers for `addressGroupNamespace` and `addressGroups`. Watching the whole form can return an empty object before initialization and accidentally disable the initial AddressGroup options query.
+Use field-specific AntD watchers for `addressGroups`. Watching the whole form can return an empty object before initialization and accidentally disable dependent queries.
