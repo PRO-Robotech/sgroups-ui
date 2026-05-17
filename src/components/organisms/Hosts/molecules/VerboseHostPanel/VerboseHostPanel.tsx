@@ -175,7 +175,8 @@ const buildBoundAddressGroupsTree = ({
   )
 
   const matchedBindings = (bindings || []).filter(
-    binding => makeLookupKey(withBindingNamespaceFallback(binding.spec?.host, binding.metadata.namespace)) === targetKey,
+    binding =>
+      makeLookupKey(withBindingNamespaceFallback(binding.spec?.host, binding.metadata.namespace)) === targetKey,
   )
   const children = matchedBindings.map(binding => {
     const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]

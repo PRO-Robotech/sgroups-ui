@@ -49,12 +49,6 @@ const PROTOCOL_VALUES = PROTOCOL_OPTIONS.map(option => option.value)
 const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
 const isProtocolValue = (value?: string) => !value || PROTOCOL_VALUES.some(optionValue => optionValue === value)
 const isAntdValidationError = (error: unknown) => Boolean(error && typeof error === 'object' && 'errorFields' in error)
-const DEBUG_ADDRESS_GROUPS = true
-const logAddressGroupsDebug = (event: string, payload: Record<string, unknown>) => {
-  if (DEBUG_ADDRESS_GROUPS) {
-    console.log(`[ServiceFormModal AddressGroups] ${event}`, payload)
-  }
-}
 
 export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespace, open, service, onClose }) => {
   const [form] = Form.useForm<TServiceFormValues>()
@@ -164,16 +158,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     queryKey: ['addressgroup-options', cluster, selectedAddressGroupNamespace],
     queryFn: async () => {
       const endpoint = getApiEndpoint(cluster, selectedAddressGroupNamespace || '', 'addressgroups')
-      logAddressGroupsDebug('query:start', {
-        namespace: selectedAddressGroupNamespace,
-        endpoint,
-      })
       const response = await axios.get<{ items: TAddressGroupResource[] }>(endpoint)
-      logAddressGroupsDebug('query:success', {
-        namespace: selectedAddressGroupNamespace,
-        count: response.data.items?.length || 0,
-        names: (response.data.items || []).map(item => item.metadata.name),
-      })
 
       return response.data
     },
@@ -189,19 +174,6 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       addressGroupsByNamespace,
       selectedValues: selectedAddressGroups,
       loadingNamespace: isAddressGroupsLoading ? selectedAddressGroupNamespace : undefined,
-    })
-
-    logAddressGroupsDebug('options:build', {
-      activeNamespace: selectedAddressGroupNamespace,
-      loading: isAddressGroupsLoading,
-      selectedValues: selectedAddressGroups,
-      cachedNamespaces: Object.keys(addressGroupsByNamespace),
-      optionSummary: options.map(option => ({
-        namespace: option.value,
-        childCount: option.children?.length || 0,
-        children: option.children?.map(child => child.value),
-        loading: option.loading,
-      })),
     })
 
     return options
@@ -280,11 +252,6 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
 
   useEffect(() => {
     if (open && selectedAddressGroupNamespace && addressGroups && !isAddressGroupsLoading) {
-      logAddressGroupsDebug('cache:set', {
-        namespace: selectedAddressGroupNamespace,
-        count: addressGroups.length,
-        names: addressGroups.map(item => item.metadata.name),
-      })
       setAddressGroupsByNamespace(currentValue => ({
         ...currentValue,
         [selectedAddressGroupNamespace]: addressGroups,
@@ -560,10 +527,6 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                     getValueProps={value => ({ value: getAddressGroupCascaderValue(value) })}
                     getValueFromEvent={value => {
                       const nextValues = getAddressGroupValuesFromCascader(value, addressGroupsByNamespace)
-                      logAddressGroupsDebug('selection:change', {
-                        rawPaths: value,
-                        nextValues,
-                      })
 
                       return nextValues
                     }}
@@ -578,14 +541,6 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                         const namespaceOption = selectedOptions[0] as TAddressGroupCascaderOption | undefined
 
                         if (namespaceOption?.value) {
-                          logAddressGroupsDebug('branch:load', {
-                            namespace: namespaceOption.value,
-                            alreadyCached: Object.prototype.hasOwnProperty.call(
-                              addressGroupsByNamespace,
-                              namespaceOption.value,
-                            ),
-                            selectedOptions: selectedOptions.map(option => option.value),
-                          })
                           setAddressGroupOptionsNamespace(namespaceOption.value)
                         }
                       }}
