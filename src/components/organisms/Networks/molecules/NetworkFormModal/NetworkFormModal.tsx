@@ -2,8 +2,10 @@ import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined } from '@ant-design/icons'
 import { Empty, Form, Input, message, Modal, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
-import { useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { v4 as uuidv4 } from 'uuid'
 import {
   TAddressGroupResource,
   THostBindingResource,
@@ -24,7 +26,9 @@ import {
   NAME_PATTERN,
   normalizeOptionalString,
   renderBadgeWithValue,
+  validateDisplayName,
   validateNetworkCIDR,
+  withFallbackNamespace,
 } from 'utils'
 import { TNetworkResource } from '../../tableConfig'
 import { TNetworkFormModalProps, TNetworkFormValues } from './types'
@@ -32,6 +36,7 @@ import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAdd
 import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
+const CREATE_DISPLAY_NAME_PREFIX = 'networks-'
 const isFormValidationError = (error: unknown): error is { errorFields: unknown[] } =>
   Boolean(error && typeof error === 'object' && 'errorFields' in error)
 
@@ -42,10 +47,11 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
   const didApplyEditPrefillRef = useRef(false)
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
-  const formValues = Form.useWatch([], form) as TNetworkFormValues | undefined
-  const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
+  const selectedAddressGroupNamespaceValue = Form.useWatch('addressGroupNamespace', form)
+  const selectedAddressGroupsValue = Form.useWatch('addressGroups', form)
+  const selectedAddressGroups = useMemo(() => selectedAddressGroupsValue || [], [selectedAddressGroupsValue])
   const isEditMode = Boolean(network)
-  const modalTitle = network?.metadata.name || 'Network'
+  const modalTitle = network?.spec?.displayName || network?.metadata.name || 'Network'
 
   const {
     data: tenantsData,
@@ -124,34 +130,40 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
     () => buildCurrentBindings(network, networkBindingsData?.items),
     [network, networkBindingsData?.items],
   )
-  const selectedAddressGroupNamespace = formValues
-    ? formValues.addressGroupNamespace
-    : currentBindings[0]?.spec?.addressGroup?.namespace || namespace
+  const selectedAddressGroupNamespace =
+    selectedAddressGroupNamespaceValue ?? (!isInitialized ? network?.metadata.namespace || namespace : undefined)
   const isAddressGroupsQueryEnabled = open && Boolean(selectedAddressGroupNamespace)
   const {
     data: addressGroupsData,
     isLoading: isAddressGroupsLoading,
     error: addressGroupsError,
-  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
-    cluster,
-    namespace: selectedAddressGroupNamespace,
-    apiGroup: API_GROUP,
-    apiVersion: API_VERSION,
-    plural: 'addressgroups',
-    isEnabled: isAddressGroupsQueryEnabled,
+  } = useQuery({
+    queryKey: ['addressgroup-options', cluster, selectedAddressGroupNamespace],
+    queryFn: async () => {
+      const response = await axios.get<{ items: TAddressGroupResource[] }>(
+        getApiEndpoint(cluster, selectedAddressGroupNamespace || '', 'addressgroups'),
+      )
+
+      return response.data
+    },
+    enabled: isAddressGroupsQueryEnabled,
   })
+  const addressGroups = useMemo(
+    () => withFallbackNamespace(addressGroupsData?.items, selectedAddressGroupNamespace),
+    [addressGroupsData?.items, selectedAddressGroupNamespace],
+  )
   const addressGroupOptions = useMemo(
-    () => getAddressGroupOptions(addressGroupsData?.items, { showNamespace: false }),
-    [addressGroupsData?.items],
+    () => getAddressGroupOptions(addressGroups, { showNamespace: false }),
+    [addressGroups],
   )
   const scopedAddressGroups = useMemo(
     () =>
       selectedAddressGroupNamespace
-        ? (addressGroupsData?.items || []).filter(
+        ? (addressGroups || []).filter(
             addressGroup => addressGroup.metadata.namespace === selectedAddressGroupNamespace,
           )
         : [],
-    [addressGroupsData?.items, selectedAddressGroupNamespace],
+    [addressGroups, selectedAddressGroupNamespace],
   )
   const scopedSelectedAddressGroups = useMemo(
     () =>
@@ -213,7 +225,9 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
       isHostsLoading ||
       isNetworksLoading ||
       isServicesLoading)
-  const isFormResourcesLoading = isTenantsLoading || Boolean(network && isNetworkBindingsLoading)
+  const isFormResourcesLoading =
+    isTenantsLoading ||
+    Boolean(network && (isNetworkBindingsLoading || (isAddressGroupsQueryEnabled && isAddressGroupsLoading)))
   const isInitialLoadPending = open && !isInitialized
   const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
 
@@ -234,7 +248,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
         cidr: network.spec?.CIDR,
         description: network.spec?.description,
         comment: network.spec?.comment,
-        addressGroupNamespace: currentBindings[0]?.spec?.addressGroup?.namespace || namespace,
+        addressGroupNamespace: network.metadata.namespace || namespace,
         addressGroups: currentBindings
           .map(binding => buildNamespacedValue(binding.spec?.addressGroup))
           .filter((value): value is string => Boolean(value)),
@@ -247,8 +261,8 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
       didApplyCreatePrefillRef.current = true
       form.setFieldsValue({
         namespace,
-        name: undefined,
-        displayName: undefined,
+        name: uuidv4(),
+        displayName: CREATE_DISPLAY_NAME_PREFIX,
         addressGroupNamespace: namespace,
         addressGroups: [],
         cidr: undefined,
@@ -417,7 +431,8 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                     loading={isTenantsLoading}
                     disabled={isEditMode}
                     status={tenantsError ? 'error' : undefined}
-                    onChange={() => {
+                    onChange={value => {
+                      form.setFieldValue('addressGroupNamespace', value)
                       form.setFieldValue('addressGroups', [])
                     }}
                   />
@@ -425,7 +440,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                 <Form.Item
                   name="name"
                   label="Name"
-                  hidden={isEditMode}
+                  hidden
                   rules={[
                     { required: true, message: 'Enter name' },
                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
@@ -442,29 +457,19 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                       max: DISPLAY_NAME_MAX_LENGTH,
                       message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
                     },
+                    {
+                      validator: async (_, value?: string) => {
+                        if (!validateDisplayName(value)) {
+                          throw new Error('Use letters, numbers, hyphens, and optional dots')
+                        }
+                      },
+                    },
                   ]}
                 >
                   <Input placeholder="e.g. server-01.prod" />
                 </Form.Item>
-                <Form.Item
-                  name="addressGroupNamespace"
-                  label="Address group namespace"
-                  rules={[
-                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                    { max: 63, message: 'Namespace must be 63 characters or less' },
-                  ]}
-                >
-                  <Select
-                    showSearch
-                    allowClear
-                    placeholder="Select namespace"
-                    options={namespaceOptions}
-                    loading={isTenantsLoading}
-                    status={tenantsError ? 'error' : undefined}
-                    onChange={() => {
-                      form.setFieldValue('addressGroups', [])
-                    }}
-                  />
+                <Form.Item name="addressGroupNamespace" hidden>
+                  <Input />
                 </Form.Item>
                 <Form.Item
                   name="addressGroups"

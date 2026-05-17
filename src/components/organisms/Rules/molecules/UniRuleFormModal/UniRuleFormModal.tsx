@@ -4,6 +4,7 @@ import { Button, Collapse, Empty, Form, Input, message, Modal, Segmented, Select
 import type { TreeDataNode } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { v4 as uuidv4 } from 'uuid'
 import {
   TAddressGroupResource,
   THostBindingResource,
@@ -30,6 +31,7 @@ import {
   PROTOCOL_OPTIONS,
   renderBadgeWithValue,
   validateCIDR,
+  validateDisplayName,
   validatePortToken,
 } from 'utils'
 import { buildRuleEndpointTree } from '../VerboseRulePanel/contentsTree'
@@ -48,6 +50,7 @@ import {
 import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
+const CREATE_DISPLAY_NAME_PREFIX = 'rules-'
 const ACTION_VALUES = ACTION_OPTIONS.map(option => option.value)
 const TRAFFIC_VALUES = TRAFFIC_OPTIONS.map(option => option.value)
 const ENDPOINT_TYPE_VALUES = ENDPOINT_TYPE_OPTIONS.map(option => option.value)
@@ -98,14 +101,17 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const didApplyEditPrefillRef = useRef(false)
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
-  const formValues = Form.useWatch([], form) as TUniRuleFormValues | undefined
+  const localFormValue = Form.useWatch('local', form) as TUniRuleFormValues['local'] | undefined
+  const remoteFormValue = Form.useWatch('remote', form) as TUniRuleFormValues['remote'] | undefined
   const isEditMode = Boolean(rule)
-  const modalTitle = rule?.metadata.name || 'UniRule'
+  const modalTitle = rule?.spec?.displayName || rule?.metadata.name || 'UniRule'
   const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
-  const localType = formValues ? formValues.local?.type : currentRuleFormValues.local?.type
-  const remoteType = formValues ? formValues.remote?.type : currentRuleFormValues.remote?.type
-  const localNamespace = formValues ? formValues.local?.namespace : currentRuleFormValues.local?.namespace
-  const remoteNamespace = formValues ? formValues.remote?.namespace : currentRuleFormValues.remote?.namespace
+  const localFormEndpoint = localFormValue ?? (!isInitialized ? currentRuleFormValues.local : undefined)
+  const remoteFormEndpoint = remoteFormValue ?? (!isInitialized ? currentRuleFormValues.remote : undefined)
+  const localType = localFormEndpoint?.type
+  const remoteType = remoteFormEndpoint?.type
+  const localNamespace = localFormEndpoint?.namespace
+  const remoteNamespace = remoteFormEndpoint?.namespace
   const isLocalAddressGroupsQueryEnabled = open && localType === 'AddressGroup' && Boolean(localNamespace)
   const isRemoteAddressGroupsQueryEnabled = open && remoteType === 'AddressGroup' && Boolean(remoteNamespace)
 
@@ -251,8 +257,8 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     () => getNamespacedResourceOptions(servicesData?.items, 'Service'),
     [servicesData?.items],
   )
-  const localEndpoint = useMemo(() => buildEndpointPayload(formValues?.local), [formValues?.local])
-  const remoteEndpoint = useMemo(() => buildEndpointPayload(formValues?.remote), [formValues?.remote])
+  const localEndpoint = useMemo(() => buildEndpointPayload(localFormEndpoint), [localFormEndpoint])
+  const remoteEndpoint = useMemo(() => buildEndpointPayload(remoteFormEndpoint), [remoteFormEndpoint])
   const isLocalEndpointChanged = useMemo(
     () =>
       Boolean(rule) &&
@@ -343,7 +349,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       isServiceBindingsLoading ||
       isHostsLoading ||
       isNetworksLoading)
-  const isFormResourcesLoading = isTenantsLoading
+  const areEndpointOptionsLoading =
+    ((localType === 'Service' || remoteType === 'Service') && isServicesLoading) ||
+    (isLocalAddressGroupsQueryEnabled && isLocalAddressGroupsLoading) ||
+    (isRemoteAddressGroupsQueryEnabled && isRemoteAddressGroupsLoading)
+  const isFormResourcesLoading = isTenantsLoading || Boolean(rule && areEndpointOptionsLoading)
   const isInitialLoadPending = open && !isInitialized
   const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
 
@@ -366,8 +376,8 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       didApplyCreatePrefillRef.current = true
       form.setFieldsValue({
         namespace,
-        name: undefined,
-        displayName: undefined,
+        name: uuidv4(),
+        displayName: CREATE_DISPLAY_NAME_PREFIX,
         action: 'Allow',
         traffic: 'Both',
         description: undefined,
@@ -560,7 +570,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="name"
                     label="Name"
-                    hidden={isEditMode}
+                    hidden
                     rules={[
                       { required: true, message: 'Enter name' },
                       { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
@@ -577,9 +587,16 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                         max: DISPLAY_NAME_MAX_LENGTH,
                         message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
                       },
+                      {
+                        validator: async (_, value?: string) => {
+                          if (!validateDisplayName(value)) {
+                            throw new Error('Use letters, numbers, hyphens, and optional dots')
+                          }
+                        },
+                      },
                     ]}
                   >
-                    <Input placeholder="e.g. api to db" />
+                    <Input placeholder="e.g. api-to-db" />
                   </Form.Item>
                   <Form.Item
                     name="action"

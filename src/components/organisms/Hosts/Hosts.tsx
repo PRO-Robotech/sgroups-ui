@@ -2,12 +2,13 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
-import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
 import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
+import { SgroupsDeleteModal } from 'utils/SgroupsDeleteModal'
 import { HostFormModal, VerboseHostPanel } from './molecules'
 import { Styled } from './styled'
 import { buildHostsColumns, HOSTS_TABLE_PROPS, mapHostsToRows, THostResource, THostRow } from './tableConfig'
@@ -284,7 +285,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
         />
       )}
       {deletingHost && (
-        <DeleteModal name={deletingHost.name} endpoint={deletingHost.endpoint} onClose={closeDeleteModal} />
+        <SgroupsDeleteModal title={deletingHost.title} endpoint={deletingHost.endpoint} onClose={closeDeleteModal} />
       )}
     </ContentCard>
   )

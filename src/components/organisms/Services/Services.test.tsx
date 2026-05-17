@@ -125,11 +125,9 @@ describe('Services', () => {
   it('opens delete modal from the table action', () => {
     render(<Services cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete svc-a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /delete service a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent(
-      'Delete modal tenant-a/svc-a /api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/services/svc-a',
-    )
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/SService A')
   })
 
   it('shows a loading error', () => {

@@ -1,5 +1,8 @@
 /* eslint-disable import/first */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import React from 'react'
+import { render, screen } from '@testing-library/react'
+
 const mockCreateNewEntry = jest.fn()
 const mockDeleteEntry = jest.fn()
 const mockPatchEntryWithDeleteOp = jest.fn()
@@ -39,22 +42,30 @@ describe('AddressGroupFormModal utils', () => {
     const options = getResourceOptions('Host', [
       { metadata: { name: 'z-host' } },
       { metadata: {} },
-      { metadata: { name: 'a-host' } },
+      { metadata: { name: 'a-host' }, spec: { displayName: 'App Host' } },
     ] as any)
 
     expect(options.map(option => option.value)).toEqual(['a-host', 'z-host'])
-    expect(options.map(option => option.searchText)).toEqual(['a-host', 'z-host'])
+    expect(options.map(option => option.searchText)).toEqual(['App Host', 'z-host'])
+
+    render(<div>{options[0].label}</div>)
+    expect(screen.getByText('App Host')).toBeInTheDocument()
+    expect(screen.queryByText('a-host')).not.toBeInTheDocument()
   })
 
   it('builds namespaced service options with namespace/name values', () => {
     const options = getNamespacedResourceOptions([
-      { metadata: { name: 'svc-b', namespace: 'tenant-b' } },
+      { metadata: { name: 'svc-b', namespace: 'tenant-b' }, spec: { displayName: 'Backend' } },
       { metadata: { name: 'svc-a', namespace: 'tenant-a' } },
       { metadata: { name: 'missing-namespace' } },
     ] as any)
 
     expect(options.map(option => option.value)).toEqual(['tenant-a/svc-a', 'tenant-b/svc-b'])
-    expect(options.map(option => option.searchText)).toEqual(['tenant-a svc-a', 'tenant-b svc-b'])
+    expect(options.map(option => option.searchText)).toEqual(['tenant-a svc-a', 'tenant-b Backend'])
+
+    render(<div>{options[1].label}</div>)
+    expect(screen.getByText('Backend')).toBeInTheDocument()
+    expect(screen.queryByText('svc-b')).not.toBeInTheDocument()
   })
 
   it('parses namespaced values without losing slash-containing names', () => {

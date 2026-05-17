@@ -3,6 +3,7 @@ import { CaretDownOutlined } from '@ant-design/icons'
 import { Empty, Form, Input, message, Modal, Select, Spin, Switch, Tree } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { v4 as uuidv4 } from 'uuid'
 import {
   THostBindingResource,
   THostResource,
@@ -11,7 +12,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
+import { renderBadgeWithValue, renderNamespaceBadgeWithValue, validateDisplayName } from 'utils'
 import { TAddressGroupFormModalProps, TAddressGroupFormValues } from './types'
 import {
   API_GROUP,
@@ -31,6 +32,7 @@ import {
 import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
+const CREATE_DISPLAY_NAME_PREFIX = 'addressgroups-'
 
 export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   cluster,
@@ -55,7 +57,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   const selectedNetworks = useMemo(() => selectedNetworksRaw || [], [selectedNetworksRaw])
   const effectiveAddressGroupNamespace = selectedNamespace || addressGroup?.metadata.namespace || namespace
   const isEditMode = Boolean(addressGroup)
-  const modalTitle = addressGroup?.metadata.name || 'Address group'
+  const modalTitle = addressGroup?.spec?.displayName || addressGroup?.metadata.name || 'Address group'
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
@@ -312,8 +314,8 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
     didApplyCreatePrefillRef.current = true
     form.setFieldsValue({
       namespace,
-      name: undefined,
-      displayName: undefined,
+      name: uuidv4(),
+      displayName: CREATE_DISPLAY_NAME_PREFIX,
       description: undefined,
       comment: undefined,
       allowAccess: false,
@@ -474,7 +476,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                 <Form.Item
                   name="name"
                   label="Name"
-                  hidden={isEditMode}
+                  hidden
                   rules={[
                     { required: true, message: 'Enter name' },
                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
@@ -490,6 +492,13 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                     {
                       max: DISPLAY_NAME_MAX_LENGTH,
                       message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+                    },
+                    {
+                      validator: async (_, value?: string) => {
+                        if (!validateDisplayName(value)) {
+                          throw new Error('Use letters, numbers, hyphens, and optional dots')
+                        }
+                      },
                     },
                   ]}
                 >

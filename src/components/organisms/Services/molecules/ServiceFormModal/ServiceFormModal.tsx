@@ -1,9 +1,11 @@
 import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
+import { Button, Cascader, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
-import { useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { v4 as uuidv4 } from 'uuid'
 import {
   TAddressGroupResource,
   THostBindingResource,
@@ -17,7 +19,9 @@ import {
   API_RESOURCE_VERSION,
   API_VERSION,
   buildNamespacedValue,
-  getAddressGroupOptions,
+  getAddressGroupCascaderOptions,
+  getAddressGroupCascaderValue,
+  getAddressGroupValuesFromCascader,
   getApiEndpoint,
   getNamespaceOptions,
   IPV_OPTIONS,
@@ -26,7 +30,11 @@ import {
   PORT_VALUE_SEPARATOR,
   PROTOCOL_OPTIONS,
   renderBadgeWithValue,
+  renderAddressGroupCascaderSelection,
+  TAddressGroupCascaderOption,
+  validateDisplayName,
   validatePortToken,
+  withFallbackNamespace,
 } from 'utils'
 import { TServiceResource } from '../../tableConfig'
 import { buildServiceTransports, flattenServiceTransports } from './transportUtils'
@@ -35,6 +43,7 @@ import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAdd
 import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
+const CREATE_DISPLAY_NAME_PREFIX = 'services-'
 const IPV_VALUES = IPV_OPTIONS.map(option => option.value)
 const PROTOCOL_VALUES = PROTOCOL_OPTIONS.map(option => option.value)
 const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
@@ -46,13 +55,17 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
   const [activeTab, setActiveTab] = useState<'info' | 'ports'>('info')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [addressGroupOptionsNamespace, setAddressGroupOptionsNamespace] = useState<string | undefined>()
+  const [addressGroupsByNamespace, setAddressGroupsByNamespace] = useState<
+    Record<string, TAddressGroupResource[] | undefined>
+  >({})
   const didApplyEditPrefillRef = useRef(false)
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
-  const formValues = Form.useWatch([], form) as TServiceFormValues | undefined
-  const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
+  const selectedAddressGroupsValue = Form.useWatch('addressGroups', form)
+  const selectedAddressGroups = useMemo(() => selectedAddressGroupsValue || [], [selectedAddressGroupsValue])
   const isEditMode = Boolean(service)
-  const modalTitle = service?.metadata.name || 'Service'
+  const modalTitle = service?.spec?.displayName || service?.metadata.name || 'Service'
 
   const {
     data: tenantsData,
@@ -131,45 +144,56 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     () => buildCurrentBindings(service, serviceBindingsData?.items),
     [service, serviceBindingsData?.items],
   )
-  const selectedAddressGroupNamespace = formValues
-    ? formValues.addressGroupNamespace
-    : currentBindings[0]?.spec?.addressGroup?.namespace || namespace
-  const isAddressGroupsQueryEnabled = open && Boolean(selectedAddressGroupNamespace)
+  const initialAddressGroupOptionsNamespace = !isInitialized
+    ? currentBindings[0]?.spec?.addressGroup?.namespace || namespace
+    : undefined
+  const selectedAddressGroupNamespace = addressGroupOptionsNamespace ?? initialAddressGroupOptionsNamespace
+  const isAddressGroupsQueryEnabled =
+    open && Boolean(selectedAddressGroupNamespace) && !addressGroupsByNamespace[selectedAddressGroupNamespace || '']
   const {
     data: addressGroupsData,
     isLoading: isAddressGroupsLoading,
     error: addressGroupsError,
-  } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
-    cluster,
-    namespace: selectedAddressGroupNamespace,
-    apiGroup: API_GROUP,
-    apiVersion: API_VERSION,
-    plural: 'addressgroups',
-    isEnabled: isAddressGroupsQueryEnabled,
+  } = useQuery({
+    queryKey: ['addressgroup-options', cluster, selectedAddressGroupNamespace],
+    queryFn: async () => {
+      const endpoint = getApiEndpoint(cluster, selectedAddressGroupNamespace || '', 'addressgroups')
+      const response = await axios.get<{ items: TAddressGroupResource[] }>(endpoint)
+
+      return response.data
+    },
+    enabled: isAddressGroupsQueryEnabled,
   })
-  const addressGroupOptions = useMemo(
-    () => getAddressGroupOptions(addressGroupsData?.items, { showNamespace: false }),
-    [addressGroupsData?.items],
-  )
-  const scopedAddressGroups = useMemo(
-    () =>
-      selectedAddressGroupNamespace
-        ? (addressGroupsData?.items || []).filter(
-            addressGroup => addressGroup.metadata.namespace === selectedAddressGroupNamespace,
-          )
-        : [],
+  const addressGroups = useMemo(
+    () => withFallbackNamespace(addressGroupsData?.items, selectedAddressGroupNamespace),
     [addressGroupsData?.items, selectedAddressGroupNamespace],
   )
-  const scopedSelectedAddressGroups = useMemo(
+  const addressGroupCascaderOptions = useMemo(() => {
+    const options = getAddressGroupCascaderOptions({
+      namespaces: namespaceOptions,
+      addressGroupsByNamespace,
+      selectedValues: selectedAddressGroups,
+      loadingNamespace: isAddressGroupsLoading ? selectedAddressGroupNamespace : undefined,
+    })
+
+    return options
+  }, [
+    addressGroupsByNamespace,
+    isAddressGroupsLoading,
+    namespaceOptions,
+    selectedAddressGroupNamespace,
+    selectedAddressGroups,
+  ])
+  const loadedAddressGroups = useMemo(
     () =>
-      selectedAddressGroupNamespace
-        ? selectedAddressGroups.filter(value => value.startsWith(`${selectedAddressGroupNamespace}/`))
-        : [],
-    [selectedAddressGroupNamespace, selectedAddressGroups],
+      Object.values(addressGroupsByNamespace)
+        .flat()
+        .filter((value): value is TAddressGroupResource => Boolean(value)),
+    [addressGroupsByNamespace],
   )
   const overviewKey = useMemo(
-    () => `service-overview-${selectedAddressGroupNamespace || 'none'}-${scopedSelectedAddressGroups.join('|')}`,
-    [scopedSelectedAddressGroups, selectedAddressGroupNamespace],
+    () => `service-overview-${selectedAddressGroupNamespace || 'none'}-${selectedAddressGroups.join('|')}`,
+    [selectedAddressGroupNamespace, selectedAddressGroups],
   )
   const addedAddressGroupValues = useMemo(() => {
     if (!service) {
@@ -182,13 +206,13 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
         .filter((value): value is string => Boolean(value)),
     )
 
-    return scopedSelectedAddressGroups.filter(value => !currentAddressGroups.has(value))
-  }, [currentBindings, scopedSelectedAddressGroups, service])
+    return selectedAddressGroups.filter(value => !currentAddressGroups.has(value))
+  }, [currentBindings, selectedAddressGroups, service])
   const overviewTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildOverviewTreeData({
-        addressGroups: scopedAddressGroups,
-        selectedAddressGroupValues: scopedSelectedAddressGroups,
+        addressGroups: loadedAddressGroups,
+        selectedAddressGroupValues: selectedAddressGroups,
         hostBindings: hostBindingsData?.items,
         networkBindings: networkBindingsData?.items,
         serviceBindings: serviceBindingsData?.items,
@@ -204,11 +228,11 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       hostsData?.items,
       networkBindingsData?.items,
       networksData?.items,
-      scopedAddressGroups,
-      scopedSelectedAddressGroups,
+      loadedAddressGroups,
       service,
       serviceBindingsData?.items,
       servicesData?.items,
+      selectedAddressGroups,
     ],
   )
   const isOverviewLoading =
@@ -220,14 +244,27 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       isHostsLoading ||
       isNetworksLoading ||
       isServicesLoading)
-  const isFormResourcesLoading = isTenantsLoading || Boolean(service && isServiceBindingsLoading)
+  const isFormResourcesLoading =
+    isTenantsLoading ||
+    Boolean(service && (isServiceBindingsLoading || (isAddressGroupsQueryEnabled && isAddressGroupsLoading)))
   const isInitialLoadPending = open && !isInitialized
   const isModalInitializing = !isInitialized && (isFormResourcesLoading || isInitialLoadPending)
+
+  useEffect(() => {
+    if (open && selectedAddressGroupNamespace && addressGroups && !isAddressGroupsLoading) {
+      setAddressGroupsByNamespace(currentValue => ({
+        ...currentValue,
+        [selectedAddressGroupNamespace]: addressGroups,
+      }))
+    }
+  }, [addressGroups, isAddressGroupsLoading, open, selectedAddressGroupNamespace])
 
   useEffect(() => {
     if (!open) {
       didApplyEditPrefillRef.current = false
       didApplyCreatePrefillRef.current = false
+      setAddressGroupOptionsNamespace(undefined)
+      setAddressGroupsByNamespace({})
       setIsInitialized(false)
       return
     }
@@ -246,6 +283,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
           .filter((value): value is string => Boolean(value)),
         transportEntries: flattenServiceTransports(service.spec?.transports),
       })
+      setAddressGroupOptionsNamespace(currentBindings[0]?.spec?.addressGroup?.namespace || namespace)
       setIsInitialized(true)
       return
     }
@@ -254,14 +292,15 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       didApplyCreatePrefillRef.current = true
       form.setFieldsValue({
         namespace,
-        name: undefined,
-        displayName: undefined,
+        name: uuidv4(),
+        displayName: CREATE_DISPLAY_NAME_PREFIX,
         description: undefined,
         comment: undefined,
         addressGroupNamespace: namespace,
         addressGroups: [],
         transportEntries: [],
       })
+      setAddressGroupOptionsNamespace(namespace)
       setIsInitialized(true)
     }
   }, [currentBindings, form, isFormResourcesLoading, namespace, open, service])
@@ -276,6 +315,8 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     setIsInitialized(false)
     setActiveTab('info')
     setIsSubmitting(false)
+    setAddressGroupOptionsNamespace(undefined)
+    setAddressGroupsByNamespace({})
     form.resetFields()
   }, [form, open])
 
@@ -285,6 +326,8 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     setIsInitialized(false)
     setActiveTab('info')
     setIsSubmitting(false)
+    setAddressGroupOptionsNamespace(undefined)
+    setAddressGroupsByNamespace({})
     form.resetFields()
     onClose()
   }
@@ -314,9 +357,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
 
     values = {
       ...values,
-      addressGroups: values.addressGroupNamespace
-        ? (values.addressGroups || []).filter(value => value.startsWith(`${values.addressGroupNamespace}/`))
-        : [],
+      addressGroups: values.addressGroups || [],
     }
     setIsSubmitting(true)
 
@@ -399,6 +440,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
         setIsInitialized(false)
         setActiveTab('info')
         setIsSubmitting(false)
+        setAddressGroupOptionsNamespace(undefined)
         form.resetFields()
       }}
       okText="Save"
@@ -450,7 +492,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="name"
                     label="Name"
-                    hidden={isEditMode}
+                    hidden
                     rules={[
                       { required: true, message: 'Enter name' },
                       { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
@@ -462,43 +504,48 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="displayName"
                     label="Display name"
-                    rules={[{ max: DISPLAY_NAME_MAX_LENGTH, message: 'Display name must be 63 characters or less' }]}
+                    rules={[
+                      { max: DISPLAY_NAME_MAX_LENGTH, message: 'Display name must be 63 characters or less' },
+                      {
+                        validator: async (_, value?: string) => {
+                          if (!validateDisplayName(value)) {
+                            throw new Error('Use letters, numbers, hyphens, and optional dots')
+                          }
+                        },
+                      },
+                    ]}
                   >
                     <Input placeholder="e.g. api-gateway" />
                   </Form.Item>
-                  <Form.Item
-                    name="addressGroupNamespace"
-                    label="Address group namespace"
-                    rules={[
-                      { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                      { max: 63, message: 'Namespace must be 63 characters or less' },
-                    ]}
-                  >
-                    <Select
-                      showSearch
-                      allowClear
-                      placeholder="Select namespace"
-                      options={namespaceOptions}
-                      loading={isTenantsLoading}
-                      status={tenantsError ? 'error' : undefined}
-                      onChange={() => {
-                        form.setFieldValue('addressGroups', [])
-                      }}
-                    />
+                  <Form.Item name="addressGroupNamespace" hidden>
+                    <Input />
                   </Form.Item>
                   <Form.Item
                     name="addressGroups"
                     label="Address group"
                     validateStatus={addressGroupsError ? 'error' : undefined}
+                    getValueProps={value => ({ value: getAddressGroupCascaderValue(value) })}
+                    getValueFromEvent={value => {
+                      const nextValues = getAddressGroupValuesFromCascader(value, addressGroupsByNamespace)
+
+                      return nextValues
+                    }}
                   >
-                    <Select
-                      mode="multiple"
-                      showSearch
-                      placeholder={selectedAddressGroupNamespace ? 'Select address groups' : 'Select namespace first'}
-                      optionFilterProp="searchText"
-                      options={addressGroupOptions}
-                      loading={isAddressGroupsLoading}
-                      disabled={!selectedAddressGroupNamespace}
+                    <Cascader
+                      multiple
+                      placeholder="Select address groups"
+                      options={addressGroupCascaderOptions}
+                      showCheckedStrategy={Cascader.SHOW_CHILD}
+                      displayRender={renderAddressGroupCascaderSelection}
+                      loadData={selectedOptions => {
+                        const namespaceOption = selectedOptions[0] as TAddressGroupCascaderOption | undefined
+
+                        if (namespaceOption?.value) {
+                          setAddressGroupOptionsNamespace(namespaceOption.value)
+                        }
+                      }}
+                      loading={isTenantsLoading || isAddressGroupsLoading}
+                      disabled={isTenantsLoading || Boolean(tenantsError)}
                     />
                   </Form.Item>
                   <Form.Item name="description" label="Description">
@@ -700,12 +747,12 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
               <Styled.OverviewTitle>Structure Overview</Styled.OverviewTitle>
               <Styled.OverviewBody>
                 {isOverviewLoading && <Spin />}
-                {!isOverviewLoading && scopedSelectedAddressGroups.length === 0 && (
+                {!isOverviewLoading && selectedAddressGroups.length === 0 && (
                   <Styled.OverviewEmpty>
                     <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No Data" />
                   </Styled.OverviewEmpty>
                 )}
-                {!isOverviewLoading && scopedSelectedAddressGroups.length > 0 && (
+                {!isOverviewLoading && selectedAddressGroups.length > 0 && (
                   <Styled.TreeContainer key={overviewKey}>
                     <Tree key={overviewKey} showLine switcherIcon={<CaretDownOutlined />} treeData={overviewTreeData} />
                   </Styled.TreeContainer>

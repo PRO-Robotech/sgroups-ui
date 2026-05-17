@@ -94,9 +94,17 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
 }) => {
   const { token } = antdTheme.useToken()
 
-  const resourceRequestBase = {
+  const addressGroupNamespace = addressGroup.metadata.namespace || namespace
+  const addressGroupScopedRequestBase = {
     cluster: cluster || '',
-    namespace,
+    namespace: addressGroupNamespace,
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    isEnabled: Boolean(cluster && addressGroupNamespace),
+  } as const
+  const clusterScopedRequestBase = {
+    cluster: cluster || '',
+    namespace: undefined,
     apiGroup: 'sgroups.io',
     apiVersion: 'v1alpha1',
     isEnabled: Boolean(cluster),
@@ -109,7 +117,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
   } = useK8sSmartResource<{
     items: THostBindingResource[]
   }>({
-    ...resourceRequestBase,
+    ...addressGroupScopedRequestBase,
     plural: 'hostbindings',
   })
   const {
@@ -119,7 +127,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
   } = useK8sSmartResource<{
     items: TNetworkBindingResource[]
   }>({
-    ...resourceRequestBase,
+    ...addressGroupScopedRequestBase,
     plural: 'networkbindings',
   })
   const {
@@ -129,7 +137,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
   } = useK8sSmartResource<{
     items: TServiceBindingResource[]
   }>({
-    ...resourceRequestBase,
+    ...clusterScopedRequestBase,
     plural: 'servicebindings',
   })
   const {
@@ -139,7 +147,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
   } = useK8sSmartResource<{
     items: THostResource[]
   }>({
-    ...resourceRequestBase,
+    ...addressGroupScopedRequestBase,
     plural: 'hosts',
   })
   const {
@@ -149,7 +157,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
   } = useK8sSmartResource<{
     items: TNetworkResource[]
   }>({
-    ...resourceRequestBase,
+    ...addressGroupScopedRequestBase,
     plural: 'networks',
   })
   const {
@@ -159,7 +167,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
   } = useK8sSmartResource<{
     items: TServiceResource[]
   }>({
-    ...resourceRequestBase,
+    ...clusterScopedRequestBase,
     plural: 'services',
   })
 
@@ -221,7 +229,10 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
             )}
             <Title>
               <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                {renderBadgeWithValue('AddressGroup', addressGroup.metadata.name || 'Address Group')}
+                {renderBadgeWithValue(
+                  'AddressGroup',
+                  addressGroup.spec?.displayName || addressGroup.metadata.name || 'Address Group',
+                )}
                 {renderDefaultAction(addressGroup.spec?.defaultAction)}
               </span>
             </Title>
@@ -234,9 +245,6 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
           <SpecGrid>
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(addressGroup.metadata.namespace)}</div>
-
-            <Typography.Text type="secondary">Display Name</Typography.Text>
-            <div>{renderValue(addressGroup.spec?.displayName)}</div>
 
             <Typography.Text type="secondary">Logs</Typography.Text>
             <div>{renderBooleanStatusIcon(addressGroup.spec?.logs)}</div>

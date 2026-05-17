@@ -47,12 +47,17 @@ import {
   formatMapEntries,
   formatTrafficValue,
   renderBadgeWithValue,
-  renderNamespacedResourceValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
 import { buildRuleEndpointTree } from './contentsTree'
-import { TRuleEndpoint, TRuleRow, TRuleTransportEntry } from '../../tableConfig'
+import {
+  renderEndpointLabel,
+  TEndpointDisplayLookup,
+  TRuleEndpoint,
+  TRuleRow,
+  TRuleTransportEntry,
+} from '../../tableConfig'
 
 type TVerboseRulePanelProps = {
   cluster?: string
@@ -76,7 +81,7 @@ const renderAction = (value?: string) => {
   return <InfoTag color={value === 'Allow' ? 'green' : 'red'}>{value}</InfoTag>
 }
 
-const renderEndpointSummary = (endpoint?: TRuleEndpoint) => {
+const renderEndpointSummary = (endpoint?: TRuleEndpoint, endpointDisplayLookup: TEndpointDisplayLookup = {}) => {
   if (!endpoint) {
     return '-'
   }
@@ -85,15 +90,7 @@ const renderEndpointSummary = (endpoint?: TRuleEndpoint) => {
     return endpoint.value || '-'
   }
 
-  const value = endpoint.name || endpoint.value
-
-  if (!value) {
-    return '-'
-  }
-
-  return endpoint.namespace
-    ? renderNamespacedResourceValue(endpoint.type || 'Endpoint', endpoint.namespace, value)
-    : value
+  return renderEndpointLabel(endpoint, endpointDisplayLookup)
 }
 
 const TagList: FC<{ values: string[] }> = ({ values }) => {
@@ -211,6 +208,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
     error: addressGroupsError,
   } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
     ...resourceRequestBase,
+    namespace: undefined,
     plural: 'addressgroups',
   })
   const {
@@ -259,8 +257,28 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
     error: servicesError,
   } = useK8sSmartResource<{ items: TServiceResource[] }>({
     ...resourceRequestBase,
+    namespace: undefined,
     plural: 'services',
   })
+
+  const endpointDisplayLookup = useMemo<TEndpointDisplayLookup>(() => {
+    const lookup: TEndpointDisplayLookup = {}
+
+    const addResource = (resource: TAddressGroupResource | TServiceResource) => {
+      const { name, namespace: resourceNamespace } = resource.metadata
+
+      if (!name || !resourceNamespace) {
+        return
+      }
+
+      lookup[`${resourceNamespace}/${name}`] = resource.spec?.displayName || name
+    }
+
+    addressGroupsData?.items.forEach(addResource)
+    servicesData?.items.forEach(addResource)
+
+    return lookup
+  }, [addressGroupsData?.items, servicesData?.items])
 
   const labels = useMemo(() => formatMapEntries(rule.metadata.labels), [rule.metadata.labels])
   const annotations = useMemo(() => formatAnnotationEntries(rule.metadata.annotations), [rule.metadata.annotations])
@@ -363,7 +381,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{renderBadgeWithValue('Rule', rule.metadata.name || 'Rule')}</Title>
+            <Title>{renderBadgeWithValue('Rule', rule.spec?.displayName || rule.metadata.name || 'Rule')}</Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -373,9 +391,6 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
           <SpecGrid>
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(rule.metadata.namespace)}</div>
-
-            <Typography.Text type="secondary">Display Name</Typography.Text>
-            <div>{renderValue(rule.spec?.displayName)}</div>
 
             <Typography.Text type="secondary">Action</Typography.Text>
             <div>{renderAction(rule.spec?.action)}</div>
@@ -395,10 +410,10 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             </div>
 
             <Typography.Text type="secondary">Local</Typography.Text>
-            <div>{renderEndpointSummary(rule.spec?.endpoints?.local)}</div>
+            <div>{renderEndpointSummary(rule.spec?.endpoints?.local, endpointDisplayLookup)}</div>
 
             <Typography.Text type="secondary">Remote</Typography.Text>
-            <div>{renderEndpointSummary(rule.spec?.endpoints?.remote)}</div>
+            <div>{renderEndpointSummary(rule.spec?.endpoints?.remote, endpointDisplayLookup)}</div>
 
             <Typography.Text type="secondary">Description</Typography.Text>
             <div>{renderValue(rule.spec?.description)}</div>

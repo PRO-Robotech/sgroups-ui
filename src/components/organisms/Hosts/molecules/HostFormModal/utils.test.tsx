@@ -44,6 +44,19 @@ describe('HostFormModal utils', () => {
     expect(bindings).toHaveLength(1)
   })
 
+  it('matches host bindings by binding namespace when spec host namespace is omitted', () => {
+    const bindings = buildCurrentBindings(
+      { metadata: { name: 'host-a', namespace: 'tenant-a' } } as any,
+      [
+        { metadata: { namespace: 'tenant-a' }, spec: { host: { name: 'host-a' } } },
+        { metadata: { namespace: 'tenant-b' }, spec: { host: { name: 'host-a' } } },
+        { metadata: { namespace: 'tenant-a' }, spec: { host: { name: 'host-b' } } },
+      ] as any,
+    )
+
+    expect(bindings).toHaveLength(1)
+  })
+
   it('patches only changed editable fields', async () => {
     const patchedCount = await patchEditableSpec(
       '/hosts/host-a',

@@ -51,7 +51,7 @@ export const mapNetworksToRows = (items: TNetworkResource[]): TNetworkRow[] =>
   items.map(item => ({
     ...item,
     key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
-    displayName: item.spec?.displayName || EMPTY_VALUE,
+    displayName: item.spec?.displayName || item.metadata.name || EMPTY_VALUE,
     cidr: item.spec?.CIDR || EMPTY_VALUE,
     description: item.spec?.description || EMPTY_VALUE,
     created: formatDateTime(item.metadata.creationTimestamp),
@@ -63,12 +63,12 @@ export const buildNetworksColumns = ({
 }: TBuildNetworksColumnsParams = {}): ColumnsType<TNetworkRow> => {
   const columns: ColumnsType<TNetworkRow> = [
     {
-      title: 'Name',
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
       fixed: 'left',
       width: 180,
-      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
       render: value => renderBadgeWithValue('Network', value),
     },
     {
@@ -78,13 +78,6 @@ export const buildNetworksColumns = ({
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
       render: value => renderNamespaceBadgeWithValue(value),
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      width: 180,
-      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
       title: 'CIDR',
@@ -127,7 +120,7 @@ export const buildNetworksColumns = ({
               Tooltip,
               { title: 'Edit' },
               React.createElement(Button, {
-                'aria-label': `Edit ${record.metadata.name || 'network'}`,
+                'aria-label': `Edit ${record.displayName || 'network'}`,
                 type: 'text',
                 icon: React.createElement(EditOutlined),
                 onClick: event => {
@@ -141,7 +134,7 @@ export const buildNetworksColumns = ({
               Tooltip,
               { title: 'Delete' },
               React.createElement(Button, {
-                'aria-label': `Delete ${record.metadata.name || 'network'}`,
+                'aria-label': `Delete ${record.displayName || 'network'}`,
                 danger: true,
                 type: 'text',
                 icon: React.createElement(DeleteOutlined),

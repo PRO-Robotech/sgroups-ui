@@ -89,7 +89,7 @@ export const mapAddressGroupsToRows = (items: TAddressGroupResource[]): TAddress
   items.map(item => ({
     ...item,
     key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
-    displayName: item.spec?.displayName || EMPTY_VALUE,
+    displayName: item.spec?.displayName || item.metadata.name || EMPTY_VALUE,
     defaultAction: item.spec?.defaultAction || EMPTY_VALUE,
     logsLabel: formatBooleanFlag(item.spec?.logs),
     traceLabel: formatBooleanFlag(item.spec?.trace),
@@ -103,12 +103,12 @@ export const buildAddressGroupsColumns = ({
 }: TBuildAddressGroupsColumnsParams = {}): ColumnsType<TAddressGroupRow> => {
   const columns: ColumnsType<TAddressGroupRow> = [
     {
-      title: 'Name',
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
       fixed: 'left',
       width: 180,
-      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
       render: value => renderBadgeWithValue('AddressGroup', value),
     },
     {
@@ -118,13 +118,6 @@ export const buildAddressGroupsColumns = ({
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
       render: value => renderNamespaceBadgeWithValue(value),
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      width: 180,
-      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
       title: 'Default Action',
@@ -184,7 +177,7 @@ export const buildAddressGroupsColumns = ({
               Tooltip,
               { title: 'Edit' },
               React.createElement(Button, {
-                'aria-label': `Edit ${record.metadata.name || 'address group'}`,
+                'aria-label': `Edit ${record.displayName || 'address group'}`,
                 type: 'text',
                 icon: React.createElement(EditOutlined),
                 onClick: event => {
@@ -198,7 +191,7 @@ export const buildAddressGroupsColumns = ({
               Tooltip,
               { title: 'Delete' },
               React.createElement(Button, {
-                'aria-label': `Delete ${record.metadata.name || 'address group'}`,
+                'aria-label': `Delete ${record.displayName || 'address group'}`,
                 danger: true,
                 type: 'text',
                 icon: React.createElement(DeleteOutlined),

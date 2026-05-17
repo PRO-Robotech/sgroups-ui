@@ -3,9 +3,13 @@ import { render, screen } from '@testing-library/react'
 import {
   buildNamespacedValue,
   compactSpec,
+  DISPLAY_NAME_PATTERN,
   FQDN_PATTERN,
   getApiEndpoint,
+  getAddressGroupCascaderOptions,
+  getAddressGroupCascaderValue,
   getAddressGroupOptions,
+  getAddressGroupValuesFromCascader,
   getBindingLookupKey,
   getNamespacedResourceOptions,
   getNamespaceOptions,
@@ -16,9 +20,11 @@ import {
   PORT_VALUE_SEPARATOR,
   runSequentialRequests,
   sanitizeBindingName,
+  validateDisplayName,
   validateCIDR,
   validateNetworkCIDR,
   validatePortToken,
+  withFallbackNamespace,
 } from './sgroupsFormUtils'
 
 describe('sgroupsFormUtils', () => {
@@ -80,6 +86,18 @@ describe('sgroupsFormUtils', () => {
     expect(getBindingLookupKey()).toBeNull()
   })
 
+  it('applies fallback namespace to namespace-scoped resource responses', () => {
+    expect(
+      withFallbackNamespace(
+        [{ metadata: { name: 'ag-a' } }, { metadata: { namespace: 'tenant-b', name: 'ag-b' } }],
+        'tenant-a',
+      ),
+    ).toEqual([
+      { metadata: { namespace: 'tenant-a', name: 'ag-a' } },
+      { metadata: { namespace: 'tenant-b', name: 'ag-b' } },
+    ])
+  })
+
   it('builds sorted namespace and namespaced resource options', () => {
     const namespaceOptions = getNamespaceOptions([
       { metadata: { name: 'zeta' } },
@@ -103,7 +121,7 @@ describe('sgroupsFormUtils', () => {
 
     expect(options.map(option => ({ value: option.value, searchText: option.searchText }))).toEqual([
       { value: 'tenant-a/svc-a', searchText: 'tenant-a svc-a' },
-      { value: 'tenant-b/svc-b', searchText: 'tenant-b svc-b Backend' },
+      { value: 'tenant-b/svc-b', searchText: 'tenant-b Backend' },
     ])
   })
 
@@ -139,20 +157,51 @@ describe('sgroupsFormUtils', () => {
     )
 
     expect(options[0].value).toBe('tenant-a/ag-a')
-    expect(options[0].searchText).toBe('tenant-a ag-a Address Group A')
+    expect(options[0].searchText).toBe('tenant-a Address Group A')
 
     render(<div>{options[0].label}</div>)
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
     expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
   })
 
-  it('validates Kubernetes names and FQDNs with exported patterns', () => {
+  it('builds lazy AddressGroup cascader options and converts selected values', () => {
+    const options = getAddressGroupCascaderOptions({
+      namespaces: getNamespaceOptions([
+        { metadata: { name: 'tenant-a' } },
+        { metadata: { name: 'tenant-b' } },
+        { metadata: { name: 'tenant-c' } },
+      ]),
+      addressGroupsByNamespace: {
+        'tenant-a': [{ metadata: { namespace: 'tenant-a', name: 'ag-a' }, spec: { displayName: 'Address Group A' } }],
+      },
+      selectedValues: ['tenant-b/ag-b'],
+    })
+
+    expect(options.find(option => option.value === 'tenant-a')?.children?.[0].value).toBe('ag-a')
+    expect(options.find(option => option.value === 'tenant-b')?.children?.[0].value).toBe('ag-b')
+    expect(options.find(option => option.value === 'tenant-c')?.children).toBeUndefined()
+    expect(getAddressGroupCascaderValue(['tenant-a/ag-a'])).toEqual([['tenant-a', 'ag-a']])
+    expect(getAddressGroupValuesFromCascader([['tenant-a', 'ag-a']])).toEqual(['tenant-a/ag-a'])
+    expect(
+      getAddressGroupValuesFromCascader([['tenant-a']], {
+        'tenant-a': [{ metadata: { namespace: 'tenant-a', name: 'ag-a' }, spec: { displayName: 'Address Group A' } }],
+      }),
+    ).toEqual(['tenant-a/ag-a'])
+  })
+
+  it('validates Kubernetes names, FQDNs, and display names with exported patterns', () => {
     expect(NAME_PATTERN.test('valid-name-1')).toBe(true)
     expect(NAME_PATTERN.test('Invalid')).toBe(false)
     expect(NAME_PATTERN.test('-invalid')).toBe(false)
     expect(FQDN_PATTERN.test('api.example.com')).toBe(true)
     expect(FQDN_PATTERN.test('-api.example.com')).toBe(false)
     expect(FQDN_PATTERN.test('localhost')).toBe(false)
+    expect(DISPLAY_NAME_PATTERN.test('api.example.com')).toBe(true)
+    expect(DISPLAY_NAME_PATTERN.test('localhost')).toBe(true)
+    expect(validateDisplayName(' localhost ')).toBe(true)
+    expect(validateDisplayName()).toBe(true)
+    expect(validateDisplayName('host name')).toBe(false)
+    expect(validateDisplayName('host-')).toBe(false)
   })
 
   it('validates IPv4 and IPv6 CIDRs', () => {

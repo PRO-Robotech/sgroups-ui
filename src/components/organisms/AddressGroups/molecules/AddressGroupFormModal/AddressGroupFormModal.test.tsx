@@ -89,7 +89,7 @@ describe('AddressGroupFormModal', () => {
       target: { value: 'ag-new' },
     })
     fireEvent.change(screen.getByPlaceholderText('e.g. server-01.prod'), {
-      target: { value: 'Address Group New' },
+      target: { value: 'address-group-new' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
@@ -100,7 +100,7 @@ describe('AddressGroupFormModal', () => {
           kind: 'AddressGroup',
           metadata: { name: 'ag-new', namespace: 'tenant-a' },
           spec: expect.objectContaining({
-            displayName: 'Address Group New',
+            displayName: 'address-group-new',
             defaultAction: 'Deny',
           }),
         }),

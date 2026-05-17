@@ -62,14 +62,24 @@ export const renderNamespacedResourceOptionLabel = (
 
 export const getResourceOptions = (kind: 'Host' | 'Network', items?: TSelectableResource[]): TResourceOption[] =>
   (items || [])
-    .map(item => item.metadata.name)
-    .filter((value): value is string => Boolean(value))
-    .sort((first, second) => first.localeCompare(second))
-    .map(value => ({
-      value,
-      label: renderResourceOptionLabel(kind, value),
-      searchText: value,
-    }))
+    .reduce<TResourceOption[]>((acc, item) => {
+      const resourceName = item.metadata.name
+
+      if (!resourceName) {
+        return acc
+      }
+
+      const displayName = item.spec?.displayName || resourceName
+
+      acc.push({
+        value: resourceName,
+        label: renderResourceOptionLabel(kind, displayName),
+        searchText: displayName,
+      })
+
+      return acc
+    }, [])
+    .sort((first, second) => first.searchText.localeCompare(second.searchText))
 
 export const getNamespacedResourceOptions = (items?: TSelectableResource[]): TResourceOption[] =>
   (items || [])
@@ -80,10 +90,12 @@ export const getNamespacedResourceOptions = (items?: TSelectableResource[]): TRe
         return acc
       }
 
+      const displayName = item.spec?.displayName || name
+
       acc.push({
         value: `${resourceNamespace}/${name}`,
-        label: renderNamespacedResourceOptionLabel('Service', resourceNamespace, name),
-        searchText: `${resourceNamespace} ${name}`,
+        label: renderNamespacedResourceOptionLabel('Service', resourceNamespace, displayName),
+        searchText: `${resourceNamespace} ${displayName}`.trim(),
       })
 
       return acc

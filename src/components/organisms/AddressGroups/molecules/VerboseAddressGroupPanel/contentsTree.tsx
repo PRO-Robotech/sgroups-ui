@@ -183,6 +183,11 @@ const matchesAddressGroup = (binding: TBindingBase, addressGroupName?: string, a
   binding.spec?.addressGroup?.name === addressGroupName &&
   (binding.spec?.addressGroup?.namespace || '') === (addressGroupNamespace || '')
 
+const withBindingNamespaceFallback = (identifier: TResourceIdentifier | undefined, bindingNamespace?: string) => ({
+  ...identifier,
+  namespace: identifier?.namespace || bindingNamespace,
+})
+
 const buildHostNode = (
   binding: THostBindingResource,
   hostsByKey: Record<string, THostResource>,
@@ -190,7 +195,7 @@ const buildHostNode = (
   hostsError?: boolean,
   highlightedHosts?: Set<string>,
 ): TreeDataNode => {
-  const target = binding.spec?.host
+  const target = withBindingNamespaceFallback(binding.spec?.host, binding.metadata.namespace)
   const key = makeLookupKey(target)
   const host = hostsByKey[key]
   const nodeKey = makeChildKey(parentKey, `host-${binding.metadata.namespace || 'all'}-${binding.metadata.name || key}`)
@@ -223,7 +228,7 @@ const buildNetworkNode = (
   networksError?: boolean,
   highlightedNetworks?: Set<string>,
 ): TreeDataNode => {
-  const target = binding.spec?.network
+  const target = withBindingNamespaceFallback(binding.spec?.network, binding.metadata.namespace)
   const key = makeLookupKey(target)
   const network = networksByKey[key]
   const nodeKey = makeChildKey(
@@ -254,7 +259,7 @@ const buildServiceNode = (
   servicesError?: boolean,
   highlightedServices?: Set<string>,
 ): TreeDataNode => {
-  const target = binding.spec?.service
+  const target = withBindingNamespaceFallback(binding.spec?.service, binding.metadata.namespace)
   const key = makeLookupKey(target)
   const service = servicesByKey[key]
   const nodeKey = makeChildKey(
@@ -341,7 +346,7 @@ export const buildAddressGroupContentsTree = ({
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(hostsRootKey, 'error'))]
     : groupTreeDataByNamespace(
         matchedHostBindings.map(binding => ({
-          namespace: binding.spec?.host?.namespace,
+          namespace: binding.spec?.host?.namespace || binding.metadata.namespace,
           node: buildHostNode(binding, hostsByKey, hostsRootKey, hostsError, highlightedHostValues),
         })),
         hostsRootKey,
@@ -351,7 +356,7 @@ export const buildAddressGroupContentsTree = ({
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(networksRootKey, 'error'))]
     : groupTreeDataByNamespace(
         matchedNetworkBindings.map(binding => ({
-          namespace: binding.spec?.network?.namespace,
+          namespace: binding.spec?.network?.namespace || binding.metadata.namespace,
           node: buildNetworkNode(binding, networksByKey, networksRootKey, networksError, highlightedNetworkValues),
         })),
         networksRootKey,
@@ -361,7 +366,7 @@ export const buildAddressGroupContentsTree = ({
     ? [createLeaf(ERROR_LEAF_TITLE, makeChildKey(servicesRootKey, 'error'))]
     : groupTreeDataByNamespace(
         matchedServiceBindings.map(binding => ({
-          namespace: binding.spec?.service?.namespace,
+          namespace: binding.spec?.service?.namespace || binding.metadata.namespace,
           node: buildServiceNode(binding, servicesByKey, servicesRootKey, servicesError, highlightedServiceValues),
         })),
         servicesRootKey,

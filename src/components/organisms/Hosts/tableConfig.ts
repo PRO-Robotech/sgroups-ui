@@ -81,7 +81,7 @@ export const mapHostsToRows = (items: THostResource[]): THostRow[] =>
       ips: normalizedIps,
       metaInfo: normalizedMetaInfo,
       key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
-      displayName: item.spec?.displayName || EMPTY_VALUE,
+      displayName: item.spec?.displayName || item.metadata.name || EMPTY_VALUE,
       hostName: normalizedMetaInfo.hostName || EMPTY_VALUE,
       ipv4: normalizedIps.IPv4 || [],
       ipv6: normalizedIps.IPv6 || [],
@@ -112,12 +112,12 @@ const renderTagList = (values?: string[]) => {
 export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams = {}): ColumnsType<THostRow> => {
   const columns: ColumnsType<THostRow> = [
     {
-      title: 'Name',
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
       fixed: 'left',
       width: 180,
-      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
       render: value => renderBadgeWithValue('Host', value),
     },
     {
@@ -127,13 +127,6 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
       render: value => renderNamespaceBadgeWithValue(value),
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      width: 180,
-      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
       title: 'Host Name',
@@ -206,7 +199,7 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
               Tooltip,
               { title: 'Edit' },
               React.createElement(Button, {
-                'aria-label': `Edit ${record.metadata.name || 'host'}`,
+                'aria-label': `Edit ${record.displayName || 'host'}`,
                 type: 'text',
                 icon: React.createElement(EditOutlined),
                 onClick: event => {
@@ -220,7 +213,7 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
               Tooltip,
               { title: 'Delete' },
               React.createElement(Button, {
-                'aria-label': `Delete ${record.metadata.name || 'host'}`,
+                'aria-label': `Delete ${record.displayName || 'host'}`,
                 danger: true,
                 type: 'text',
                 icon: React.createElement(DeleteOutlined),

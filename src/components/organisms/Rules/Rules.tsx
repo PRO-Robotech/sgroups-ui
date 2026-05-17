@@ -2,15 +2,24 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
-import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
+import { TAddressGroupResource, TServiceResource } from 'localTypes'
 import { RootState } from 'store/store'
 import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
+import { SgroupsDeleteModal } from 'utils/SgroupsDeleteModal'
 import { UniRuleFormModal, VerboseRulePanel } from './molecules'
 import { Styled } from './styled'
-import { buildRulesColumns, mapRulesToRows, RULES_TABLE_PROPS, TRuleResource, TRuleRow } from './tableConfig'
+import {
+  buildRulesColumns,
+  mapRulesToRows,
+  RULES_TABLE_PROPS,
+  TEndpointDisplayLookup,
+  TRuleResource,
+  TRuleRow,
+} from './tableConfig'
 import { DEFAULT_VERBOSE_WIDTH, EXPANDED_VERBOSE_WIDTH, VERBOSE_WIDTH_STORAGE_KEY } from './constants'
 
 const getExpandedVerboseWidth = (containerWidth?: number) => {
@@ -73,6 +82,24 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
     plural: 'rules',
     isEnabled: Boolean(cluster),
   })
+  const { data: addressGroupsData, isLoading: isAddressGroupsLoading } = useK8sSmartResource<{
+    items: TAddressGroupResource[]
+  }>({
+    cluster: cluster || '',
+    namespace: undefined,
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    plural: 'addressgroups',
+    isEnabled: Boolean(cluster),
+  })
+  const { data: servicesData, isLoading: isServicesLoading } = useK8sSmartResource<{ items: TServiceResource[] }>({
+    cluster: cluster || '',
+    namespace: undefined,
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    plural: 'services',
+    isEnabled: Boolean(cluster),
+  })
 
   const openCreateModal = useCallback(() => {
     setEditingRule(null)
@@ -100,11 +127,33 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
     setDeletingRule(null)
   }, [])
 
+  const endpointDisplayLookup = useMemo<TEndpointDisplayLookup>(() => {
+    const lookup: TEndpointDisplayLookup = {}
+
+    const addResource = (resource: TAddressGroupResource | TServiceResource) => {
+      const { name, namespace: resourceNamespace } = resource.metadata
+
+      if (!name || !resourceNamespace) {
+        return
+      }
+
+      lookup[`${resourceNamespace}/${name}`] = resource.spec?.displayName || name
+    }
+
+    addressGroupsData?.items.forEach(addResource)
+    servicesData?.items.forEach(addResource)
+
+    return lookup
+  }, [addressGroupsData?.items, servicesData?.items])
+
   const columns = useMemo(
-    () => buildRulesColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
-    [openDeleteModal, openEditModal],
+    () => buildRulesColumns({ onDelete: openDeleteModal, onEdit: openEditModal, endpointDisplayLookup }),
+    [endpointDisplayLookup, openDeleteModal, openEditModal],
   )
-  const dataSource = useMemo(() => mapRulesToRows(rulesData?.items || []), [rulesData?.items])
+  const dataSource = useMemo(
+    () => mapRulesToRows(rulesData?.items || [], endpointDisplayLookup),
+    [endpointDisplayLookup, rulesData?.items],
+  )
   const selectedRule = useMemo(
     () => dataSource.find(item => item.key === selectedRuleKey) || null,
     [dataSource, selectedRuleKey],
@@ -199,8 +248,8 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
         <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
           <TenantSelector cluster={cluster} tenant={namespace} />
           {error && <Alert type="error" message={`Failed to load rules: ${String(error)}`} showIcon />}
-          {isLoading && !rulesData && <Spin />}
-          {!error && rulesData && (
+          {(isLoading || isAddressGroupsLoading || isServicesLoading) && <Spin />}
+          {!error && rulesData && !isLoading && !isAddressGroupsLoading && !isServicesLoading && (
             <Flex vertical style={{ flex: 1, minHeight: 0 }}>
               <Styled.SplitLayout
                 ref={splitLayoutRef}
@@ -278,7 +327,7 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
         />
       )}
       {deletingRule && (
-        <DeleteModal name={deletingRule.name} endpoint={deletingRule.endpoint} onClose={closeDeleteModal} />
+        <SgroupsDeleteModal title={deletingRule.title} endpoint={deletingRule.endpoint} onClose={closeDeleteModal} />
       )}
     </ContentCard>
   )

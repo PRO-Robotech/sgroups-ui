@@ -52,11 +52,15 @@ const renderOverviewTitle = (
   return isNew ? <Styled.NewHighlight>{title}</Styled.NewHighlight> : title
 }
 
-const isSameHost = (resource: THostResource | null | undefined, hostRef?: { name?: string; namespace?: string }) =>
-  hostRef?.name === resource?.metadata.name && hostRef?.namespace === resource?.metadata.namespace
+const isSameHostBinding = (resource: THostResource | null | undefined, binding: THostBindingResource) => {
+  const hostRef = binding.spec?.host
+  const hostNamespace = hostRef?.namespace || binding.metadata.namespace
+
+  return hostRef?.name === resource?.metadata.name && hostNamespace === resource?.metadata.namespace
+}
 
 export const buildCurrentBindings = (host: THostResource | null | undefined, bindings?: THostBindingResource[]) =>
-  (bindings || []).filter(binding => isSameHost(host, binding.spec?.host))
+  (bindings || []).filter(binding => isSameHostBinding(host, binding))
 
 export const patchEditableSpec = async (endpoint: string, currentHost: THostResource, values: THostFormValues) => {
   const patchRequests: Array<() => Promise<unknown>> = []

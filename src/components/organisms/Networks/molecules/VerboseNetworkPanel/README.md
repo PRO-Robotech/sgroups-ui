@@ -11,15 +11,16 @@ Side detail panel for viewing a `Network` resource and the AddressGroups current
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` in the panel title
+- `spec.displayName` in the panel title, falling back to `metadata.name` when the display name is empty
 - `metadata.namespace`
-- `spec.displayName`
 - `spec.CIDR`
 - `spec.description` and `spec.comment`
 - `metadata.creationTimestamp`
 - `metadata.labels` and `metadata.annotations`
 
 `metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix. `Network.refs` is backend-computed data and is not displayed by this panel.
+
+`spec.displayName` is not repeated as a separate detail row because it is already the panel title.
 
 Long tag groups show the first five values and expose a show more/less control. Tags are stacked vertically in the verbose layout.
 
@@ -29,7 +30,7 @@ The `Bound Address Groups` tree is derived from current `NetworkBinding` resourc
 
 The section subtitle includes the bound AddressGroup count. The AntD tree starts from AddressGroup namespace nodes instead of rendering a duplicate `Bound Address Groups` root row.
 
-Bindings are matched by comparing `binding.spec.network` with the current Network `metadata.name` and `metadata.namespace`. Matching bindings are grouped by `spec.addressGroup.namespace`. Under each namespace node, each child shows the resolved AddressGroup label from `spec.displayName` or metadata.
+Bindings are matched by comparing `binding.spec.network` with the current Network `metadata.name` and `metadata.namespace`. Matching bindings are grouped by `spec.addressGroup.namespace`. Under each namespace node, each child shows the resolved AddressGroup label from `spec.displayName`, falling back to `metadata.name` only when no display name exists.
 
 Missing AddressGroups render as `Not found`; failed lookups render as `Error while fetching`.
 

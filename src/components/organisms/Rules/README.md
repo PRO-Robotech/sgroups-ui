@@ -7,8 +7,8 @@ The bottom `Add UniRule` button opens `UniRuleFormModal`.
 The modal follows the Figma layout structure, but the payload and editable fields follow the local `v3` / `v3sgroups` `sgroups.io/v1alpha1` schema. Older `tmp/newApi` rule docs are used only to confirm practical create-time validation behavior for TCP/UDP and ICMP rule variants.
 
 - `Namespace`: required. Rule namespace. Kubernetes DNS label format, max 63 chars.
-- `Name`: required. Kubernetes DNS label format, max 63 chars.
-- `Display name`: optional, max 63 chars.
+- `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
+- `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-`.
 - `Action`: required. AntD validates `Allow` or `Deny`.
 - `Traffic`: required. UI labels and saved `spec.session.traffic` values are `Both`, `Ingress`, or `Egress`.
 - `Local`: required endpoint block.
@@ -36,7 +36,8 @@ For `AddressGroup` and `Service` endpoints:
 
 - the form stores `namespace` and `name` separately
 - namespace is not locked to the rule namespace
-- the `Name` select is scoped by the chosen resource namespace
+- the `Name` select is scoped by the chosen resource namespace; visible labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists
+- submitted endpoint values remain the selected resource names and namespaces because the backend stores references by identifier
 - services can be chosen from any namespace
 - AddressGroup options are scoped by the chosen endpoint namespace, using the cluster-wide AddressGroup list plus local/remote namespace-scoped query results as fallbacks
 - namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal fills it from the selected endpoint namespace before building options
@@ -82,11 +83,13 @@ Traffic values are normalized to the local OpenAPI enum casing (`Both`, `Ingress
 
 The Rules table uses badge/tag formatting consistently:
 
-- `Name` and `Namespace` render canonical resource-kind badges.
-- `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints; `FQDN` and `CIDR` endpoints render their direct values.
+- `Display Name` is the first pinned column and renders a canonical `Rule` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
+- `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
+- `Namespace` renders a canonical `Namespace` badge.
+- `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints using the referenced resource display name when available, falling back to the referenced resource name only when no display name exists. `FQDN` and `CIDR` endpoints render their direct values.
 - `Action`, `Protocol`, `IP family`, and transport entries render as AntD tags.
 - Transport entries render one tag per entry. Entry descriptions and comments are shown in tooltips instead of inline tag text.
-- `Name`, `Local`, `Remote`, and `Created` are intentionally wider than compact enum columns so common rule names, endpoint labels, and timestamps wrap less often.
+- `Local`, `Remote`, and `Created` are intentionally wider than compact enum columns so common endpoint labels and timestamps wrap less often.
 
 ## Edit modal
 
@@ -96,7 +99,8 @@ Edit opens the same `UniRuleFormModal` for a selected Rule by passing it as the 
 
 In edit mode:
 
-- `Namespace` and `Name` are read-only because they identify the resource endpoint.
+- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
+- The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - The modal does not use PUT.
 - Edit save patches only changed fields.
 - Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared.
@@ -116,7 +120,9 @@ Patched fields are currently:
 
 ## Delete modal
 
-The table delete action opens the toolkit `DeleteModal`.
+The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
+
+The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Rule` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 
@@ -144,6 +150,7 @@ The implementation validates with AntD before building the save payload.
 The right sidebar renders a `Structure Overview` tree with separate top-level `Local` and `Remote` sections.
 
 - `AddressGroup` and `Service` endpoints reuse the existing rule verbose tree builder
+- `AddressGroup` and `Service` endpoint summaries and tree labels resolve referenced resource display names before rendering
 - the tree expands through the current host, network, and service binding graph
 - AddressGroup endpoint contents are grouped by resource namespace before individual HostBinding, NetworkBinding, and ServiceBinding badge nodes
 - each binding badge node expands to the resolved Host, Network, or Service resource badge and its details
@@ -155,7 +162,7 @@ The right sidebar renders a `Structure Overview` tree with separate top-level `L
 ## Modal lifecycle
 
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
-- Edit prefill runs once per open cycle after the async resources needed for the form are ready.
+- Edit prefill runs once per open cycle after the async resources needed for the form are ready, including endpoint options for selected AddressGroup and Service endpoints so edit labels render like create selections.
 - The loading state uses React state, not refs read during render.
 
 ## Schema Source

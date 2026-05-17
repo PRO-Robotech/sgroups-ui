@@ -8,6 +8,7 @@ const mockDeleteEntry = jest.fn()
 const mockPatchEntryWithDeleteOp = jest.fn()
 const mockPatchEntryWithReplaceOp = jest.fn()
 const mockUseK8sSmartResource = jest.fn()
+const mockAxiosGet = jest.fn()
 const mockMessage = {
   error: jest.fn(),
   info: jest.fn(),
@@ -25,6 +26,13 @@ jest.mock(
   }),
   { virtual: true },
 )
+
+jest.mock('axios', () => ({
+  __esModule: true,
+  default: {
+    get: (...args: unknown[]) => mockAxiosGet(...args),
+  },
+}))
 
 jest.mock('antd', () => {
   const actual = jest.requireActual('antd')
@@ -50,11 +58,16 @@ const renderModal = (ui: React.ReactElement) => {
 
 describe('HostFormModal', () => {
   beforeEach(() => {
+    jest.clearAllMocks()
     mockCreateNewEntry.mockResolvedValue(undefined)
     mockDeleteEntry.mockResolvedValue(undefined)
     mockPatchEntryWithDeleteOp.mockResolvedValue(undefined)
     mockPatchEntryWithReplaceOp.mockResolvedValue(undefined)
-    jest.clearAllMocks()
+    mockAxiosGet.mockResolvedValue({
+      data: {
+        items: [{ metadata: { name: 'ag-a', namespace: 'tenant-a' }, spec: { displayName: 'Address Group A' } }],
+      },
+    })
     mockUseK8sSmartResource.mockImplementation((params: { plural?: string }) => ({
       data: {
         items:
@@ -78,7 +91,7 @@ describe('HostFormModal', () => {
       target: { value: 'host-new' },
     })
     fireEvent.change(screen.getByPlaceholderText('e.g. server-01.prod'), {
-      target: { value: 'Host New' },
+      target: { value: 'host-new' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
@@ -88,7 +101,7 @@ describe('HostFormModal', () => {
         body: expect.objectContaining({
           kind: 'Host',
           metadata: { name: 'host-new', namespace: 'tenant-a' },
-          spec: { displayName: 'Host New' },
+          spec: { displayName: 'host-new' },
         }),
       })
     })
@@ -112,5 +125,17 @@ describe('HostFormModal', () => {
     expect(await screen.findByText('Display name must be 63 characters or less')).toBeInTheDocument()
     expect(mockCreateNewEntry).not.toHaveBeenCalled()
     expect(onClose).not.toHaveBeenCalled()
+  })
+
+  it('starts the address group options query from the initial namespace', async () => {
+    renderModal(<HostFormModal cluster="cluster-a" namespace="tenant-a" open onClose={jest.fn()} />)
+
+    await screen.findByPlaceholderText('e.g. h-api-prod-01')
+
+    await waitFor(() => {
+      expect(mockAxiosGet).toHaveBeenCalledWith(
+        '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/addressgroups',
+      )
+    })
   })
 })

@@ -62,6 +62,11 @@ const renderValue = (value?: string) => value || '-'
 const makeLookupKey = (identifier?: TResourceIdentifier) =>
   `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
 
+const withBindingNamespaceFallback = (identifier: TResourceIdentifier | undefined, bindingNamespace?: string) => ({
+  ...identifier,
+  namespace: identifier?.namespace || bindingNamespace,
+})
+
 const withNamespaceLabel = (name?: string) => {
   if (!name) {
     return 'Unknown'
@@ -144,7 +149,10 @@ const buildBoundAddressGroupsTree = ({
     (addressGroups || []).map(group => [makeLookupKey(group.metadata), group]),
   )
 
-  const matchedBindings = (bindings || []).filter(binding => makeLookupKey(binding.spec?.network) === targetKey)
+  const matchedBindings = (bindings || []).filter(
+    binding =>
+      makeLookupKey(withBindingNamespaceFallback(binding.spec?.network, binding.metadata.namespace)) === targetKey,
+  )
   const children = matchedBindings.map(binding => {
     const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]
     const bindingKey = makeChildKey(
@@ -196,9 +204,17 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
   onCollapse,
 }) => {
   const { token } = antdTheme.useToken()
-  const resourceRequestBase = {
+  const networkNamespace = network.metadata.namespace || namespace
+  const networkScopedRequestBase = {
     cluster: cluster || '',
-    namespace,
+    namespace: networkNamespace,
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    isEnabled: Boolean(cluster && networkNamespace),
+  } as const
+  const clusterScopedRequestBase = {
+    cluster: cluster || '',
+    namespace: undefined,
     apiGroup: 'sgroups.io',
     apiVersion: 'v1alpha1',
     isEnabled: Boolean(cluster),
@@ -209,7 +225,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
     isLoading: isNetworkBindingsLoading,
     error: networkBindingsError,
   } = useK8sSmartResource<{ items: TNetworkBindingResource[] }>({
-    ...resourceRequestBase,
+    ...networkScopedRequestBase,
     plural: 'networkbindings',
   })
   const {
@@ -217,7 +233,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
     isLoading: isAddressGroupsLoading,
     error: addressGroupsError,
   } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
-    ...resourceRequestBase,
+    ...clusterScopedRequestBase,
     plural: 'addressgroups',
   })
 
@@ -248,7 +264,9 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{renderBadgeWithValue('Network', network.metadata.name || 'Network')}</Title>
+            <Title>
+              {renderBadgeWithValue('Network', network.spec?.displayName || network.metadata.name || 'Network')}
+            </Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -258,9 +276,6 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
           <SpecGrid>
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(network.metadata.namespace)}</div>
-
-            <Typography.Text type="secondary">Display Name</Typography.Text>
-            <div>{renderValue(network.spec?.displayName)}</div>
 
             <Typography.Text type="secondary">CIDR</Typography.Text>
             <div>{renderValue(network.spec?.CIDR)}</div>

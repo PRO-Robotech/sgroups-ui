@@ -7,14 +7,14 @@ The bottom `Add Address Group` button opens `AddressGroupFormModal`.
 The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. AddressGroup namespace. Kubernetes DNS label format, max 63 chars.
-- `Name`: required. Kubernetes DNS label format, max 63 chars.
-- `Display name`: optional. Max 63 characters.
+- `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
+- `Display name`: optional. Max 63 characters. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `addressgroups-`.
 - `Allow access`: maps to `spec.defaultAction`.
   - enabled: `Allow`
   - disabled: `Deny`
-- `Hosts`: optional multi-select. Loaded from the AddressGroup namespace. Creates `HostBinding` resources in the AddressGroup namespace.
-- `Services`: optional multi-select. Loaded from all namespaces and displayed as `namespace / service-name`. Creates each `ServiceBinding` in the selected service namespace.
-- `Networks`: optional multi-select. Loaded from the AddressGroup namespace. Creates `NetworkBinding` resources in the AddressGroup namespace.
+- `Hosts`: optional multi-select. Loaded from the AddressGroup namespace. Visible labels and search text use `spec.displayName`, falling back to the Host name only when no display name exists. Values remain Host names. Creates `HostBinding` resources in the AddressGroup namespace.
+- `Services`: optional multi-select. Loaded from all namespaces. Visible labels and search text use `spec.displayName` with namespace context, falling back to the Service name only when no display name exists. Values remain `namespace/name`. Creates each `ServiceBinding` in the selected service namespace.
+- `Networks`: optional multi-select. Loaded from the AddressGroup namespace. Visible labels and search text use `spec.displayName`, falling back to the Network name only when no display name exists. Values remain Network names. Creates `NetworkBinding` resources in the AddressGroup namespace.
 - `Description`: optional.
 - `Comment`: optional.
 
@@ -40,7 +40,7 @@ The `AddressGroup.refs` field is intentionally not written by the UI. It is trea
 
 The modal structure overview is a single AddressGroup tree. It does not model local/remote groups. Inside the tree, Hosts, Networks, and Services are grouped by their resource namespace before individual resource nodes.
 
-In create mode, the overview is derived from the current form selection before the AddressGroup resource exists. Until `name` is entered, the overview builder uses a stable pending AddressGroup identifier internally so selected Hosts, Networks, and Services still match the shared contents tree filters.
+In create mode, the overview is derived from the current form selection before the AddressGroup resource exists. The hidden generated `name` gives the overview builder a stable pending AddressGroup identifier so selected Hosts, Networks, and Services still match the shared contents tree filters.
 
 Changing the AddressGroup namespace clears selected Hosts and Networks because those resources are namespace-scoped to the future AddressGroup namespace. Selected Services are not cleared by namespace changes because Services can be selected from any namespace and their bindings are created in the selected Service namespace.
 
@@ -52,7 +52,9 @@ Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAl
 
 The AddressGroups table uses badge/tag/icon formatting consistently:
 
-- `Name` and `Namespace` render canonical resource-kind badges.
+- `Display Name` is the first pinned column and renders an `AddressGroup` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
+- `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
+- `Namespace` renders a canonical `Namespace` badge.
 - `Default Action` renders as a colored AntD tag.
 - `Logs` and `Trace` render as status icons: a green check for enabled and a red cross for disabled.
 
@@ -64,20 +66,23 @@ Edit opens the same `AddressGroupFormModal` for a selected AddressGroup by passi
 
 In edit mode:
 
-- `Namespace` and `Name` are read-only because they identify the resource endpoint.
+- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - `Display name`, `Allow access`, `Description`, and `Comment` are editable and saved with patch helpers from the toolkit.
+- The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
 - Hosts, services, and networks are initialized from existing bindings and are editable.
 - Removing a selected host, service, or network deletes the corresponding binding.
 - Adding a selected host, service, or network creates the corresponding binding.
 - In edit mode, namespace-scoped resource and binding queries must start from `addressGroup.metadata.namespace` immediately. Waiting for the form watcher alone causes partial prefills.
 - Edit prefill should run only once per modal open, after host/network/service binding queries are ready. Repeated partial `setFieldsValue` calls can leave AntD selects visually stuck on reopen.
-- Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview.
+- Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview. User-facing resource labels should show `spec.displayName`, falling back to `metadata.name` only when no display name exists.
 - Badge color inputs must be canonical resource kinds so colors match `openapi-ui` / `openapi-k8s-toolkit`: use `AddressGroup`, `Namespace`, `HostBinding`, `NetworkBinding`, and `ServiceBinding`, not display labels or abbreviations such as `Address Group`, `AG`, or `NS`.
 
 ## Delete modal
 
-The table delete action opens the toolkit `DeleteModal`.
+The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
+
+The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `AddressGroup` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 

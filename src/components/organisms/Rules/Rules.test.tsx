@@ -75,9 +75,9 @@ import { Rules } from './Rules'
 describe('Rules', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockUseK8sSmartResource.mockReturnValue({
-      data: {
-        items: [
+    mockUseK8sSmartResource.mockImplementation((params?: { plural?: string }) => {
+      const resourceItemsByPlural = {
+        rules: [
           {
             metadata: { name: 'rule-a', namespace: 'tenant-a' },
             spec: {
@@ -91,9 +91,19 @@ describe('Rules', () => {
             },
           },
         ],
-      },
-      error: undefined,
-      isLoading: false,
+        addressgroups: [
+          { metadata: { name: 'ag-a', namespace: 'tenant-a' }, spec: { displayName: 'Address Group A' } },
+        ],
+        services: [{ metadata: { name: 'svc-a', namespace: 'tenant-a' }, spec: { displayName: 'Service A' } }],
+      }
+
+      return {
+        data: {
+          items: resourceItemsByPlural[params?.plural as keyof typeof resourceItemsByPlural] || [],
+        },
+        error: undefined,
+        isLoading: false,
+      }
     })
   })
 
@@ -130,11 +140,9 @@ describe('Rules', () => {
   it('opens delete modal from the table action', () => {
     render(<Rules cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete rule-a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /delete rule a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent(
-      'Delete modal tenant-a/rule-a /api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/rules/rule-a',
-    )
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/RRule A')
   })
 
   it('shows a loading error', () => {

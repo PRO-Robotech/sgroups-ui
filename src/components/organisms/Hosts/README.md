@@ -7,10 +7,10 @@ The bottom `Add Host` button opens `HostFormModal`.
 The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
-- `Name`: required. Kubernetes DNS label format, max 63 chars.
-- `Display name`: optional, max 63 chars.
-- `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
-- `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace, displayed without repeating the namespace, and stored as `namespace/name` values.
+- `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
+- `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `hosts-`.
+- `Address group`: optional multi-select. Disabled until the Host namespace is known. Options are fetched only from the Host namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
+- Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the Host namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
 - `Description`: optional.
 - `Comment`: optional.
 
@@ -36,11 +36,17 @@ Each binding:
 
 The UI does not write `Host.refs`. Treat it as computed/read-only backend data.
 
-The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. Selected AddressGroups are filtered to the current AddressGroup namespace before rendering or submit, then grouped by namespace first. Each AddressGroup child reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
+The modal structure overview is derived from the selected AddressGroups and the current host/service/network binding graph. Selected AddressGroups are filtered to the Host namespace before rendering or submit, then grouped by namespace first. Each AddressGroup child reuses the AddressGroup contents tree builder so the sidebar reflects the same structure as other flows.
 
 Overview tree keys are parent-derived and prefixed with the namespace and selected AddressGroup overview node keys, so repeated resources remain unique in AntD Tree.
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
+
+## Table display
+
+- `Display Name` is the first pinned column and renders a canonical `Host` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
+- `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
+- `Namespace` renders a canonical `Namespace` badge.
 
 ## Edit modal
 
@@ -50,19 +56,23 @@ Edit opens the same `HostFormModal` for a selected Host by passing it as the opt
 
 In edit mode:
 
-- `Namespace` and `Name` are read-only because they identify the resource endpoint.
+- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - `Display name`, `Description`, and `Comment` are editable and saved with toolkit patch helpers.
+- The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
 - AddressGroup membership is initialized from existing `HostBinding` resources and remains editable.
-- AddressGroup namespace is initialized from existing `HostBinding.spec.addressGroup.namespace` when available.
-- Changing AddressGroup namespace clears the current AddressGroup selection.
+- AddressGroup namespace is the Host namespace.
+- Existing `HostBinding` matching tolerates omitted `spec.host.namespace` by falling back to the binding namespace.
+- Changing the Host namespace clears the current AddressGroup selection.
 - Removing a selected AddressGroup deletes the corresponding binding.
 - Adding a selected AddressGroup creates the corresponding binding in the Host namespace.
 - If no editable field changed and no binding changed, no update request is sent.
 
 ## Delete modal
 
-The table delete action opens the toolkit `DeleteModal`.
+The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
+
+The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Host` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 
@@ -86,7 +96,7 @@ The implementation follows the local `v2` OpenAPI dump for `sgroups.io/v1alpha1`
 
 - The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
 - That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
-- Edit prefill waits only for resources needed to initialize the form. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
+- Edit prefill waits for existing `HostBinding` resources and AddressGroup options before setting selected AddressGroups, so edit tags render with the same badge labels as create selections. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.
 
 ## Schema source
 
@@ -105,5 +115,5 @@ Relevant fields:
 Validation notes:
 
 - `Host.metadata.name` and `Host.metadata.namespace` follow the backend resource-name regex: lower-case alphanumeric or `-`, start/end with alphanumeric, max 63 chars.
-- `Host.spec.displayName` is limited to 63 characters by the backend `DisplayName` validator.
+- `Host.spec.displayName` is limited to 63 characters by the backend `DisplayName` validator and the UI validates it with the shared hostname-label rule without requiring a dot.
 - `Host.spec.description` and `Host.spec.comment` are strings in the local OpenAPI dump and currently have no stricter documented limits.

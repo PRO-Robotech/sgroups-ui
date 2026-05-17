@@ -103,7 +103,7 @@ describe('UniRuleFormModal', () => {
       />,
     )
 
-    expect(await screen.findByDisplayValue('rule-a')).toBeDisabled()
+    expect((await screen.findByDisplayValue('rule-a')).closest('.ant-form-item-hidden')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {
@@ -113,5 +113,45 @@ describe('UniRuleFormModal', () => {
     expect(mockPatchEntryWithReplaceOp).not.toHaveBeenCalled()
     expect(mockPatchEntryWithDeleteOp).not.toHaveBeenCalled()
     expect(onClose).toHaveBeenCalled()
+  })
+
+  it('starts endpoint option queries from rule edit endpoints before form initialization', async () => {
+    renderModal(
+      <UniRuleFormModal
+        cluster="cluster-a"
+        namespace="tenant-a"
+        open
+        onClose={jest.fn()}
+        rule={
+          {
+            metadata: { namespace: 'tenant-a', name: 'rule-a' },
+            spec: {
+              action: 'Allow',
+              endpoints: {
+                local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
+                remote: { type: 'AddressGroup', namespace: 'tenant-b', name: 'ag-b' },
+              },
+            },
+          } as any
+        }
+      />,
+    )
+
+    await screen.findByDisplayValue('rule-a')
+
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({
+        namespace: 'tenant-a',
+        plural: 'addressgroups',
+        isEnabled: true,
+      }),
+    )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({
+        namespace: 'tenant-b',
+        plural: 'addressgroups',
+        isEnabled: true,
+      }),
+    )
   })
 })

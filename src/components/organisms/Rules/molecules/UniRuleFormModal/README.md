@@ -20,25 +20,27 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 
 The form stores UI-friendly values:
 
-- `namespace` and `name` identify the Rule.
+- `namespace` and `name` identify the Rule. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `action`, `traffic`, `description`, and `comment` map to editable `spec` fields.
 - `local` and `remote` endpoint blocks map to `spec.endpoints.local` and `spec.endpoints.remote`.
 - Transport panel values normalize back to `spec.transport` at submit time.
 
 `traffic` is stored in the form as the capitalized select value (`Both`, `Ingress`, or `Egress`) and saved with the same casing.
 
-Edit prefill normalizes backend traffic values before calling `setFieldsValue` so AntD can match the current select option.
+Edit prefill normalizes backend traffic values before calling `setFieldsValue` so AntD can match the current select option. It also waits for endpoint resource options needed by the current Local and Remote endpoint types, so prefilled AddressGroup and Service selections render with the same badge labels as create-mode selections.
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 
 For `AddressGroup` endpoints, the endpoint namespace scopes the visible options. The modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in the Local and Remote namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Services still use the shared service option list and are scoped client-side by the chosen endpoint namespace.
 
+AddressGroup and Service endpoint option labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists. Submitted endpoint payloads still store resource names and namespaces because the backend references resources by identifier.
+
 ## Validation
 
 AntD form validation runs before the create or patch flow reads the full form store.
 
-- `namespace`, `name`, and selected endpoint resource identifiers use Kubernetes DNS label validation with a 63 character limit.
-- `displayName` is optional and limited to 63 characters.
+- `namespace`, hidden generated `name`, and selected endpoint resource identifiers use Kubernetes DNS label validation with a 63 character limit.
+- `displayName` is optional and limited to 63 characters. It uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-`.
 - `action`, `traffic`, endpoint types, IP family, and protocol are checked against local `v3` / `v3sgroups` enum values.
 - Local endpoints are limited to `AddressGroup` and `Service`.
 - Remote endpoints allow `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
@@ -53,6 +55,8 @@ Validation source priority is the local `v3` / `v3sgroups` OpenAPI shape for cur
 ## Create Flow
 
 Create submits a single `Rule` resource.
+
+The create payload uses the hidden generated `name` as `metadata.name`; users do not type resource names in this modal.
 
 There are no Host, Service, Network, or AddressGroup binding resources in this flow. Endpoint references are written directly into the Rule payload.
 
@@ -98,4 +102,6 @@ The overview tree starts collapsed by default. Do not set `defaultExpandAll` or 
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after resources needed for the form are ready. Modal loading gates should use React state, not refs read during render.
+Edit prefill should run once per open cycle after resources needed for the form are ready, including endpoint resource options for selected AddressGroup and Service endpoints. Modal loading gates should use React state, not refs read during render.
+
+Use field-specific AntD watchers for Local and Remote endpoint blocks. Watching the whole form can return an empty object before initialization and accidentally disable endpoint option queries that need edit-mode endpoint namespaces.

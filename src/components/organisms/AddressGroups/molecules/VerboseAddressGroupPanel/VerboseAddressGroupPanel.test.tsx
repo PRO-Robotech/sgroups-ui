@@ -124,8 +124,8 @@ describe('VerboseAddressGroupPanel', () => {
       />,
     )
 
-    expect(screen.getAllByText('ag-a').length).toBeGreaterThan(0)
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
+    expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('Allow')).toBeInTheDocument()
     expect(screen.queryByText('Default Action')).not.toBeInTheDocument()
     expect(screen.getByText('Production access group')).toBeInTheDocument()
@@ -140,5 +140,23 @@ describe('VerboseAddressGroupPanel', () => {
     expect(screen.getByText('Host A')).toBeInTheDocument()
     expect(screen.getByText('Network A')).toBeInTheDocument()
     expect(screen.getByText('Service A')).toBeInTheDocument()
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'hostbindings', namespace: 'tenant-a' }),
+    )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'networkbindings', namespace: 'tenant-a' }),
+    )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'hosts', namespace: 'tenant-a' }),
+    )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'networks', namespace: 'tenant-a' }),
+    )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'servicebindings', namespace: undefined }),
+    )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'services', namespace: undefined }),
+    )
   })
 })

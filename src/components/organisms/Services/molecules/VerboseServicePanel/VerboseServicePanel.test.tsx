@@ -33,7 +33,7 @@ describe('VerboseServicePanel', () => {
                 {
                   metadata: { name: 'service-binding-a', namespace: 'tenant-a' },
                   spec: {
-                    service: { name: 'svc-a', namespace: 'tenant-a' },
+                    service: { name: 'svc-a' },
                     addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
                   },
                 },
@@ -91,8 +91,8 @@ describe('VerboseServicePanel', () => {
       />,
     )
 
-    expect(screen.getAllByText('svc-a').length).toBeGreaterThan(0)
     expect(screen.getByText('Service A')).toBeInTheDocument()
+    expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('API service')).toBeInTheDocument()
     expect(screen.getByText('app: api')).toBeInTheDocument()
     expect(screen.getByText('owner: platform')).toBeInTheDocument()
@@ -108,5 +108,11 @@ describe('VerboseServicePanel', () => {
     expandTreeNodes(container)
 
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'servicebindings', namespace: 'tenant-a' }),
+    )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'addressgroups', namespace: undefined }),
+    )
   })
 })
