@@ -33,7 +33,7 @@ AntD form validation mirrors the local `v2`/`v3sgroups` schema and backend valid
 
 - `namespace`: required Kubernetes resource name, max 63 characters.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 characters.
-- `displayName`: optional, max 63 characters. Create mode is prefilled with `addressgroups-`.
+- `displayName`: optional, max 63 characters. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `addressgroups-`.
 - `defaultAction`: controlled by the Allow access switch and submitted as `Allow` or `Deny`.
 - `description` and `comment`: optional strings. The current schema does not define stricter client-side limits for these fields.
 

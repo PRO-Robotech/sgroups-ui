@@ -12,7 +12,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
+import { renderBadgeWithValue, renderNamespaceBadgeWithValue, validateDisplayName } from 'utils'
 import { TAddressGroupFormModalProps, TAddressGroupFormValues } from './types'
 import {
   API_GROUP,
@@ -492,6 +492,13 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                     {
                       max: DISPLAY_NAME_MAX_LENGTH,
                       message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+                    },
+                    {
+                      validator: async (_, value?: string) => {
+                        if (!validateDisplayName(value)) {
+                          throw new Error('Use letters, numbers, hyphens, and optional dots')
+                        }
+                      },
                     },
                   ]}
                 >

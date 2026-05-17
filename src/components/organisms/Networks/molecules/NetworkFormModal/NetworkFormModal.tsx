@@ -26,6 +26,7 @@ import {
   NAME_PATTERN,
   normalizeOptionalString,
   renderBadgeWithValue,
+  validateDisplayName,
   validateNetworkCIDR,
   withFallbackNamespace,
 } from 'utils'
@@ -455,6 +456,13 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                     {
                       max: DISPLAY_NAME_MAX_LENGTH,
                       message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+                    },
+                    {
+                      validator: async (_, value?: string) => {
+                        if (!validateDisplayName(value)) {
+                          throw new Error('Use letters, numbers, hyphens, and optional dots')
+                        }
+                      },
                     },
                   ]}
                 >

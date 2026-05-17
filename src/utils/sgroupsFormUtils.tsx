@@ -9,6 +9,8 @@ export const API_RESOURCE_VERSION = `${API_GROUP}/${API_VERSION}`
 export const NAME_PATTERN = /^[a-z0-9]([-a-z0-9]*[a-z0-9])?$/
 export const PORT_VALUE_SEPARATOR = /\s*,\s*/
 export const FQDN_PATTERN = /^(?=.{1,253}$)(?!-)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/i
+export const DISPLAY_NAME_PATTERN =
+  /^(?=.{1,63}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/i
 
 const HEX_GROUP_PATTERN = /^[0-9a-f]{1,4}$/i
 const IPV4_BIT_LENGTH = 32n
@@ -111,6 +113,12 @@ export const normalizeOptionalString = (value?: string) => {
   const trimmedValue = value?.trim()
 
   return trimmedValue || undefined
+}
+
+export const validateDisplayName = (value?: string) => {
+  const normalizedValue = normalizeOptionalString(value)
+
+  return !normalizedValue || DISPLAY_NAME_PATTERN.test(normalizedValue)
 }
 
 export const runSequentialRequests = (requests: Array<() => Promise<unknown>>) =>

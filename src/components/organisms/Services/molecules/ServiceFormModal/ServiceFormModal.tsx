@@ -32,6 +32,7 @@ import {
   renderBadgeWithValue,
   renderAddressGroupCascaderSelection,
   TAddressGroupCascaderOption,
+  validateDisplayName,
   validatePortToken,
   withFallbackNamespace,
 } from 'utils'
@@ -536,7 +537,16 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="displayName"
                     label="Display name"
-                    rules={[{ max: DISPLAY_NAME_MAX_LENGTH, message: 'Display name must be 63 characters or less' }]}
+                    rules={[
+                      { max: DISPLAY_NAME_MAX_LENGTH, message: 'Display name must be 63 characters or less' },
+                      {
+                        validator: async (_, value?: string) => {
+                          if (!validateDisplayName(value)) {
+                            throw new Error('Use letters, numbers, hyphens, and optional dots')
+                          }
+                        },
+                      },
+                    ]}
                   >
                     <Input placeholder="e.g. api-gateway" />
                   </Form.Item>

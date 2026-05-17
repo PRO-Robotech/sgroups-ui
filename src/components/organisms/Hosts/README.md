@@ -8,7 +8,7 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
-- `Display name`: optional, max 63 chars. Create mode is prefilled with `hosts-`.
+- `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `hosts-`.
 - `Address group`: optional multi-select. Disabled until the Host namespace is known. Options are fetched only from the Host namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
 - Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the Host namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
 - `Description`: optional.
@@ -115,5 +115,5 @@ Relevant fields:
 Validation notes:
 
 - `Host.metadata.name` and `Host.metadata.namespace` follow the backend resource-name regex: lower-case alphanumeric or `-`, start/end with alphanumeric, max 63 chars.
-- `Host.spec.displayName` is limited to 63 characters by the backend `DisplayName` validator.
+- `Host.spec.displayName` is limited to 63 characters by the backend `DisplayName` validator and the UI validates it with the shared hostname-label rule without requiring a dot.
 - `Host.spec.description` and `Host.spec.comment` are strings in the local OpenAPI dump and currently have no stricter documented limits.

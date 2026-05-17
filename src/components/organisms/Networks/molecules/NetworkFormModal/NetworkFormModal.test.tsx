@@ -91,6 +91,9 @@ describe('NetworkFormModal', () => {
     fireEvent.change(await screen.findByPlaceholderText('e.g. h-api-prod-01'), {
       target: { value: 'net-new' },
     })
+    fireEvent.change(screen.getByPlaceholderText('e.g. server-01.prod'), {
+      target: { value: 'network-new' },
+    })
     fireEvent.change(screen.getByPlaceholderText('e.g. 10.0.0.0/8'), {
       target: { value: '10.20.0.0/16' },
     })
@@ -102,7 +105,7 @@ describe('NetworkFormModal', () => {
         body: expect.objectContaining({
           kind: 'Network',
           metadata: { name: 'net-new', namespace: 'tenant-a' },
-          spec: { CIDR: '10.20.0.0/16', displayName: 'networks-' },
+          spec: { CIDR: '10.20.0.0/16', displayName: 'network-new' },
         }),
       })
     })

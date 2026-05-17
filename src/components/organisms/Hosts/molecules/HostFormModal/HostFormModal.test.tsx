@@ -91,7 +91,7 @@ describe('HostFormModal', () => {
       target: { value: 'host-new' },
     })
     fireEvent.change(screen.getByPlaceholderText('e.g. server-01.prod'), {
-      target: { value: 'Host New' },
+      target: { value: 'host-new' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
@@ -101,7 +101,7 @@ describe('HostFormModal', () => {
         body: expect.objectContaining({
           kind: 'Host',
           metadata: { name: 'host-new', namespace: 'tenant-a' },
-          spec: { displayName: 'Host New' },
+          spec: { displayName: 'host-new' },
         }),
       })
     })

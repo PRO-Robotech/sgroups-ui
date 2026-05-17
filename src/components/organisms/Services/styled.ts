@@ -33,7 +33,7 @@ const BottomActionBar = styled.div`
   bottom: 0;
   z-index: 2;
   flex: 0 0 auto;
-  padding: 4px;
+  padding: 8px 0 4px;
   background: var(--table-splitter-bg-color, white);
 `
 

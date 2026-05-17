@@ -40,7 +40,7 @@ The modal uses AntD form rules for backend-backed constraints:
 
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 chars.
-- `displayName`: optional, max 63 chars. Create mode is prefilled with `services-`.
+- `displayName`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `services-`.
 - `addressGroupNamespace`: hidden compatibility field; not user-editable.
 - `transportEntries[].IPv`: required, must be `IPv4` or `IPv6`.
 - `transportEntries[].protocol`: required, must be `TCP`, `UDP`, or `ICMP`.

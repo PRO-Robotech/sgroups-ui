@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react'
 import {
   buildNamespacedValue,
   compactSpec,
+  DISPLAY_NAME_PATTERN,
   FQDN_PATTERN,
   getApiEndpoint,
   getAddressGroupCascaderOptions,
@@ -19,6 +20,7 @@ import {
   PORT_VALUE_SEPARATOR,
   runSequentialRequests,
   sanitizeBindingName,
+  validateDisplayName,
   validateCIDR,
   validateNetworkCIDR,
   validatePortToken,
@@ -187,13 +189,19 @@ describe('sgroupsFormUtils', () => {
     ).toEqual(['tenant-a/ag-a'])
   })
 
-  it('validates Kubernetes names and FQDNs with exported patterns', () => {
+  it('validates Kubernetes names, FQDNs, and display names with exported patterns', () => {
     expect(NAME_PATTERN.test('valid-name-1')).toBe(true)
     expect(NAME_PATTERN.test('Invalid')).toBe(false)
     expect(NAME_PATTERN.test('-invalid')).toBe(false)
     expect(FQDN_PATTERN.test('api.example.com')).toBe(true)
     expect(FQDN_PATTERN.test('-api.example.com')).toBe(false)
     expect(FQDN_PATTERN.test('localhost')).toBe(false)
+    expect(DISPLAY_NAME_PATTERN.test('api.example.com')).toBe(true)
+    expect(DISPLAY_NAME_PATTERN.test('localhost')).toBe(true)
+    expect(validateDisplayName(' localhost ')).toBe(true)
+    expect(validateDisplayName()).toBe(true)
+    expect(validateDisplayName('host name')).toBe(false)
+    expect(validateDisplayName('host-')).toBe(false)
   })
 
   it('validates IPv4 and IPv6 CIDRs', () => {

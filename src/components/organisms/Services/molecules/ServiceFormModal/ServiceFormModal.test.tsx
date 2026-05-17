@@ -91,7 +91,7 @@ describe('ServiceFormModal', () => {
       target: { value: 'svc-new' },
     })
     fireEvent.change(screen.getByPlaceholderText('e.g. api-gateway'), {
-      target: { value: 'Service New' },
+      target: { value: 'service-new' },
     })
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
@@ -101,7 +101,7 @@ describe('ServiceFormModal', () => {
         body: expect.objectContaining({
           kind: 'Service',
           metadata: { name: 'svc-new', namespace: 'tenant-a' },
-          spec: { displayName: 'Service New' },
+          spec: { displayName: 'service-new' },
         }),
       })
     })

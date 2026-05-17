@@ -37,7 +37,7 @@ AntD form rules mirror the local API docs and backend test fixtures:
 
 - `namespace` is a required Kubernetes DNS label, max 63 chars.
 - `name` is a hidden required Kubernetes DNS label, generated as a UUID in create mode, max 63 chars.
-- `displayName` is optional, max 63 chars. Create mode is prefilled with `networks-`.
+- `displayName` is optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `networks-`.
 - `addressGroupNamespace` is a hidden Kubernetes DNS label mirrored from `namespace`.
 - `CIDR` is required and must be a network CIDR with zero host bits. Values like `10.0.0.0/8`, `0.0.0.0/0`, and `2001:db8::/64` are valid; host-address CIDRs like `5.5.5.5/8` and `::1/8` are rejected before submit.
 

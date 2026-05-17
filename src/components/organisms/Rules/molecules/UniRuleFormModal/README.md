@@ -40,7 +40,7 @@ AddressGroup and Service endpoint option labels and search text use `spec.displa
 AntD form validation runs before the create or patch flow reads the full form store.
 
 - `namespace`, hidden generated `name`, and selected endpoint resource identifiers use Kubernetes DNS label validation with a 63 character limit.
-- `displayName` is optional and limited to 63 characters. Create mode is prefilled with `rules-`.
+- `displayName` is optional and limited to 63 characters. It uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-`.
 - `action`, `traffic`, endpoint types, IP family, and protocol are checked against local `v3` / `v3sgroups` enum values.
 - Local endpoints are limited to `AddressGroup` and `Service`.
 - Remote endpoints allow `AddressGroup`, `Service`, `FQDN`, and `CIDR`.

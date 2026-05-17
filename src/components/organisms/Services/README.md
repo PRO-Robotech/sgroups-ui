@@ -8,7 +8,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 
 - `Namespace`: required. Service namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
-- `Display name`: optional, max 63 chars. Create mode is prefilled with `services-`.
+- `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `services-`.
 - `Address group`: optional multi-select Cascader. The first level is namespace and the second level is AddressGroup. AddressGroups can be selected from any namespace; each namespace branch is loaded only when needed. Selected tags include a canonical `Namespace` badge and `AddressGroup` badge. Values are stored as `namespace/name`.
 - Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the Cascader branch namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
 - `Description`: optional.
@@ -110,7 +110,7 @@ Relevant fields:
 Validation notes:
 
 - `Service.metadata.name` and `Service.metadata.namespace` follow the backend resource-name regex: lower-case alphanumeric or `-`, start/end with alphanumeric, max 63 chars.
-- `Service.spec.displayName` is limited to 63 characters by the backend `DisplayName` validator.
+- `Service.spec.displayName` is limited to 63 characters by the backend `DisplayName` validator and the UI validates it with the shared hostname-label rule without requiring a dot.
 - `Service.spec.transports[].IPv` must be `IPv4` or `IPv6`.
 - `Service.spec.transports[].protocol` must be `TCP`, `UDP`, or `ICMP`.
 - `TCP` and `UDP` transport entries require one or more ports or port ranges.

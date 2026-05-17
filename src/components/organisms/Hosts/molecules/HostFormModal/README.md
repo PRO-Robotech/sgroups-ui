@@ -37,10 +37,10 @@ The modal uses AntD form rules for backend-backed constraints:
 
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 chars.
-- `displayName`: optional, max 63 chars. Create mode is prefilled with `hosts-`.
+- `displayName`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `hosts-`.
 - `addressGroupNamespace`: hidden Kubernetes resource namespace mirrored from `namespace`.
 
-The local `v2` and `v3sgroups` OpenAPI HostSpec only declares `displayName`, `description`, and `comment` as strings. The display-name length comes from the extracted backend validator in `tmp`; `description` and `comment` currently have no stricter documented limits.
+The local `v2` and `v3sgroups` OpenAPI HostSpec only declares `displayName`, `description`, and `comment` as strings. The display-name length comes from the extracted backend validator in `tmp`; the UI additionally applies the shared hostname-label rule without requiring a dot. `description` and `comment` currently have no stricter documented limits.
 
 ## Create Flow
 

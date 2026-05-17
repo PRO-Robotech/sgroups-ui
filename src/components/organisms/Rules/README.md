@@ -8,7 +8,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 
 - `Namespace`: required. Rule namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
-- `Display name`: optional, max 63 chars. Create mode is prefilled with `rules-`.
+- `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-`.
 - `Action`: required. AntD validates `Allow` or `Deny`.
 - `Traffic`: required. UI labels and saved `spec.session.traffic` values are `Both`, `Ingress`, or `Egress`.
 - `Local`: required endpoint block.
