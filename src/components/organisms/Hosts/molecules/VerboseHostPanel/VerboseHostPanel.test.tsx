@@ -33,7 +33,7 @@ describe('VerboseHostPanel', () => {
                 {
                   metadata: { name: 'host-binding-a', namespace: 'tenant-a' },
                   spec: {
-                    host: { name: 'host-a', namespace: 'tenant-a' },
+                    host: { name: 'host-a' },
                     addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
                   },
                 },
@@ -112,6 +112,12 @@ describe('VerboseHostPanel', () => {
     expandTreeNodes(container)
 
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'hostbindings', namespace: 'tenant-a' }),
+    )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({ plural: 'addressgroups', namespace: undefined }),
+    )
     expect(screen.queryByText('label6: six')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByText('Show more (1)'))

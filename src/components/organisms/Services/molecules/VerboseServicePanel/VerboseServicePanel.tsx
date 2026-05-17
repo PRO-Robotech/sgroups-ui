@@ -65,6 +65,11 @@ const renderValue = (value?: string) => value || '-'
 const makeLookupKey = (identifier?: TResourceIdentifier) =>
   `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
 
+const withBindingNamespaceFallback = (identifier: TResourceIdentifier | undefined, bindingNamespace?: string) => ({
+  ...identifier,
+  namespace: identifier?.namespace || bindingNamespace,
+})
+
 const withNamespaceLabel = (name?: string) => {
   if (!name) {
     return 'Unknown'
@@ -221,7 +226,10 @@ const buildBoundAddressGroupsTree = ({
     (addressGroups || []).map(group => [makeLookupKey(group.metadata), group]),
   )
 
-  const matchedBindings = (bindings || []).filter(binding => makeLookupKey(binding.spec?.service) === targetKey)
+  const matchedBindings = (bindings || []).filter(
+    binding =>
+      makeLookupKey(withBindingNamespaceFallback(binding.spec?.service, binding.metadata.namespace)) === targetKey,
+  )
   const children = matchedBindings.map(binding => {
     const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]
     const bindingKey = makeChildKey(
@@ -273,9 +281,17 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
   onCollapse,
 }) => {
   const { token } = antdTheme.useToken()
-  const resourceRequestBase = {
+  const serviceNamespace = service.metadata.namespace || namespace
+  const serviceScopedRequestBase = {
     cluster: cluster || '',
-    namespace,
+    namespace: serviceNamespace,
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    isEnabled: Boolean(cluster && serviceNamespace),
+  } as const
+  const clusterScopedRequestBase = {
+    cluster: cluster || '',
+    namespace: undefined,
     apiGroup: 'sgroups.io',
     apiVersion: 'v1alpha1',
     isEnabled: Boolean(cluster),
@@ -286,7 +302,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
     isLoading: isServiceBindingsLoading,
     error: serviceBindingsError,
   } = useK8sSmartResource<{ items: TServiceBindingResource[] }>({
-    ...resourceRequestBase,
+    ...serviceScopedRequestBase,
     plural: 'servicebindings',
   })
   const {
@@ -294,7 +310,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
     isLoading: isAddressGroupsLoading,
     error: addressGroupsError,
   } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
-    ...resourceRequestBase,
+    ...clusterScopedRequestBase,
     plural: 'addressgroups',
   })
 

@@ -65,6 +65,11 @@ const NOT_FOUND_LEAF_TITLE = 'Not found'
 const makeLookupKey = (identifier?: TResourceIdentifier) =>
   `${identifier?.namespace || 'all'}::${identifier?.name || 'unknown'}`
 
+const withBindingNamespaceFallback = (identifier: TResourceIdentifier | undefined, bindingNamespace?: string) => ({
+  ...identifier,
+  namespace: identifier?.namespace || bindingNamespace,
+})
+
 const withNamespaceLabel = (name?: string) => {
   if (!name) {
     return 'Unknown'
@@ -169,7 +174,9 @@ const buildBoundAddressGroupsTree = ({
     (addressGroups || []).map(group => [makeLookupKey(group.metadata), group]),
   )
 
-  const matchedBindings = (bindings || []).filter(binding => makeLookupKey(binding.spec?.host) === targetKey)
+  const matchedBindings = (bindings || []).filter(
+    binding => makeLookupKey(withBindingNamespaceFallback(binding.spec?.host, binding.metadata.namespace)) === targetKey,
+  )
   const children = matchedBindings.map(binding => {
     const addressGroup = addressGroupsByKey[makeLookupKey(binding.spec?.addressGroup)]
     const bindingKey = makeChildKey(
@@ -221,9 +228,17 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
   onCollapse,
 }) => {
   const { token } = antdTheme.useToken()
-  const resourceRequestBase = {
+  const hostNamespace = host.metadata.namespace || namespace
+  const hostScopedRequestBase = {
     cluster: cluster || '',
-    namespace,
+    namespace: hostNamespace,
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    isEnabled: Boolean(cluster && hostNamespace),
+  } as const
+  const clusterScopedRequestBase = {
+    cluster: cluster || '',
+    namespace: undefined,
     apiGroup: 'sgroups.io',
     apiVersion: 'v1alpha1',
     isEnabled: Boolean(cluster),
@@ -234,7 +249,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
     isLoading: isHostBindingsLoading,
     error: hostBindingsError,
   } = useK8sSmartResource<{ items: THostBindingResource[] }>({
-    ...resourceRequestBase,
+    ...hostScopedRequestBase,
     plural: 'hostbindings',
   })
   const {
@@ -242,7 +257,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
     isLoading: isAddressGroupsLoading,
     error: addressGroupsError,
   } = useK8sSmartResource<{ items: TAddressGroupResource[] }>({
-    ...resourceRequestBase,
+    ...clusterScopedRequestBase,
     plural: 'addressgroups',
   })
 

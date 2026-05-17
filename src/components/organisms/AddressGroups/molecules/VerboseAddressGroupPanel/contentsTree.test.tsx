@@ -210,6 +210,52 @@ describe('buildAddressGroupContentsTree', () => {
     )
   })
 
+  it('uses binding namespace as a fallback for omitted related resource namespaces', () => {
+    const tree = buildAddressGroupContentsTree({
+      addressGroupName: 'ag-a',
+      addressGroupNamespace: 'tenant-a',
+      hostBindings: [
+        {
+          metadata: { name: 'host-binding-a', namespace: 'tenant-a' },
+          spec: {
+            addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+            host: { name: 'host-a' },
+          },
+        },
+      ] as any,
+      serviceBindings: [
+        {
+          metadata: { name: 'service-binding-b', namespace: 'tenant-b' },
+          spec: {
+            addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+            service: { name: 'svc-b' },
+          },
+        },
+      ] as any,
+      hosts: [
+        {
+          metadata: { name: 'host-a', namespace: 'tenant-a' },
+          spec: { displayName: 'Host A' },
+        },
+      ] as any,
+      services: [
+        {
+          metadata: { name: 'svc-b', namespace: 'tenant-b' },
+          spec: { displayName: 'Service B' },
+        },
+      ] as any,
+    })
+
+    expect(tree[0].children?.[0]).toEqual(expect.objectContaining({ key: 'hosts-root-namespace-tenant-a' }))
+    expect(tree[0].children?.[0].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'hosts-root-host-tenant-a-host-binding-a' }),
+    )
+    expect(tree[2].children?.[0]).toEqual(expect.objectContaining({ key: 'services-root-namespace-tenant-b' }))
+    expect(tree[2].children?.[0].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'services-root-service-tenant-b-service-binding-b' }),
+    )
+  })
+
   it('uses branch-level error leaves when binding fetch failed', () => {
     const tree = buildAddressGroupContentsTree({
       addressGroupName: 'ag-a',
