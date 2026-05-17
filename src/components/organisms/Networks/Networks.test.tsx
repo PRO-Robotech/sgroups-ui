@@ -122,7 +122,7 @@ describe('Networks', () => {
   it('opens delete modal from the table action', () => {
     render(<Networks cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete net-a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /delete network a/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/NNetwork A')
   })

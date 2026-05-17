@@ -174,7 +174,7 @@ export const getNamespacedResourceOptions = (
           {
             value,
             label,
-            searchText: `${resourceNamespace} ${resourceName} ${item.spec?.displayName || ''}`.trim(),
+            searchText: `${resourceNamespace} ${displayName}`.trim(),
             badgeLabel,
             resourceLabel: displayName,
           },

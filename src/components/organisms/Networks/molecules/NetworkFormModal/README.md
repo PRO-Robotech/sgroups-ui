@@ -24,7 +24,7 @@ The form stores UI-friendly values:
 - `displayName`, `CIDR`, `description`, and `comment` map to editable `spec` fields.
 - `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
-- AddressGroup option labels omit the namespace because the namespace is chosen in the preceding selector.
+- AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because the namespace is chosen in the preceding selector.
 - AddressGroup options are disabled until `addressGroupNamespace` is selected. Changing `addressGroupNamespace` clears `addressGroups`.
 - Submit filters stale `addressGroups` values to the current `addressGroupNamespace` so retained AntD form state cannot save bindings from a previous namespace.
 
@@ -36,7 +36,7 @@ AntD form rules mirror the local API docs and backend test fixtures:
 
 - `namespace` is a required Kubernetes DNS label, max 63 chars.
 - `name` is a hidden required Kubernetes DNS label, generated as a UUID in create mode, max 63 chars.
-- `displayName` is optional, max 63 chars.
+- `displayName` is optional, max 63 chars. Create mode is prefilled with `networks-`.
 - `addressGroupNamespace` is an optional Kubernetes DNS label, max 63 chars.
 - `CIDR` is required and must be a network CIDR with zero host bits. Values like `10.0.0.0/8`, `0.0.0.0/0`, and `2001:db8::/64` are valid; host-address CIDRs like `5.5.5.5/8` and `::1/8` are rejected before submit.
 

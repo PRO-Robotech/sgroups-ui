@@ -122,7 +122,7 @@ describe('Hosts', () => {
   it('opens delete modal from the table action', () => {
     render(<Hosts cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete host-a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /delete host a/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/HHost A')
   })

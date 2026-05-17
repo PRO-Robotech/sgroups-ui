@@ -8,13 +8,13 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. AddressGroup namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
-- `Display name`: optional. Max 63 characters.
+- `Display name`: optional. Max 63 characters. Create mode is prefilled with `addressgroups-`.
 - `Allow access`: maps to `spec.defaultAction`.
   - enabled: `Allow`
   - disabled: `Deny`
-- `Hosts`: optional multi-select. Loaded from the AddressGroup namespace. Creates `HostBinding` resources in the AddressGroup namespace.
-- `Services`: optional multi-select. Loaded from all namespaces and displayed as `namespace / service-name`. Creates each `ServiceBinding` in the selected service namespace.
-- `Networks`: optional multi-select. Loaded from the AddressGroup namespace. Creates `NetworkBinding` resources in the AddressGroup namespace.
+- `Hosts`: optional multi-select. Loaded from the AddressGroup namespace. Visible labels and search text use `spec.displayName`, falling back to the Host name only when no display name exists. Values remain Host names. Creates `HostBinding` resources in the AddressGroup namespace.
+- `Services`: optional multi-select. Loaded from all namespaces. Visible labels and search text use `spec.displayName` with namespace context, falling back to the Service name only when no display name exists. Values remain `namespace/name`. Creates each `ServiceBinding` in the selected service namespace.
+- `Networks`: optional multi-select. Loaded from the AddressGroup namespace. Visible labels and search text use `spec.displayName`, falling back to the Network name only when no display name exists. Values remain Network names. Creates `NetworkBinding` resources in the AddressGroup namespace.
 - `Description`: optional.
 - `Comment`: optional.
 
@@ -52,7 +52,7 @@ Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAl
 
 The AddressGroups table uses badge/tag/icon formatting consistently:
 
-- `Display Name` is the first pinned column and renders an `AddressGroup` badge. It falls back to `-` when `spec.displayName` is empty.
+- `Display Name` is the first pinned column and renders an `AddressGroup` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Namespace` renders a canonical `Namespace` badge.
 - `Default Action` renders as a colored AntD tag.
@@ -75,7 +75,7 @@ In edit mode:
 - Adding a selected host, service, or network creates the corresponding binding.
 - In edit mode, namespace-scoped resource and binding queries must start from `addressGroup.metadata.namespace` immediately. Waiting for the form watcher alone causes partial prefills.
 - Edit prefill should run only once per modal open, after host/network/service binding queries are ready. Repeated partial `setFieldsValue` calls can leave AntD selects visually stuck on reopen.
-- Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview.
+- Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview. User-facing resource labels should show `spec.displayName`, falling back to `metadata.name` only when no display name exists.
 - Badge color inputs must be canonical resource kinds so colors match `openapi-ui` / `openapi-k8s-toolkit`: use `AddressGroup`, `Namespace`, `HostBinding`, `NetworkBinding`, and `ServiceBinding`, not display labels or abbreviations such as `Address Group`, `AG`, or `NS`.
 
 ## Delete modal

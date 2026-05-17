@@ -38,10 +38,12 @@ Long tag groups show the first five values and expose a show more/less control. 
 The `Source` and `Destination` sections resolve endpoint contents from the current resource graph:
 
 - `CIDR` and `FQDN` endpoints render as leaf values.
-- `Service` endpoints resolve service transports directly.
-- AddressGroup-style endpoints resolve AddressGroups, then expand matching Host, Network, and Service bindings.
+- `Service` endpoints resolve service display names and transports directly.
+- AddressGroup-style endpoints resolve AddressGroup display names, then expand matching Host, Network, and Service bindings.
 
 AddressGroup endpoint branches group matched Hosts, Networks, and Services by the target resource namespace before rendering individual binding/resource nodes. Binding nodes render with resource badges (`HostBinding`, `NetworkBinding`, or `ServiceBinding`) and then expand to the resolved Host, Network, or Service resource badge and details.
+
+Endpoint summaries and endpoint tree labels use resolved `spec.displayName` values where available, falling back to `metadata.name` only when no display name exists.
 
 Service transport leaves in endpoint trees keep only ports/types visible. If an entry has a description or comment, those details are attached to the leaf tooltip.
 

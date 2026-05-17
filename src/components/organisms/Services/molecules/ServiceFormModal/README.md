@@ -25,7 +25,7 @@ The form stores UI-friendly values:
 - `displayName`, `description`, and `comment` map to editable `spec` fields.
 - `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
-- AddressGroup option labels omit the namespace because the namespace is chosen in the preceding selector.
+- AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because the namespace is chosen in the preceding selector.
 - `transportEntries` stores repeated UI rows and is normalized back to `spec.transports` only at submit time.
 
 The submit handler validates and reads the full form store, including fields hidden behind the segmented panel.
@@ -38,7 +38,7 @@ The modal uses AntD form rules for backend-backed constraints:
 
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 chars.
-- `displayName`: optional, max 63 chars.
+- `displayName`: optional, max 63 chars. Create mode is prefilled with `services-`.
 - `addressGroupNamespace`: optional Kubernetes resource namespace, max 63 chars.
 - `transportEntries[].IPv`: required, must be `IPv4` or `IPv6`.
 - `transportEntries[].protocol`: required, must be `TCP`, `UDP`, or `ICMP`.

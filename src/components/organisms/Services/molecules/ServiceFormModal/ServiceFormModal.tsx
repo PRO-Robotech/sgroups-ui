@@ -36,6 +36,7 @@ import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAdd
 import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
+const CREATE_DISPLAY_NAME_PREFIX = 'services-'
 const IPV_VALUES = IPV_OPTIONS.map(option => option.value)
 const PROTOCOL_VALUES = PROTOCOL_OPTIONS.map(option => option.value)
 const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
@@ -256,7 +257,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       form.setFieldsValue({
         namespace,
         name: uuidv4(),
-        displayName: undefined,
+        displayName: CREATE_DISPLAY_NAME_PREFIX,
         description: undefined,
         comment: undefined,
         addressGroupNamespace: namespace,

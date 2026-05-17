@@ -123,7 +123,7 @@ describe('AddressGroups', () => {
   it('opens delete modal from the table action', () => {
     render(<AddressGroups cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete ag-a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /delete address group a/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/AGAddress Group A')
   })

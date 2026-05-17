@@ -33,12 +33,14 @@ Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `
 
 For `AddressGroup` endpoints, the endpoint namespace scopes the visible options. The modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in the Local and Remote namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Services still use the shared service option list and are scoped client-side by the chosen endpoint namespace.
 
+AddressGroup and Service endpoint option labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists. Submitted endpoint payloads still store resource names and namespaces because the backend references resources by identifier.
+
 ## Validation
 
 AntD form validation runs before the create or patch flow reads the full form store.
 
 - `namespace`, hidden generated `name`, and selected endpoint resource identifiers use Kubernetes DNS label validation with a 63 character limit.
-- `displayName` is optional and limited to 63 characters.
+- `displayName` is optional and limited to 63 characters. Create mode is prefilled with `rules-`.
 - `action`, `traffic`, endpoint types, IP family, and protocol are checked against local `v3` / `v3sgroups` enum values.
 - Local endpoints are limited to `AddressGroup` and `Service`.
 - Remote endpoints allow `AddressGroup`, `Service`, `FQDN`, and `CIDR`.

@@ -24,7 +24,7 @@ The form stores UI-friendly values:
 - `displayName`, `description`, and `comment` map to editable `spec` fields.
 - `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
-- AddressGroup option labels omit the namespace because the namespace is chosen in the preceding selector.
+- AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because the namespace is chosen in the preceding selector.
 - AddressGroup options are disabled until `addressGroupNamespace` is selected. Changing `addressGroupNamespace` clears `addressGroups`.
 - Submit filters stale `addressGroups` values to the current `addressGroupNamespace` so retained AntD form state cannot save bindings from a previous namespace.
 
@@ -36,7 +36,7 @@ The modal uses AntD form rules for backend-backed constraints:
 
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 chars.
-- `displayName`: optional, max 63 chars.
+- `displayName`: optional, max 63 chars. Create mode is prefilled with `hosts-`.
 - `addressGroupNamespace`: optional Kubernetes resource namespace, max 63 chars.
 
 The local `v2` and `v3sgroups` OpenAPI HostSpec only declares `displayName`, `description`, and `comment` as strings. The display-name length comes from the extracted backend validator in `tmp`; `description` and `comment` currently have no stricter documented limits.

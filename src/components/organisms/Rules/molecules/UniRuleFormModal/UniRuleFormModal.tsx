@@ -49,6 +49,7 @@ import {
 import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
+const CREATE_DISPLAY_NAME_PREFIX = 'rules-'
 const ACTION_VALUES = ACTION_OPTIONS.map(option => option.value)
 const TRAFFIC_VALUES = TRAFFIC_OPTIONS.map(option => option.value)
 const ENDPOINT_TYPE_VALUES = ENDPOINT_TYPE_OPTIONS.map(option => option.value)
@@ -368,7 +369,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       form.setFieldsValue({
         namespace,
         name: uuidv4(),
-        displayName: undefined,
+        displayName: CREATE_DISPLAY_NAME_PREFIX,
         action: 'Allow',
         traffic: 'Both',
         description: undefined,

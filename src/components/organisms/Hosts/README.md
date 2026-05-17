@@ -8,9 +8,9 @@ The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
-- `Display name`: optional, max 63 chars.
+- `Display name`: optional, max 63 chars. Create mode is prefilled with `hosts-`.
 - `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
-- `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace, displayed without repeating the namespace, and stored as `namespace/name` values.
+- `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
 - `Description`: optional.
 - `Comment`: optional.
 
@@ -44,7 +44,7 @@ Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAl
 
 ## Table display
 
-- `Display Name` is the first pinned column and renders a canonical `Host` badge. It falls back to `-` when `spec.displayName` is empty.
+- `Display Name` is the first pinned column and renders a canonical `Host` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Namespace` renders a canonical `Namespace` badge.
 

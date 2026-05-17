@@ -89,7 +89,7 @@ describe('NetworkFormModal', () => {
         body: expect.objectContaining({
           kind: 'Network',
           metadata: { name: 'net-new', namespace: 'tenant-a' },
-          spec: { CIDR: '10.20.0.0/16' },
+          spec: { CIDR: '10.20.0.0/16', displayName: 'networks-' },
         }),
       })
     })

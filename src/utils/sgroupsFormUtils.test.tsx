@@ -103,7 +103,7 @@ describe('sgroupsFormUtils', () => {
 
     expect(options.map(option => ({ value: option.value, searchText: option.searchText }))).toEqual([
       { value: 'tenant-a/svc-a', searchText: 'tenant-a svc-a' },
-      { value: 'tenant-b/svc-b', searchText: 'tenant-b svc-b Backend' },
+      { value: 'tenant-b/svc-b', searchText: 'tenant-b Backend' },
     ])
   })
 
@@ -139,7 +139,7 @@ describe('sgroupsFormUtils', () => {
     )
 
     expect(options[0].value).toBe('tenant-a/ag-a')
-    expect(options[0].searchText).toBe('tenant-a ag-a Address Group A')
+    expect(options[0].searchText).toBe('tenant-a Address Group A')
 
     render(<div>{options[0].label}</div>)
     expect(screen.getByText('Address Group A')).toBeInTheDocument()

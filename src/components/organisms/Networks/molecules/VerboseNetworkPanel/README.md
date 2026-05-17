@@ -30,7 +30,7 @@ The `Bound Address Groups` tree is derived from current `NetworkBinding` resourc
 
 The section subtitle includes the bound AddressGroup count. The AntD tree starts from AddressGroup namespace nodes instead of rendering a duplicate `Bound Address Groups` root row.
 
-Bindings are matched by comparing `binding.spec.network` with the current Network `metadata.name` and `metadata.namespace`. Matching bindings are grouped by `spec.addressGroup.namespace`. Under each namespace node, each child shows the resolved AddressGroup label from `spec.displayName` or metadata.
+Bindings are matched by comparing `binding.spec.network` with the current Network `metadata.name` and `metadata.namespace`. Matching bindings are grouped by `spec.addressGroup.namespace`. Under each namespace node, each child shows the resolved AddressGroup label from `spec.displayName`, falling back to `metadata.name` only when no display name exists.
 
 Missing AddressGroups render as `Not found`; failed lookups render as `Error while fetching`.
 

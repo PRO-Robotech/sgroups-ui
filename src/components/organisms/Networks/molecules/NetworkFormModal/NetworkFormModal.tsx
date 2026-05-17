@@ -33,6 +33,7 @@ import { buildCurrentBindings, buildOverviewTreeData, patchEditableSpec, syncAdd
 import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
+const CREATE_DISPLAY_NAME_PREFIX = 'networks-'
 const isFormValidationError = (error: unknown): error is { errorFields: unknown[] } =>
   Boolean(error && typeof error === 'object' && 'errorFields' in error)
 
@@ -249,7 +250,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
       form.setFieldsValue({
         namespace,
         name: uuidv4(),
-        displayName: undefined,
+        displayName: CREATE_DISPLAY_NAME_PREFIX,
         addressGroupNamespace: namespace,
         addressGroups: [],
         cidr: undefined,

@@ -32,6 +32,7 @@ import {
 import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
+const CREATE_DISPLAY_NAME_PREFIX = 'addressgroups-'
 
 export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   cluster,
@@ -314,7 +315,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
     form.setFieldsValue({
       namespace,
       name: uuidv4(),
-      displayName: undefined,
+      displayName: CREATE_DISPLAY_NAME_PREFIX,
       description: undefined,
       comment: undefined,
       allowAccess: false,

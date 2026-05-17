@@ -190,7 +190,7 @@ export const mapServicesToRows = (items: TServiceResource[]): TServiceRow[] =>
     return {
       ...item,
       key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
-      displayName: item.spec?.displayName || EMPTY_VALUE,
+      displayName: item.spec?.displayName || item.metadata.name || EMPTY_VALUE,
       protocols: formatUniqueTransportValues(transports, transport => transport.protocol),
       ipFamilies: formatUniqueTransportValues(transports, transport => transport.IPv),
       transportEntries: formatTransportEntriesSummary(transports),
@@ -288,7 +288,7 @@ export const buildServicesColumns = ({
               Tooltip,
               { title: 'Edit' },
               React.createElement(Button, {
-                'aria-label': `Edit ${record.metadata.name || 'service'}`,
+                'aria-label': `Edit ${record.displayName || 'service'}`,
                 type: 'text',
                 icon: React.createElement(EditOutlined),
                 onClick: event => {
@@ -302,7 +302,7 @@ export const buildServicesColumns = ({
               Tooltip,
               { title: 'Delete' },
               React.createElement(Button, {
-                'aria-label': `Delete ${record.metadata.name || 'service'}`,
+                'aria-label': `Delete ${record.displayName || 'service'}`,
                 danger: true,
                 type: 'text',
                 icon: React.createElement(DeleteOutlined),

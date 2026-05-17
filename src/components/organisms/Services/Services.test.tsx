@@ -125,7 +125,7 @@ describe('Services', () => {
   it('opens delete modal from the table action', () => {
     render(<Services cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete svc-a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /delete service a/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/SService A')
   })

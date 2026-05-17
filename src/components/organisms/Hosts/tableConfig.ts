@@ -81,7 +81,7 @@ export const mapHostsToRows = (items: THostResource[]): THostRow[] =>
       ips: normalizedIps,
       metaInfo: normalizedMetaInfo,
       key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
-      displayName: item.spec?.displayName || EMPTY_VALUE,
+      displayName: item.spec?.displayName || item.metadata.name || EMPTY_VALUE,
       hostName: normalizedMetaInfo.hostName || EMPTY_VALUE,
       ipv4: normalizedIps.IPv4 || [],
       ipv6: normalizedIps.IPv6 || [],
@@ -199,7 +199,7 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
               Tooltip,
               { title: 'Edit' },
               React.createElement(Button, {
-                'aria-label': `Edit ${record.metadata.name || 'host'}`,
+                'aria-label': `Edit ${record.displayName || 'host'}`,
                 type: 'text',
                 icon: React.createElement(EditOutlined),
                 onClick: event => {
@@ -213,7 +213,7 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
               Tooltip,
               { title: 'Delete' },
               React.createElement(Button, {
-                'aria-label': `Delete ${record.metadata.name || 'host'}`,
+                'aria-label': `Delete ${record.displayName || 'host'}`,
                 danger: true,
                 type: 'text',
                 icon: React.createElement(DeleteOutlined),

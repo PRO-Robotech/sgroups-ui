@@ -76,12 +76,23 @@ export type TRuleRow = TRuleResource & {
   created: string
 }
 
+export type TEndpointDisplayLookup = Record<string, string>
+
 type TBuildRulesColumnsParams = {
   onEdit?: (record: TRuleRow) => void
   onDelete?: (record: TRuleRow) => void
+  endpointDisplayLookup?: TEndpointDisplayLookup
 }
 
 const EMPTY_VALUE = '-'
+
+export const getEndpointLookupKey = (endpoint?: TRuleEndpoint) => {
+  if (!endpoint?.namespace || !endpoint.name) {
+    return undefined
+  }
+
+  return `${endpoint.namespace}/${endpoint.name}`
+}
 
 const stringSorter = (first?: string, second?: string): number =>
   (first || '').localeCompare(second || '', undefined, { numeric: true, sensitivity: 'base' })
@@ -102,7 +113,13 @@ const renderValueTag = (value?: string) => {
   return React.createElement(Tag, null, value)
 }
 
-const formatEndpointLabel = (endpoint?: TRuleEndpoint): string => {
+const getEndpointDisplayName = (endpoint?: TRuleEndpoint, endpointDisplayLookup: TEndpointDisplayLookup = {}) => {
+  const lookupKey = getEndpointLookupKey(endpoint)
+
+  return (lookupKey && endpointDisplayLookup[lookupKey]) || endpoint?.name || endpoint?.value
+}
+
+const formatEndpointLabel = (endpoint?: TRuleEndpoint, endpointDisplayLookup: TEndpointDisplayLookup = {}): string => {
   if (!endpoint) {
     return EMPTY_VALUE
   }
@@ -111,7 +128,7 @@ const formatEndpointLabel = (endpoint?: TRuleEndpoint): string => {
     return endpoint.value || EMPTY_VALUE
   }
 
-  const name = endpoint.name || endpoint.value
+  const name = getEndpointDisplayName(endpoint, endpointDisplayLookup)
 
   if (!name) {
     return EMPTY_VALUE
@@ -120,7 +137,7 @@ const formatEndpointLabel = (endpoint?: TRuleEndpoint): string => {
   return endpoint.namespace ? `${name} (${endpoint.namespace})` : name
 }
 
-const renderEndpointLabel = (endpoint?: TRuleEndpoint) => {
+export const renderEndpointLabel = (endpoint?: TRuleEndpoint, endpointDisplayLookup: TEndpointDisplayLookup = {}) => {
   if (!endpoint) {
     return EMPTY_VALUE
   }
@@ -129,7 +146,7 @@ const renderEndpointLabel = (endpoint?: TRuleEndpoint) => {
     return endpoint.value || EMPTY_VALUE
   }
 
-  const name = endpoint.name || endpoint.value
+  const name = getEndpointDisplayName(endpoint, endpointDisplayLookup)
 
   if (!name) {
     return EMPTY_VALUE
@@ -199,22 +216,29 @@ const renderTransportEntries = (entries?: TRuleTransportEntry[]) => {
   )
 }
 
-export const mapRulesToRows = (items: TRuleResource[]): TRuleRow[] =>
+export const mapRulesToRows = (
+  items: TRuleResource[],
+  endpointDisplayLookup: TEndpointDisplayLookup = {},
+): TRuleRow[] =>
   items.map(item => ({
     ...item,
     key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
-    displayName: item.spec?.displayName || EMPTY_VALUE,
+    displayName: item.spec?.displayName || item.metadata.name || EMPTY_VALUE,
     action: item.spec?.action || EMPTY_VALUE,
     traffic: formatTrafficValue(item.spec?.session?.traffic),
     protocol: item.spec?.transport?.protocol || EMPTY_VALUE,
     ipFamily: item.spec?.transport?.IPv || EMPTY_VALUE,
-    localEndpoint: formatEndpointLabel(item.spec?.endpoints?.local),
-    remoteEndpoint: formatEndpointLabel(item.spec?.endpoints?.remote),
+    localEndpoint: formatEndpointLabel(item.spec?.endpoints?.local, endpointDisplayLookup),
+    remoteEndpoint: formatEndpointLabel(item.spec?.endpoints?.remote, endpointDisplayLookup),
     description: item.spec?.description || EMPTY_VALUE,
     created: formatDateTime(item.metadata.creationTimestamp),
   }))
 
-export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams = {}): ColumnsType<TRuleRow> => {
+export const buildRulesColumns = ({
+  onDelete,
+  onEdit,
+  endpointDisplayLookup = {},
+}: TBuildRulesColumnsParams = {}): ColumnsType<TRuleRow> => {
   const columns: ColumnsType<TRuleRow> = [
     {
       title: 'Display Name',
@@ -270,7 +294,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       key: 'localEndpoint',
       width: 360,
       sorter: (a, b) => stringSorter(a.localEndpoint, b.localEndpoint),
-      render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.local),
+      render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.local, endpointDisplayLookup),
     },
     {
       title: 'Remote',
@@ -278,7 +302,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       key: 'remoteEndpoint',
       width: 360,
       sorter: (a, b) => stringSorter(a.remoteEndpoint, b.remoteEndpoint),
-      render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.remote),
+      render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.remote, endpointDisplayLookup),
     },
     {
       title: 'Ports / Types',
@@ -320,7 +344,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
               Tooltip,
               { title: 'Edit' },
               React.createElement(Button, {
-                'aria-label': `Edit ${record.metadata.name || 'rule'}`,
+                'aria-label': `Edit ${record.displayName || 'rule'}`,
                 type: 'text',
                 icon: React.createElement(EditOutlined),
                 onClick: event => {
@@ -334,7 +358,7 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
               Tooltip,
               { title: 'Delete' },
               React.createElement(Button, {
-                'aria-label': `Delete ${record.metadata.name || 'rule'}`,
+                'aria-label': `Delete ${record.displayName || 'rule'}`,
                 danger: true,
                 type: 'text',
                 icon: React.createElement(DeleteOutlined),

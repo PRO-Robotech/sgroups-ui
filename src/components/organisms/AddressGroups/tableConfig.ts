@@ -89,7 +89,7 @@ export const mapAddressGroupsToRows = (items: TAddressGroupResource[]): TAddress
   items.map(item => ({
     ...item,
     key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
-    displayName: item.spec?.displayName || EMPTY_VALUE,
+    displayName: item.spec?.displayName || item.metadata.name || EMPTY_VALUE,
     defaultAction: item.spec?.defaultAction || EMPTY_VALUE,
     logsLabel: formatBooleanFlag(item.spec?.logs),
     traceLabel: formatBooleanFlag(item.spec?.trace),
@@ -177,7 +177,7 @@ export const buildAddressGroupsColumns = ({
               Tooltip,
               { title: 'Edit' },
               React.createElement(Button, {
-                'aria-label': `Edit ${record.metadata.name || 'address group'}`,
+                'aria-label': `Edit ${record.displayName || 'address group'}`,
                 type: 'text',
                 icon: React.createElement(EditOutlined),
                 onClick: event => {
@@ -191,7 +191,7 @@ export const buildAddressGroupsColumns = ({
               Tooltip,
               { title: 'Delete' },
               React.createElement(Button, {
-                'aria-label': `Delete ${record.metadata.name || 'address group'}`,
+                'aria-label': `Delete ${record.displayName || 'address group'}`,
                 danger: true,
                 type: 'text',
                 icon: React.createElement(DeleteOutlined),

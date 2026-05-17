@@ -22,8 +22,8 @@ The form stores UI-friendly values:
 
 - `namespace` and `name` identify the AddressGroup. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `allowAccess`, `description`, and `comment` map to editable `spec` fields.
-- `hosts` and `networks` are selected by name from the AddressGroup namespace and synced through binding resources.
-- `services` are selected as `namespace/name` values from all namespaces and synced through binding resources.
+- `hosts` and `networks` are selected by name from the AddressGroup namespace and synced through binding resources. Their visible select labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists.
+- `services` are selected as `namespace/name` values from all namespaces and synced through binding resources. Their visible select labels and search text use `spec.displayName` with namespace context, falling back to the service name only when no display name exists.
 
 Do not write `AddressGroup.refs` from this modal. It is backend-computed data.
 
@@ -33,7 +33,7 @@ AntD form validation mirrors the local `v2`/`v3sgroups` schema and backend valid
 
 - `namespace`: required Kubernetes resource name, max 63 characters.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 characters.
-- `displayName`: optional, max 63 characters.
+- `displayName`: optional, max 63 characters. Create mode is prefilled with `addressgroups-`.
 - `defaultAction`: controlled by the Allow access switch and submitted as `Allow` or `Deny`.
 - `description` and `comment`: optional strings. The current schema does not define stricter client-side limits for these fields.
 
@@ -47,7 +47,7 @@ Create submits the AddressGroup first, then creates selected bindings:
 - `NetworkBinding` in the AddressGroup namespace.
 - `ServiceBinding` in the selected Service namespace.
 
-Hosts and Networks are selected from the future AddressGroup namespace. Services can be selected from any namespace and are labeled as `namespace / serviceName`.
+Hosts and Networks are selected from the future AddressGroup namespace. Services can be selected from any namespace. Select option labels and search text show display names when present; option values still use names or `namespace/name` identifiers for binding payloads.
 
 The create payload uses the hidden generated `name` as `metadata.name`; users do not type resource names in this modal.
 
