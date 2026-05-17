@@ -132,9 +132,7 @@ describe('Rules', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /delete rule-a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent(
-      'Delete modal tenant-a/rule-a /api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/rules/rule-a',
-    )
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/RRule A')
   })
 
   it('shows a loading error', () => {

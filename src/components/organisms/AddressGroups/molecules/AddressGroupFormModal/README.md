@@ -20,7 +20,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 
 The form stores UI-friendly values:
 
-- `namespace` and `name` identify the AddressGroup.
+- `namespace` and `name` identify the AddressGroup. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `allowAccess`, `description`, and `comment` map to editable `spec` fields.
 - `hosts` and `networks` are selected by name from the AddressGroup namespace and synced through binding resources.
 - `services` are selected as `namespace/name` values from all namespaces and synced through binding resources.
@@ -32,7 +32,7 @@ Do not write `AddressGroup.refs` from this modal. It is backend-computed data.
 AntD form validation mirrors the local `v2`/`v3sgroups` schema and backend validation from `tmp/sgroups`:
 
 - `namespace`: required Kubernetes resource name, max 63 characters.
-- `name`: required Kubernetes resource name, max 63 characters.
+- `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 characters.
 - `displayName`: optional, max 63 characters.
 - `defaultAction`: controlled by the Allow access switch and submitted as `Allow` or `Deny`.
 - `description` and `comment`: optional strings. The current schema does not define stricter client-side limits for these fields.
@@ -48,6 +48,8 @@ Create submits the AddressGroup first, then creates selected bindings:
 - `ServiceBinding` in the selected Service namespace.
 
 Hosts and Networks are selected from the future AddressGroup namespace. Services can be selected from any namespace and are labeled as `namespace / serviceName`.
+
+The create payload uses the hidden generated `name` as `metadata.name`; users do not type resource names in this modal.
 
 Changing `namespace` clears the selected Hosts and Networks because those selections are scoped to the future AddressGroup namespace. It must not clear selected Services; Service bindings are created in each selected Service namespace.
 
@@ -72,7 +74,7 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 The sidebar renders a single AddressGroup contents tree from the selected Hosts, Services, and Networks. Hosts, Networks, and Services are grouped by resource namespace before individual resource nodes.
 
-Create mode builds synthetic binding objects from the current form selection so the overview can reuse the same AddressGroup contents tree as edit mode and verbose panels. Before the user enters an AddressGroup `name`, the overview uses a stable pending internal AddressGroup name; otherwise the shared tree filters can drop selected resources because the synthetic binding target does not match the tree root.
+Create mode builds synthetic binding objects from the current form selection so the overview can reuse the same AddressGroup contents tree as edit mode and verbose panels. The hidden generated AddressGroup `name` is used as the stable pending internal name; otherwise the shared tree filters can drop selected resources because the synthetic binding target does not match the tree root.
 
 In edit mode, newly added selections are shown with a subtle green background and left accent. Removed selections disappear from the overview immediately because the sidebar reflects the current form selection, not the saved backend state.
 

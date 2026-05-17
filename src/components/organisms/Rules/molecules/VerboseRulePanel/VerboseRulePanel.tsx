@@ -363,7 +363,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{renderBadgeWithValue('Rule', rule.metadata.name || 'Rule')}</Title>
+            <Title>{renderBadgeWithValue('Rule', rule.spec?.displayName || rule.metadata.name || 'Rule')}</Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -373,9 +373,6 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
           <SpecGrid>
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(rule.metadata.namespace)}</div>
-
-            <Typography.Text type="secondary">Display Name</Typography.Text>
-            <div>{renderValue(rule.spec?.displayName)}</div>
 
             <Typography.Text type="secondary">Action</Typography.Text>
             <div>{renderAction(rule.spec?.action)}</div>

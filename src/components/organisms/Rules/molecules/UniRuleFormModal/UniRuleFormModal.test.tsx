@@ -103,7 +103,7 @@ describe('UniRuleFormModal', () => {
       />,
     )
 
-    expect(await screen.findByDisplayValue('rule-a')).toBeDisabled()
+    expect((await screen.findByDisplayValue('rule-a')).closest('.ant-form-item-hidden')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {

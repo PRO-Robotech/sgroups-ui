@@ -98,8 +98,8 @@ describe('VerboseHostPanel', () => {
       />,
     )
 
-    expect(screen.getAllByText('host-a').length).toBeGreaterThan(0)
     expect(screen.getByText('Host A')).toBeInTheDocument()
+    expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('Production host')).toBeInTheDocument()
     expect(screen.getByText('node-a')).toBeInTheDocument()
     expect(screen.getByText('linux')).toBeInTheDocument()

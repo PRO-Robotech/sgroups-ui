@@ -2,12 +2,13 @@ import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 're
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { PlusOutlined } from '@ant-design/icons'
 import { useSelector } from 'react-redux'
-import { ContentCard, DeleteModal, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
 import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
+import { SgroupsDeleteModal } from 'utils/SgroupsDeleteModal'
 import { Styled } from './styled'
 import {
   buildServicesColumns,
@@ -286,7 +287,11 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
         />
       )}
       {deletingService && (
-        <DeleteModal name={deletingService.name} endpoint={deletingService.endpoint} onClose={closeDeleteModal} />
+        <SgroupsDeleteModal
+          title={deletingService.title}
+          endpoint={deletingService.endpoint}
+          onClose={closeDeleteModal}
+        />
       )}
     </ContentCard>
   )

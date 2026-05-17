@@ -206,12 +206,12 @@ export const buildServicesColumns = ({
 }: TBuildServicesColumnsParams = {}): ColumnsType<TServiceRow> => {
   const columns: ColumnsType<TServiceRow> = [
     {
-      title: 'Name',
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
       fixed: 'left',
       width: 180,
-      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
       render: value => renderBadgeWithValue('Service', value),
     },
     {
@@ -221,13 +221,6 @@ export const buildServicesColumns = ({
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
       render: value => renderNamespaceBadgeWithValue(value),
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      width: 180,
-      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
       title: 'Protocols',

@@ -12,9 +12,8 @@ Side detail panel for viewing an `AddressGroup` resource and the resources bound
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` and `spec.defaultAction` in the panel title
+- `spec.displayName` and `spec.defaultAction` in the panel title, falling back to `metadata.name` when the display name is empty
 - `metadata.namespace`
-- `spec.displayName`
 - `spec.logs` and `spec.trace`
 - `spec.description` and `spec.comment`
 - `metadata.creationTimestamp`
@@ -23,6 +22,8 @@ The panel renders read-only values from the selected table row:
 `metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix. `AddressGroup.refs` is backend-computed data and is not displayed by this panel.
 
 `spec.logs` and `spec.trace` render with the same status icons used in the table: a green check for enabled and a red cross for disabled.
+
+`spec.displayName` is not repeated as a separate detail row because it is already the panel title.
 
 Tags are stacked vertically in the verbose layout.
 

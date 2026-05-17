@@ -80,8 +80,8 @@ describe('VerboseNetworkPanel', () => {
       />,
     )
 
-    expect(screen.getAllByText('net-a').length).toBeGreaterThan(0)
     expect(screen.getByText('Network A')).toBeInTheDocument()
+    expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('10.0.0.0/24')).toBeInTheDocument()
     expect(screen.getByText('Production subnet')).toBeInTheDocument()
     expect(screen.getByText('env: prod')).toBeInTheDocument()

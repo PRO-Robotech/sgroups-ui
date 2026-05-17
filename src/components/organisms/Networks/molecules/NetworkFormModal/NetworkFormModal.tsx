@@ -4,6 +4,7 @@ import { Empty, Form, Input, message, Modal, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { v4 as uuidv4 } from 'uuid'
 import {
   TAddressGroupResource,
   THostBindingResource,
@@ -45,7 +46,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
   const formValues = Form.useWatch([], form) as TNetworkFormValues | undefined
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(network)
-  const modalTitle = network?.metadata.name || 'Network'
+  const modalTitle = network?.spec?.displayName || network?.metadata.name || 'Network'
 
   const {
     data: tenantsData,
@@ -247,7 +248,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
       didApplyCreatePrefillRef.current = true
       form.setFieldsValue({
         namespace,
-        name: undefined,
+        name: uuidv4(),
         displayName: undefined,
         addressGroupNamespace: namespace,
         addressGroups: [],
@@ -425,7 +426,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                 <Form.Item
                   name="name"
                   label="Name"
-                  hidden={isEditMode}
+                  hidden
                   rules={[
                     { required: true, message: 'Enter name' },
                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },

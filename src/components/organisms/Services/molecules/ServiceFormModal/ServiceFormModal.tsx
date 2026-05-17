@@ -4,6 +4,7 @@ import { Button, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tr
 import type { TreeDataNode } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { v4 as uuidv4 } from 'uuid'
 import {
   TAddressGroupResource,
   THostBindingResource,
@@ -52,7 +53,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
   const formValues = Form.useWatch([], form) as TServiceFormValues | undefined
   const selectedAddressGroups = useMemo(() => formValues?.addressGroups || [], [formValues?.addressGroups])
   const isEditMode = Boolean(service)
-  const modalTitle = service?.metadata.name || 'Service'
+  const modalTitle = service?.spec?.displayName || service?.metadata.name || 'Service'
 
   const {
     data: tenantsData,
@@ -254,7 +255,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       didApplyCreatePrefillRef.current = true
       form.setFieldsValue({
         namespace,
-        name: undefined,
+        name: uuidv4(),
         displayName: undefined,
         description: undefined,
         comment: undefined,
@@ -450,7 +451,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="name"
                     label="Name"
-                    hidden={isEditMode}
+                    hidden
                     rules={[
                       { required: true, message: 'Enter name' },
                       { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },

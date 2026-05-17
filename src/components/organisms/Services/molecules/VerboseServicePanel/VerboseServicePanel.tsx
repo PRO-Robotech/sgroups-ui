@@ -329,7 +329,9 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{renderBadgeWithValue('Service', service.metadata.name || 'Service')}</Title>
+            <Title>
+              {renderBadgeWithValue('Service', service.spec?.displayName || service.metadata.name || 'Service')}
+            </Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -339,9 +341,6 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
           <SpecGrid>
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(service.metadata.namespace)}</div>
-
-            <Typography.Text type="secondary">Display Name</Typography.Text>
-            <div>{renderValue(service.spec?.displayName)}</div>
 
             <Typography.Text type="secondary">Description</Typography.Text>
             <div>{renderValue(service.spec?.description)}</div>

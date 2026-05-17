@@ -217,12 +217,12 @@ export const mapRulesToRows = (items: TRuleResource[]): TRuleRow[] =>
 export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams = {}): ColumnsType<TRuleRow> => {
   const columns: ColumnsType<TRuleRow> = [
     {
-      title: 'Name',
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
       fixed: 'left',
-      width: 260,
-      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      width: 180,
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
       render: value => renderBadgeWithValue('Rule', value),
     },
     {
@@ -232,13 +232,6 @@ export const buildRulesColumns = ({ onDelete, onEdit }: TBuildRulesColumnsParams
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
       render: value => renderNamespaceBadgeWithValue(value),
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      width: 180,
-      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
       title: 'Action',

@@ -20,7 +20,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 
 The form stores UI-friendly values:
 
-- `namespace` and `name` identify the Host.
+- `namespace` and `name` identify the Host. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `description`, and `comment` map to editable `spec` fields.
 - `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
@@ -35,7 +35,7 @@ Host IPs and metainfo are backend-owned in this modal flow and are not edited he
 The modal uses AntD form rules for backend-backed constraints:
 
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
-- `name`: required Kubernetes resource name, max 63 chars.
+- `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 chars.
 - `displayName`: optional, max 63 chars.
 - `addressGroupNamespace`: optional Kubernetes resource namespace, max 63 chars.
 
@@ -44,6 +44,8 @@ The local `v2` and `v3sgroups` OpenAPI HostSpec only declares `displayName`, `de
 ## Create Flow
 
 Create submits the Host first, then creates one `HostBinding` per selected AddressGroup.
+
+The create payload uses the hidden generated `name` as `metadata.name`; users do not type resource names in this modal.
 
 Each binding:
 

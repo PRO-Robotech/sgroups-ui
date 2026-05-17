@@ -102,8 +102,8 @@ describe('VerboseRulePanel', () => {
       />,
     )
 
-    expect(screen.getAllByText('rule-a').length).toBeGreaterThan(0)
     expect(screen.getByText('Rule A')).toBeInTheDocument()
+    expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('Allow')).toBeInTheDocument()
     expect(screen.getByText('Ingress')).toBeInTheDocument()
     expect(screen.getByText('TCP')).toBeInTheDocument()

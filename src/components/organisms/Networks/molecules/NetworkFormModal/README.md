@@ -20,7 +20,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 
 The form stores UI-friendly values:
 
-- `namespace` and `name` identify the Network.
+- `namespace` and `name` identify the Network. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `CIDR`, `description`, and `comment` map to editable `spec` fields.
 - `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
@@ -34,7 +34,8 @@ The local `v2` OpenAPI dump is the source of truth for the resource shape. Do no
 
 AntD form rules mirror the local API docs and backend test fixtures:
 
-- `namespace` and `name` are required Kubernetes DNS labels, max 63 chars.
+- `namespace` is a required Kubernetes DNS label, max 63 chars.
+- `name` is a hidden required Kubernetes DNS label, generated as a UUID in create mode, max 63 chars.
 - `displayName` is optional, max 63 chars.
 - `addressGroupNamespace` is an optional Kubernetes DNS label, max 63 chars.
 - `CIDR` is required and must be a network CIDR with zero host bits. Values like `10.0.0.0/8`, `0.0.0.0/0`, and `2001:db8::/64` are valid; host-address CIDRs like `5.5.5.5/8` and `::1/8` are rejected before submit.
@@ -42,6 +43,8 @@ AntD form rules mirror the local API docs and backend test fixtures:
 ## Create Flow
 
 Create submits the Network first, then creates one `NetworkBinding` per selected AddressGroup.
+
+The create payload uses the hidden generated `name` as `metadata.name`; users do not type resource names in this modal.
 
 Each binding:
 

@@ -3,6 +3,7 @@ import { CaretDownOutlined } from '@ant-design/icons'
 import { Empty, Form, Input, message, Modal, Select, Spin, Switch, Tree } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { v4 as uuidv4 } from 'uuid'
 import {
   THostBindingResource,
   THostResource,
@@ -55,7 +56,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   const selectedNetworks = useMemo(() => selectedNetworksRaw || [], [selectedNetworksRaw])
   const effectiveAddressGroupNamespace = selectedNamespace || addressGroup?.metadata.namespace || namespace
   const isEditMode = Boolean(addressGroup)
-  const modalTitle = addressGroup?.metadata.name || 'Address group'
+  const modalTitle = addressGroup?.spec?.displayName || addressGroup?.metadata.name || 'Address group'
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
@@ -312,7 +313,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
     didApplyCreatePrefillRef.current = true
     form.setFieldsValue({
       namespace,
-      name: undefined,
+      name: uuidv4(),
       displayName: undefined,
       description: undefined,
       comment: undefined,
@@ -474,7 +475,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                 <Form.Item
                   name="name"
                   label="Name"
-                  hidden={isEditMode}
+                  hidden
                   rules={[
                     { required: true, message: 'Enter name' },
                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },

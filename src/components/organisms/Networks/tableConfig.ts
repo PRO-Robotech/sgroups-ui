@@ -63,12 +63,12 @@ export const buildNetworksColumns = ({
 }: TBuildNetworksColumnsParams = {}): ColumnsType<TNetworkRow> => {
   const columns: ColumnsType<TNetworkRow> = [
     {
-      title: 'Name',
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
       fixed: 'left',
       width: 180,
-      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
       render: value => renderBadgeWithValue('Network', value),
     },
     {
@@ -78,13 +78,6 @@ export const buildNetworksColumns = ({
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
       render: value => renderNamespaceBadgeWithValue(value),
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      width: 180,
-      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
       title: 'CIDR',

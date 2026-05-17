@@ -91,8 +91,8 @@ describe('VerboseServicePanel', () => {
       />,
     )
 
-    expect(screen.getAllByText('svc-a').length).toBeGreaterThan(0)
     expect(screen.getByText('Service A')).toBeInTheDocument()
+    expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('API service')).toBeInTheDocument()
     expect(screen.getByText('app: api')).toBeInTheDocument()
     expect(screen.getByText('owner: platform')).toBeInTheDocument()

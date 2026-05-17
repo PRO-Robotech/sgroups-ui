@@ -11,9 +11,8 @@ Side detail panel for viewing a `Host` resource and backend-owned host inventory
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` in the panel title
+- `spec.displayName` in the panel title, falling back to `metadata.name` when the display name is empty
 - `metadata.namespace`
-- `spec.displayName`
 - `spec.description` and `spec.comment`
 - host metainfo such as host name, OS, platform, platform family, platform version, and kernel version
 - IPv4 and IPv6 addresses
@@ -21,6 +20,8 @@ The panel renders read-only values from the selected table row:
 - `metadata.labels` and `metadata.annotations`
 
 `metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix. `Host.refs` is backend-computed data and is not displayed by this panel.
+
+`spec.displayName` is not repeated as a separate detail row because it is already the panel title.
 
 Host IPs and metainfo are backend-owned in this UI flow. The panel tolerates both current shapes while backend payloads are settling:
 

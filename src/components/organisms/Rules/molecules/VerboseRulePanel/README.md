@@ -12,9 +12,8 @@ Side detail panel for viewing a `Rule` resource, transport details, and resolved
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` in the panel title
+- `spec.displayName` in the panel title, falling back to `metadata.name` when the display name is empty
 - `metadata.namespace`
-- `spec.displayName`
 - `spec.action`
 - `spec.session.traffic`
 - `spec.transport.protocol`
@@ -29,6 +28,8 @@ The panel renders read-only values from the selected table row:
 `metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix.
 
 Actions are shown as colored tags. Transport entries are shown as tags; entry descriptions and comments are shown in tooltips instead of inline tag text.
+
+`spec.displayName` is not repeated as a separate detail row because it is already the panel title.
 
 Long tag groups show the first five values and expose a show more/less control. Tags are stacked vertically in the verbose layout.
 

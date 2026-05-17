@@ -103,12 +103,12 @@ export const buildAddressGroupsColumns = ({
 }: TBuildAddressGroupsColumnsParams = {}): ColumnsType<TAddressGroupRow> => {
   const columns: ColumnsType<TAddressGroupRow> = [
     {
-      title: 'Name',
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
       fixed: 'left',
       width: 180,
-      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
       render: value => renderBadgeWithValue('AddressGroup', value),
     },
     {
@@ -118,13 +118,6 @@ export const buildAddressGroupsColumns = ({
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
       render: value => renderNamespaceBadgeWithValue(value),
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      width: 180,
-      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
       title: 'Default Action',

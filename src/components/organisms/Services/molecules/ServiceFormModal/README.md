@@ -21,7 +21,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 
 The form stores UI-friendly values:
 
-- `namespace` and `name` identify the Service.
+- `namespace` and `name` identify the Service. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `description`, and `comment` map to editable `spec` fields.
 - `addressGroupNamespace` controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
@@ -37,7 +37,7 @@ Changing `addressGroupNamespace` clears `addressGroups`. Submit also filters sta
 The modal uses AntD form rules for backend-backed constraints:
 
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
-- `name`: required Kubernetes resource name, max 63 chars.
+- `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 chars.
 - `displayName`: optional, max 63 chars.
 - `addressGroupNamespace`: optional Kubernetes resource namespace, max 63 chars.
 - `transportEntries[].IPv`: required, must be `IPv4` or `IPv6`.
@@ -50,6 +50,8 @@ The local `v2` and `v3sgroups` OpenAPI ServiceSpec declares service text fields 
 ## Create Flow
 
 Create submits the Service first, then creates one `ServiceBinding` per selected AddressGroup.
+
+The create payload uses the hidden generated `name` as `metadata.name`; users do not type resource names in this modal.
 
 Each binding:
 

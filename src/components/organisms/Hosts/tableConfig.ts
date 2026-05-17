@@ -112,12 +112,12 @@ const renderTagList = (values?: string[]) => {
 export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams = {}): ColumnsType<THostRow> => {
   const columns: ColumnsType<THostRow> = [
     {
-      title: 'Name',
-      dataIndex: ['metadata', 'name'],
-      key: 'name',
+      title: 'Display Name',
+      dataIndex: 'displayName',
+      key: 'displayName',
       fixed: 'left',
       width: 180,
-      sorter: (a, b) => stringSorter(a.metadata.name, b.metadata.name),
+      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
       render: value => renderBadgeWithValue('Host', value),
     },
     {
@@ -127,13 +127,6 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
       render: value => renderNamespaceBadgeWithValue(value),
-    },
-    {
-      title: 'Display Name',
-      dataIndex: 'displayName',
-      key: 'displayName',
-      width: 180,
-      sorter: (a, b) => stringSorter(a.displayName, b.displayName),
     },
     {
       title: 'Host Name',

@@ -125,9 +125,7 @@ describe('AddressGroups', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /delete ag-a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent(
-      'Delete modal tenant-a/ag-a /api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/addressgroups/ag-a',
-    )
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/AGAddress Group A')
   })
 
   it('shows a loading error', () => {

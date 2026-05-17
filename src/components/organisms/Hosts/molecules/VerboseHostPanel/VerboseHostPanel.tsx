@@ -272,7 +272,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{renderBadgeWithValue('Host', host.metadata.name || 'Host')}</Title>
+            <Title>{renderBadgeWithValue('Host', host.spec?.displayName || host.metadata.name || 'Host')}</Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -282,9 +282,6 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
           <SpecGridHosts>
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(host.metadata.namespace)}</div>
-
-            <Typography.Text type="secondary">Display Name</Typography.Text>
-            <div>{renderValue(host.spec?.displayName)}</div>
 
             <Typography.Text type="secondary">Description</Typography.Text>
             <div>{renderValue(host.spec?.description)}</div>

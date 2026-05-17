@@ -7,7 +7,7 @@ The bottom `Add Host` button opens `HostFormModal`.
 The modal is based on the Figma form layout and uses Ant Design form controls:
 
 - `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
-- `Name`: required. Kubernetes DNS label format, max 63 chars.
+- `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars.
 - `Address group namespace`: optional namespace selector that controls which AddressGroups are fetched.
 - `Address group`: optional multi-select. Disabled until `Address group namespace` is selected. Options are fetched only from that namespace, displayed without repeating the namespace, and stored as `namespace/name` values.
@@ -42,6 +42,12 @@ Overview tree keys are parent-derived and prefixed with the namespace and select
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
+## Table display
+
+- `Display Name` is the first pinned column and renders a canonical `Host` badge. It falls back to `-` when `spec.displayName` is empty.
+- `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
+- `Namespace` renders a canonical `Namespace` badge.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.
@@ -50,8 +56,9 @@ Edit opens the same `HostFormModal` for a selected Host by passing it as the opt
 
 In edit mode:
 
-- `Namespace` and `Name` are read-only because they identify the resource endpoint.
+- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - `Display name`, `Description`, and `Comment` are editable and saved with toolkit patch helpers.
+- The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
 - AddressGroup membership is initialized from existing `HostBinding` resources and remains editable.
 - AddressGroup namespace is initialized from existing `HostBinding.spec.addressGroup.namespace` when available.
@@ -62,7 +69,9 @@ In edit mode:
 
 ## Delete modal
 
-The table delete action opens the toolkit `DeleteModal`.
+The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
+
+The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Host` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 

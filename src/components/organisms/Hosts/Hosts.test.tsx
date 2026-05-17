@@ -124,9 +124,7 @@ describe('Hosts', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /delete host-a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent(
-      'Delete modal tenant-a/host-a /api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/hosts/host-a',
-    )
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/HHost A')
   })
 
   it('shows a loading error', () => {

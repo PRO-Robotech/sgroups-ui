@@ -11,15 +11,16 @@ Side detail panel for viewing a `Network` resource and the AddressGroups current
 
 The panel renders read-only values from the selected table row:
 
-- `metadata.name` in the panel title
+- `spec.displayName` in the panel title, falling back to `metadata.name` when the display name is empty
 - `metadata.namespace`
-- `spec.displayName`
 - `spec.CIDR`
 - `spec.description` and `spec.comment`
 - `metadata.creationTimestamp`
 - `metadata.labels` and `metadata.annotations`
 
 `metadata.annotations` excludes Kubernetes client annotations with the `kubectl.kubernetes.io/` prefix. `Network.refs` is backend-computed data and is not displayed by this panel.
+
+`spec.displayName` is not repeated as a separate detail row because it is already the panel title.
 
 Long tag groups show the first five values and expose a show more/less control. Tags are stacked vertically in the verbose layout.
 

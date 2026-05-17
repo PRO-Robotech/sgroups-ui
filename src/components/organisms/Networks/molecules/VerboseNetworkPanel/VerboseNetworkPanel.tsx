@@ -248,7 +248,9 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
             ) : (
               <ExpandCollapseButton type="text" onClick={onCollapse} icon={<CompressOutlined />} />
             )}
-            <Title>{renderBadgeWithValue('Network', network.metadata.name || 'Network')}</Title>
+            <Title>
+              {renderBadgeWithValue('Network', network.spec?.displayName || network.metadata.name || 'Network')}
+            </Title>
           </TitleAndExpandCollapse>
           <div>
             <CloseButton type="text" onClick={onClose} icon={<CloseOutlined />} />
@@ -258,9 +260,6 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
           <SpecGrid>
             <Typography.Text type="secondary">Namespace</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(network.metadata.namespace)}</div>
-
-            <Typography.Text type="secondary">Display Name</Typography.Text>
-            <div>{renderValue(network.spec?.displayName)}</div>
 
             <Typography.Text type="secondary">CIDR</Typography.Text>
             <div>{renderValue(network.spec?.CIDR)}</div>

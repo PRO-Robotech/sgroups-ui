@@ -4,6 +4,7 @@ import { Button, Collapse, Empty, Form, Input, message, Modal, Segmented, Select
 import type { TreeDataNode } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { v4 as uuidv4 } from 'uuid'
 import {
   TAddressGroupResource,
   THostBindingResource,
@@ -100,7 +101,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const queryClient = useQueryClient()
   const formValues = Form.useWatch([], form) as TUniRuleFormValues | undefined
   const isEditMode = Boolean(rule)
-  const modalTitle = rule?.metadata.name || 'UniRule'
+  const modalTitle = rule?.spec?.displayName || rule?.metadata.name || 'UniRule'
   const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
   const localType = formValues ? formValues.local?.type : currentRuleFormValues.local?.type
   const remoteType = formValues ? formValues.remote?.type : currentRuleFormValues.remote?.type
@@ -366,7 +367,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       didApplyCreatePrefillRef.current = true
       form.setFieldsValue({
         namespace,
-        name: undefined,
+        name: uuidv4(),
         displayName: undefined,
         action: 'Allow',
         traffic: 'Both',
@@ -560,7 +561,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="name"
                     label="Name"
-                    hidden={isEditMode}
+                    hidden
                     rules={[
                       { required: true, message: 'Enter name' },
                       { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },

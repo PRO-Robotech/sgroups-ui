@@ -7,7 +7,7 @@ The bottom `Add UniRule` button opens `UniRuleFormModal`.
 The modal follows the Figma layout structure, but the payload and editable fields follow the local `v3` / `v3sgroups` `sgroups.io/v1alpha1` schema. Older `tmp/newApi` rule docs are used only to confirm practical create-time validation behavior for TCP/UDP and ICMP rule variants.
 
 - `Namespace`: required. Rule namespace. Kubernetes DNS label format, max 63 chars.
-- `Name`: required. Kubernetes DNS label format, max 63 chars.
+- `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars.
 - `Action`: required. AntD validates `Allow` or `Deny`.
 - `Traffic`: required. UI labels and saved `spec.session.traffic` values are `Both`, `Ingress`, or `Egress`.
@@ -82,11 +82,13 @@ Traffic values are normalized to the local OpenAPI enum casing (`Both`, `Ingress
 
 The Rules table uses badge/tag formatting consistently:
 
-- `Name` and `Namespace` render canonical resource-kind badges.
+- `Display Name` is the first pinned column and renders a canonical `Rule` badge. It falls back to `-` when `spec.displayName` is empty.
+- `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
+- `Namespace` renders a canonical `Namespace` badge.
 - `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints; `FQDN` and `CIDR` endpoints render their direct values.
 - `Action`, `Protocol`, `IP family`, and transport entries render as AntD tags.
 - Transport entries render one tag per entry. Entry descriptions and comments are shown in tooltips instead of inline tag text.
-- `Name`, `Local`, `Remote`, and `Created` are intentionally wider than compact enum columns so common rule names, endpoint labels, and timestamps wrap less often.
+- `Local`, `Remote`, and `Created` are intentionally wider than compact enum columns so common endpoint labels and timestamps wrap less often.
 
 ## Edit modal
 
@@ -96,7 +98,8 @@ Edit opens the same `UniRuleFormModal` for a selected Rule by passing it as the 
 
 In edit mode:
 
-- `Namespace` and `Name` are read-only because they identify the resource endpoint.
+- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
+- The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - The modal does not use PUT.
 - Edit save patches only changed fields.
 - Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared.
@@ -116,7 +119,9 @@ Patched fields are currently:
 
 ## Delete modal
 
-The table delete action opens the toolkit `DeleteModal`.
+The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
+
+The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Rule` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 

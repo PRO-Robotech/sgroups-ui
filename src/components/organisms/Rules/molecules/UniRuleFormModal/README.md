@@ -20,7 +20,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 
 The form stores UI-friendly values:
 
-- `namespace` and `name` identify the Rule.
+- `namespace` and `name` identify the Rule. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
 - `displayName`, `action`, `traffic`, `description`, and `comment` map to editable `spec` fields.
 - `local` and `remote` endpoint blocks map to `spec.endpoints.local` and `spec.endpoints.remote`.
 - Transport panel values normalize back to `spec.transport` at submit time.
@@ -37,7 +37,7 @@ For `AddressGroup` endpoints, the endpoint namespace scopes the visible options.
 
 AntD form validation runs before the create or patch flow reads the full form store.
 
-- `namespace`, `name`, and selected endpoint resource identifiers use Kubernetes DNS label validation with a 63 character limit.
+- `namespace`, hidden generated `name`, and selected endpoint resource identifiers use Kubernetes DNS label validation with a 63 character limit.
 - `displayName` is optional and limited to 63 characters.
 - `action`, `traffic`, endpoint types, IP family, and protocol are checked against local `v3` / `v3sgroups` enum values.
 - Local endpoints are limited to `AddressGroup` and `Service`.
@@ -53,6 +53,8 @@ Validation source priority is the local `v3` / `v3sgroups` OpenAPI shape for cur
 ## Create Flow
 
 Create submits a single `Rule` resource.
+
+The create payload uses the hidden generated `name` as `metadata.name`; users do not type resource names in this modal.
 
 There are no Host, Service, Network, or AddressGroup binding resources in this flow. Endpoint references are written directly into the Rule payload.
 

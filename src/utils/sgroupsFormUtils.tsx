@@ -34,6 +34,7 @@ export type TResourceOption = {
 }
 
 export type TNamespacedResource = {
+  kind?: string
   metadata: {
     name?: string
     namespace?: string
@@ -50,7 +51,16 @@ type TNamespacedResourceOptionsConfig = {
 export type TDeleteModalResource = {
   key: string
   name: string
+  title: ReactNode
   endpoint: string
+}
+
+const RESOURCE_KIND_BY_PLURAL: Record<string, string> = {
+  addressgroups: 'AddressGroup',
+  hosts: 'Host',
+  networks: 'Network',
+  rules: 'Rule',
+  services: 'Service',
 }
 
 export const getApiEndpoint = (cluster: string, namespaceValue: string, plural: string) =>
@@ -72,6 +82,11 @@ export const getDeleteModalResource = (
   return {
     key: resource.key,
     name: `${resourceNamespace}/${resourceName}`,
+    title: renderNamespacedResourceValue(
+      RESOURCE_KIND_BY_PLURAL[plural] || resource.kind || plural,
+      resourceNamespace,
+      resource.spec?.displayName || resourceName,
+    ),
     endpoint: `${getApiEndpoint(cluster, resourceNamespace, plural)}/${resourceName}`,
   }
 }
