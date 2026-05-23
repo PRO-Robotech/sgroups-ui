@@ -84,9 +84,10 @@ Traffic values are normalized to the local OpenAPI enum casing (`Both`, `Ingress
 The Rules table uses badge/tag formatting consistently:
 
 - `Display Name` is the first pinned column and renders a canonical `Rule` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
+- The `Display Name` value links to the Rule detail page at `rules/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Namespace` renders a canonical `Namespace` badge.
-- `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints using the referenced resource display name when available, falling back to the referenced resource name only when no display name exists. `FQDN` and `CIDR` endpoints render their direct values.
+- `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints using the referenced resource display name when available, falling back to the referenced resource name only when no display name exists. Those concrete resource values link to their internal detail pages using the referenced namespace and `metadata.name`. `FQDN` and `CIDR` endpoints render their direct values.
 - `Action`, `Protocol`, `IP family`, and transport entries render as AntD tags.
 - Transport entries render one tag per entry. Entry descriptions and comments are shown in tooltips instead of inline tag text.
 - `Local`, `Remote`, and `Created` are intentionally wider than compact enum columns so common endpoint labels and timestamps wrap less often.

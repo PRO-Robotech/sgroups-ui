@@ -6,7 +6,7 @@ import {
   formatBooleanFlag,
   formatDateTime,
   renderBooleanStatusIcon,
-  renderBadgeWithValue,
+  renderLinkedResourceBadge,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
@@ -109,7 +109,14 @@ export const buildAddressGroupsColumns = ({
       fixed: 'left',
       width: 180,
       sorter: (a, b) => stringSorter(a.displayName, b.displayName),
-      render: value => renderBadgeWithValue('AddressGroup', value),
+      render: (value, record) =>
+        renderLinkedResourceBadge({
+          badgeValue: 'AddressGroup',
+          displayValue: value,
+          name: record.metadata.name,
+          namespace: record.metadata.namespace,
+          plural: 'addressgroups',
+        }),
     },
     {
       title: 'Namespace',

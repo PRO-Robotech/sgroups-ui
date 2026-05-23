@@ -174,7 +174,7 @@ export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode) =>
 
 export const renderNamespaceBadgeWithValue = (value?: string) => renderBadgeWithValue('Namespace', value)
 
-export const renderNamespacedResourceValue = (badgeValue: string, namespace?: string, value?: string) => {
+export const renderNamespacedResourceValue = (badgeValue: string, namespace?: string, value?: ReactNode) => {
   if (!namespace) {
     return renderBadgeWithValue(badgeValue, value)
   }

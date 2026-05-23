@@ -3,7 +3,12 @@ import React from 'react'
 import { Button, Space, TableProps, Tag, Tooltip, Typography } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
-import { formatDateTime, renderBadgeWithValue, renderNamespaceBadgeWithValue, renderTimestampWithIcon } from 'utils'
+import {
+  formatDateTime,
+  renderLinkedResourceBadge,
+  renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
+} from 'utils'
 
 export type TServiceRef = {
   kind?: string
@@ -212,7 +217,14 @@ export const buildServicesColumns = ({
       fixed: 'left',
       width: 180,
       sorter: (a, b) => stringSorter(a.displayName, b.displayName),
-      render: value => renderBadgeWithValue('Service', value),
+      render: (value, record) =>
+        renderLinkedResourceBadge({
+          badgeValue: 'Service',
+          displayValue: value,
+          name: record.metadata.name,
+          namespace: record.metadata.namespace,
+          plural: 'services',
+        }),
     },
     {
       title: 'Namespace',

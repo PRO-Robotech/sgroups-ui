@@ -1,0 +1,1 @@
+export { SgroupsFactoryRenderer } from './SgroupsFactoryRenderer'
