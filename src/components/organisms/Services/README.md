@@ -53,6 +53,25 @@ The Services table keeps transport display aligned with verbose panels:
 - Transport entries render one tag per entry in the `Entries` column.
 - Entry descriptions and comments are shown in tooltips instead of inline tag text.
 
+## Detail page
+
+The Service detail page keeps the shared resource-detail header, actions menu, conditions section, and YAML editor, but uses a Service-specific `SgroupsServiceDetailsSection` for the inner Details tab content.
+
+The section uses the same local card concept as Hosts:
+
+- `Info`: creation time, namespace, and owner reference summary.
+- `Assignments`: current ServiceBinding count for the Service, plus label and annotation counts.
+- `Main`: Service name, UID, transport and entry counts, description, and comment.
+- `Meta info`: protocol families, IP families, and transport entry details.
+
+The three Assignment chips are editable:
+
+- `address groups` opens a Service-specific selector modal. Saving creates and deletes only `ServiceBinding` resources in the Service namespace; it does not write a refs-like field on Service.
+- `labels` patches `/metadata/labels`.
+- `annotations` patches `/metadata/annotations`.
+
+Assignment counts are derived from `ServiceBinding` resources whose `spec.service` matches the Service name and namespace.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

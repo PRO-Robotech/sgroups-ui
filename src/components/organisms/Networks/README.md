@@ -50,6 +50,16 @@ Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAl
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Namespace` renders a canonical `Namespace` badge.
 
+## Detail page
+
+The Network detail page uses the local `SgroupsNetworkDetailsSection` injected into the shared factory renderer. It follows the Figma card structure with `Info`, `Assignments`, and `Main` sections:
+
+- `Info`: creation time, namespace, owner refs.
+- `Assignments`: editable AddressGroup, label, and annotation counters.
+- `Main`: `spec.CIDR`, `spec.description`, and `spec.comment`.
+
+AddressGroup edits from the detail page are saved through `NetworkBinding` resources in the Network namespace. The detail page does not write computed `refs`.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

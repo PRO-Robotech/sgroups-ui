@@ -49,6 +49,27 @@ Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAl
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Namespace` renders a canonical `Namespace` badge.
 
+## Detail page
+
+The Host detail page keeps the shared resource-detail header, actions menu, conditions section, and YAML editor, but uses a Host-specific `SgroupsHostDetailsSection` for the inner Details tab content.
+
+The section uses the local card concept from Figma:
+
+- `Info`: creation time, namespace, and owner reference summary.
+- `Assignments`: current HostBinding count for the Host, plus label and annotation counts.
+- `Main`: hostname, UID, IPv4/IPv6 counts, description, and comment.
+- `Meta info`: backend-owned host metadata such as OS, platform, platform version, kernel, and optional platform family.
+
+The three Assignment chips are editable:
+
+- `address groups` opens a Host-specific selector modal. Saving creates and deletes only `HostBinding` resources in the Host namespace; it does not write `Host.refs`.
+- `labels` patches `/metadata/labels`.
+- `annotations` patches `/metadata/annotations`.
+
+Host IPs and metainfo are read-only in this view. Reads tolerate both the local OpenAPI shape under `spec.IPs` / `spec.metaInfo` and the legacy flattened `ips` / `metaInfo` payload.
+
+Assignment counts are derived from `HostBinding` resources in the Host namespace. Matching tolerates omitted `spec.host.namespace` by falling back to the binding namespace.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

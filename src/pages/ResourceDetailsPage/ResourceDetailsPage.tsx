@@ -3,7 +3,15 @@ import { Alert, Empty, Typography } from 'antd'
 import { DynamicComponents, TDynamicComponentsAppTypeMap, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { useParams } from 'react-router-dom'
 import { SgroupsPageShell } from 'components/molecules'
-import { SgroupsFactoryRenderer } from 'components/organisms'
+import {
+  SgroupsFactoryRenderer,
+  SgroupsHostDetailsSection,
+  SgroupsNetworkDetailsSection,
+  SgroupsServiceDetailsSection,
+} from 'components/organisms'
+import type { TSgroupsHostDetailsSectionData } from 'components/organisms/SgroupsHostDetailsSection'
+import type { TSgroupsNetworkDetailsSectionData } from 'components/organisms/SgroupsNetworkDetailsSection'
+import type { TSgroupsServiceDetailsSectionData } from 'components/organisms/SgroupsServiceDetailsSection'
 import { useTheme } from 'hooks/ThemeModeContext'
 import { buildSgroupsResourceDetailsBreadcrumbs } from 'utils'
 import { getPluginBasePath } from 'utils/getPluginBasePath'
@@ -34,13 +42,27 @@ type TResourceDetailsPageProps = {
   resourceConfig?: TSgroupsResourceDetailsConfig
 }
 
+export type TSgroupsResourceDetailsComponentMap = TDynamicComponentsAppTypeMap & {
+  SgroupsHostDetailsSection: TSgroupsHostDetailsSectionData
+  SgroupsNetworkDetailsSection: TSgroupsNetworkDetailsSectionData
+  SgroupsServiceDetailsSection: TSgroupsServiceDetailsSectionData
+}
+
 const isKnownResourcePlural = (value?: string): value is TSgroupsResourcePlural =>
   value ? value in SGROUPS_RESOURCE_DETAILS_CONFIG : false
 
 export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, resourceConfig }) => {
   const { mode } = useTheme()
   const { name, namespace, plural } = useParams<{ name: string; namespace: string; plural?: string }>()
-  const components = useMemo(() => DynamicComponents, [])
+  const components = useMemo(
+    () => ({
+      ...DynamicComponents,
+      SgroupsHostDetailsSection,
+      SgroupsNetworkDetailsSection,
+      SgroupsServiceDetailsSection,
+    }),
+    [],
+  )
 
   const routeConfig = isKnownResourcePlural(plural) ? SGROUPS_RESOURCE_DETAILS_CONFIG[plural] : undefined
   const config = resourceConfig ?? routeConfig
@@ -104,7 +126,7 @@ export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, re
       <Typography.Title level={4} style={{ display: 'none' }}>
         {resourceDisplayName} details
       </Typography.Title>
-      <SgroupsFactoryRenderer<TDynamicComponentsAppTypeMap>
+      <SgroupsFactoryRenderer<TSgroupsResourceDetailsComponentMap>
         components={components}
         factoryData={factoryData}
         theme={mode}
