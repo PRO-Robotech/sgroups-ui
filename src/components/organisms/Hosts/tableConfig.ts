@@ -2,7 +2,12 @@ import React from 'react'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { Button, Space, TableProps, Tag, Tooltip } from 'antd'
 import { ColumnsType } from 'antd/es/table'
-import { formatDateTime, renderBadgeWithValue, renderNamespaceBadgeWithValue, renderTimestampWithIcon } from 'utils'
+import {
+  formatDateTime,
+  renderLinkedResourceBadge,
+  renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
+} from 'utils'
 
 export type THostRef = {
   kind?: string
@@ -118,7 +123,14 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
       fixed: 'left',
       width: 180,
       sorter: (a, b) => stringSorter(a.displayName, b.displayName),
-      render: value => renderBadgeWithValue('Host', value),
+      render: (value, record) =>
+        renderLinkedResourceBadge({
+          badgeValue: 'Host',
+          displayValue: value,
+          name: record.metadata.name,
+          namespace: record.metadata.namespace,
+          plural: 'hosts',
+        }),
     },
     {
       title: 'Namespace',

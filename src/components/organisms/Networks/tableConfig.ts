@@ -2,7 +2,12 @@ import React from 'react'
 import { Button, Space, TableProps, Tooltip } from 'antd'
 import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
 import { ColumnsType } from 'antd/es/table'
-import { formatDateTime, renderBadgeWithValue, renderNamespaceBadgeWithValue, renderTimestampWithIcon } from 'utils'
+import {
+  formatDateTime,
+  renderLinkedResourceBadge,
+  renderNamespaceBadgeWithValue,
+  renderTimestampWithIcon,
+} from 'utils'
 
 export type TNetworkRef = {
   kind?: string
@@ -69,7 +74,14 @@ export const buildNetworksColumns = ({
       fixed: 'left',
       width: 180,
       sorter: (a, b) => stringSorter(a.displayName, b.displayName),
-      render: value => renderBadgeWithValue('Network', value),
+      render: (value, record) =>
+        renderLinkedResourceBadge({
+          badgeValue: 'Network',
+          displayValue: value,
+          name: record.metadata.name,
+          namespace: record.metadata.namespace,
+          plural: 'networks',
+        }),
     },
     {
       title: 'Namespace',

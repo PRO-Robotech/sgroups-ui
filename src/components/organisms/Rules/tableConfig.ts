@@ -6,10 +6,12 @@ import { ColumnsType } from 'antd/es/table'
 import {
   formatDateTime,
   formatTrafficValue,
-  renderBadgeWithValue,
+  renderLinkedNamespacedResourceValue,
+  renderLinkedResourceBadge,
   renderNamespacedResourceValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
+  TSgroupsResourcePlural,
 } from 'utils'
 
 export type TRuleEndpointType = 'AddressGroup' | 'Service' | 'FQDN' | 'CIDR'
@@ -152,6 +154,21 @@ export const renderEndpointLabel = (endpoint?: TRuleEndpoint, endpointDisplayLoo
     return EMPTY_VALUE
   }
 
+  if ((endpoint.type === 'AddressGroup' || endpoint.type === 'Service') && endpoint.namespace && endpoint.name) {
+    const pluralByType: Record<'AddressGroup' | 'Service', TSgroupsResourcePlural> = {
+      AddressGroup: 'addressgroups',
+      Service: 'services',
+    }
+
+    return renderLinkedNamespacedResourceValue({
+      badgeValue: endpoint.type,
+      displayValue: name,
+      name: endpoint.name,
+      namespace: endpoint.namespace,
+      plural: pluralByType[endpoint.type],
+    })
+  }
+
   return renderNamespacedResourceValue(endpoint.type || 'Endpoint', endpoint.namespace, name)
 }
 
@@ -247,7 +264,14 @@ export const buildRulesColumns = ({
       fixed: 'left',
       width: 180,
       sorter: (a, b) => stringSorter(a.displayName, b.displayName),
-      render: value => renderBadgeWithValue('Rule', value),
+      render: (value, record) =>
+        renderLinkedResourceBadge({
+          badgeValue: 'Rule',
+          displayValue: value,
+          name: record.metadata.name,
+          namespace: record.metadata.namespace,
+          plural: 'rules',
+        }),
     },
     {
       title: 'Namespace',

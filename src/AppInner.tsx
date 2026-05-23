@@ -1,7 +1,15 @@
 /* eslint-disable import/no-default-export */
 import React, { FC } from 'react'
 import { Routes, Route, Navigate, useInRouterContext } from 'react-router-dom'
-import { AddressGroupsPage, HostsPage, NetworksPage, RulesPage, ServicesPage } from 'pages'
+import {
+  AddressGroupsPage,
+  HostsPage,
+  NetworksPage,
+  ResourceDetailsPage,
+  RulesPage,
+  ServicesPage,
+  SGROUPS_RESOURCE_DETAILS_CONFIG,
+} from 'pages'
 
 export type TAppInnerProps = {
   cluster?: string
@@ -43,6 +51,20 @@ export const AppInner: FC<TAppInnerProps> = ({
         }
       />
       <Route
+        path="hosts/:namespace/:name"
+        element={
+          <ResourceDetailsPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+            resourceConfig={SGROUPS_RESOURCE_DETAILS_CONFIG.hosts}
+          />
+        }
+      />
+      <Route
         path="addressgroups"
         element={
           <AddressGroupsPage
@@ -52,6 +74,20 @@ export const AppInner: FC<TAppInnerProps> = ({
             pluginName={pluginName}
             pluginPath={pluginPath}
             toggleTheme={toggleTheme}
+          />
+        }
+      />
+      <Route
+        path="addressgroups/:namespace/:name"
+        element={
+          <ResourceDetailsPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+            resourceConfig={SGROUPS_RESOURCE_DETAILS_CONFIG.addressgroups}
           />
         }
       />
@@ -69,6 +105,20 @@ export const AppInner: FC<TAppInnerProps> = ({
         }
       />
       <Route
+        path="networks/:namespace/:name"
+        element={
+          <ResourceDetailsPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+            resourceConfig={SGROUPS_RESOURCE_DETAILS_CONFIG.networks}
+          />
+        }
+      />
+      <Route
         path="rules"
         element={
           <RulesPage
@@ -82,6 +132,20 @@ export const AppInner: FC<TAppInnerProps> = ({
         }
       />
       <Route
+        path="rules/:namespace/:name"
+        element={
+          <ResourceDetailsPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+            resourceConfig={SGROUPS_RESOURCE_DETAILS_CONFIG.rules}
+          />
+        }
+      />
+      <Route
         path="services"
         element={
           <ServicesPage
@@ -91,6 +155,20 @@ export const AppInner: FC<TAppInnerProps> = ({
             pluginName={pluginName}
             pluginPath={pluginPath}
             toggleTheme={toggleTheme}
+          />
+        }
+      />
+      <Route
+        path="services/:namespace/:name"
+        element={
+          <ResourceDetailsPage
+            cluster={cluster}
+            namespace={namespace}
+            syntheticProject={syntheticProject}
+            pluginName={pluginName}
+            pluginPath={pluginPath}
+            toggleTheme={toggleTheme}
+            resourceConfig={SGROUPS_RESOURCE_DETAILS_CONFIG.services}
           />
         }
       />

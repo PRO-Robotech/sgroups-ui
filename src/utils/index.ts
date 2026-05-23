@@ -1,5 +1,7 @@
 export * from './runtimeConfig'
 export * from './sgroupsFormUtils'
+export * from './sgroupsBreadcrumbs'
 export * from './sgroupsTableProps'
+export * from './sgroupsResourceLink'
 export * from './tableFormatters'
 export * from './treeData'

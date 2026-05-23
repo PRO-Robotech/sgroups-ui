@@ -45,6 +45,7 @@ Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAl
 ## Table display
 
 - `Display Name` is the first pinned column and renders a canonical `Host` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
+- The `Display Name` value links to the Host detail page at `hosts/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Namespace` renders a canonical `Namespace` badge.
 
