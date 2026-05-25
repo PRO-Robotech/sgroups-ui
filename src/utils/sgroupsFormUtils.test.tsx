@@ -12,6 +12,9 @@ import {
   getAddressGroupValuesFromCascader,
   getBindingLookupKey,
   getNamespacedResourceOptions,
+  getNamespacedResourceCascaderOptions,
+  getNamespacedResourceCascaderValue,
+  getNamespacedResourceFromCascaderValue,
   getNamespaceOptions,
   getScopedResourceOptions,
   NAME_PATTERN,
@@ -162,6 +165,26 @@ describe('sgroupsFormUtils', () => {
     render(<div>{options[0].label}</div>)
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
     expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
+  })
+
+  it('builds namespace-grouped cascader options for namespaced resources', () => {
+    const options = getNamespacedResourceCascaderOptions({
+      namespaces: getNamespaceOptions([{ metadata: { name: 'tenant-b' } }]),
+      badgeLabel: 'Service',
+      items: [
+        { metadata: { namespace: 'tenant-a', name: 'svc-a' }, spec: { displayName: 'Service A' } },
+        { metadata: { namespace: 'tenant-b', name: 'svc-b' } },
+      ],
+    })
+
+    expect(options.map(option => option.value)).toEqual(['tenant-a', 'tenant-b'])
+    expect(options.find(option => option.value === 'tenant-a')?.children?.[0].value).toBe('svc-a')
+    expect(getNamespacedResourceCascaderValue({ namespace: 'tenant-a', name: 'svc-a' })).toEqual(['tenant-a', 'svc-a'])
+    expect(getNamespacedResourceFromCascaderValue(['tenant-a', 'svc-a'])).toEqual({
+      namespace: 'tenant-a',
+      name: 'svc-a',
+    })
+    expect(getNamespacedResourceFromCascaderValue(['tenant-a', '__empty__'])).toEqual({})
   })
 
   it('builds lazy AddressGroup cascader options and converts selected values', () => {

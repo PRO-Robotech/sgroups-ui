@@ -2,7 +2,7 @@
 /* eslint-disable max-lines-per-function */
 import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Collapse, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
+import { Button, Cascader, Collapse, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
@@ -22,9 +22,10 @@ import {
   API_VERSION,
   FQDN_PATTERN,
   getApiEndpoint,
-  getNamespacedResourceOptions,
+  getNamespacedResourceCascaderOptions,
+  getNamespacedResourceCascaderValue,
+  getNamespacedResourceFromCascaderValue,
   getNamespaceOptions,
-  getScopedResourceOptions,
   IPV_OPTIONS,
   NAME_PATTERN,
   normalizeOptionalString,
@@ -33,6 +34,7 @@ import {
   PROTOCOL_OPTIONS,
   EditableResourceTitle,
   renderBadgeWithValue,
+  renderNamespacedResourceCascaderSelection,
   validateCIDR,
   validateDisplayName,
   validatePortToken,
@@ -263,17 +265,23 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     remoteAddressGroupsData?.items,
     remoteNamespace,
   ])
-  const localAddressGroupOptions = useMemo(
-    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'AddressGroup'), localNamespace),
-    [addressGroups, localNamespace],
+  const addressGroupCascaderOptions = useMemo(
+    () =>
+      getNamespacedResourceCascaderOptions({
+        namespaces: namespaceOptions,
+        items: addressGroups,
+        badgeLabel: 'AddressGroup',
+      }),
+    [addressGroups, namespaceOptions],
   )
-  const remoteAddressGroupOptions = useMemo(
-    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'AddressGroup'), remoteNamespace),
-    [addressGroups, remoteNamespace],
-  )
-  const serviceOptions = useMemo(
-    () => getNamespacedResourceOptions(servicesData?.items, 'Service'),
-    [servicesData?.items],
+  const serviceCascaderOptions = useMemo(
+    () =>
+      getNamespacedResourceCascaderOptions({
+        namespaces: namespaceOptions,
+        items: servicesData?.items,
+        badgeLabel: 'Service',
+      }),
+    [namespaceOptions, servicesData?.items],
   )
   const localEndpoint = useMemo(() => buildEndpointPayload(localFormEndpoint), [localFormEndpoint])
   const remoteEndpoint = useMemo(() => buildEndpointPayload(remoteFormEndpoint), [remoteFormEndpoint])
@@ -289,16 +297,8 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       JSON.stringify(remoteEndpoint) !== JSON.stringify(buildEndpointPayload(currentRuleFormValues.remote)),
     [currentRuleFormValues.remote, remoteEndpoint, rule],
   )
-  const localResourceOptions = useMemo(
-    () =>
-      localType === 'Service' ? getScopedResourceOptions(serviceOptions, localNamespace) : localAddressGroupOptions,
-    [localAddressGroupOptions, localNamespace, localType, serviceOptions],
-  )
-  const remoteResourceOptions = useMemo(
-    () =>
-      remoteType === 'Service' ? getScopedResourceOptions(serviceOptions, remoteNamespace) : remoteAddressGroupOptions,
-    [remoteAddressGroupOptions, remoteNamespace, remoteType, serviceOptions],
-  )
+  const localResourceOptions = localType === 'Service' ? serviceCascaderOptions : addressGroupCascaderOptions
+  const remoteResourceOptions = remoteType === 'Service' ? serviceCascaderOptions : addressGroupCascaderOptions
   const localTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildRuleEndpointTree({
@@ -700,40 +700,49 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                 <Form.Item
                                   name={['local', 'namespace']}
                                   label="Namespace"
+                                  hidden
                                   rules={[
                                     { required: true, message: 'Select resource namespace' },
                                     { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
                                     { max: 63, message: 'Namespace must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Select
-                                    showSearch
-                                    options={namespaceOptions}
-                                    placeholder="Select namespace"
-                                    onChange={() => {
-                                      form.setFieldValue(['local', 'name'], undefined)
-                                    }}
-                                  />
+                                  <Input />
                                 </Form.Item>
                                 <Form.Item
                                   name={['local', 'name']}
                                   label="Name"
+                                  getValueProps={value => ({
+                                    value: getNamespacedResourceCascaderValue({
+                                      namespace: localNamespace,
+                                      name: value,
+                                    }),
+                                  })}
+                                  getValueFromEvent={value => {
+                                    const nextValue = getNamespacedResourceFromCascaderValue(value)
+
+                                    form.setFieldValue(['local', 'namespace'], nextValue.namespace)
+
+                                    return nextValue.name
+                                  }}
                                   rules={[
                                     { required: true, message: 'Select resource' },
                                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
                                     { max: 63, message: 'Name must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Select
+                                  <Cascader
                                     showSearch
-                                    optionFilterProp="searchText"
-                                    disabled={!localNamespace}
-                                    placeholder={
-                                      localNamespace
-                                        ? `Select ${localType === 'Service' ? 'service' : 'address group'}`
-                                        : 'Select namespace first'
-                                    }
                                     options={localResourceOptions}
+                                    displayRender={renderNamespacedResourceCascaderSelection(
+                                      localType === 'Service' ? 'Service' : 'AddressGroup',
+                                    )}
+                                    placeholder={localType === 'Service' ? 'Select service' : 'Select address group'}
+                                    loading={
+                                      isTenantsLoading ||
+                                      (localType === 'Service' ? isServicesLoading : isAllAddressGroupsLoading)
+                                    }
+                                    disabled={isTenantsLoading || Boolean(tenantsError)}
                                   />
                                 </Form.Item>
                               </>
@@ -814,40 +823,49 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                                 <Form.Item
                                   name={['remote', 'namespace']}
                                   label="Namespace"
+                                  hidden
                                   rules={[
                                     { required: true, message: 'Select resource namespace' },
                                     { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
                                     { max: 63, message: 'Namespace must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Select
-                                    showSearch
-                                    options={namespaceOptions}
-                                    placeholder="Select namespace"
-                                    onChange={() => {
-                                      form.setFieldValue(['remote', 'name'], undefined)
-                                    }}
-                                  />
+                                  <Input />
                                 </Form.Item>
                                 <Form.Item
                                   name={['remote', 'name']}
                                   label="Name"
+                                  getValueProps={value => ({
+                                    value: getNamespacedResourceCascaderValue({
+                                      namespace: remoteNamespace,
+                                      name: value,
+                                    }),
+                                  })}
+                                  getValueFromEvent={value => {
+                                    const nextValue = getNamespacedResourceFromCascaderValue(value)
+
+                                    form.setFieldValue(['remote', 'namespace'], nextValue.namespace)
+
+                                    return nextValue.name
+                                  }}
                                   rules={[
                                     { required: true, message: 'Select resource' },
                                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
                                     { max: 63, message: 'Name must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Select
+                                  <Cascader
                                     showSearch
-                                    optionFilterProp="searchText"
-                                    disabled={!remoteNamespace}
-                                    placeholder={
-                                      remoteNamespace
-                                        ? `Select ${remoteType === 'Service' ? 'service' : 'address group'}`
-                                        : 'Select namespace first'
-                                    }
                                     options={remoteResourceOptions}
+                                    displayRender={renderNamespacedResourceCascaderSelection(
+                                      remoteType === 'Service' ? 'Service' : 'AddressGroup',
+                                    )}
+                                    placeholder={remoteType === 'Service' ? 'Select service' : 'Select address group'}
+                                    loading={
+                                      isTenantsLoading ||
+                                      (remoteType === 'Service' ? isServicesLoading : isAllAddressGroupsLoading)
+                                    }
+                                    disabled={isTenantsLoading || Boolean(tenantsError)}
                                   />
                                 </Form.Item>
                               </>

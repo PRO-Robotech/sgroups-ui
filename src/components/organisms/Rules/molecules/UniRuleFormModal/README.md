@@ -33,7 +33,9 @@ Edit prefill normalizes backend traffic values before calling `setFieldsValue` s
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 
-For `AddressGroup` endpoints, the endpoint namespace scopes the visible options. The modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in the Local and Remote namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Services still use the shared service option list and are scoped client-side by the chosen endpoint namespace.
+For `AddressGroup` and `Service` endpoints, Local and Remote render one Cascader selector instead of separate visible Namespace and Name selects. The first Cascader level is namespace and the second level is the selected resource. The form still stores `namespace` and `name` separately under the endpoint block so submit, validation, and patch comparison keep the backend reference shape.
+
+For `AddressGroup` endpoints, the modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in the Local and Remote namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Services use the shared service option list. Both resource types are grouped by namespace in the Cascader.
 
 AddressGroup and Service endpoint option labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists. Submitted endpoint payloads still store resource names and namespaces because the backend references resources by identifier.
 
@@ -105,6 +107,6 @@ The overview tree starts collapsed by default. Do not set `defaultExpandAll` or 
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after resources needed for the form are ready, including endpoint resource options for selected AddressGroup and Service endpoints. Modal loading gates should use React state, not refs read during render.
+Edit prefill should run once per open cycle after resources needed for the form are ready, including endpoint resource options for selected AddressGroup and Service endpoints. Cascader values are derived from the stored endpoint `namespace` and `name`; keep those hidden fields registered so reopening and patch payloads stay stable. Modal loading gates should use React state, not refs read during render.
 
 Use field-specific AntD watchers for Local and Remote endpoint blocks. Watching the whole form can return an empty object before initialization and accidentally disable endpoint option queries that need edit-mode endpoint namespaces.

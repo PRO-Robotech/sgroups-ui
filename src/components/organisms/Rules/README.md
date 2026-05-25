@@ -36,10 +36,12 @@ For `AddressGroup` and `Service` endpoints:
 
 - the form stores `namespace` and `name` separately
 - namespace is not locked to the rule namespace
-- the `Name` select is scoped by the chosen resource namespace; visible labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists
+- the visible selector is an AntD Cascader with namespace as the first level and resource name as the second level
+- the endpoint namespace field is hidden but remains registered in the form store; selecting a Cascader leaf updates both endpoint `namespace` and `name`
+- visible labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists
 - submitted endpoint values remain the selected resource names and namespaces because the backend stores references by identifier
 - services can be chosen from any namespace
-- AddressGroup options are scoped by the chosen endpoint namespace, using the cluster-wide AddressGroup list plus local/remote namespace-scoped query results as fallbacks
+- AddressGroup options are grouped by namespace, using the cluster-wide AddressGroup list plus local/remote namespace-scoped query results as fallbacks
 - namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal fills it from the selected endpoint namespace before building options
 - selected resource namespace and name are validated as Kubernetes DNS labels, max 63 chars
 
@@ -164,7 +166,7 @@ The right sidebar renders a `Structure Overview` tree with separate top-level `L
 ## Modal lifecycle
 
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
-- Edit prefill runs once per open cycle after the async resources needed for the form are ready, including endpoint options for selected AddressGroup and Service endpoints so edit labels render like create selections.
+- Edit prefill runs once per open cycle after the async resources needed for the form are ready, including endpoint options for selected AddressGroup and Service endpoints so Cascader labels render like create selections.
 - The loading state uses React state, not refs read during render.
 
 ## Schema Source

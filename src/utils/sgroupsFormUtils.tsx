@@ -48,6 +48,10 @@ export type TAddressGroupCascaderOption = {
   children?: TAddressGroupCascaderOption[]
 }
 
+export type TNamespacedResourceCascaderPath = [string, string]
+
+export type TNamespacedResourceCascaderOption = TAddressGroupCascaderOption
+
 export type TNamespacedResource = {
   kind?: string
   metadata: {
@@ -224,6 +228,97 @@ export const getNamespacedResourceOptions = (
 
 export const getAddressGroupOptions = (items?: TAddressGroupResource[], config?: TNamespacedResourceOptionsConfig) =>
   getNamespacedResourceOptions(items, 'AddressGroup', config)
+
+export const getNamespacedResourceCascaderOptions = ({
+  namespaces,
+  items,
+  badgeLabel,
+}: {
+  namespaces?: Array<{ value: string; label: ReactNode }>
+  items?: TNamespacedResource[]
+  badgeLabel: 'AddressGroup' | 'Service'
+}): TNamespacedResourceCascaderOption[] => {
+  const namespaceNames = new Set((namespaces || []).map(option => option.value))
+  const childOptionsByNamespace = new Map<string, TNamespacedResourceCascaderOption[]>()
+
+  getNamespacedResourceOptions(items, badgeLabel, { showNamespace: false }).forEach(option => {
+    const { namespace, name } = parseNamespacedValue(option.value)
+
+    if (!namespace || !name) {
+      return
+    }
+
+    namespaceNames.add(namespace)
+
+    childOptionsByNamespace.set(namespace, [
+      ...(childOptionsByNamespace.get(namespace) || []),
+      {
+        value: name,
+        label: option.label,
+        searchText: option.searchText,
+        resourceLabel: option.resourceLabel,
+        isLeaf: true,
+      },
+    ])
+  })
+
+  return [...namespaceNames]
+    .sort((first, second) => first.localeCompare(second))
+    .map(namespaceValue => {
+      const namespaceOption = (namespaces || []).find(option => option.value === namespaceValue)
+      const children = (childOptionsByNamespace.get(namespaceValue) || []).sort((first, second) =>
+        (first.searchText || first.value).localeCompare(second.searchText || second.value),
+      )
+
+      return {
+        value: namespaceValue,
+        label: namespaceOption?.label || renderNamespaceBadgeWithValue(namespaceValue),
+        isLeaf: false,
+        children:
+          children.length > 0
+            ? children
+            : [
+                {
+                  value: '__empty__',
+                  label: `No ${badgeLabel === 'Service' ? 'services' : 'address groups'}`,
+                  disabled: true,
+                  isLeaf: true,
+                },
+              ],
+      }
+    })
+}
+
+export const getNamespacedResourceCascaderValue = (resource?: {
+  namespace?: string
+  name?: string
+}): TNamespacedResourceCascaderPath | undefined =>
+  resource?.namespace && resource.name ? [resource.namespace, resource.name] : undefined
+
+export const getNamespacedResourceFromCascaderValue = (path?: Array<string | number>) => {
+  const namespace = String(path?.[0] || '')
+  const name = String(path?.[1] || '')
+
+  if (!namespace || !name || name.startsWith('__')) {
+    return {}
+  }
+
+  return { namespace, name }
+}
+
+export const renderNamespacedResourceCascaderSelection =
+  (badgeLabel: 'AddressGroup' | 'Service') =>
+  (labels: ReactNode[], selectedOptions?: TNamespacedResourceCascaderOption[]) => {
+    const namespaceValue = String(selectedOptions?.[0]?.value || labels[0] || '')
+    const resourceOption = selectedOptions?.[1]
+    const resourceValue = String(resourceOption?.resourceLabel || resourceOption?.value || labels[1] || '')
+
+    if (!resourceValue || resourceValue.startsWith('__')) {
+      return renderNamespaceBadgeWithValue(namespaceValue)
+    }
+
+    return renderNamespacedResourceValue(badgeLabel, namespaceValue, resourceValue)
+  }
 
 export const getAddressGroupCascaderOptions = ({
   namespaces,
