@@ -274,7 +274,7 @@ export const buildRulesColumns = ({
         }),
     },
     {
-      title: 'Namespace',
+      title: 'Tenant',
       dataIndex: ['metadata', 'namespace'],
       key: 'namespace',
       width: 180,

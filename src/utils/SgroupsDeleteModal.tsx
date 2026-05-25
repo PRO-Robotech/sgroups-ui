@@ -36,12 +36,13 @@ export const SgroupsDeleteModal: FC<TSgroupsDeleteModalProps> = ({ endpoint, tit
   return (
     <Modal
       title={
-        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, maxWidth: '100%', minWidth: 0 }}>
           <span>Delete</span>
           {title}
         </span>
       }
       open
+      maskClosable={false}
       onOk={handleDelete}
       onCancel={() => {
         onClose()
@@ -51,8 +52,9 @@ export const SgroupsDeleteModal: FC<TSgroupsDeleteModalProps> = ({ endpoint, tit
       okText="Delete"
       confirmLoading={isLoading}
       okButtonProps={{ danger: true }}
-      width={400}
+      width="fit-content"
       centered
+      style={{ maxWidth: 'calc(100vw - 32px)', minWidth: 'min(400px, calc(100vw - 32px))' }}
       styles={{ header: { paddingRight: '30px' } }}
     >
       {Boolean(error) && <Alert type="error" message="Error while delete" description={errorMessage} />}

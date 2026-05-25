@@ -25,6 +25,8 @@ import {
   normalizeOptionalString,
   parseNamespacedValue,
   renderBadgeWithValue,
+  renderLinkedTreeResourceTitle,
+  renderTreeChangeHighlight,
   runSequentialRequests,
   sanitizeBindingName,
 } from 'utils'
@@ -54,15 +56,21 @@ const renderOverviewTitle = (
 ) => {
   const parsedValue = value ? parseNamespacedValue(value) : undefined
   const displayName = addressGroup?.spec?.displayName || addressGroup?.metadata.name || parsedValue?.name || 'Unknown'
+  const identifier = addressGroup?.metadata || parsedValue
 
   const title = (
     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-      {renderBadgeWithValue('AddressGroup', displayName)}
+      {renderLinkedTreeResourceTitle({
+        label: renderBadgeWithValue('AddressGroup', displayName),
+        name: identifier?.name,
+        namespace: identifier?.namespace,
+        plural: 'addressgroups',
+      })}
       <Styled.Count>{bindingsCount || 0}</Styled.Count>
     </span>
   )
 
-  return isNew ? <Styled.NewHighlight>{title}</Styled.NewHighlight> : title
+  return isNew ? renderTreeChangeHighlight(title, 'Added') : title
 }
 
 export const buildCurrentBindings = (

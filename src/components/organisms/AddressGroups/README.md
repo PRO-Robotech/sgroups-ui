@@ -6,7 +6,7 @@ The bottom `Add Address Group` button opens `AddressGroupFormModal`.
 
 The modal is based on the Figma form layout and uses Ant Design form controls:
 
-- `Namespace`: required. AddressGroup namespace. Kubernetes DNS label format, max 63 chars.
+- `Tenant`: required. AddressGroup namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional. Max 63 characters. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `addressgroups-`.
 - `Allow access`: maps to `spec.defaultAction`.
@@ -48,6 +48,8 @@ The overview tree uses parent-derived AntD Tree keys. When the shared AddressGro
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
+Resource nodes in the overview and verbose-panel trees include a small detail-link icon next to the badge. The link target uses the resource namespace and immutable `metadata.name`; `spec.displayName` is only the visible label.
+
 ## Table display
 
 The AddressGroups table uses badge/tag/icon formatting consistently:
@@ -55,9 +57,9 @@ The AddressGroups table uses badge/tag/icon formatting consistently:
 - `Display Name` is the first pinned column and renders an `AddressGroup` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the AddressGroup detail page at `addressgroups/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Namespace` renders a canonical `Namespace` badge.
+- `Tenant` renders a canonical `Tenant` badge.
 - `Default Action` renders as a colored AntD tag.
-- `Logs` and `Trace` render as status icons: a green check for enabled and a red cross for disabled.
+- `Trace` renders as a status icon: a green check for enabled and a red cross for disabled.
 
 ## Edit modal
 
@@ -67,7 +69,7 @@ Edit opens the same `AddressGroupFormModal` for a selected AddressGroup by passi
 
 In edit mode:
 
-- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
+- `Tenant` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - `Display name`, `Allow access`, `Description`, and `Comment` are editable and saved with patch helpers from the toolkit.
 - The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
@@ -77,13 +79,13 @@ In edit mode:
 - In edit mode, namespace-scoped resource and binding queries must start from `addressGroup.metadata.namespace` immediately. Waiting for the form watcher alone causes partial prefills.
 - Edit prefill should run only once per modal open, after host/network/service binding queries are ready. Repeated partial `setFieldsValue` calls can leave AntD selects visually stuck on reopen.
 - Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview. User-facing resource labels should show `spec.displayName`, falling back to `metadata.name` only when no display name exists.
-- Badge color inputs must be canonical resource kinds so colors match `openapi-ui` / `openapi-k8s-toolkit`: use `AddressGroup`, `Namespace`, `HostBinding`, `NetworkBinding`, and `ServiceBinding`, not display labels or abbreviations such as `Address Group`, `AG`, or `NS`.
+- Badge color inputs must be canonical resource kinds so colors match `openapi-ui` / `openapi-k8s-toolkit`: use `AddressGroup`, `Tenant`, `HostBinding`, `NetworkBinding`, and `ServiceBinding`, not display labels or abbreviations such as `Address Group`, `AG`, or `NS`.
 
 ## Delete modal
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `AddressGroup` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `AddressGroup` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 
@@ -104,6 +106,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 ## Modal lifecycle
 
+- AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
 - That hard reset is intentional. Soft resets were not enough for AntD multi-select state in this flow.
 

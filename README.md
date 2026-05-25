@@ -18,6 +18,8 @@ Each table has internal detail links in the first `Display Name` column. Detail 
 
 Visible labels prefer `spec.displayName` and fall back to `metadata.name`. URLs, API requests, delete endpoints, and YAML/editor targets must continue to use `metadata.name`.
 
+Resource nodes in modal overview trees and verbose-panel trees expose the same internal detail routes through a small link icon next to the resource badge. The icon uses the resolved resource namespace and immutable `metadata.name`; display names remain label-only.
+
 Detail pages are built from the shared namespaced resource factory in `src/pages/ResourceDetailsPage`. They include:
 
 - breadcrumbs back to the module table

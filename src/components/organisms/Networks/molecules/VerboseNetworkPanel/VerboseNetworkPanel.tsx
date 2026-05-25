@@ -37,6 +37,7 @@ import {
   formatMapEntries,
   groupTreeDataByNamespace,
   renderBadgeWithValue,
+  renderLinkedTreeResourceTitle,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
@@ -67,24 +68,29 @@ const withBindingNamespaceFallback = (identifier: TResourceIdentifier | undefine
   namespace: identifier?.namespace || bindingNamespace,
 })
 
-const withNamespaceLabel = (name?: string) => {
+const withAddressGroupLabel = (name?: string, identifier?: TResourceIdentifier) => {
   if (!name) {
     return 'Unknown'
   }
 
-  return renderBadgeWithValue('AddressGroup', name)
+  return renderLinkedTreeResourceTitle({
+    label: renderBadgeWithValue('AddressGroup', name),
+    name: identifier?.name,
+    namespace: identifier?.namespace,
+    plural: 'addressgroups',
+  })
 }
 
 const renderAddressGroupLabel = (addressGroup?: TAddressGroupResource, fallback?: TResourceIdentifier) => {
   if (addressGroup?.spec?.displayName) {
-    return withNamespaceLabel(addressGroup.spec.displayName)
+    return withAddressGroupLabel(addressGroup.spec.displayName, addressGroup.metadata)
   }
 
   if (addressGroup?.metadata?.name) {
-    return withNamespaceLabel(addressGroup.metadata.name)
+    return withAddressGroupLabel(addressGroup.metadata.name, addressGroup.metadata)
   }
 
-  return withNamespaceLabel(fallback?.name)
+  return withAddressGroupLabel(fallback?.name, fallback)
 }
 
 const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({
@@ -274,7 +280,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGrid>
-            <Typography.Text type="secondary">Namespace</Typography.Text>
+            <Typography.Text type="secondary">Tenant</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(network.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">CIDR</Typography.Text>

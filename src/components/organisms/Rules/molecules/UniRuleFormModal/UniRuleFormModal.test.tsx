@@ -154,4 +154,35 @@ describe('UniRuleFormModal', () => {
       }),
     )
   })
+
+  it('shows the display name input from the title pencil only in edit mode', async () => {
+    renderModal(
+      <UniRuleFormModal
+        cluster="cluster-a"
+        namespace="tenant-a"
+        open
+        onClose={jest.fn()}
+        rule={
+          {
+            metadata: { namespace: 'tenant-a', name: 'rule-a' },
+            spec: {
+              displayName: 'Rule A',
+              action: 'Allow',
+              endpoints: {
+                local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
+                remote: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },
+              },
+            },
+          } as any
+        }
+      />,
+    )
+
+    expect(await screen.findByText('Rule A')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('e.g. api-to-db')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit display name' }))
+
+    expect(screen.getByPlaceholderText('e.g. api-to-db')).toBeInTheDocument()
+  })
 })

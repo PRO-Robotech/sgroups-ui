@@ -26,6 +26,7 @@ import {
   getNamespaceOptions,
   NAME_PATTERN,
   normalizeOptionalString,
+  EditableResourceTitle,
   renderBadgeWithValue,
   validateDisplayName,
   withFallbackNamespace,
@@ -36,6 +37,7 @@ import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
 const CREATE_DISPLAY_NAME_PREFIX = 'hosts-'
+const getCreateDisplayName = () => `${CREATE_DISPLAY_NAME_PREFIX}${Math.floor(100000 + Math.random() * 900000)}`
 
 const isFormValidationError = (error: unknown): error is { errorFields: unknown[] } =>
   Boolean(error && typeof error === 'object' && 'errorFields' in error)
@@ -52,6 +54,20 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
   const selectedAddressGroups = useMemo(() => selectedAddressGroupsValue || [], [selectedAddressGroupsValue])
   const isEditMode = Boolean(host)
   const modalTitle = host?.spec?.displayName || host?.metadata.name || 'Host'
+  const modalTitleFallback = host?.metadata.name || 'Host'
+  const displayNameRules = [
+    {
+      max: DISPLAY_NAME_MAX_LENGTH,
+      message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+    },
+    {
+      validator: async (_: unknown, value?: string) => {
+        if (!validateDisplayName(value)) {
+          throw new Error('Use letters, numbers, hyphens, and optional dots')
+        }
+      },
+    },
+  ]
 
   const {
     data: tenantsData,
@@ -261,7 +277,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
       form.setFieldsValue({
         namespace,
         name: uuidv4(),
-        displayName: CREATE_DISPLAY_NAME_PREFIX,
+        displayName: getCreateDisplayName(),
         addressGroupNamespace: namespace,
         addressGroups: [],
         description: undefined,
@@ -379,6 +395,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
     <Modal
       title={null}
       open={open}
+      maskClosable={false}
       onCancel={handleCancel}
       onOk={handleSubmit}
       afterClose={() => {
@@ -402,21 +419,32 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('Host', modalTitle)}</Styled.Header>
               <Form<THostFormValues> form={form} layout="vertical" requiredMark>
+                <Styled.Header>
+                  {isEditMode ? (
+                    <EditableResourceTitle
+                      fallbackName={modalTitleFallback}
+                      kind="Host"
+                      placeholder="e.g. server-01.prod"
+                      rules={displayNameRules}
+                    />
+                  ) : (
+                    renderBadgeWithValue('Host', modalTitle)
+                  )}
+                </Styled.Header>
                 <Form.Item
                   name="namespace"
-                  label="Namespace"
+                  label="Tenant"
                   hidden={isEditMode}
                   rules={[
-                    { required: true, message: 'Select namespace' },
-                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                    { required: true, message: 'Select tenant' },
+                    { pattern: NAME_PATTERN, message: 'Use a valid tenant name' },
+                    { max: 63, message: 'Tenant must be 63 characters or less' },
                   ]}
                 >
                   <Select
                     showSearch
-                    placeholder="Select namespace"
+                    placeholder="Select tenant"
                     options={namespaceOptions}
                     loading={isTenantsLoading}
                     disabled={isEditMode}
@@ -439,25 +467,11 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
                 >
                   <Input placeholder="e.g. h-api-prod-01" disabled={isEditMode} />
                 </Form.Item>
-                <Form.Item
-                  name="displayName"
-                  label="Display name"
-                  rules={[
-                    {
-                      max: DISPLAY_NAME_MAX_LENGTH,
-                      message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
-                    },
-                    {
-                      validator: async (_, value?: string) => {
-                        if (!validateDisplayName(value)) {
-                          throw new Error('Use letters, numbers, hyphens, and optional dots')
-                        }
-                      },
-                    },
-                  ]}
-                >
-                  <Input placeholder="e.g. server-01.prod" />
-                </Form.Item>
+                {!isEditMode && (
+                  <Form.Item name="displayName" label="Display name" rules={displayNameRules}>
+                    <Input placeholder="e.g. server-01.prod" />
+                  </Form.Item>
+                )}
                 <Form.Item name="addressGroupNamespace" hidden>
                   <Input />
                 </Form.Item>
@@ -469,7 +483,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
                   <Select
                     mode="multiple"
                     showSearch
-                    placeholder={selectedAddressGroupNamespace ? 'Select address groups' : 'Select namespace first'}
+                    placeholder={selectedAddressGroupNamespace ? 'Select address groups' : 'Select tenant first'}
                     optionFilterProp="searchText"
                     options={addressGroupOptions}
                     loading={isAddressGroupsLoading}

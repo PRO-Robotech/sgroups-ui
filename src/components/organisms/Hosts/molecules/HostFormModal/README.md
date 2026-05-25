@@ -14,6 +14,8 @@ Modal for creating and editing `Host` resources and their AddressGroup membershi
 
 The modal body is a fixed-height, viewport-bounded two-column shell. The left form column scrolls internally through the AntD form, while the right Structure Overview keeps its title fixed and scrolls only the overview body.
 
+In edit mode, the resource title is rendered at the top of the AntD form. The canonical `Host` badge is static; the adjacent display-name text has a pencil action that toggles an inline `displayName` input. Keep this title field inside the `Form` tree so AntD validation, submit, and reset behavior continue to include it. Create mode keeps the normal body `Display name` field.
+
 On narrow screens, the overview sidebar is hidden and the form keeps the same internal scroll behavior.
 
 ## Form Model
@@ -21,7 +23,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Host. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
-- `displayName`, `description`, and `comment` map to editable `spec` fields.
+- `displayName`, `description`, and `comment` map to editable `spec` fields. In edit mode, `displayName` is edited from the title pencil instead of a body form row.
 - `addressGroupNamespace` is hidden and mirrors the Host namespace. It controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.
 - AddressGroup option labels and search text use `spec.displayName`, falling back to the AddressGroup name only when no display name exists. Labels omit the namespace because AddressGroups are scoped to the Host namespace.
@@ -37,7 +39,7 @@ The modal uses AntD form rules for backend-backed constraints:
 
 - `namespace`: required Kubernetes resource namespace, max 63 chars.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 chars.
-- `displayName`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `hosts-`.
+- `displayName`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `hosts-` plus six random digits.
 - `addressGroupNamespace`: hidden Kubernetes resource namespace mirrored from `namespace`.
 
 The local `v2` and `v3sgroups` OpenAPI HostSpec only declares `displayName`, `description`, and `comment` as strings. The display-name length comes from the extracted backend validator in `tmp`; the UI additionally applies the shared hostname-label rule without requiring a dot. `description` and `comment` currently have no stricter documented limits.
@@ -79,15 +81,19 @@ Patch and binding requests are intentionally executed one at a time. The backend
 
 The sidebar is built from selected AddressGroups and the current host, network, and service binding graph. Selected AddressGroups are filtered to the Host namespace, grouped by AddressGroup namespace first, then each namespace contains its selected AddressGroup children. Each AddressGroup child reuses the AddressGroup contents tree builder.
 
-In edit mode, newly selected AddressGroups are shown with a subtle green background and left accent. The pending Host binding is also injected into that AddressGroup branch so the overview previews the post-save graph.
+In edit mode, newly selected AddressGroups are shown with a high-contrast green highlight, left accent, bold text, and an `Added` marker. The pending Host binding is also injected into that AddressGroup branch and marked as `Added` so the overview previews the post-save graph.
 
 Each selected AddressGroup overview node passes its own `overview-{namespace/name}` key as the tree key prefix. Nested namespace, section, binding, transport, entry, empty, and error keys then extend their parent key so repeated resources remain unique across the full AntD Tree.
 
 The overview tree is remounted when AddressGroup namespace or selection changes. Overview graph fetches do not block the form after initial prefill; the sidebar renders from currently available data instead of holding an infinite spinner.
 
+Selected AddressGroup nodes and resolved resource children include a small detail-link icon next to their badges. Detail links use resource namespaces and immutable `metadata.name`; display names remain label-only.
+
 The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
 
 ## Lifecycle
+
+Set `maskClosable={false}` on the AntD `Modal`. Backdrop clicks must not close the modal; use the Cancel button or close icon for explicit close actions.
 
 The parent conditionally renders the modal only while it is open and increments a modal instance `key` before each create/edit open. This forces a real React unmount/remount for modal-local hooks and state. The AntD modal still uses `destroyOnHidden` for its internal subtree, but lifecycle correctness must not rely on that alone.
 

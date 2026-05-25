@@ -1,4 +1,5 @@
 import React from 'react'
+import { LinkOutlined } from '@ant-design/icons'
 import { Link, useInRouterContext } from 'react-router-dom'
 import { getPluginBasePath } from './getPluginBasePath'
 import { renderBadgeWithValue, renderNamespacedResourceValue } from './tableFormatters'
@@ -24,14 +25,26 @@ export const getInternalSgroupsResourceHref = ({
   return `${basePath}/${plural}/${encodeURIComponent(namespace)}/${encodeURIComponent(name)}`
 }
 
-const SgroupsResourceLink = ({ href, children }: { href: string; children?: React.ReactNode }) => {
+const SgroupsResourceLink = ({
+  href,
+  ariaLabel,
+  title,
+  children,
+}: {
+  href: string
+  ariaLabel?: string
+  title?: string
+  children?: React.ReactNode
+}) => {
   const inRouter = useInRouterContext()
 
   if (!inRouter) {
     return (
       <a
+        aria-label={ariaLabel}
         className="ant-typography ant-typography-link"
         href={href}
+        title={title}
         onClick={event => {
           event.stopPropagation()
         }}
@@ -43,8 +56,10 @@ const SgroupsResourceLink = ({ href, children }: { href: string; children?: Reac
 
   return (
     <Link
+      aria-label={ariaLabel}
       className="ant-typography ant-typography-link"
       to={href}
+      title={title}
       onClick={event => {
         event.stopPropagation()
       }}
@@ -60,6 +75,31 @@ const renderResourceLink = (href: string | undefined, value?: React.ReactNode) =
   }
 
   return <SgroupsResourceLink href={href}>{value}</SgroupsResourceLink>
+}
+
+export const renderLinkedTreeResourceTitle = ({
+  label,
+  name,
+  namespace,
+  plural,
+}: {
+  label: React.ReactNode
+  name?: string
+  namespace?: string
+  plural: TSgroupsResourcePlural
+}) => {
+  const href = getInternalSgroupsResourceHref({ name, namespace, plural })
+
+  return (
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6, maxWidth: '100%' }}>
+      {label}
+      {href && (
+        <SgroupsResourceLink ariaLabel={`Open ${namespace}/${name} details`} href={href} title="Open details">
+          <LinkOutlined style={{ fontSize: 12 }} />
+        </SgroupsResourceLink>
+      )}
+    </span>
+  )
 }
 
 export const renderLinkedResourceBadge = ({

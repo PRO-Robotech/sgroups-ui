@@ -124,7 +124,7 @@ describe('Networks', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /delete network a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/NNetwork A')
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/NNetwork A')
   })
 
   it('shows a loading error', () => {

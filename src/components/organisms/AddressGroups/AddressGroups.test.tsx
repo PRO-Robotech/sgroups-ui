@@ -125,7 +125,7 @@ describe('AddressGroups', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /delete address group a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/AGAddress Group A')
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/AGAddress Group A')
   })
 
   it('shows a loading error', () => {

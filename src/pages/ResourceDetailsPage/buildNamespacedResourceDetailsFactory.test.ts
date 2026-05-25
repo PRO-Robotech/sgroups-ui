@@ -68,4 +68,72 @@ describe('buildNamespacedResourceDetailsFactory', () => {
     expect(collectByType(factory.data, 'Events')).toEqual([])
     expect(collectByType(factory.data, 'YamlEditorSingleton')).toHaveLength(1)
   })
+
+  it('does not redirect when the delete modal is closed', () => {
+    const factory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.hosts,
+      displayName: 'Production Host',
+      name: 'host-a',
+      namespace: 'tenant-a',
+    })
+
+    const actionsDropdown = collectByType(factory.data, 'ActionsDropdown')[0]
+    const actions = actionsDropdown.data?.actions as Array<{ props?: Record<string, unknown>; type?: string }>
+    const deleteAction = actions.find(action => action.type === 'delete')
+
+    expect(deleteAction?.props).not.toHaveProperty('redirectTo')
+  })
+
+  it('uses the custom Host details section for Host resources', () => {
+    const factory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.hosts,
+      displayName: 'Production Host',
+      name: 'host-a',
+      namespace: 'tenant-a',
+    })
+
+    expect(collectByType(factory.data, 'SgroupsHostDetailsSection')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'host-a',
+      namespace: 'tenant-a',
+    })
+  })
+
+  it('uses the custom Service details section for Service resources', () => {
+    const factory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.services,
+      displayName: 'API Service',
+      name: 'service-a',
+      namespace: 'tenant-a',
+    })
+
+    expect(collectByType(factory.data, 'SgroupsServiceDetailsSection')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'service-a',
+      namespace: 'tenant-a',
+    })
+  })
+
+  it('uses the custom Network details section for Network resources', () => {
+    const factory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.networks,
+      displayName: 'Production Network',
+      name: 'network-a',
+      namespace: 'tenant-a',
+    })
+
+    expect(collectByType(factory.data, 'SgroupsNetworkDetailsSection')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'network-a',
+      namespace: 'tenant-a',
+    })
+  })
 })

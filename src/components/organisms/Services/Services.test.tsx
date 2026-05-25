@@ -127,7 +127,7 @@ describe('Services', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /delete service a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/SService A')
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/SService A')
   })
 
   it('shows a loading error', () => {

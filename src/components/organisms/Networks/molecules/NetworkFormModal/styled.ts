@@ -41,13 +41,13 @@ export const FormColumn = styled.div`
 
 export const Header = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
-  height: 24px;
   margin-bottom: 24px;
   font-size: 16px;
   font-weight: 700;
   line-height: 24px;
+  min-height: 32px;
 `
 
 export const Overview = styled.aside`
@@ -119,17 +119,6 @@ export const Count = styled.span`
   line-height: 12px;
 `
 
-export const NewHighlight = styled.span`
-  display: inline-flex;
-  align-items: center;
-  max-width: 100%;
-  padding: 2px 6px;
-  margin: -2px -6px;
-  border-radius: 6px;
-  background: rgba(20, 120, 72, 0.1);
-  box-shadow: inset 3px 0 0 rgba(20, 120, 72, 0.48);
-`
-
 export const Styled = {
   ModalContent,
   LoadingState,
@@ -141,5 +130,4 @@ export const Styled = {
   OverviewEmpty,
   TreeContainer,
   Count,
-  NewHighlight,
 }

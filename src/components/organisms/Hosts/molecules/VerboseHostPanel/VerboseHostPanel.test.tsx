@@ -22,7 +22,10 @@ const expandTreeNodes = (container: HTMLElement) => {
 }
 
 describe('VerboseHostPanel', () => {
+  const originalPathname = window.location.pathname
+
   beforeEach(() => {
+    window.history.pushState({}, '', '/openapi-ui/cluster-a/plugins/plugin-sgroups/hosts/tenant-a/host-a')
     jest.clearAllMocks()
     mockUseK8sSmartResource.mockImplementation((params: { plural?: string }) => ({
       data: {
@@ -50,6 +53,10 @@ describe('VerboseHostPanel', () => {
       error: undefined,
       isLoading: false,
     }))
+  })
+
+  afterAll(() => {
+    window.history.pushState({}, '', originalPathname)
   })
 
   it('renders host details, backend-owned IPs, refs, and expandable tag lists', () => {
@@ -112,6 +119,10 @@ describe('VerboseHostPanel', () => {
     expandTreeNodes(container)
 
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open tenant-a/ag-a details' })).toHaveAttribute(
+      'href',
+      '/openapi-ui/cluster-a/plugins/plugin-sgroups/addressgroups/tenant-a/ag-a',
+    )
     expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
       expect.objectContaining({ plural: 'hostbindings', namespace: 'tenant-a' }),
     )

@@ -6,7 +6,7 @@ The bottom `Add UniRule` button opens `UniRuleFormModal`.
 
 The modal follows the Figma layout structure, but the payload and editable fields follow the local `v3` / `v3sgroups` `sgroups.io/v1alpha1` schema. Older `tmp/newApi` rule docs are used only to confirm practical create-time validation behavior for TCP/UDP and ICMP rule variants.
 
-- `Namespace`: required. Rule namespace. Kubernetes DNS label format, max 63 chars.
+- `Tenant`: required. Rule namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-`.
 - `Action`: required. AntD validates `Allow` or `Deny`.
@@ -15,9 +15,9 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `Remote`: required endpoint block.
 - `Description`: optional.
 - `Comment`: optional.
-- `IP family`: optional transport selector. `IPv4` or `IPv6`.
-- `Protocol`: optional transport selector. `TCP`, `UDP`, or `ICMP`.
-- `Transport entries`: optional repeated section.
+- `IP family`: transport selector. Required when Remote is not `Service`; otherwise optional until transport data is entered. `IPv4` or `IPv6`.
+- `Protocol`: transport selector. Required when Remote is not `Service`; otherwise optional until transport data is entered. `TCP`, `UDP`, or `ICMP`.
+- `Transport entries`: repeated section. Required when Remote is not `Service`; otherwise optional until transport data is entered.
   - for `TCP` and `UDP`, each entry uses `ports`
   - for `ICMP`, each entry uses `types`
   - each entry may also include optional `description` and `comment`
@@ -36,10 +36,12 @@ For `AddressGroup` and `Service` endpoints:
 
 - the form stores `namespace` and `name` separately
 - namespace is not locked to the rule namespace
-- the `Name` select is scoped by the chosen resource namespace; visible labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists
+- the visible selector is an AntD Cascader with namespace as the first level and resource name as the second level
+- the endpoint namespace field is hidden but remains registered in the form store; selecting a Cascader leaf updates both endpoint `namespace` and `name`
+- visible labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists
 - submitted endpoint values remain the selected resource names and namespaces because the backend stores references by identifier
 - services can be chosen from any namespace
-- AddressGroup options are scoped by the chosen endpoint namespace, using the cluster-wide AddressGroup list plus local/remote namespace-scoped query results as fallbacks
+- AddressGroup options are grouped by namespace, using the cluster-wide AddressGroup list plus local/remote namespace-scoped query results as fallbacks
 - namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal fills it from the selected endpoint namespace before building options
 - selected resource namespace and name are validated as Kubernetes DNS labels, max 63 chars
 
@@ -86,7 +88,7 @@ The Rules table uses badge/tag formatting consistently:
 - `Display Name` is the first pinned column and renders a canonical `Rule` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the Rule detail page at `rules/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Namespace` renders a canonical `Namespace` badge.
+- `Tenant` renders a canonical `Tenant` badge.
 - `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints using the referenced resource display name when available, falling back to the referenced resource name only when no display name exists. Those concrete resource values link to their internal detail pages using the referenced namespace and `metadata.name`. `FQDN` and `CIDR` endpoints render their direct values.
 - `Action`, `Protocol`, `IP family`, and transport entries render as AntD tags.
 - Transport entries render one tag per entry. Entry descriptions and comments are shown in tooltips instead of inline tag text.
@@ -100,7 +102,7 @@ Edit opens the same `UniRuleFormModal` for a selected Rule by passing it as the 
 
 In edit mode:
 
-- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
+- `Tenant` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - The modal does not use PUT.
 - Edit save patches only changed fields.
@@ -123,7 +125,7 @@ Patched fields are currently:
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Rule` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `Rule` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 
@@ -142,9 +144,12 @@ The implementation validates with AntD before building the save payload.
 - Remote endpoints can be `AddressGroup`, `Service`, `FQDN`, or `CIDR`.
 - `TCP` and `UDP` transport entries validate single ports and ranges like `80,443` or `1000-2000`
 - `ICMP` entries validate type values from `0` to `255`
+- `spec.transport` is required when the Remote endpoint is not `Service`
 - selecting a protocol requires at least one transport entry
 - adding a transport entry requires both protocol and IP family
-- transport payload is omitted only when the whole transport section is empty
+- transport payload may be omitted only when the Remote endpoint is `Service` and the whole transport section is empty
+- nested transport entry edits revalidate the protocol and IP family selector errors so a valid port or ICMP type immediately clears stale selector-level validation messages
+- Remote endpoint type changes revalidate the transport selectors so switching between `Service` and non-service remotes updates required transport errors immediately
 
 ## Structure overview
 
@@ -162,8 +167,9 @@ The right sidebar renders a `Structure Overview` tree with separate top-level `L
 
 ## Modal lifecycle
 
+- AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
-- Edit prefill runs once per open cycle after the async resources needed for the form are ready, including endpoint options for selected AddressGroup and Service endpoints so edit labels render like create selections.
+- Edit prefill runs once per open cycle after the async resources needed for the form are ready, including endpoint options for selected AddressGroup and Service endpoints so Cascader labels render like create selections.
 - The loading state uses React state, not refs read during render.
 
 ## Schema Source

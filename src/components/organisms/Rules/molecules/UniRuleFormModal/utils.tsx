@@ -1,6 +1,6 @@
 import type { TreeDataNode } from 'antd'
 import { patchEntryWithDeleteOp, patchEntryWithReplaceOp } from '@prorobotech/openapi-k8s-toolkit'
-import { normalizeOptionalString, normalizeTrafficValue, runSequentialRequests } from 'utils'
+import { normalizeOptionalString, normalizeTrafficValue, renderTreeChangeHighlight, runSequentialRequests } from 'utils'
 import { TRuleEndpoint, TRuleResource } from '../../tableConfig'
 import { Styled } from './styled'
 import { TEndpointFormValues, TTransportEntryFormValue, TUniRuleFormValues } from './types'
@@ -125,7 +125,7 @@ const renderOverviewTitle = (label: 'Local' | 'Remote', count: number, isChanged
     </span>
   )
 
-  return isChanged ? <Styled.NewHighlight>{title}</Styled.NewHighlight> : title
+  return isChanged ? renderTreeChangeHighlight(title, 'Changed') : title
 }
 
 const renderChangedTitle = (title: TreeDataNode['title']) => {
@@ -133,11 +133,7 @@ const renderChangedTitle = (title: TreeDataNode['title']) => {
     return title
   }
 
-  return (
-    <Styled.NewHighlight>
-      <span style={{ minWidth: 0 }}>{title}</span>
-    </Styled.NewHighlight>
-  )
+  return renderTreeChangeHighlight(title, 'Changed')
 }
 
 const makeChildKey = (parentKey: string, key: string) => `${parentKey}-${key}`

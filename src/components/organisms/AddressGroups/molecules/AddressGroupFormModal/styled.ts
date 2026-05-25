@@ -41,13 +41,13 @@ export const FormColumn = styled.div`
 
 export const Header = styled.div`
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 4px;
-  height: 24px;
   margin-bottom: 24px;
   font-size: 16px;
   font-weight: 700;
   line-height: 24px;
+  min-height: 32px;
 `
 
 export const Overview = styled.aside`

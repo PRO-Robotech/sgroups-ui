@@ -1,6 +1,8 @@
+/* eslint-disable no-void */
+/* eslint-disable max-lines-per-function */
 import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
-import { Button, Collapse, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
+import { Button, Cascader, Collapse, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
 import { useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
@@ -20,16 +22,19 @@ import {
   API_VERSION,
   FQDN_PATTERN,
   getApiEndpoint,
-  getNamespacedResourceOptions,
+  getNamespacedResourceCascaderOptions,
+  getNamespacedResourceCascaderValue,
+  getNamespacedResourceFromCascaderValue,
   getNamespaceOptions,
-  getScopedResourceOptions,
   IPV_OPTIONS,
   NAME_PATTERN,
   normalizeOptionalString,
   normalizeTrafficValue,
   PORT_VALUE_SEPARATOR,
   PROTOCOL_OPTIONS,
+  EditableResourceTitle,
   renderBadgeWithValue,
+  renderNamespacedResourceCascaderSelection,
   validateCIDR,
   validateDisplayName,
   validatePortToken,
@@ -51,12 +56,28 @@ import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
 const CREATE_DISPLAY_NAME_PREFIX = 'rules-'
+const getCreateDisplayName = () => `${CREATE_DISPLAY_NAME_PREFIX}${Math.floor(100000 + Math.random() * 900000)}`
+const DISPLAY_NAME_RULES = [
+  {
+    max: DISPLAY_NAME_MAX_LENGTH,
+    message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+  },
+  {
+    validator: async (_: unknown, value?: string) => {
+      if (!validateDisplayName(value)) {
+        throw new Error('Use letters, numbers, hyphens, and optional dots')
+      }
+    },
+  },
+]
 const ACTION_VALUES = ACTION_OPTIONS.map(option => option.value)
 const TRAFFIC_VALUES = TRAFFIC_OPTIONS.map(option => option.value)
 const ENDPOINT_TYPE_VALUES = ENDPOINT_TYPE_OPTIONS.map(option => option.value)
 const LOCAL_ENDPOINT_TYPE_VALUES = LOCAL_ENDPOINT_TYPE_OPTIONS.map(option => option.value)
 const IPV_VALUES = IPV_OPTIONS.map(option => option.value)
 const PROTOCOL_VALUES = PROTOCOL_OPTIONS.map(option => option.value)
+type TValidationErrorField = { name?: (string | number)[] }
+type TAntdValidationError = { errorFields?: TValidationErrorField[] }
 
 const hasTransportEntryValue = (entry?: TTransportEntryFormValue) =>
   Boolean(
@@ -76,7 +97,11 @@ const isLocalEndpointTypeValue = (value?: string) =>
   LOCAL_ENDPOINT_TYPE_VALUES.some(optionValue => optionValue === value)
 const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
 const isProtocolValue = (value?: string) => !value || PROTOCOL_VALUES.some(optionValue => optionValue === value)
-const isAntdValidationError = (error: unknown) => Boolean(error && typeof error === 'object' && 'errorFields' in error)
+const isTransportRequiredForRemote = (remote?: TUniRuleFormValues['remote']) => remote?.type !== 'Service'
+const isAntdValidationError = (error: unknown): error is TAntdValidationError =>
+  Boolean(error && typeof error === 'object' && 'errorFields' in error)
+const getValidationErrorTab = (error: TAntdValidationError): 'info' | 'ports' =>
+  error.errorFields?.some(field => String(field.name?.[0] ?? '').startsWith('transport')) ? 'ports' : 'info'
 const withFallbackNamespace = <TResource extends { metadata: { namespace?: string } }>(
   items: TResource[] | undefined,
   fallbackNamespace?: string,
@@ -105,6 +130,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const remoteFormValue = Form.useWatch('remote', form) as TUniRuleFormValues['remote'] | undefined
   const isEditMode = Boolean(rule)
   const modalTitle = rule?.spec?.displayName || rule?.metadata.name || 'UniRule'
+  const modalTitleFallback = rule?.metadata.name || 'UniRule'
   const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
   const localFormEndpoint = localFormValue ?? (!isInitialized ? currentRuleFormValues.local : undefined)
   const remoteFormEndpoint = remoteFormValue ?? (!isInitialized ? currentRuleFormValues.remote : undefined)
@@ -245,17 +271,23 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     remoteAddressGroupsData?.items,
     remoteNamespace,
   ])
-  const localAddressGroupOptions = useMemo(
-    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'AddressGroup'), localNamespace),
-    [addressGroups, localNamespace],
+  const addressGroupCascaderOptions = useMemo(
+    () =>
+      getNamespacedResourceCascaderOptions({
+        namespaces: namespaceOptions,
+        items: addressGroups,
+        badgeLabel: 'AddressGroup',
+      }),
+    [addressGroups, namespaceOptions],
   )
-  const remoteAddressGroupOptions = useMemo(
-    () => getScopedResourceOptions(getNamespacedResourceOptions(addressGroups, 'AddressGroup'), remoteNamespace),
-    [addressGroups, remoteNamespace],
-  )
-  const serviceOptions = useMemo(
-    () => getNamespacedResourceOptions(servicesData?.items, 'Service'),
-    [servicesData?.items],
+  const serviceCascaderOptions = useMemo(
+    () =>
+      getNamespacedResourceCascaderOptions({
+        namespaces: namespaceOptions,
+        items: servicesData?.items,
+        badgeLabel: 'Service',
+      }),
+    [namespaceOptions, servicesData?.items],
   )
   const localEndpoint = useMemo(() => buildEndpointPayload(localFormEndpoint), [localFormEndpoint])
   const remoteEndpoint = useMemo(() => buildEndpointPayload(remoteFormEndpoint), [remoteFormEndpoint])
@@ -271,16 +303,8 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       JSON.stringify(remoteEndpoint) !== JSON.stringify(buildEndpointPayload(currentRuleFormValues.remote)),
     [currentRuleFormValues.remote, remoteEndpoint, rule],
   )
-  const localResourceOptions = useMemo(
-    () =>
-      localType === 'Service' ? getScopedResourceOptions(serviceOptions, localNamespace) : localAddressGroupOptions,
-    [localAddressGroupOptions, localNamespace, localType, serviceOptions],
-  )
-  const remoteResourceOptions = useMemo(
-    () =>
-      remoteType === 'Service' ? getScopedResourceOptions(serviceOptions, remoteNamespace) : remoteAddressGroupOptions,
-    [remoteAddressGroupOptions, remoteNamespace, remoteType, serviceOptions],
-  )
+  const localResourceOptions = localType === 'Service' ? serviceCascaderOptions : addressGroupCascaderOptions
+  const remoteResourceOptions = remoteType === 'Service' ? serviceCascaderOptions : addressGroupCascaderOptions
   const localTreeData = useMemo<TreeDataNode[]>(
     () =>
       buildRuleEndpointTree({
@@ -377,7 +401,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       form.setFieldsValue({
         namespace,
         name: uuidv4(),
-        displayName: CREATE_DISPLAY_NAME_PREFIX,
+        displayName: getCreateDisplayName(),
         action: 'Allow',
         traffic: 'Both',
         description: undefined,
@@ -427,6 +451,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       values = form.getFieldsValue(true) as TUniRuleFormValues
     } catch (error) {
       if (isAntdValidationError(error)) {
+        setActiveTab(getValidationErrorTab(error))
         return
       }
 
@@ -507,10 +532,22 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     }
   }
 
+  const handleFormValuesChange = (changedValues: Partial<TUniRuleFormValues>) => {
+    if (
+      !Object.prototype.hasOwnProperty.call(changedValues, 'transportEntries') &&
+      !Object.prototype.hasOwnProperty.call(changedValues, 'remote')
+    ) {
+      return
+    }
+
+    void form.validateFields(['transportIPv', 'transportProtocol']).catch(() => undefined)
+  }
+
   return (
     <Modal
       title={null}
       open={open}
+      maskClosable={false}
       onCancel={handleCancel}
       onOk={handleSubmit}
       afterClose={() => {
@@ -535,32 +572,48 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('UniRule', modalTitle)}</Styled.Header>
-              <Styled.SegmentedWrap>
-                <Segmented
-                  options={[
-                    { label: 'Info', value: 'info' },
-                    { label: 'Ports', value: 'ports' },
-                  ]}
-                  value={activeTab}
-                  onChange={value => setActiveTab(value as 'info' | 'ports')}
-                />
-              </Styled.SegmentedWrap>
-              <Form<TUniRuleFormValues> form={form} layout="vertical" requiredMark>
+              <Form<TUniRuleFormValues>
+                form={form}
+                layout="vertical"
+                requiredMark
+                onValuesChange={handleFormValuesChange}
+              >
+                <Styled.Header>
+                  {isEditMode ? (
+                    <EditableResourceTitle
+                      fallbackName={modalTitleFallback}
+                      kind="UniRule"
+                      placeholder="e.g. api-to-db"
+                      rules={DISPLAY_NAME_RULES}
+                    />
+                  ) : (
+                    renderBadgeWithValue('UniRule', modalTitle)
+                  )}
+                </Styled.Header>
+                <Styled.SegmentedWrap>
+                  <Segmented
+                    options={[
+                      { label: 'Info', value: 'info' },
+                      { label: 'Ports', value: 'ports' },
+                    ]}
+                    value={activeTab}
+                    onChange={value => setActiveTab(value as 'info' | 'ports')}
+                  />
+                </Styled.SegmentedWrap>
                 <div style={{ display: activeTab === 'info' ? 'block' : 'none' }}>
                   <Form.Item
                     name="namespace"
-                    label="Namespace"
+                    label="Tenant"
                     hidden={isEditMode}
                     rules={[
-                      { required: true, message: 'Select namespace' },
-                      { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                      { max: 63, message: 'Namespace must be 63 characters or less' },
+                      { required: true, message: 'Select tenant' },
+                      { pattern: NAME_PATTERN, message: 'Use a valid tenant name' },
+                      { max: 63, message: 'Tenant must be 63 characters or less' },
                     ]}
                   >
                     <Select
                       showSearch
-                      placeholder="Select namespace"
+                      placeholder="Select tenant"
                       options={namespaceOptions}
                       loading={isTenantsLoading}
                       disabled={isEditMode}
@@ -579,25 +632,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   >
                     <Input placeholder="e.g. rule-api-prod-01" disabled={isEditMode} />
                   </Form.Item>
-                  <Form.Item
-                    name="displayName"
-                    label="Display name"
-                    rules={[
-                      {
-                        max: DISPLAY_NAME_MAX_LENGTH,
-                        message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
-                      },
-                      {
-                        validator: async (_, value?: string) => {
-                          if (!validateDisplayName(value)) {
-                            throw new Error('Use letters, numbers, hyphens, and optional dots')
-                          }
-                        },
-                      },
-                    ]}
-                  >
-                    <Input placeholder="e.g. api-to-db" />
-                  </Form.Item>
+                  {!isEditMode && (
+                    <Form.Item name="displayName" label="Display name" rules={DISPLAY_NAME_RULES}>
+                      <Input placeholder="e.g. api-to-db" />
+                    </Form.Item>
+                  )}
                   <Form.Item
                     name="action"
                     label="Action"
@@ -671,41 +710,50 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                               <>
                                 <Form.Item
                                   name={['local', 'namespace']}
-                                  label="Namespace"
+                                  label="Tenant"
+                                  hidden
                                   rules={[
-                                    { required: true, message: 'Select resource namespace' },
-                                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                                    { required: true, message: 'Select resource tenant' },
+                                    { pattern: NAME_PATTERN, message: 'Use a valid tenant name' },
+                                    { max: 63, message: 'Tenant must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Select
-                                    showSearch
-                                    options={namespaceOptions}
-                                    placeholder="Select namespace"
-                                    onChange={() => {
-                                      form.setFieldValue(['local', 'name'], undefined)
-                                    }}
-                                  />
+                                  <Input />
                                 </Form.Item>
                                 <Form.Item
                                   name={['local', 'name']}
                                   label="Name"
+                                  getValueProps={value => ({
+                                    value: getNamespacedResourceCascaderValue({
+                                      namespace: localNamespace,
+                                      name: value,
+                                    }),
+                                  })}
+                                  getValueFromEvent={value => {
+                                    const nextValue = getNamespacedResourceFromCascaderValue(value)
+
+                                    form.setFieldValue(['local', 'namespace'], nextValue.namespace)
+
+                                    return nextValue.name
+                                  }}
                                   rules={[
                                     { required: true, message: 'Select resource' },
                                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
                                     { max: 63, message: 'Name must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Select
+                                  <Cascader
                                     showSearch
-                                    optionFilterProp="searchText"
-                                    disabled={!localNamespace}
-                                    placeholder={
-                                      localNamespace
-                                        ? `Select ${localType === 'Service' ? 'service' : 'address group'}`
-                                        : 'Select namespace first'
-                                    }
                                     options={localResourceOptions}
+                                    displayRender={renderNamespacedResourceCascaderSelection(
+                                      localType === 'Service' ? 'Service' : 'AddressGroup',
+                                    )}
+                                    placeholder={localType === 'Service' ? 'Select service' : 'Select address group'}
+                                    loading={
+                                      isTenantsLoading ||
+                                      (localType === 'Service' ? isServicesLoading : isAllAddressGroupsLoading)
+                                    }
+                                    disabled={isTenantsLoading || Boolean(tenantsError)}
                                   />
                                 </Form.Item>
                               </>
@@ -785,41 +833,50 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                               <>
                                 <Form.Item
                                   name={['remote', 'namespace']}
-                                  label="Namespace"
+                                  label="Tenant"
+                                  hidden
                                   rules={[
-                                    { required: true, message: 'Select resource namespace' },
-                                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                                    { required: true, message: 'Select resource tenant' },
+                                    { pattern: NAME_PATTERN, message: 'Use a valid tenant name' },
+                                    { max: 63, message: 'Tenant must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Select
-                                    showSearch
-                                    options={namespaceOptions}
-                                    placeholder="Select namespace"
-                                    onChange={() => {
-                                      form.setFieldValue(['remote', 'name'], undefined)
-                                    }}
-                                  />
+                                  <Input />
                                 </Form.Item>
                                 <Form.Item
                                   name={['remote', 'name']}
                                   label="Name"
+                                  getValueProps={value => ({
+                                    value: getNamespacedResourceCascaderValue({
+                                      namespace: remoteNamespace,
+                                      name: value,
+                                    }),
+                                  })}
+                                  getValueFromEvent={value => {
+                                    const nextValue = getNamespacedResourceFromCascaderValue(value)
+
+                                    form.setFieldValue(['remote', 'namespace'], nextValue.namespace)
+
+                                    return nextValue.name
+                                  }}
                                   rules={[
                                     { required: true, message: 'Select resource' },
                                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
                                     { max: 63, message: 'Name must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Select
+                                  <Cascader
                                     showSearch
-                                    optionFilterProp="searchText"
-                                    disabled={!remoteNamespace}
-                                    placeholder={
-                                      remoteNamespace
-                                        ? `Select ${remoteType === 'Service' ? 'service' : 'address group'}`
-                                        : 'Select namespace first'
-                                    }
                                     options={remoteResourceOptions}
+                                    displayRender={renderNamespacedResourceCascaderSelection(
+                                      remoteType === 'Service' ? 'Service' : 'AddressGroup',
+                                    )}
+                                    placeholder={remoteType === 'Service' ? 'Select service' : 'Select address group'}
+                                    loading={
+                                      isTenantsLoading ||
+                                      (remoteType === 'Service' ? isServicesLoading : isAllAddressGroupsLoading)
+                                    }
+                                    disabled={isTenantsLoading || Boolean(tenantsError)}
                                   />
                                 </Form.Item>
                               </>
@@ -881,7 +938,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="transportIPv"
                     label="IP family"
-                    dependencies={['transportProtocol', 'transportEntries']}
+                    dependencies={['transportProtocol', 'transportEntries', ['remote', 'type']]}
                     rules={[
                       {
                         validator: async (_, value?: string) => {
@@ -894,7 +951,12 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                           ) as TUniRuleFormValues['transportEntries']
                           const protocol = form.getFieldValue('transportProtocol') as string | undefined
 
-                          if ((protocol || hasTransportEntries(entries)) && !value) {
+                          if (
+                            (isTransportRequiredForRemote(form.getFieldValue('remote')) ||
+                              protocol ||
+                              hasTransportEntries(entries)) &&
+                            !value
+                          ) {
                             throw new Error('Select IP family for transport entries')
                           }
                         },
@@ -910,7 +972,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="transportProtocol"
                     label="Protocol"
-                    dependencies={['transportIPv', 'transportEntries']}
+                    dependencies={['transportIPv', 'transportEntries', ['remote', 'type']]}
                     rules={[
                       {
                         validator: async (_, value?: string) => {
@@ -921,11 +983,13 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                           const entries = form.getFieldValue(
                             'transportEntries',
                           ) as TUniRuleFormValues['transportEntries']
-                          if (hasTransportEntries(entries) && !value) {
+                          const isTransportRequired = isTransportRequiredForRemote(form.getFieldValue('remote'))
+
+                          if ((isTransportRequired || hasTransportEntries(entries)) && !value) {
                             throw new Error('Select protocol for transport entries')
                           }
 
-                          if (value && !hasTransportEntries(entries)) {
+                          if ((isTransportRequired || value) && !hasTransportEntries(entries)) {
                             throw new Error('Add at least one transport entry')
                           }
                         },

@@ -29,6 +29,7 @@ import {
   normalizeOptionalString,
   PORT_VALUE_SEPARATOR,
   PROTOCOL_OPTIONS,
+  EditableResourceTitle,
   renderBadgeWithValue,
   renderAddressGroupCascaderSelection,
   TAddressGroupCascaderOption,
@@ -44,6 +45,7 @@ import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
 const CREATE_DISPLAY_NAME_PREFIX = 'services-'
+const getCreateDisplayName = () => `${CREATE_DISPLAY_NAME_PREFIX}${Math.floor(100000 + Math.random() * 900000)}`
 const IPV_VALUES = IPV_OPTIONS.map(option => option.value)
 const PROTOCOL_VALUES = PROTOCOL_OPTIONS.map(option => option.value)
 const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
@@ -66,6 +68,17 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
   const selectedAddressGroups = useMemo(() => selectedAddressGroupsValue || [], [selectedAddressGroupsValue])
   const isEditMode = Boolean(service)
   const modalTitle = service?.spec?.displayName || service?.metadata.name || 'Service'
+  const modalTitleFallback = service?.metadata.name || 'Service'
+  const displayNameRules = [
+    { max: DISPLAY_NAME_MAX_LENGTH, message: 'Display name must be 63 characters or less' },
+    {
+      validator: async (_: unknown, value?: string) => {
+        if (!validateDisplayName(value)) {
+          throw new Error('Use letters, numbers, hyphens, and optional dots')
+        }
+      },
+    },
+  ]
 
   const {
     data: tenantsData,
@@ -293,7 +306,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
       form.setFieldsValue({
         namespace,
         name: uuidv4(),
-        displayName: CREATE_DISPLAY_NAME_PREFIX,
+        displayName: getCreateDisplayName(),
         description: undefined,
         comment: undefined,
         addressGroupNamespace: namespace,
@@ -432,6 +445,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
     <Modal
       title={null}
       open={open}
+      maskClosable={false}
       onCancel={handleCancel}
       onOk={handleSubmit}
       afterClose={() => {
@@ -457,32 +471,43 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('Service', modalTitle)}</Styled.Header>
-              <Styled.SegmentedWrap>
-                <Segmented
-                  options={[
-                    { label: 'Info', value: 'info' },
-                    { label: 'Ports', value: 'ports' },
-                  ]}
-                  value={activeTab}
-                  onChange={value => setActiveTab(value as 'info' | 'ports')}
-                />
-              </Styled.SegmentedWrap>
               <Form<TServiceFormValues> form={form} layout="vertical" requiredMark>
+                <Styled.Header>
+                  {isEditMode ? (
+                    <EditableResourceTitle
+                      fallbackName={modalTitleFallback}
+                      kind="Service"
+                      placeholder="e.g. api-gateway"
+                      rules={displayNameRules}
+                    />
+                  ) : (
+                    renderBadgeWithValue('Service', modalTitle)
+                  )}
+                </Styled.Header>
+                <Styled.SegmentedWrap>
+                  <Segmented
+                    options={[
+                      { label: 'Info', value: 'info' },
+                      { label: 'Ports', value: 'ports' },
+                    ]}
+                    value={activeTab}
+                    onChange={value => setActiveTab(value as 'info' | 'ports')}
+                  />
+                </Styled.SegmentedWrap>
                 <div style={{ display: activeTab === 'info' ? 'block' : 'none' }}>
                   <Form.Item
                     name="namespace"
-                    label="Namespace"
+                    label="Tenant"
                     hidden={isEditMode}
                     rules={[
-                      { required: true, message: 'Select namespace' },
-                      { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                      { max: 63, message: 'Namespace must be 63 characters or less' },
+                      { required: true, message: 'Select tenant' },
+                      { pattern: NAME_PATTERN, message: 'Use a valid tenant name' },
+                      { max: 63, message: 'Tenant must be 63 characters or less' },
                     ]}
                   >
                     <Select
                       showSearch
-                      placeholder="Select namespace"
+                      placeholder="Select tenant"
                       options={namespaceOptions}
                       loading={isTenantsLoading}
                       disabled={isEditMode}
@@ -501,22 +526,11 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                   >
                     <Input placeholder="e.g. h-api-prod-01" disabled={isEditMode} />
                   </Form.Item>
-                  <Form.Item
-                    name="displayName"
-                    label="Display name"
-                    rules={[
-                      { max: DISPLAY_NAME_MAX_LENGTH, message: 'Display name must be 63 characters or less' },
-                      {
-                        validator: async (_, value?: string) => {
-                          if (!validateDisplayName(value)) {
-                            throw new Error('Use letters, numbers, hyphens, and optional dots')
-                          }
-                        },
-                      },
-                    ]}
-                  >
-                    <Input placeholder="e.g. api-gateway" />
-                  </Form.Item>
+                  {!isEditMode && (
+                    <Form.Item name="displayName" label="Display name" rules={displayNameRules}>
+                      <Input placeholder="e.g. api-gateway" />
+                    </Form.Item>
+                  )}
                   <Form.Item name="addressGroupNamespace" hidden>
                     <Input />
                   </Form.Item>

@@ -6,7 +6,7 @@ The bottom `Add Host` button opens `HostFormModal`.
 
 The modal is based on the Figma form layout and uses Ant Design form controls:
 
-- `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
+- `Tenant`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `hosts-`.
 - `Address group`: optional multi-select. Disabled until the Host namespace is known. Options are fetched only from the Host namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
@@ -42,12 +42,35 @@ Overview tree keys are parent-derived and prefixed with the namespace and select
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
+AddressGroup nodes in the overview and verbose-panel trees include a small detail-link icon next to the badge. The link target uses the AddressGroup namespace and immutable `metadata.name`; `spec.displayName` is only the visible label.
+
 ## Table display
 
 - `Display Name` is the first pinned column and renders a canonical `Host` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the Host detail page at `hosts/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Namespace` renders a canonical `Namespace` badge.
+- `Tenant` renders a canonical `Tenant` badge.
+
+## Detail page
+
+The Host detail page keeps the shared resource-detail header, actions menu, conditions section, and YAML editor, but uses a Host-specific `SgroupsHostDetailsSection` for the inner Details tab content.
+
+The section uses the local card concept from Figma:
+
+- `Info`: creation time, namespace, and owner reference summary.
+- `Assignments`: current HostBinding count for the Host, plus label and annotation counts.
+- `Main`: hostname, UID, IPv4/IPv6 counts, description, and comment.
+- `Meta info`: backend-owned host metadata such as OS, platform, platform version, kernel, and optional platform family.
+
+The three Assignment chips are editable:
+
+- `address groups` opens a Host-specific selector modal. Saving creates and deletes only `HostBinding` resources in the Host namespace; it does not write `Host.refs`.
+- `labels` patches `/metadata/labels`.
+- `annotations` patches `/metadata/annotations`.
+
+Host IPs and metainfo are read-only in this view. Reads tolerate both the local OpenAPI shape under `spec.IPs` / `spec.metaInfo` and the legacy flattened `ips` / `metaInfo` payload.
+
+Assignment counts are derived from `HostBinding` resources in the Host namespace. Matching tolerates omitted `spec.host.namespace` by falling back to the binding namespace.
 
 ## Edit modal
 
@@ -57,7 +80,7 @@ Edit opens the same `HostFormModal` for a selected Host by passing it as the opt
 
 In edit mode:
 
-- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
+- `Tenant` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - `Display name`, `Description`, and `Comment` are editable and saved with toolkit patch helpers.
 - The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
@@ -73,7 +96,7 @@ In edit mode:
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Host` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `Host` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 
@@ -95,6 +118,7 @@ The implementation follows the local `v2` OpenAPI dump for `sgroups.io/v1alpha1`
 
 ## Modal lifecycle
 
+- AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
 - That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
 - Edit prefill waits for existing `HostBinding` resources and AddressGroup options before setting selected AddressGroups, so edit tags render with the same badge labels as create selections. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.

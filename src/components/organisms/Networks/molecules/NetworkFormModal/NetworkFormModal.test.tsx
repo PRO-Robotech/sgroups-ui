@@ -163,4 +163,31 @@ describe('NetworkFormModal', () => {
       )
     })
   })
+
+  it('shows the display name input from the title pencil only in edit mode', async () => {
+    renderModal(
+      <NetworkFormModal
+        network={{
+          cidr: '10.20.0.0/16',
+          created: '',
+          description: '',
+          displayName: 'Network A',
+          key: 'tenant-a/net-a',
+          metadata: { name: 'net-a', namespace: 'tenant-a' },
+          spec: { CIDR: '10.20.0.0/16', displayName: 'Network A' },
+        }}
+        cluster="cluster-a"
+        namespace="tenant-a"
+        open
+        onClose={jest.fn()}
+      />,
+    )
+
+    expect(await screen.findByText('Network A')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('e.g. server-01.prod')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit display name' }))
+
+    expect(screen.getByPlaceholderText('e.g. server-01.prod')).toBeInTheDocument()
+  })
 })

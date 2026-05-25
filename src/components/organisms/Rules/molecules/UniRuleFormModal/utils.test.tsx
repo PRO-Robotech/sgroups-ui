@@ -12,6 +12,10 @@ jest.mock(
 )
 
 // eslint-disable-next-line import/first
+import React from 'react'
+// eslint-disable-next-line import/first
+import { render, screen } from '@testing-library/react'
+// eslint-disable-next-line import/first
 import {
   buildEndpointPayload,
   buildFormValuesFromRule,
@@ -124,6 +128,24 @@ describe('UniRuleFormModal utils', () => {
         children: [{ key: 'overview-remote-remote-a' }, { key: 'overview-remote-remote-b' }],
       }),
     ])
+  })
+
+  it('renders changed overview and endpoint roots with Changed markers', () => {
+    const tree = buildOverviewTreeData({
+      localTreeData: [{ key: 'local-a', title: 'Local endpoint' }],
+      remoteTreeData: [],
+      isLocalChanged: true,
+    })
+
+    render(
+      <>
+        {tree[0].title}
+        {tree[0].children?.[0].title}
+      </>,
+    )
+
+    expect(screen.getAllByText('Changed')).toHaveLength(2)
+    expect(screen.getByText('Local endpoint')).toBeInTheDocument()
   })
 
   it('patches only changed rule fields and deletes cleared nested values', async () => {

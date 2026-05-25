@@ -142,7 +142,7 @@ describe('Rules', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /delete rule a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/RRule A')
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/RRule A')
   })
 
   it('shows a loading error', () => {

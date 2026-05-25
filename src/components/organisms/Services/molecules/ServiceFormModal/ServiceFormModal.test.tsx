@@ -138,4 +138,34 @@ describe('ServiceFormModal', () => {
       )
     })
   })
+
+  it('shows the display name input from the title pencil only in edit mode', async () => {
+    renderModal(
+      <ServiceFormModal
+        service={{
+          created: '',
+          description: '',
+          displayName: 'Service A',
+          ipFamilies: '',
+          key: 'tenant-a/svc-a',
+          metadata: { name: 'svc-a', namespace: 'tenant-a' },
+          protocols: '',
+          spec: { displayName: 'Service A' },
+          transportEntries: '',
+          transportsCount: 0,
+        }}
+        cluster="cluster-a"
+        namespace="tenant-a"
+        open
+        onClose={jest.fn()}
+      />,
+    )
+
+    expect(await screen.findByText('Service A')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('e.g. api-gateway')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit display name' }))
+
+    expect(screen.getByPlaceholderText('e.g. api-gateway')).toBeInTheDocument()
+  })
 })

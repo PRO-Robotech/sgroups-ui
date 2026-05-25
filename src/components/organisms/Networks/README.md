@@ -6,7 +6,7 @@ The bottom `Add Network` button opens `NetworkFormModal`.
 
 The modal is based on the Figma form layout and uses Ant Design form controls:
 
-- `Namespace`: required. Network namespace. Kubernetes DNS label format, max 63 chars.
+- `Tenant`: required. Network namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `networks-`.
 - `Address group`: optional multi-select. Disabled until the Network namespace is known. Options are fetched only from the Network namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
@@ -43,12 +43,24 @@ Overview tree keys are parent-derived and prefixed with the namespace and select
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
+AddressGroup nodes in the overview and verbose-panel trees include a small detail-link icon next to the badge. The link target uses the AddressGroup namespace and immutable `metadata.name`; `spec.displayName` is only the visible label.
+
 ## Table display
 
 - `Display Name` is the first pinned column and renders a canonical `Network` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the Network detail page at `networks/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Namespace` renders a canonical `Namespace` badge.
+- `Tenant` renders a canonical `Tenant` badge.
+
+## Detail page
+
+The Network detail page uses the local `SgroupsNetworkDetailsSection` injected into the shared factory renderer. It follows the Figma card structure with `Info`, `Assignments`, and `Main` sections:
+
+- `Info`: creation time, namespace, owner refs.
+- `Assignments`: editable AddressGroup, label, and annotation counters.
+- `Main`: `spec.CIDR`, `spec.description`, and `spec.comment`.
+
+AddressGroup edits from the detail page are saved through `NetworkBinding` resources in the Network namespace. The detail page does not write computed `refs`.
 
 ## Edit modal
 
@@ -58,7 +70,7 @@ Edit opens the same `NetworkFormModal` for a selected Network by passing it as t
 
 In edit mode:
 
-- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
+- `Tenant` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - `Display name`, `CIDR`, `Description`, and `Comment` are editable and saved with toolkit patch helpers.
 - The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
@@ -74,7 +86,7 @@ In edit mode:
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Network` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `Network` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 
@@ -86,6 +98,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 ## Modal lifecycle
 
+- AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
 - That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
 - Edit prefill waits for existing `NetworkBinding` resources and AddressGroup options before setting selected AddressGroups, so edit tags render with the same badge labels as create selections. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.

@@ -43,7 +43,6 @@ export type TAddressGroupRow = TAddressGroupResource & {
   key: string
   displayName: string
   defaultAction: string
-  logsLabel: string
   traceLabel: string
   description: string
   created: string
@@ -91,7 +90,6 @@ export const mapAddressGroupsToRows = (items: TAddressGroupResource[]): TAddress
     key: `${item.metadata.name || 'unknown'}-${item.metadata.namespace || 'all'}`,
     displayName: item.spec?.displayName || item.metadata.name || EMPTY_VALUE,
     defaultAction: item.spec?.defaultAction || EMPTY_VALUE,
-    logsLabel: formatBooleanFlag(item.spec?.logs),
     traceLabel: formatBooleanFlag(item.spec?.trace),
     description: item.spec?.description || EMPTY_VALUE,
     created: formatDateTime(item.metadata.creationTimestamp),
@@ -119,7 +117,7 @@ export const buildAddressGroupsColumns = ({
         }),
     },
     {
-      title: 'Namespace',
+      title: 'Tenant',
       dataIndex: ['metadata', 'namespace'],
       key: 'namespace',
       width: 180,
@@ -133,14 +131,6 @@ export const buildAddressGroupsColumns = ({
       width: 160,
       sorter: (a, b) => stringSorter(a.defaultAction, b.defaultAction),
       render: value => renderDefaultActionTag(value),
-    },
-    {
-      title: 'Logs',
-      dataIndex: 'logsLabel',
-      key: 'logs',
-      width: 140,
-      sorter: (a, b) => booleanSorter(a.spec?.logs, b.spec?.logs),
-      render: (_, record) => renderBooleanStatusIcon(record.spec?.logs),
     },
     {
       title: 'Trace',

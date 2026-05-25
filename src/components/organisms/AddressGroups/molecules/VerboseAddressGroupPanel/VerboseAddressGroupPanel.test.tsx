@@ -85,13 +85,20 @@ const getItemsForPlural = (plural?: string) => {
 }
 
 describe('VerboseAddressGroupPanel', () => {
+  const originalPathname = window.location.pathname
+
   beforeEach(() => {
+    window.history.pushState({}, '', '/openapi-ui/cluster-a/plugins/plugin-sgroups/addressgroups/tenant-a/ag-a')
     jest.clearAllMocks()
     mockUseK8sSmartResource.mockImplementation((params: { plural?: string }) => ({
       data: { items: getItemsForPlural(params.plural) },
       error: undefined,
       isLoading: false,
     }))
+  })
+
+  afterAll(() => {
+    window.history.pushState({}, '', originalPathname)
   })
 
   it('renders address group details, related refs, and bound entities', () => {
@@ -140,6 +147,18 @@ describe('VerboseAddressGroupPanel', () => {
     expect(screen.getByText('Host A')).toBeInTheDocument()
     expect(screen.getByText('Network A')).toBeInTheDocument()
     expect(screen.getByText('Service A')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open tenant-a/host-a details' })).toHaveAttribute(
+      'href',
+      '/openapi-ui/cluster-a/plugins/plugin-sgroups/hosts/tenant-a/host-a',
+    )
+    expect(screen.getByRole('link', { name: 'Open tenant-a/net-a details' })).toHaveAttribute(
+      'href',
+      '/openapi-ui/cluster-a/plugins/plugin-sgroups/networks/tenant-a/net-a',
+    )
+    expect(screen.getByRole('link', { name: 'Open tenant-a/svc-a details' })).toHaveAttribute(
+      'href',
+      '/openapi-ui/cluster-a/plugins/plugin-sgroups/services/tenant-a/svc-a',
+    )
     expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
       expect.objectContaining({ plural: 'hostbindings', namespace: 'tenant-a' }),
     )
