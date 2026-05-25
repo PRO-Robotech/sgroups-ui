@@ -15,9 +15,9 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `Remote`: required endpoint block.
 - `Description`: optional.
 - `Comment`: optional.
-- `IP family`: optional transport selector. `IPv4` or `IPv6`.
-- `Protocol`: optional transport selector. `TCP`, `UDP`, or `ICMP`.
-- `Transport entries`: optional repeated section.
+- `IP family`: transport selector. Required when Remote is not `Service`; otherwise optional until transport data is entered. `IPv4` or `IPv6`.
+- `Protocol`: transport selector. Required when Remote is not `Service`; otherwise optional until transport data is entered. `TCP`, `UDP`, or `ICMP`.
+- `Transport entries`: repeated section. Required when Remote is not `Service`; otherwise optional until transport data is entered.
   - for `TCP` and `UDP`, each entry uses `ports`
   - for `ICMP`, each entry uses `types`
   - each entry may also include optional `description` and `comment`
@@ -144,10 +144,12 @@ The implementation validates with AntD before building the save payload.
 - Remote endpoints can be `AddressGroup`, `Service`, `FQDN`, or `CIDR`.
 - `TCP` and `UDP` transport entries validate single ports and ranges like `80,443` or `1000-2000`
 - `ICMP` entries validate type values from `0` to `255`
+- `spec.transport` is required when the Remote endpoint is not `Service`
 - selecting a protocol requires at least one transport entry
 - adding a transport entry requires both protocol and IP family
-- transport payload is omitted only when the whole transport section is empty
+- transport payload may be omitted only when the Remote endpoint is `Service` and the whole transport section is empty
 - nested transport entry edits revalidate the protocol and IP family selector errors so a valid port or ICMP type immediately clears stale selector-level validation messages
+- Remote endpoint type changes revalidate the transport selectors so switching between `Service` and non-service remotes updates required transport errors immediately
 
 ## Structure overview
 

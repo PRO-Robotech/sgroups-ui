@@ -52,8 +52,9 @@ AntD form validation runs before the create or patch flow reads the full form st
 - `CIDR` values must pass the shared IPv4/IPv6 CIDR validator.
 - TCP/UDP port entries accept comma-separated ports and ranges, for example `80,443` or `1000-2000`.
 - ICMP type entries accept integer values from `0` through `255`.
-- Transport is optional when the whole Ports panel is empty. Once a protocol or transport entry is provided, the form requires the matching IP family/protocol/entry combination before submit.
-- The protocol and IP family field validators depend on nested `transportEntries` values. Keep `onValuesChange` revalidation for those selector fields when a transport row changes, otherwise AntD can leave the protocol-level `Add at least one transport entry` error visible after a valid port or ICMP type is entered.
+- Transport is required when the Remote endpoint is not `Service`. Non-service remotes must submit `spec.transport` with IP family, protocol, and at least one transport entry.
+- Transport remains optional for Remote `Service` endpoints when the whole Ports panel is empty. Once a protocol or transport entry is provided, the form requires the matching IP family/protocol/entry combination before submit.
+- The protocol and IP family field validators depend on nested `transportEntries` values and Remote endpoint type. Keep `onValuesChange` revalidation for those selector fields when a transport row or Remote endpoint changes, otherwise AntD can leave stale selector-level errors visible after the required transport state changes.
 
 Validation source priority is the local `v3` / `v3sgroups` OpenAPI shape for current `sgroups.io/v1alpha1` resources, with `tmp/newApi` rule docs used only for legacy rule-variant transport semantics.
 

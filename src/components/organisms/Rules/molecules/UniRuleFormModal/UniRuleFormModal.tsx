@@ -76,6 +76,8 @@ const ENDPOINT_TYPE_VALUES = ENDPOINT_TYPE_OPTIONS.map(option => option.value)
 const LOCAL_ENDPOINT_TYPE_VALUES = LOCAL_ENDPOINT_TYPE_OPTIONS.map(option => option.value)
 const IPV_VALUES = IPV_OPTIONS.map(option => option.value)
 const PROTOCOL_VALUES = PROTOCOL_OPTIONS.map(option => option.value)
+type TValidationErrorField = { name?: (string | number)[] }
+type TAntdValidationError = { errorFields?: TValidationErrorField[] }
 
 const hasTransportEntryValue = (entry?: TTransportEntryFormValue) =>
   Boolean(
@@ -95,7 +97,11 @@ const isLocalEndpointTypeValue = (value?: string) =>
   LOCAL_ENDPOINT_TYPE_VALUES.some(optionValue => optionValue === value)
 const isIpFamilyValue = (value?: string) => !value || IPV_VALUES.some(optionValue => optionValue === value)
 const isProtocolValue = (value?: string) => !value || PROTOCOL_VALUES.some(optionValue => optionValue === value)
-const isAntdValidationError = (error: unknown) => Boolean(error && typeof error === 'object' && 'errorFields' in error)
+const isTransportRequiredForRemote = (remote?: TUniRuleFormValues['remote']) => remote?.type !== 'Service'
+const isAntdValidationError = (error: unknown): error is TAntdValidationError =>
+  Boolean(error && typeof error === 'object' && 'errorFields' in error)
+const getValidationErrorTab = (error: TAntdValidationError): 'info' | 'ports' =>
+  error.errorFields?.some(field => String(field.name?.[0] ?? '').startsWith('transport')) ? 'ports' : 'info'
 const withFallbackNamespace = <TResource extends { metadata: { namespace?: string } }>(
   items: TResource[] | undefined,
   fallbackNamespace?: string,
@@ -445,6 +451,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       values = form.getFieldsValue(true) as TUniRuleFormValues
     } catch (error) {
       if (isAntdValidationError(error)) {
+        setActiveTab(getValidationErrorTab(error))
         return
       }
 
@@ -526,7 +533,10 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   }
 
   const handleFormValuesChange = (changedValues: Partial<TUniRuleFormValues>) => {
-    if (!Object.prototype.hasOwnProperty.call(changedValues, 'transportEntries')) {
+    if (
+      !Object.prototype.hasOwnProperty.call(changedValues, 'transportEntries') &&
+      !Object.prototype.hasOwnProperty.call(changedValues, 'remote')
+    ) {
       return
     }
 
@@ -928,7 +938,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="transportIPv"
                     label="IP family"
-                    dependencies={['transportProtocol', 'transportEntries']}
+                    dependencies={['transportProtocol', 'transportEntries', ['remote', 'type']]}
                     rules={[
                       {
                         validator: async (_, value?: string) => {
@@ -941,7 +951,12 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                           ) as TUniRuleFormValues['transportEntries']
                           const protocol = form.getFieldValue('transportProtocol') as string | undefined
 
-                          if ((protocol || hasTransportEntries(entries)) && !value) {
+                          if (
+                            (isTransportRequiredForRemote(form.getFieldValue('remote')) ||
+                              protocol ||
+                              hasTransportEntries(entries)) &&
+                            !value
+                          ) {
                             throw new Error('Select IP family for transport entries')
                           }
                         },
@@ -957,7 +972,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   <Form.Item
                     name="transportProtocol"
                     label="Protocol"
-                    dependencies={['transportIPv', 'transportEntries']}
+                    dependencies={['transportIPv', 'transportEntries', ['remote', 'type']]}
                     rules={[
                       {
                         validator: async (_, value?: string) => {
@@ -968,11 +983,13 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                           const entries = form.getFieldValue(
                             'transportEntries',
                           ) as TUniRuleFormValues['transportEntries']
-                          if (hasTransportEntries(entries) && !value) {
+                          const isTransportRequired = isTransportRequiredForRemote(form.getFieldValue('remote'))
+
+                          if ((isTransportRequired || hasTransportEntries(entries)) && !value) {
                             throw new Error('Select protocol for transport entries')
                           }
 
-                          if (value && !hasTransportEntries(entries)) {
+                          if ((isTransportRequired || value) && !hasTransportEntries(entries)) {
                             throw new Error('Add at least one transport entry')
                           }
                         },
