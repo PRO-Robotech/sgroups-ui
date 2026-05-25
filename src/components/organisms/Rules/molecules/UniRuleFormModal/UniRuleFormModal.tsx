@@ -29,6 +29,7 @@ import {
   normalizeTrafficValue,
   PORT_VALUE_SEPARATOR,
   PROTOCOL_OPTIONS,
+  EditableResourceTitle,
   renderBadgeWithValue,
   validateCIDR,
   validateDisplayName,
@@ -51,6 +52,20 @@ import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
 const CREATE_DISPLAY_NAME_PREFIX = 'rules-'
+const getCreateDisplayName = () => `${CREATE_DISPLAY_NAME_PREFIX}${Math.floor(100000 + Math.random() * 900000)}`
+const DISPLAY_NAME_RULES = [
+  {
+    max: DISPLAY_NAME_MAX_LENGTH,
+    message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+  },
+  {
+    validator: async (_: unknown, value?: string) => {
+      if (!validateDisplayName(value)) {
+        throw new Error('Use letters, numbers, hyphens, and optional dots')
+      }
+    },
+  },
+]
 const ACTION_VALUES = ACTION_OPTIONS.map(option => option.value)
 const TRAFFIC_VALUES = TRAFFIC_OPTIONS.map(option => option.value)
 const ENDPOINT_TYPE_VALUES = ENDPOINT_TYPE_OPTIONS.map(option => option.value)
@@ -105,6 +120,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const remoteFormValue = Form.useWatch('remote', form) as TUniRuleFormValues['remote'] | undefined
   const isEditMode = Boolean(rule)
   const modalTitle = rule?.spec?.displayName || rule?.metadata.name || 'UniRule'
+  const modalTitleFallback = rule?.metadata.name || 'UniRule'
   const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
   const localFormEndpoint = localFormValue ?? (!isInitialized ? currentRuleFormValues.local : undefined)
   const remoteFormEndpoint = remoteFormValue ?? (!isInitialized ? currentRuleFormValues.remote : undefined)
@@ -377,7 +393,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
       form.setFieldsValue({
         namespace,
         name: uuidv4(),
-        displayName: CREATE_DISPLAY_NAME_PREFIX,
+        displayName: getCreateDisplayName(),
         action: 'Allow',
         traffic: 'Both',
         description: undefined,
@@ -507,6 +523,14 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     }
   }
 
+  const handleFormValuesChange = (changedValues: Partial<TUniRuleFormValues>) => {
+    if (!Object.prototype.hasOwnProperty.call(changedValues, 'transportEntries')) {
+      return
+    }
+
+    void form.validateFields(['transportIPv', 'transportProtocol']).catch(() => undefined)
+  }
+
   return (
     <Modal
       title={null}
@@ -535,18 +559,34 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('UniRule', modalTitle)}</Styled.Header>
-              <Styled.SegmentedWrap>
-                <Segmented
-                  options={[
-                    { label: 'Info', value: 'info' },
-                    { label: 'Ports', value: 'ports' },
-                  ]}
-                  value={activeTab}
-                  onChange={value => setActiveTab(value as 'info' | 'ports')}
-                />
-              </Styled.SegmentedWrap>
-              <Form<TUniRuleFormValues> form={form} layout="vertical" requiredMark>
+              <Form<TUniRuleFormValues>
+                form={form}
+                layout="vertical"
+                requiredMark
+                onValuesChange={handleFormValuesChange}
+              >
+                <Styled.Header>
+                  {isEditMode ? (
+                    <EditableResourceTitle
+                      fallbackName={modalTitleFallback}
+                      kind="UniRule"
+                      placeholder="e.g. api-to-db"
+                      rules={DISPLAY_NAME_RULES}
+                    />
+                  ) : (
+                    renderBadgeWithValue('UniRule', modalTitle)
+                  )}
+                </Styled.Header>
+                <Styled.SegmentedWrap>
+                  <Segmented
+                    options={[
+                      { label: 'Info', value: 'info' },
+                      { label: 'Ports', value: 'ports' },
+                    ]}
+                    value={activeTab}
+                    onChange={value => setActiveTab(value as 'info' | 'ports')}
+                  />
+                </Styled.SegmentedWrap>
                 <div style={{ display: activeTab === 'info' ? 'block' : 'none' }}>
                   <Form.Item
                     name="namespace"
@@ -579,25 +619,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
                   >
                     <Input placeholder="e.g. rule-api-prod-01" disabled={isEditMode} />
                   </Form.Item>
-                  <Form.Item
-                    name="displayName"
-                    label="Display name"
-                    rules={[
-                      {
-                        max: DISPLAY_NAME_MAX_LENGTH,
-                        message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
-                      },
-                      {
-                        validator: async (_, value?: string) => {
-                          if (!validateDisplayName(value)) {
-                            throw new Error('Use letters, numbers, hyphens, and optional dots')
-                          }
-                        },
-                      },
-                    ]}
-                  >
-                    <Input placeholder="e.g. api-to-db" />
-                  </Form.Item>
+                  {!isEditMode && (
+                    <Form.Item name="displayName" label="Display name" rules={DISPLAY_NAME_RULES}>
+                      <Input placeholder="e.g. api-to-db" />
+                    </Form.Item>
+                  )}
                   <Form.Item
                     name="action"
                     label="Action"

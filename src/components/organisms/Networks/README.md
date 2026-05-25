@@ -43,6 +43,8 @@ Overview tree keys are parent-derived and prefixed with the namespace and select
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
+AddressGroup nodes in the overview and verbose-panel trees include a small detail-link icon next to the badge. The link target uses the AddressGroup namespace and immutable `metadata.name`; `spec.displayName` is only the visible label.
+
 ## Table display
 
 - `Display Name` is the first pinned column and renders a canonical `Network` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.

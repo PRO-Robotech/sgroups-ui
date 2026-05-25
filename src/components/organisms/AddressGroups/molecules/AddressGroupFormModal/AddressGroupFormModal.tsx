@@ -12,7 +12,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { renderBadgeWithValue, renderNamespaceBadgeWithValue, validateDisplayName } from 'utils'
+import { EditableResourceTitle, renderBadgeWithValue, renderNamespaceBadgeWithValue, validateDisplayName } from 'utils'
 import { TAddressGroupFormModalProps, TAddressGroupFormValues } from './types'
 import {
   API_GROUP,
@@ -33,6 +33,7 @@ import { Styled } from './styled'
 
 const DISPLAY_NAME_MAX_LENGTH = 63
 const CREATE_DISPLAY_NAME_PREFIX = 'addressgroups-'
+const getCreateDisplayName = () => `${CREATE_DISPLAY_NAME_PREFIX}${Math.floor(100000 + Math.random() * 900000)}`
 
 export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   cluster,
@@ -58,7 +59,21 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
   const effectiveAddressGroupNamespace = selectedNamespace || addressGroup?.metadata.namespace || namespace
   const isEditMode = Boolean(addressGroup)
   const modalTitle = addressGroup?.spec?.displayName || addressGroup?.metadata.name || 'Address group'
+  const modalTitleFallback = addressGroup?.metadata.name || 'Address group'
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const displayNameRules = [
+    {
+      max: DISPLAY_NAME_MAX_LENGTH,
+      message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
+    },
+    {
+      validator: async (_: unknown, value?: string) => {
+        if (!validateDisplayName(value)) {
+          throw new Error('Use letters, numbers, hyphens, and optional dots')
+        }
+      },
+    },
+  ]
 
   const {
     data: tenantsData,
@@ -315,7 +330,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
     form.setFieldsValue({
       namespace,
       name: uuidv4(),
-      displayName: CREATE_DISPLAY_NAME_PREFIX,
+      displayName: getCreateDisplayName(),
       description: undefined,
       comment: undefined,
       allowAccess: false,
@@ -449,8 +464,19 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
         ) : (
           <>
             <Styled.FormColumn>
-              <Styled.Header>{renderBadgeWithValue('AddressGroup', modalTitle)}</Styled.Header>
               <Form<TAddressGroupFormValues> form={form} layout="vertical" requiredMark>
+                <Styled.Header>
+                  {isEditMode ? (
+                    <EditableResourceTitle
+                      fallbackName={modalTitleFallback}
+                      kind="AddressGroup"
+                      placeholder="e.g. server-01.prod"
+                      rules={displayNameRules}
+                    />
+                  ) : (
+                    renderBadgeWithValue('AddressGroup', modalTitle)
+                  )}
+                </Styled.Header>
                 <Form.Item
                   name="namespace"
                   label="Namespace"
@@ -485,25 +511,11 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                 >
                   <Input placeholder="e.g. server-01-prod" disabled={isEditMode} />
                 </Form.Item>
-                <Form.Item
-                  name="displayName"
-                  label="Display name"
-                  rules={[
-                    {
-                      max: DISPLAY_NAME_MAX_LENGTH,
-                      message: `Display name must be ${DISPLAY_NAME_MAX_LENGTH} characters or less`,
-                    },
-                    {
-                      validator: async (_, value?: string) => {
-                        if (!validateDisplayName(value)) {
-                          throw new Error('Use letters, numbers, hyphens, and optional dots')
-                        }
-                      },
-                    },
-                  ]}
-                >
-                  <Input placeholder="e.g. server-01.prod" />
-                </Form.Item>
+                {!isEditMode && (
+                  <Form.Item name="displayName" label="Display name" rules={displayNameRules}>
+                    <Input placeholder="e.g. server-01.prod" />
+                  </Form.Item>
+                )}
                 <Styled.SwitchRow>
                   <span>Allow access</span>
                   <Form.Item name="allowAccess" valuePropName="checked" noStyle>

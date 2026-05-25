@@ -129,4 +129,26 @@ describe('AddressGroupFormModal', () => {
     })
     expect(onClose).not.toHaveBeenCalled()
   })
+
+  it('shows the display name input from the title pencil only in edit mode', async () => {
+    renderModal(
+      <AddressGroupFormModal
+        addressGroup={{
+          metadata: { name: 'ag-a', namespace: 'tenant-a' },
+          spec: { displayName: 'Address Group A', defaultAction: 'Deny' },
+        }}
+        cluster="cluster-a"
+        namespace="tenant-a"
+        open
+        onClose={jest.fn()}
+      />,
+    )
+
+    expect(await screen.findByText('Address Group A')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('e.g. server-01.prod')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit display name' }))
+
+    expect(screen.getByPlaceholderText('e.g. server-01.prod')).toBeInTheDocument()
+  })
 })

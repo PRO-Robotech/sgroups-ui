@@ -14,6 +14,8 @@ Modal for creating and editing `AddressGroup` resources and their host, service,
 
 The modal body is a fixed-height, viewport-bounded two-column shell. The left form column scrolls internally through the AntD form, while the right Structure Overview keeps its title fixed and scrolls only the overview body.
 
+In edit mode, the resource title is rendered at the top of the AntD form. The canonical `AddressGroup` badge is static; the adjacent display-name text has a pencil action that toggles an inline `displayName` input. Keep this title field inside the `Form` tree so AntD validation, submit, and reset behavior continue to include it. Create mode keeps the normal body `Display name` field.
+
 On narrow screens, the overview sidebar is hidden and the form keeps the same internal scroll behavior.
 
 ## Form Model
@@ -21,7 +23,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 The form stores UI-friendly values:
 
 - `namespace` and `name` identify the AddressGroup. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
-- `displayName`, `allowAccess`, `description`, and `comment` map to editable `spec` fields.
+- `displayName`, `allowAccess`, `description`, and `comment` map to editable `spec` fields. In edit mode, `displayName` is edited from the title pencil instead of a body form row.
 - `hosts` and `networks` are selected by name from the AddressGroup namespace and synced through binding resources. Their visible select labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists.
 - `services` are selected as `namespace/name` values from all namespaces and synced through binding resources. Their visible select labels and search text use `spec.displayName` with namespace context, falling back to the service name only when no display name exists.
 
@@ -33,7 +35,7 @@ AntD form validation mirrors the local `v2`/`v3sgroups` schema and backend valid
 
 - `namespace`: required Kubernetes resource name, max 63 characters.
 - `name`: hidden required Kubernetes resource name, generated as a UUID in create mode, max 63 characters.
-- `displayName`: optional, max 63 characters. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `addressgroups-`.
+- `displayName`: optional, max 63 characters. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `addressgroups-` plus six random digits.
 - `defaultAction`: controlled by the Allow access switch and submitted as `Allow` or `Deny`.
 - `description` and `comment`: optional strings. The current schema does not define stricter client-side limits for these fields.
 
@@ -76,9 +78,11 @@ The sidebar renders a single AddressGroup contents tree from the selected Hosts,
 
 Create mode builds synthetic binding objects from the current form selection so the overview can reuse the same AddressGroup contents tree as edit mode and verbose panels. The hidden generated AddressGroup `name` is used as the stable pending internal name; otherwise the shared tree filters can drop selected resources because the synthetic binding target does not match the tree root.
 
-In edit mode, newly added selections are shown with a subtle green background and left accent. Removed selections disappear from the overview immediately because the sidebar reflects the current form selection, not the saved backend state.
+In edit mode, newly added selections are shown with a high-contrast green highlight, left accent, bold text, and an `Added` marker. Removed selections disappear from the overview immediately because the sidebar reflects the current form selection, not the saved backend state.
 
 Tree keys are parent-derived by the shared contents tree builder, including the namespace grouping layer. If this tree is later embedded under another overview node, pass that parent key as the builder prefix instead of relying on short repeated section keys.
+
+The AddressGroup root node and resolved Host, Network, and Service child nodes include a small detail-link icon next to their badges. Detail links use the resource namespace and immutable `metadata.name`; display names remain label-only.
 
 The overview tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` here unless the product explicitly needs initial expansion.
 

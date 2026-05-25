@@ -15,7 +15,13 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { buildNamespacedValue, renderBadgeWithValue, renderNamespacedResourceValue, runSequentialRequests } from 'utils'
+import {
+  buildNamespacedValue,
+  renderBadgeWithValue,
+  renderLinkedTreeResourceTitle,
+  renderNamespacedResourceValue,
+  runSequentialRequests,
+} from 'utils'
 import { Styled } from './styled'
 import { TAddressGroupFormValues, TCurrentBindings, TResourceOption, TSelectableResource } from './types'
 
@@ -130,9 +136,18 @@ export const buildCurrentBindings = (
   networks: (networkBindings || []).filter(binding => isSameAddressGroup(addressGroup, binding.spec?.addressGroup)),
 })
 
-const renderOverviewRootTitle = (displayName: string, count: number) => (
+const renderOverviewRootTitle = (
+  displayName: string,
+  count: number,
+  identifier?: { name?: string; namespace?: string },
+) => (
   <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-    {renderBadgeWithValue('AddressGroup', displayName)}
+    {renderLinkedTreeResourceTitle({
+      label: renderBadgeWithValue('AddressGroup', displayName),
+      name: identifier?.name,
+      namespace: identifier?.namespace,
+      plural: 'addressgroups',
+    })}
     <Styled.Count>{count}</Styled.Count>
   </span>
 )
@@ -217,7 +232,7 @@ export const buildOverviewTreeData = ({
 
   return [
     {
-      title: renderOverviewRootTitle(displayName, selectedItemsCount),
+      title: renderOverviewRootTitle(displayName, selectedItemsCount, addressGroupIdentifier),
       key: 'overview-address-group',
       children: buildAddressGroupContentsTree({
         addressGroupName,

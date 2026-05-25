@@ -14,6 +14,8 @@ Modal for creating and editing `Rule` resources. Unlike the resource membership 
 
 The modal body is a fixed-height, viewport-bounded two-column shell. The left form column scrolls internally through the AntD form, while the right Structure Overview keeps its title fixed and scrolls only the overview body.
 
+In edit mode, the resource title is rendered at the top of the AntD form. The canonical `UniRule` badge is static; the adjacent display-name text has a pencil action that toggles an inline `displayName` input. Keep this title field inside the `Form` tree so AntD validation, submit, and reset behavior continue to include it. Create mode keeps the normal body `Display name` field.
+
 On narrow screens, the overview sidebar is hidden and the form keeps the same internal scroll behavior.
 
 ## Form Model
@@ -21,7 +23,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Rule. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
-- `displayName`, `action`, `traffic`, `description`, and `comment` map to editable `spec` fields.
+- `displayName`, `action`, `traffic`, `description`, and `comment` map to editable `spec` fields. In edit mode, `displayName` is edited from the title pencil instead of a body form row.
 - `local` and `remote` endpoint blocks map to `spec.endpoints.local` and `spec.endpoints.remote`.
 - Transport panel values normalize back to `spec.transport` at submit time.
 
@@ -40,7 +42,7 @@ AddressGroup and Service endpoint option labels and search text use `spec.displa
 AntD form validation runs before the create or patch flow reads the full form store.
 
 - `namespace`, hidden generated `name`, and selected endpoint resource identifiers use Kubernetes DNS label validation with a 63 character limit.
-- `displayName` is optional and limited to 63 characters. It uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-`.
+- `displayName` is optional and limited to 63 characters. It uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-` plus six random digits.
 - `action`, `traffic`, endpoint types, IP family, and protocol are checked against local `v3` / `v3sgroups` enum values.
 - Local endpoints are limited to `AddressGroup` and `Service`.
 - Remote endpoints allow `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
@@ -49,6 +51,7 @@ AntD form validation runs before the create or patch flow reads the full form st
 - TCP/UDP port entries accept comma-separated ports and ranges, for example `80,443` or `1000-2000`.
 - ICMP type entries accept integer values from `0` through `255`.
 - Transport is optional when the whole Ports panel is empty. Once a protocol or transport entry is provided, the form requires the matching IP family/protocol/entry combination before submit.
+- The protocol and IP family field validators depend on nested `transportEntries` values. Keep `onValuesChange` revalidation for those selector fields when a transport row changes, otherwise AntD can leave the protocol-level `Add at least one transport entry` error visible after a valid port or ICMP type is entered.
 
 Validation source priority is the local `v3` / `v3sgroups` OpenAPI shape for current `sgroups.io/v1alpha1` resources, with `tmp/newApi` rule docs used only for legacy rule-variant transport semantics.
 
@@ -90,7 +93,7 @@ Patched fields include:
 
 The sidebar wraps local and remote endpoint trees under `overview-local` and `overview-remote`. AddressGroup endpoint contents inherit the verbose rule tree shape, including namespace grouping for Hosts, Networks, and Services.
 
-In edit mode, changed Local or Remote endpoint selections are shown with a subtle green background and left accent on both the Local/Remote overview wrapper and the changed endpoint root node. This highlight is based on normalized endpoint payload comparison, so unchanged fields do not mark the overview.
+In edit mode, changed Local or Remote endpoint selections are shown with a high-contrast green highlight, left accent, bold text, and a `Changed` marker on both the Local/Remote overview wrapper and the changed endpoint root node. This highlight is based on normalized endpoint payload comparison, so unchanged fields do not mark the overview.
 
 Endpoint tree keys are recursively prefixed with the wrapping overview key. This keeps repeated endpoint keys such as `service-endpoint`, `address-group-endpoint`, namespace groups, and their nested transport or binding children unique when Local and Remote render similar resources in the same AntD Tree.
 

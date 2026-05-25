@@ -145,6 +145,7 @@ The implementation validates with AntD before building the save payload.
 - selecting a protocol requires at least one transport entry
 - adding a transport entry requires both protocol and IP family
 - transport payload is omitted only when the whole transport section is empty
+- nested transport entry edits revalidate the protocol and IP family selector errors so a valid port or ICMP type immediately clears stale selector-level validation messages
 
 ## Structure overview
 

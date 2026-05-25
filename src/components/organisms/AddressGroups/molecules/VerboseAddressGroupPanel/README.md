@@ -43,6 +43,8 @@ Tree node keys are built from their parent key, including the namespace grouping
 
 The shared tree builder accepts highlighted Host, Network, and Service value lists. Modal overviews use this to mark pending edit additions with a subtle green background and left accent without changing the saved binding data.
 
+Resolved Host, Network, and Service resource nodes include a small detail-link icon next to the badge. The link uses the resolved resource namespace and immutable `metadata.name`, not the display label.
+
 The entities tree starts collapsed by default. Do not set `defaultExpandAll` or `defaultExpandedKeys` unless a specific detail view needs initial expansion.
 
 ## Lifecycle

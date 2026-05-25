@@ -11,7 +11,14 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { buildNamespacedValue, groupTreeDataByNamespace, renderBadgeWithValue } from 'utils'
+import {
+  buildNamespacedValue,
+  groupTreeDataByNamespace,
+  renderBadgeWithValue,
+  renderLinkedTreeResourceTitle,
+  renderTreeChangeHighlight,
+  TSgroupsResourcePlural,
+} from 'utils'
 
 type TContentsTreeArgs = {
   addressGroupName?: string
@@ -56,30 +63,32 @@ const renderMaybeNew = (title: React.ReactNode, isNew?: boolean) => {
     return title
   }
 
-  return (
-    <span
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        maxWidth: '100%',
-        padding: '2px 6px',
-        margin: '-2px -6px',
-        borderRadius: 6,
-        background: 'rgba(20, 120, 72, 0.1)',
-        boxShadow: 'inset 3px 0 0 rgba(20, 120, 72, 0.48)',
-      }}
-    >
-      {title}
-    </span>
-  )
+  return renderTreeChangeHighlight(title, 'Added')
 }
 
-const withNamespaceLabel = (kind: 'Host' | 'Network' | 'Service', name?: string) => {
+const getResourcePlural = (kind: 'Host' | 'Network' | 'Service'): TSgroupsResourcePlural => {
+  if (kind === 'Host') {
+    return 'hosts'
+  }
+
+  if (kind === 'Network') {
+    return 'networks'
+  }
+
+  return 'services'
+}
+
+const withResourceLabel = (kind: 'Host' | 'Network' | 'Service', name?: string, identifier?: TResourceIdentifier) => {
   if (!name) {
     return 'Unknown'
   }
 
-  return renderBadgeWithValue(kind, name)
+  return renderLinkedTreeResourceTitle({
+    label: renderBadgeWithValue(kind, name),
+    name: identifier?.name,
+    namespace: identifier?.namespace,
+    plural: getResourcePlural(kind),
+  })
 }
 
 const getDisplayLabel = (
@@ -88,14 +97,14 @@ const getDisplayLabel = (
   identifier?: TResourceIdentifier,
 ) => {
   if (resource?.spec?.displayName) {
-    return withNamespaceLabel(kind, resource.spec.displayName)
+    return withResourceLabel(kind, resource.spec.displayName, resource.metadata)
   }
 
   if (resource?.metadata?.name) {
-    return withNamespaceLabel(kind, resource.metadata.name)
+    return withResourceLabel(kind, resource.metadata.name, resource.metadata)
   }
 
-  return withNamespaceLabel(kind, identifier?.name)
+  return withResourceLabel(kind, identifier?.name, identifier)
 }
 
 const createLeaf = (title: React.ReactNode, key: string): TreeDataNode => ({

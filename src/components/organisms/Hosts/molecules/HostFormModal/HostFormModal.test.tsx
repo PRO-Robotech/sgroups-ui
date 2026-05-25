@@ -138,4 +138,35 @@ describe('HostFormModal', () => {
       )
     })
   })
+
+  it('shows the display name input from the title pencil only in edit mode', async () => {
+    renderModal(
+      <HostFormModal
+        host={{
+          created: '',
+          description: '',
+          displayName: 'Host A',
+          hostName: 'host-a',
+          ipv4: [],
+          ipv6: [],
+          key: 'tenant-a/host-a',
+          metadata: { name: 'host-a', namespace: 'tenant-a' },
+          os: '',
+          platform: '',
+          spec: { displayName: 'Host A' },
+        }}
+        cluster="cluster-a"
+        namespace="tenant-a"
+        open
+        onClose={jest.fn()}
+      />,
+    )
+
+    expect(await screen.findByText('Host A')).toBeInTheDocument()
+    expect(screen.queryByPlaceholderText('e.g. server-01.prod')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Edit display name' }))
+
+    expect(screen.getByPlaceholderText('e.g. server-01.prod')).toBeInTheDocument()
+  })
 })

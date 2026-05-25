@@ -167,6 +167,34 @@ describe('buildAddressGroupContentsTree', () => {
     expect(screen.getByText(/service note/)).toBeInTheDocument()
   })
 
+  it('renders highlighted resources with an Added marker', () => {
+    const tree = buildAddressGroupContentsTree({
+      addressGroupName: 'ag-a',
+      addressGroupNamespace: 'tenant-a',
+      hostBindings: [
+        {
+          metadata: { name: 'host-binding-a', namespace: 'tenant-a' },
+          spec: {
+            addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+            host: { name: 'host-a', namespace: 'tenant-a' },
+          },
+        },
+      ] as any,
+      hosts: [
+        {
+          metadata: { name: 'host-a', namespace: 'tenant-a' },
+          spec: { displayName: 'Host A' },
+        },
+      ] as any,
+      highlightedHosts: ['tenant-a/host-a'],
+    })
+
+    render(tree[0].children?.[0].children?.[0].title as React.ReactElement)
+
+    expect(screen.getByText('Added')).toBeInTheDocument()
+    expect(screen.getByText('Host A')).toBeInTheDocument()
+  })
+
   it('marks missing resources as not found and uses error leaves when resource fetch failed', () => {
     const tree = buildAddressGroupContentsTree({
       addressGroupName: 'ag-a',

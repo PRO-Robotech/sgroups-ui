@@ -22,7 +22,10 @@ const expandTreeNodes = (container: HTMLElement) => {
 }
 
 describe('VerboseServicePanel', () => {
+  const originalPathname = window.location.pathname
+
   beforeEach(() => {
+    window.history.pushState({}, '', '/openapi-ui/cluster-a/plugins/plugin-sgroups/services/tenant-a/svc-a')
     jest.clearAllMocks()
     mockUseK8sSmartResource.mockImplementation((params: { plural?: string }) => ({
       data: {
@@ -50,6 +53,10 @@ describe('VerboseServicePanel', () => {
       error: undefined,
       isLoading: false,
     }))
+  })
+
+  afterAll(() => {
+    window.history.pushState({}, '', originalPathname)
   })
 
   it('renders service details, transport summaries, and refs', () => {
@@ -108,6 +115,10 @@ describe('VerboseServicePanel', () => {
     expandTreeNodes(container)
 
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Open tenant-a/ag-a details' })).toHaveAttribute(
+      'href',
+      '/openapi-ui/cluster-a/plugins/plugin-sgroups/addressgroups/tenant-a/ag-a',
+    )
     expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
       expect.objectContaining({ plural: 'servicebindings', namespace: 'tenant-a' }),
     )

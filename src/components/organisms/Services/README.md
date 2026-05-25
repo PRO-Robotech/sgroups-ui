@@ -41,6 +41,8 @@ The modal Structure Overview is derived from selected AddressGroups and the curr
 
 Modal and verbose-panel trees start collapsed by default. Avoid `defaultExpandAll` and `defaultExpandedKeys` unless a specific flow needs initial expansion.
 
+AddressGroup nodes in the overview and verbose-panel trees include a small detail-link icon next to the badge. The link target uses the AddressGroup namespace and immutable `metadata.name`; `spec.displayName` is only the visible label.
+
 ## Table display
 
 The Services table keeps transport display aligned with verbose panels:
