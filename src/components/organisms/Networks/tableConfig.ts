@@ -84,7 +84,7 @@ export const buildNetworksColumns = ({
         }),
     },
     {
-      title: 'Namespace',
+      title: 'Tenant',
       dataIndex: ['metadata', 'namespace'],
       key: 'namespace',
       width: 180,

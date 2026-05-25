@@ -280,7 +280,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGrid>
-            <Typography.Text type="secondary">Namespace</Typography.Text>
+            <Typography.Text type="secondary">Tenant</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(network.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">CIDR</Typography.Text>

@@ -124,7 +124,7 @@ describe('Hosts', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /delete host a/i }))
 
-    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteNtenant-a/HHost A')
+    expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/HHost A')
   })
 
   it('shows a loading error', () => {

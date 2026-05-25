@@ -278,7 +278,7 @@ export const buildNamespacedResourceDetailsFactory = ({
                                                     data: {
                                                       id: 'meta-namespace-label',
                                                       strong: true,
-                                                      text: 'Namespace',
+                                                      text: 'Tenant',
                                                     },
                                                   },
                                                   {
@@ -292,7 +292,7 @@ export const buildNamespacedResourceDetailsFactory = ({
                                                     children: [
                                                       {
                                                         type: 'ResourceBadge',
-                                                        data: { id: 'namespace-resource-badge', value: 'Namespace' },
+                                                        data: { id: 'namespace-resource-badge', value: 'Tenant' },
                                                       },
                                                       {
                                                         type: 'antdLink',

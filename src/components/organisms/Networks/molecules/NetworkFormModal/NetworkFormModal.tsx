@@ -444,17 +444,17 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                 </Styled.Header>
                 <Form.Item
                   name="namespace"
-                  label="Namespace"
+                  label="Tenant"
                   hidden={isEditMode}
                   rules={[
-                    { required: true, message: 'Select namespace' },
-                    { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                    { max: 63, message: 'Namespace must be 63 characters or less' },
+                    { required: true, message: 'Select tenant' },
+                    { pattern: NAME_PATTERN, message: 'Use a valid tenant name' },
+                    { max: 63, message: 'Tenant must be 63 characters or less' },
                   ]}
                 >
                   <Select
                     showSearch
-                    placeholder="Select namespace"
+                    placeholder="Select tenant"
                     options={namespaceOptions}
                     loading={isTenantsLoading}
                     disabled={isEditMode}
@@ -493,7 +493,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                   <Select
                     mode="multiple"
                     showSearch
-                    placeholder={selectedAddressGroupNamespace ? 'Select address groups' : 'Select namespace first'}
+                    placeholder={selectedAddressGroupNamespace ? 'Select address groups' : 'Select tenant first'}
                     optionFilterProp="searchText"
                     options={addressGroupOptions}
                     loading={isAddressGroupsLoading}

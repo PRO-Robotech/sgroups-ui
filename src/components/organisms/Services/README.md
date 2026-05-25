@@ -6,10 +6,10 @@ The bottom `Add Service` button opens `ServiceFormModal`.
 
 The modal follows the Figma layout structure, but the payload and editable fields follow the local `v2` `sgroups.io/v1alpha1` schema:
 
-- `Namespace`: required. Service namespace. Kubernetes DNS label format, max 63 chars.
+- `Tenant`: required. Service namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `services-`.
-- `Address group`: optional multi-select Cascader. The first level is namespace and the second level is AddressGroup. AddressGroups can be selected from any namespace; each namespace branch is loaded only when needed. Selected tags include a canonical `Namespace` badge and `AddressGroup` badge. Values are stored as `namespace/name`.
+- `Address group`: optional multi-select Cascader. The first level is namespace and the second level is AddressGroup. AddressGroups can be selected from any namespace; each namespace branch is loaded only when needed. Selected tags include a canonical `Tenant` badge and `AddressGroup` badge. Values are stored as `namespace/name`.
 - Namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal applies the Cascader branch namespace before building options so selected tags render badge labels instead of raw `namespace/name` values.
 - `Description`: optional.
 - `Comment`: optional.
@@ -50,7 +50,7 @@ The Services table keeps transport display aligned with verbose panels:
 - `Display Name` is the first pinned column and renders a canonical `Service` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the Service detail page at `services/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Namespace` renders a canonical `Namespace` badge.
+- `Tenant` renders a canonical `Tenant` badge.
 - `Protocols` and `IP Families` values render as AntD tags.
 - Transport entries render one tag per entry in the `Entries` column.
 - Entry descriptions and comments are shown in tooltips instead of inline tag text.
@@ -82,7 +82,7 @@ Edit opens the same `ServiceFormModal` for a selected Service by passing it as t
 
 In edit mode:
 
-- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
+- `Tenant` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - The modal does not use PUT.
 - Edit save patches only changed fields and patches `spec.transports`.
@@ -99,7 +99,7 @@ In edit mode:
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Service` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `Service` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 

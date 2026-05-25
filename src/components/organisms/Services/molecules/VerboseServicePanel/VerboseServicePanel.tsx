@@ -361,7 +361,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGrid>
-            <Typography.Text type="secondary">Namespace</Typography.Text>
+            <Typography.Text type="secondary">Tenant</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(service.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">Description</Typography.Text>

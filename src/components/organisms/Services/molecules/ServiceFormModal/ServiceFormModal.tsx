@@ -497,17 +497,17 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                 <div style={{ display: activeTab === 'info' ? 'block' : 'none' }}>
                   <Form.Item
                     name="namespace"
-                    label="Namespace"
+                    label="Tenant"
                     hidden={isEditMode}
                     rules={[
-                      { required: true, message: 'Select namespace' },
-                      { pattern: NAME_PATTERN, message: 'Use a valid Kubernetes namespace name' },
-                      { max: 63, message: 'Namespace must be 63 characters or less' },
+                      { required: true, message: 'Select tenant' },
+                      { pattern: NAME_PATTERN, message: 'Use a valid tenant name' },
+                      { max: 63, message: 'Tenant must be 63 characters or less' },
                     ]}
                   >
                     <Select
                       showSearch
-                      placeholder="Select namespace"
+                      placeholder="Select tenant"
                       options={namespaceOptions}
                       loading={isTenantsLoading}
                       disabled={isEditMode}

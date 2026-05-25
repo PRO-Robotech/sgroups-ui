@@ -33,7 +33,7 @@ Edit prefill normalizes backend traffic values before calling `setFieldsValue` s
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 
-For `AddressGroup` and `Service` endpoints, Local and Remote render one Cascader selector instead of separate visible Namespace and Name selects. The first Cascader level is namespace and the second level is the selected resource. The form still stores `namespace` and `name` separately under the endpoint block so submit, validation, and patch comparison keep the backend reference shape.
+For `AddressGroup` and `Service` endpoints, Local and Remote render one Cascader selector instead of separate visible Tenant and Name selects. The first Cascader level is namespace and the second level is the selected resource. The form still stores `namespace` and `name` separately under the endpoint block so submit, validation, and patch comparison keep the backend reference shape.
 
 For `AddressGroup` endpoints, the modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in the Local and Remote namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Services use the shared service option list. Both resource types are grouped by namespace in the Cascader.
 

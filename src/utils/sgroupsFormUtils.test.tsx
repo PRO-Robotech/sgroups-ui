@@ -110,7 +110,7 @@ describe('sgroupsFormUtils', () => {
 
     expect(namespaceOptions.map(option => option.value)).toEqual(['alpha', 'zeta'])
     render(<div>{namespaceOptions[0].label}</div>)
-    expect(screen.getByText('N')).toBeInTheDocument()
+    expect(screen.getByText('T')).toBeInTheDocument()
     expect(screen.getByText('alpha')).toBeInTheDocument()
 
     const options = getNamespacedResourceOptions(

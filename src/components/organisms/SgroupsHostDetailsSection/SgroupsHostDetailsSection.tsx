@@ -504,9 +504,9 @@ export const SgroupsHostDetailsSection: FC<TSgroupsHostDetailsSectionProps> = ({
                 <Typography.Text>{formatDateTime(host.metadata.creationTimestamp)}</Typography.Text>
               </Flex>
               <Flex gap={4} style={{ flex: '1 1 180px', minWidth: 0 }} vertical>
-                <Typography.Text type="secondary">Namespace</Typography.Text>
+                <Typography.Text type="secondary">Tenant</Typography.Text>
                 <Flex align="center" gap={8} style={{ minWidth: 0 }}>
-                  {renderBadge('Namespace')}
+                  {renderBadge('Tenant')}
                   <Typography.Link href={namespaceHref} style={{ minWidth: 0 }} ellipsis>
                     {data.namespace}
                   </Typography.Link>

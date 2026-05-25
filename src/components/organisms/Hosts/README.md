@@ -6,7 +6,7 @@ The bottom `Add Host` button opens `HostFormModal`.
 
 The modal is based on the Figma form layout and uses Ant Design form controls:
 
-- `Namespace`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
+- `Tenant`: required. Host namespace. Kubernetes DNS label format, max 63 chars.
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `hosts-`.
 - `Address group`: optional multi-select. Disabled until the Host namespace is known. Options are fetched only from the Host namespace. Visible labels and search text use `spec.displayName` without repeating the namespace, falling back to the AddressGroup name only when no display name exists. Values are stored as `namespace/name`.
@@ -49,7 +49,7 @@ AddressGroup nodes in the overview and verbose-panel trees include a small detai
 - `Display Name` is the first pinned column and renders a canonical `Host` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the Host detail page at `hosts/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Namespace` renders a canonical `Namespace` badge.
+- `Tenant` renders a canonical `Tenant` badge.
 
 ## Detail page
 
@@ -80,7 +80,7 @@ Edit opens the same `HostFormModal` for a selected Host by passing it as the opt
 
 In edit mode:
 
-- `Namespace` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
+- `Tenant` and `Name` are hidden immutable identifiers because they identify the resource endpoint.
 - `Display name`, `Description`, and `Comment` are editable and saved with toolkit patch helpers.
 - The edit modal header prefers `spec.displayName` and falls back to `metadata.name`.
 - Edit save patches only changed fields. Optional string fields are deleted with `patchEntryWithDeleteOp` when cleared, and changed values are saved with `patchEntryWithReplaceOp`.
@@ -96,7 +96,7 @@ In edit mode:
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Namespace` badge with the row namespace, then a canonical `Host` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `Host` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 

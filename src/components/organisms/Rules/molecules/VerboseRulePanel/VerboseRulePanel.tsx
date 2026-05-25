@@ -389,7 +389,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
         </TitleAndControlsRow>
         <OverflowContainer>
           <SpecGrid>
-            <Typography.Text type="secondary">Namespace</Typography.Text>
+            <Typography.Text type="secondary">Tenant</Typography.Text>
             <div>{renderNamespaceBadgeWithValue(rule.metadata.namespace)}</div>
 
             <Typography.Text type="secondary">Action</Typography.Text>

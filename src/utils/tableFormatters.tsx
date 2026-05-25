@@ -129,7 +129,7 @@ export const formatTrafficValue = (value?: string): string => {
   return normalizedValue || value || EMPTY_VALUE
 }
 
-export const renderBadge = (value: string) =>
+export const renderBadge = (value: string, displayValue = value) =>
   React.createElement(
     'span',
     {
@@ -150,10 +150,10 @@ export const renderBadge = (value: string) =>
         flexShrink: 0,
       },
     },
-    getBadgeText(value),
+    getBadgeText(displayValue),
   )
 
-export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode) =>
+export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode, displayBadgeValue = badgeValue) =>
   React.createElement(
     'span',
     {
@@ -164,7 +164,7 @@ export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode) =>
         minWidth: 0,
       },
     },
-    renderBadge(badgeValue),
+    renderBadge(badgeValue, displayBadgeValue),
     React.createElement(
       'span',
       { style: { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' } },
@@ -172,7 +172,7 @@ export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode) =>
     ),
   )
 
-export const renderNamespaceBadgeWithValue = (value?: string) => renderBadgeWithValue('Namespace', value)
+export const renderNamespaceBadgeWithValue = (value?: string) => renderBadgeWithValue('Tenant', value)
 
 export const renderNamespacedResourceValue = (badgeValue: string, namespace?: string, value?: ReactNode) => {
   if (!namespace) {
