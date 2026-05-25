@@ -109,6 +109,8 @@ Transport entries support `TCP`, `UDP`, and `ICMP`.
 
 ## Lifecycle
 
+Set `maskClosable={false}` on the AntD `Modal`. Backdrop clicks must not close the modal; use the Cancel button or close icon for explicit close actions.
+
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
 Edit prefill should run once per open cycle after resources needed for the form are ready. AddressGroup Cascader branches are loaded lazily by namespace; prefilled selections may add their namespaces to the Cascader tree before those branches are opened. Keep segmented panel state independent from shared overview data so hidden panel fields do not break submit or overview rendering.

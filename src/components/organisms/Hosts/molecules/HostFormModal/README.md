@@ -93,6 +93,8 @@ The overview tree starts collapsed by default. Do not set `defaultExpandAll` or 
 
 ## Lifecycle
 
+Set `maskClosable={false}` on the AntD `Modal`. Backdrop clicks must not close the modal; use the Cancel button or close icon for explicit close actions.
+
 The parent conditionally renders the modal only while it is open and increments a modal instance `key` before each create/edit open. This forces a real React unmount/remount for modal-local hooks and state. The AntD modal still uses `destroyOnHidden` for its internal subtree, but lifecycle correctness must not rely on that alone.
 
 Edit prefill should run once per open cycle after resources needed for the form are ready. That includes AddressGroup options for the selected AddressGroup namespace, otherwise AntD can render prefilled selections as raw `namespace/name` values instead of the same badge labels used after create-mode selection.

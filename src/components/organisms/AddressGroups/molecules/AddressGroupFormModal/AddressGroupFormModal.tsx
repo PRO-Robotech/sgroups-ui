@@ -441,6 +441,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
     <Modal
       title={null}
       open={open}
+      maskClosable={false}
       onCancel={handleCancel}
       afterClose={() => {
         didApplyEditPrefillRef.current = false

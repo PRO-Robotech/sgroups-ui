@@ -118,6 +118,7 @@ The implementation follows the local `v2` OpenAPI dump for `sgroups.io/v1alpha1`
 
 ## Modal lifecycle
 
+- AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
 - That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
 - Edit prefill waits for existing `HostBinding` resources and AddressGroup options before setting selected AddressGroups, so edit tags render with the same badge labels as create selections. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.

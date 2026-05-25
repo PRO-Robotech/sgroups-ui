@@ -201,6 +201,7 @@ const MetadataLabelsModal: FC<{
     <Modal
       title="Edit Labels"
       open={open}
+      maskClosable={false}
       onCancel={onClose}
       onOk={handleSubmit}
       confirmLoading={isSubmitting}
@@ -276,6 +277,7 @@ const MetadataAnnotationsModal: FC<{
     <Modal
       title="Edit Annotations"
       open={open}
+      maskClosable={false}
       onCancel={onClose}
       onOk={handleSubmit}
       confirmLoading={isSubmitting}
@@ -389,6 +391,7 @@ const HostAddressGroupsModal: FC<{
     <Modal
       title="Edit Address Groups"
       open={open}
+      maskClosable={false}
       onCancel={onClose}
       onOk={handleSubmit}
       confirmLoading={isSubmitting}

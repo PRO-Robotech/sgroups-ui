@@ -42,6 +42,7 @@ export const SgroupsDeleteModal: FC<TSgroupsDeleteModalProps> = ({ endpoint, tit
         </span>
       }
       open
+      maskClosable={false}
       onOk={handleDelete}
       onCancel={() => {
         onClose()

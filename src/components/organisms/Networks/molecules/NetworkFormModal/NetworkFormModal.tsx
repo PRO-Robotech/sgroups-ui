@@ -405,6 +405,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
     <Modal
       title={null}
       open={open}
+      maskClosable={false}
       onCancel={handleCancel}
       onOk={handleSubmit}
       afterClose={() => {

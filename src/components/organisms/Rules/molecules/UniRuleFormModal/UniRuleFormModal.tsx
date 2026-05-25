@@ -537,6 +537,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     <Modal
       title={null}
       open={open}
+      maskClosable={false}
       onCancel={handleCancel}
       onOk={handleSubmit}
       afterClose={() => {
