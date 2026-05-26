@@ -3,35 +3,32 @@ import { CopyOutlined, EditFilled, MinusOutlined, PlusOutlined } from '@ant-desi
 import { Alert, Button, Card, Empty, Flex, Form, Input, Modal, Select, Spin, Tooltip, Typography, message } from 'antd'
 import { patchEntryWithReplaceOp, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { useQueryClient } from '@tanstack/react-query'
-import { TAddressGroupResource, TServiceBindingResource, TServiceResource } from 'localTypes'
-import { syncAddressGroupBindings } from 'components/organisms/Services/molecules/ServiceFormModal/utils'
-import { OPENAPI_UI_BASEPREFIX } from 'utils/runtimeConfig'
 import {
-  buildNamespacedValue,
-  getAddressGroupOptions,
-  getApiEndpoint,
-  renderBadge,
-  renderBadgeWithValue,
-  renderTimestampWithIcon,
-} from 'utils'
+  TAddressGroupResource,
+  THostBindingResource,
+  TNetworkBindingResource,
+  TServiceBindingResource,
+} from 'localTypes'
+import { OPENAPI_UI_BASEPREFIX } from 'utils/runtimeConfig'
+import { getApiEndpoint, renderBadge, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
+import { AddressGroupFormModal } from 'components/organisms/AddressGroups/molecules'
 
-export type TSgroupsServiceDetailsSectionData = {
+export type TSgroupsAddressGroupDetailsSectionData = {
   clusterId: string
   namespace: string
   name: string
 }
 
-type TSgroupsServiceDetailsSectionProps = {
-  data: TSgroupsServiceDetailsSectionData
+type TSgroupsAddressGroupDetailsSectionProps = {
+  data: TSgroupsAddressGroupDetailsSectionData
 }
 
-type TServiceDetailsResource = TServiceResource & {
-  metadata: TServiceResource['metadata'] & {
+type TAddressGroupDetailsResource = TAddressGroupResource & {
+  metadata: TAddressGroupResource['metadata'] & {
     ownerReferences?: Array<{
       kind?: string
       name?: string
     }>
-    uid?: string
   }
 }
 
@@ -55,16 +52,23 @@ const ellipsisValueStyle: React.CSSProperties = {
 }
 
 const sectionTitleStyle: React.CSSProperties = {
+  display: 'block',
   fontSize: 16,
   fontWeight: 700,
   lineHeight: '24px',
-  marginBottom: 16,
+  marginBottom: 12,
+}
+
+const cardStyles = {
+  body: { padding: 16 },
 }
 
 const renderValue = (value?: string) => value || EMPTY_VALUE
 
 const copyToClipboard = async (value?: string) => {
-  if (!value) return
+  if (!value) {
+    return
+  }
 
   try {
     await navigator.clipboard.writeText(value)
@@ -74,11 +78,11 @@ const copyToClipboard = async (value?: string) => {
   }
 }
 
-const DetailField: FC<{ label: string; children: ReactNode; align?: 'center' | 'flex-start' }> = ({
-  label,
-  children,
-  align = 'center',
-}) => (
+const DetailField: FC<{
+  label: string
+  children: ReactNode
+  align?: 'center' | 'flex-start'
+}> = ({ label, children, align = 'center' }) => (
   <Flex align={align} gap={8} style={{ width: '100%' }}>
     <Typography.Text style={fieldLabelStyle} type="secondary">
       {label}
@@ -115,27 +119,10 @@ const CountChip: FC<{ text: string; editable?: boolean; onClick?: () => void }> 
   </Button>
 )
 
-const SmallCountChip: FC<{ text: string }> = ({ text }) => (
-  <span
-    style={{
-      alignItems: 'center',
-      background: 'rgba(0, 0, 0, 0.04)',
-      borderRadius: 4,
-      display: 'inline-flex',
-      lineHeight: '22px',
-      minHeight: 24,
-      padding: '0 8px',
-    }}
-  >
-    {text}
-  </span>
-)
-
-const isBindingForService = (binding: TServiceBindingResource, serviceName: string, serviceNamespace: string) =>
-  binding.spec?.service?.name === serviceName && binding.spec?.service?.namespace === serviceNamespace
-
-const renderOwnerRefs = (ownerReferences?: TServiceDetailsResource['metadata']['ownerReferences']) => {
-  if (!ownerReferences?.length) return <Typography.Text type="secondary">-</Typography.Text>
+const renderOwnerRefs = (ownerReferences?: TAddressGroupDetailsResource['metadata']['ownerReferences']) => {
+  if (!ownerReferences?.length) {
+    return <Typography.Text type="secondary">-</Typography.Text>
+  }
 
   const [firstOwnerRef, ...restOwnerRefs] = ownerReferences
 
@@ -146,6 +133,35 @@ const renderOwnerRefs = (ownerReferences?: TServiceDetailsResource['metadata']['
     </Flex>
   )
 }
+
+const isHostBindingForAddressGroup = (
+  binding: THostBindingResource,
+  addressGroupName: string,
+  addressGroupNamespace: string,
+) => {
+  const addressGroupRef = binding.spec?.addressGroup
+  const bindingAddressGroupNamespace = addressGroupRef?.namespace || binding.metadata.namespace
+
+  return addressGroupRef?.name === addressGroupName && bindingAddressGroupNamespace === addressGroupNamespace
+}
+
+const isNetworkBindingForAddressGroup = (
+  binding: TNetworkBindingResource,
+  addressGroupName: string,
+  addressGroupNamespace: string,
+) => {
+  const addressGroupRef = binding.spec?.addressGroup
+  const bindingAddressGroupNamespace = addressGroupRef?.namespace || binding.metadata.namespace
+
+  return addressGroupRef?.name === addressGroupName && bindingAddressGroupNamespace === addressGroupNamespace
+}
+
+const isServiceBindingForAddressGroup = (
+  binding: TServiceBindingResource,
+  addressGroupName: string,
+  addressGroupNamespace: string,
+) =>
+  binding.spec?.addressGroup?.name === addressGroupName && binding.spec.addressGroup.namespace === addressGroupNamespace
 
 const MetadataLabelsModal: FC<{
   endpoint: string
@@ -179,7 +195,9 @@ const MetadataLabelsModal: FC<{
       onSuccess()
       onClose()
     } catch (error) {
-      if (error && typeof error === 'object' && 'errorFields' in error) return
+      if (error && typeof error === 'object' && 'errorFields' in error) {
+        return
+      }
 
       message.error(`Failed to update labels: ${String(error)}`)
     } finally {
@@ -253,7 +271,9 @@ const MetadataAnnotationsModal: FC<{
       onSuccess()
       onClose()
     } catch (error) {
-      if (error && typeof error === 'object' && 'errorFields' in error) return
+      if (error && typeof error === 'object' && 'errorFields' in error) {
+        return
+      }
 
       message.error(`Failed to update annotations: ${String(error)}`)
     } finally {
@@ -304,134 +324,45 @@ const MetadataAnnotationsModal: FC<{
   )
 }
 
-const ServiceAddressGroupsModal: FC<{
-  clusterId: string
-  service: TServiceDetailsResource
-  currentBindings: TServiceBindingResource[]
-  addressGroups?: TAddressGroupResource[]
-  isLoading?: boolean
-  open: boolean
-  onClose: () => void
-}> = ({ clusterId, service, currentBindings, addressGroups, isLoading, open, onClose }) => {
+export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSectionProps> = ({ data }) => {
   const queryClient = useQueryClient()
-  const [selectedAddressGroups, setSelectedAddressGroups] = useState<string[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const serviceName = service.metadata.name || ''
-  const serviceNamespace = service.metadata.namespace || ''
-  const addressGroupOptions = useMemo(
-    () => getAddressGroupOptions(addressGroups, { showNamespace: true }),
-    [addressGroups],
-  )
-  const initialAddressGroups = useMemo(
-    () =>
-      currentBindings
-        .map(binding => buildNamespacedValue(binding.spec?.addressGroup))
-        .filter((value): value is string => Boolean(value)),
-    [currentBindings],
-  )
-
-  useEffect(() => {
-    if (open) setSelectedAddressGroups(initialAddressGroups)
-  }, [initialAddressGroups, open])
-
-  const handleSubmit = async () => {
-    if (!serviceName || !serviceNamespace) {
-      message.error('Service identifiers are missing.')
-      return
-    }
-
-    setIsSubmitting(true)
-    try {
-      const changedCount = await syncAddressGroupBindings(
-        clusterId,
-        { name: serviceName, namespace: serviceNamespace },
-        {
-          namespace: serviceNamespace,
-          name: serviceName,
-          addressGroups: selectedAddressGroups,
-          description: service.spec?.description,
-          comment: service.spec?.comment,
-          transportEntries: [],
-        },
-        currentBindings,
-      )
-
-      if (changedCount === 0) {
-        message.info('No changes to save')
-      } else {
-        await queryClient.invalidateQueries({ queryKey: ['k8s-list'] })
-        await queryClient.invalidateQueries({ queryKey: ['multi'] })
-        message.success('Address groups updated')
-      }
-
-      onClose()
-    } catch (error) {
-      message.error(`Failed to update address groups: ${String(error)}`)
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  return (
-    <Modal
-      title="Edit Address Groups"
-      open={open}
-      maskClosable={false}
-      onCancel={onClose}
-      onOk={handleSubmit}
-      confirmLoading={isSubmitting}
-      okText="Save"
-      width={640}
-      destroyOnHidden
-    >
-      <Select
-        mode="multiple"
-        showSearch
-        optionFilterProp="searchText"
-        options={addressGroupOptions}
-        loading={isLoading}
-        value={selectedAddressGroups}
-        placeholder="Select address groups"
-        style={{ width: '100%' }}
-        onChange={setSelectedAddressGroups}
-      />
-    </Modal>
-  )
-}
-
-const uniqueValues = (values: Array<string | undefined>) => [...new Set(values.filter(Boolean) as string[])]
-
-const formatTransportDetails = (service: TServiceDetailsResource) => {
-  const transports = service.spec?.transports || []
-  const entries = transports.flatMap(transport =>
-    (transport.entries || []).map(entry => {
-      const parts = [transport.IPv, transport.protocol, entry.ports && `ports ${entry.ports}`].filter(Boolean)
-
-      if (entry.types?.length) parts.push(`types ${entry.types.join(', ')}`)
-
-      return parts.join(' / ') || EMPTY_VALUE
-    }),
-  )
-
-  return entries.length > 0 ? entries.join('; ') : EMPTY_VALUE
-}
-
-export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps> = ({ data }) => {
-  const queryClient = useQueryClient()
-  const [activeModal, setActiveModal] = useState<'addressGroups' | 'labels' | 'annotations' | null>(null)
+  const [activeModal, setActiveModal] = useState<'assignments' | 'labels' | 'annotations' | null>(null)
   const {
-    data: serviceData,
-    isLoading: isServiceLoading,
-    error: serviceError,
-  } = useK8sSmartResource<{ items?: TServiceDetailsResource[] }>({
+    data: addressGroupData,
+    isLoading: isAddressGroupLoading,
+    error: addressGroupError,
+  } = useK8sSmartResource<{ items?: TAddressGroupDetailsResource[] }>({
     apiGroup: 'sgroups.io',
     apiVersion: 'v1alpha1',
     cluster: data.clusterId,
     fieldSelector: `metadata.name=${data.name}`,
     isEnabled: Boolean(data.clusterId && data.namespace && data.name),
     namespace: data.namespace,
-    plural: 'services',
+    plural: 'addressgroups',
+  })
+  const {
+    data: hostBindingsData,
+    isLoading: isHostBindingsLoading,
+    error: hostBindingsError,
+  } = useK8sSmartResource<{ items?: THostBindingResource[] }>({
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    cluster: data.clusterId,
+    isEnabled: Boolean(data.clusterId && data.namespace),
+    namespace: data.namespace,
+    plural: 'hostbindings',
+  })
+  const {
+    data: networkBindingsData,
+    isLoading: isNetworkBindingsLoading,
+    error: networkBindingsError,
+  } = useK8sSmartResource<{ items?: TNetworkBindingResource[] }>({
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    cluster: data.clusterId,
+    isEnabled: Boolean(data.clusterId && data.namespace),
+    namespace: data.namespace,
+    plural: 'networkbindings',
   })
   const {
     data: serviceBindingsData,
@@ -445,35 +376,38 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
     namespace: undefined,
     plural: 'servicebindings',
   })
-  const {
-    data: addressGroupsData,
-    isLoading: isAddressGroupsLoading,
-    error: addressGroupsError,
-  } = useK8sSmartResource<{ items?: TAddressGroupResource[] }>({
-    apiGroup: 'sgroups.io',
-    apiVersion: 'v1alpha1',
-    cluster: data.clusterId,
-    isEnabled: Boolean(data.clusterId),
-    namespace: undefined,
-    plural: 'addressgroups',
-  })
 
-  const service = serviceData?.items?.[0]
-  const transports = service?.spec?.transports || []
-  const protocols = uniqueValues(transports.map(transport => transport.protocol))
-  const ipFamilies = uniqueValues(transports.map(transport => transport.IPv))
-  const entriesCount = transports.reduce((sum, transport) => sum + (transport.entries?.length || 0), 0)
-  const labelsCount = Object.keys(service?.metadata.labels || {}).length
-  const annotationsCount = Object.keys(service?.metadata.annotations || {}).length
-  const currentBindings = useMemo(
-    () => (serviceBindingsData?.items || []).filter(binding => isBindingForService(binding, data.name, data.namespace)),
+  const addressGroup = addressGroupData?.items?.[0]
+  const hostBindings = useMemo(
+    () =>
+      (hostBindingsData?.items || []).filter(binding =>
+        isHostBindingForAddressGroup(binding, data.name, data.namespace),
+      ),
+    [data.name, data.namespace, hostBindingsData?.items],
+  )
+  const networkBindings = useMemo(
+    () =>
+      (networkBindingsData?.items || []).filter(binding =>
+        isNetworkBindingForAddressGroup(binding, data.name, data.namespace),
+      ),
+    [data.name, data.namespace, networkBindingsData?.items],
+  )
+  const serviceBindings = useMemo(
+    () =>
+      (serviceBindingsData?.items || []).filter(binding =>
+        isServiceBindingForAddressGroup(binding, data.name, data.namespace),
+      ),
     [data.name, data.namespace, serviceBindingsData?.items],
   )
-  const addressGroupsCount = currentBindings.length
+  const labelsCount = Object.keys(addressGroup?.metadata.labels || {}).length
+  const annotationsCount = Object.keys(addressGroup?.metadata.annotations || {}).length
+  const assignmentsCount = hostBindings.length + networkBindings.length + serviceBindings.length
   const namespaceHref = `${OPENAPI_UI_BASEPREFIX}/${data.clusterId}/factory/namespace-details/v1/namespaces/${data.namespace}`
   const endpoint =
-    service?.metadata.name && service.metadata.namespace
-      ? `${getApiEndpoint(data.clusterId, service.metadata.namespace, 'services')}/${service.metadata.name}`
+    addressGroup?.metadata.name && addressGroup.metadata.namespace
+      ? `${getApiEndpoint(data.clusterId, addressGroup.metadata.namespace, 'addressgroups')}/${
+          addressGroup.metadata.name
+        }`
       : ''
   const handleMetadataModalSuccess = (description: string) => {
     queryClient.invalidateQueries({ queryKey: ['k8s-list'] })
@@ -481,7 +415,7 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
     message.success(description)
   }
 
-  if (isServiceLoading || isServiceBindingsLoading) {
+  if (isAddressGroupLoading || isHostBindingsLoading || isNetworkBindingsLoading || isServiceBindingsLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
         <Spin />
@@ -489,27 +423,27 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
     )
   }
 
-  if (serviceError || serviceBindingsError || addressGroupsError) {
-    return <Alert type="error" message="Error while loading Service details" />
+  if (addressGroupError || hostBindingsError || networkBindingsError || serviceBindingsError) {
+    return <Alert type="error" message="Error while loading AddressGroup details" />
   }
 
-  if (!service) {
-    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="Service was not found." />
+  if (!addressGroup) {
+    return <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="AddressGroup was not found." />
   }
 
   return (
     <>
       <Flex gap={8} vertical>
         <Flex gap={8} wrap="wrap">
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Info</Typography.Text>
             <Flex gap={16} wrap="wrap">
               <Flex gap={4} style={{ flex: '1 1 140px' }} vertical>
                 <Typography.Text type="secondary">Created</Typography.Text>
-                <Typography.Text>{renderTimestampWithIcon(service.metadata.creationTimestamp)}</Typography.Text>
+                <Typography.Text>{renderTimestampWithIcon(addressGroup.metadata.creationTimestamp)}</Typography.Text>
               </Flex>
               <Flex gap={4} style={{ flex: '1 1 180px', minWidth: 0 }} vertical>
-                <Typography.Text type="secondary">Tenant</Typography.Text>
+                <Typography.Text type="secondary">Namespace</Typography.Text>
                 <Flex align="center" gap={8} style={{ minWidth: 0 }}>
                   {renderBadge('Tenant')}
                   <Typography.Link href={namespaceHref} style={{ minWidth: 0 }} ellipsis>
@@ -519,18 +453,18 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
               </Flex>
               <Flex gap={4} style={{ flex: '1 1 180px', minWidth: 0 }} vertical>
                 <Typography.Text type="secondary">OwnerRef</Typography.Text>
-                {renderOwnerRefs(service.metadata.ownerReferences)}
+                {renderOwnerRefs(addressGroup.metadata.ownerReferences)}
               </Flex>
             </Flex>
           </Card>
 
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Assignments</Typography.Text>
             <Flex align="center" gap={8} wrap>
               <CountChip
-                text={`${addressGroupsCount} address groups`}
+                text={`${assignmentsCount} assignments`}
                 editable
-                onClick={() => setActiveModal('addressGroups')}
+                onClick={() => setActiveModal('assignments')}
               />
               <CountChip text={`${labelsCount} labels`} editable onClick={() => setActiveModal('labels')} />
               <CountChip
@@ -542,74 +476,49 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
           </Card>
         </Flex>
 
-        <Flex gap={8} wrap="wrap">
-          <Card style={{ flex: '1 1 460px' }}>
-            <Typography.Text style={sectionTitleStyle}>Main</Typography.Text>
-            <Flex gap={24} vertical>
-              <Flex gap={8} vertical>
-                <DetailField label="Service">
-                  <CopyableValue value={service.metadata.name} />
-                </DetailField>
-                <DetailField label="UUID">
-                  <CopyableValue value={service.metadata.uid} />
-                </DetailField>
-              </Flex>
-
-              <DetailField label="Transports">
-                <Flex align="center" gap={8} wrap>
-                  <SmallCountChip text={`${transports.length} transports`} />
-                  <SmallCountChip text={`${entriesCount} entries`} />
-                </Flex>
-              </DetailField>
-
-              <DetailField label="Description" align="flex-start">
-                <Typography.Paragraph style={{ margin: 0 }}>
-                  {renderValue(service.spec?.description)}
-                </Typography.Paragraph>
-              </DetailField>
-
-              <DetailField label="Comments" align="flex-start">
-                <Typography.Paragraph style={{ margin: 0 }}>{renderValue(service.spec?.comment)}</Typography.Paragraph>
-              </DetailField>
-            </Flex>
-          </Card>
-
-          <Card style={{ flex: '1 1 460px' }}>
-            <Typography.Text style={sectionTitleStyle}>Meta info</Typography.Text>
-            <Flex gap={8} vertical>
-              <DetailField label="Protocols">
-                <Typography.Text>{protocols.length > 0 ? protocols.join(', ') : EMPTY_VALUE}</Typography.Text>
-              </DetailField>
-              <DetailField label="IP Families">
-                <Typography.Text>{ipFamilies.length > 0 ? ipFamilies.join(', ') : EMPTY_VALUE}</Typography.Text>
-              </DetailField>
-              <DetailField label="Transport details" align="flex-start">
-                <Typography.Paragraph style={{ margin: 0 }}>{formatTransportDetails(service)}</Typography.Paragraph>
-              </DetailField>
-            </Flex>
-          </Card>
-        </Flex>
+        <Card styles={cardStyles}>
+          <Typography.Text style={sectionTitleStyle}>Main</Typography.Text>
+          <Flex gap={24} vertical>
+            <DetailField label="Name">
+              <CopyableValue value={addressGroup.metadata.name} />
+            </DetailField>
+            <DetailField label="Display name">
+              <Typography.Text>{renderValue(addressGroup.spec?.displayName)}</Typography.Text>
+            </DetailField>
+            <DetailField label="Default action">
+              <Typography.Text>{renderValue(addressGroup.spec?.defaultAction)}</Typography.Text>
+            </DetailField>
+            <DetailField label="Description" align="flex-start">
+              <Typography.Paragraph style={{ margin: 0 }}>
+                {renderValue(addressGroup.spec?.description)}
+              </Typography.Paragraph>
+            </DetailField>
+            <DetailField label="Comment" align="flex-start">
+              <Typography.Paragraph style={{ margin: 0 }}>
+                {renderValue(addressGroup.spec?.comment)}
+              </Typography.Paragraph>
+            </DetailField>
+          </Flex>
+        </Card>
       </Flex>
-      <ServiceAddressGroupsModal
-        clusterId={data.clusterId}
-        service={service}
-        currentBindings={currentBindings}
-        addressGroups={addressGroupsData?.items}
-        isLoading={isAddressGroupsLoading}
-        open={activeModal === 'addressGroups'}
+      <AddressGroupFormModal
+        cluster={data.clusterId}
+        namespace={data.namespace}
+        addressGroup={addressGroup}
+        open={activeModal === 'assignments'}
         onClose={() => setActiveModal(null)}
       />
       <MetadataLabelsModal
         open={activeModal === 'labels'}
         onClose={() => setActiveModal(null)}
-        labels={service.metadata.labels}
+        labels={addressGroup.metadata.labels}
         endpoint={endpoint}
         onSuccess={() => handleMetadataModalSuccess('Labels have been updated')}
       />
       <MetadataAnnotationsModal
         open={activeModal === 'annotations'}
         onClose={() => setActiveModal(null)}
-        annotations={service.metadata.annotations}
+        annotations={addressGroup.metadata.annotations}
         endpoint={endpoint}
         onSuccess={() => handleMetadataModalSuccess('Annotations have been updated')}
       />

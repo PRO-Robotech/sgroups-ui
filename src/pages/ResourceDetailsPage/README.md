@@ -24,7 +24,7 @@ The page fetches the selected resource and resolves the visible label as:
 resource.spec?.displayName || resource.metadata.name
 ```
 
-That visible label is used for breadcrumbs, the hidden page title, and the current value in the resource dropdown. API selectors, endpoints, YAML editor props, and redirects keep using `metadata.name`.
+That visible label is used for breadcrumbs, the hidden page title, and the resource dropdown label. API selectors, endpoints, YAML editor props, and redirects keep using `metadata.name`.
 
 ## Breadcrumbs
 
@@ -48,7 +48,13 @@ The generated factory includes:
 - conditions table when `.status.conditions` exists
 - YAML editor
 
-Host, Network, and Service details replace the generic info/metadata card row with local injected sections: `SgroupsHostDetailsSection`, `SgroupsNetworkDetailsSection`, and `SgroupsServiceDetailsSection`. This follows the RBAC plugin pattern of injecting a local React component into the dynamic renderer for domain-specific inner content while keeping the shared header, actions, conditions, and YAML tabs factory-driven.
+The header selector overrides the toolkit `DropdownRedirect` locally so option values remain `metadata.name` for route changes while visible option labels use `spec.displayName`, falling back to `metadata.name`.
+
+AddressGroup, Host, Network, and Service details replace the generic info/metadata card row with local injected sections: `SgroupsAddressGroupDetailsSection`, `SgroupsHostDetailsSection`, `SgroupsNetworkDetailsSection`, and `SgroupsServiceDetailsSection`. This follows the RBAC plugin pattern of injecting a local React component into the dynamic renderer for domain-specific inner content while keeping the shared header, actions, conditions, and YAML tabs factory-driven.
+
+The AddressGroup detail section follows the Figma card structure for `Info`, `Assignments`, and `Main` content. Figma's `Incoming ports` card is intentionally not rendered for AddressGroups because the local `v2` OpenAPI shape does not expose incoming ports or transports on `AddressGroup`.
+
+AddressGroup details add a `Rules` tab with a segmented `Rules from` / `Rules to` table. `Rules from` matches `Rule.spec.endpoints.local` against the current AddressGroup; `Rules to` matches `Rule.spec.endpoints.remote`.
 
 Delete actions intentionally do not pass `redirectTo` from detail pages. The shared delete modal close handler navigates to `redirectTo` on any close, so canceling or closing the modal would otherwise jump back to the resource table. The local sgroups delete modal also sets `maskClosable={false}`, so backdrop clicks do not close it.
 

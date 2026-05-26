@@ -8,11 +8,11 @@ import { syncAddressGroupBindings } from 'components/organisms/Networks/molecule
 import { OPENAPI_UI_BASEPREFIX } from 'utils/runtimeConfig'
 import {
   buildNamespacedValue,
-  formatDateTime,
   getAddressGroupOptions,
   getApiEndpoint,
   renderBadge,
   renderBadgeWithValue,
+  renderTimestampWithIcon,
 } from 'utils'
 
 export type TSgroupsNetworkDetailsSectionData = {
@@ -469,7 +469,7 @@ export const SgroupsNetworkDetailsSection: FC<TSgroupsNetworkDetailsSectionProps
             <Flex gap={16} wrap="wrap">
               <Flex gap={4} style={{ flex: '1 1 140px' }} vertical>
                 <Typography.Text type="secondary">Created</Typography.Text>
-                <Typography.Text>{formatDateTime(network.metadata.creationTimestamp)}</Typography.Text>
+                <Typography.Text>{renderTimestampWithIcon(network.metadata.creationTimestamp)}</Typography.Text>
               </Flex>
               <Flex gap={4} style={{ flex: '1 1 180px', minWidth: 0 }} vertical>
                 <Typography.Text type="secondary">Tenant</Typography.Text>
