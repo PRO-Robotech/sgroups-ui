@@ -137,6 +137,8 @@ const renderChangedTitle = (title: TreeDataNode['title']) => {
 }
 
 const makeChildKey = (parentKey: string, key: string) => `${parentKey}-${key}`
+const isPlaceholderTreeNode = (node: TreeDataNode) => node.isLeaf && String(node.key).includes('empty')
+const countConfiguredTreeRoots = (nodes: TreeDataNode[]) => nodes.filter(node => !isPlaceholderTreeNode(node)).length
 
 const prefixTreeNodeKeys = (nodes: TreeDataNode[], parentKey: string, highlightRoot?: boolean): TreeDataNode[] =>
   nodes.map((node, index) => {
@@ -160,12 +162,12 @@ export const buildOverviewTreeData = ({
   isRemoteChanged?: boolean
 }): TreeDataNode[] => [
   {
-    title: renderOverviewTitle('Local', localTreeData.length, isLocalChanged),
+    title: renderOverviewTitle('Local', countConfiguredTreeRoots(localTreeData), isLocalChanged),
     key: 'overview-local',
     children: prefixTreeNodeKeys(localTreeData, 'overview-local', isLocalChanged),
   },
   {
-    title: renderOverviewTitle('Remote', remoteTreeData.length, isRemoteChanged),
+    title: renderOverviewTitle('Remote', countConfiguredTreeRoots(remoteTreeData), isRemoteChanged),
     key: 'overview-remote',
     children: prefixTreeNodeKeys(remoteTreeData, 'overview-remote', isRemoteChanged),
   },

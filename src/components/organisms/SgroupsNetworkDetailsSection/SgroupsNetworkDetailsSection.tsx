@@ -11,7 +11,6 @@ import {
   getAddressGroupOptions,
   getApiEndpoint,
   renderBadge,
-  renderBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
 
@@ -27,10 +26,6 @@ type TSgroupsNetworkDetailsSectionProps = {
 
 type TNetworkDetailsResource = TNetworkResource & {
   metadata: TNetworkResource['metadata'] & {
-    ownerReferences?: Array<{
-      kind?: string
-      name?: string
-    }>
     uid?: string
   }
 }
@@ -55,10 +50,15 @@ const ellipsisValueStyle: React.CSSProperties = {
 }
 
 const sectionTitleStyle: React.CSSProperties = {
+  display: 'block',
   fontSize: 16,
   fontWeight: 700,
   lineHeight: '24px',
-  marginBottom: 16,
+  paddingBottom: 16,
+}
+
+const cardStyles = {
+  body: { padding: 24 },
 }
 
 const renderValue = (value?: string) => value || EMPTY_VALUE
@@ -117,19 +117,6 @@ const CountChip: FC<{ text: string; onClick?: () => void }> = ({ text, onClick }
 
 const isBindingForNetwork = (binding: TNetworkBindingResource, networkName: string, networkNamespace: string) =>
   binding.spec?.network?.name === networkName && binding.spec?.network?.namespace === networkNamespace
-
-const renderOwnerRefs = (ownerReferences?: TNetworkDetailsResource['metadata']['ownerReferences']) => {
-  if (!ownerReferences?.length) return <Typography.Text type="secondary">-</Typography.Text>
-
-  const [firstOwnerRef, ...restOwnerRefs] = ownerReferences
-
-  return (
-    <Flex align="center" gap={6} style={{ minWidth: 0 }}>
-      {renderBadgeWithValue(firstOwnerRef.kind || 'OwnerRef', firstOwnerRef.name)}
-      {restOwnerRefs.length > 0 && <Typography.Text type="secondary">+{restOwnerRefs.length}</Typography.Text>}
-    </Flex>
-  )
-}
 
 const MetadataLabelsModal: FC<{
   endpoint: string
@@ -464,7 +451,7 @@ export const SgroupsNetworkDetailsSection: FC<TSgroupsNetworkDetailsSectionProps
     <>
       <Flex gap={8} vertical>
         <Flex gap={8} wrap="wrap">
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Info</Typography.Text>
             <Flex gap={16} wrap="wrap">
               <Flex gap={4} style={{ flex: '1 1 140px' }} vertical>
@@ -480,14 +467,10 @@ export const SgroupsNetworkDetailsSection: FC<TSgroupsNetworkDetailsSectionProps
                   </Typography.Link>
                 </Flex>
               </Flex>
-              <Flex gap={4} style={{ flex: '1 1 180px', minWidth: 0 }} vertical>
-                <Typography.Text type="secondary">OwnerRef</Typography.Text>
-                {renderOwnerRefs(network.metadata.ownerReferences)}
-              </Flex>
             </Flex>
           </Card>
 
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Assignments</Typography.Text>
             <Flex align="center" gap={8} wrap>
               <CountChip
@@ -501,7 +484,7 @@ export const SgroupsNetworkDetailsSection: FC<TSgroupsNetworkDetailsSectionProps
         </Flex>
 
         <Flex gap={8} wrap="wrap">
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Main</Typography.Text>
             <Flex gap={24} vertical>
               <DetailField label="CIDR">

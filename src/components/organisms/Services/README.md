@@ -59,12 +59,17 @@ The Services table keeps transport display aligned with verbose panels:
 
 The Service detail page keeps the shared resource-detail header, actions menu, conditions section, and YAML editor, but uses a Service-specific `SgroupsServiceDetailsSection` for the inner Details tab content.
 
+Service details also add:
+
+- `AddressGroups`: lists AddressGroups connected to the current Service through `ServiceBinding` resources. The tab does not read or write Service `refs`. The `Add` button opens the Service edit modal so membership changes continue to create/delete `ServiceBinding` resources.
+- `Rules`: lists UniRules where the current Service appears as an endpoint. `Rules from` matches `spec.endpoints.local` with type `Service`; `Rules to` matches `spec.endpoints.remote` with type `Service`. The `Add` button opens `UniRuleFormModal` in the current Service namespace; from `Rules from` it preselects this Service as the Local endpoint, and from `Rules to` it preselects this Service as the Remote endpoint.
+
 The section uses the same local card concept as Hosts:
 
-- `Info`: creation time, namespace, and owner reference summary.
+- `Info`: creation time and namespace.
 - `Assignments`: current ServiceBinding count for the Service, plus label and annotation counts.
-- `Main`: Service name, UID, transport and entry counts, description, and comment.
-- `Meta info`: protocol families, IP families, and transport entry details.
+- `Main`: description and comment.
+- `Incoming ports`: table derived from `spec.transports[].entries[]`, with Port, Protocol, and Description columns.
 
 The three Assignment chips are editable:
 

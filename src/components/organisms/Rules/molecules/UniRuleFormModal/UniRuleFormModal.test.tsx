@@ -155,6 +155,38 @@ describe('UniRuleFormModal', () => {
     )
   })
 
+  it('applies create-mode initial endpoint values before submit', async () => {
+    renderModal(
+      <UniRuleFormModal
+        cluster="cluster-a"
+        namespace="tenant-a"
+        initialValues={{
+          local: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },
+          remote: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },
+        }}
+        open
+        onClose={jest.fn()}
+      />,
+    )
+
+    await waitFor(() => expect(screen.getAllByDisplayValue('tenant-a')).toHaveLength(2))
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+    await waitFor(() => expect(mockCreateNewEntry).toHaveBeenCalledTimes(1))
+    expect(mockCreateNewEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          spec: expect.objectContaining({
+            endpoints: {
+              local: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },
+              remote: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },
+            },
+          }),
+        }),
+      }),
+    )
+  })
+
   it('shows the display name input from the title pencil only in edit mode', async () => {
     renderModal(
       <UniRuleFormModal

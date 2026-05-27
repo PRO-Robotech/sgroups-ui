@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-no-useless-fragment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { render, screen } from '@testing-library/react'
@@ -238,7 +239,7 @@ describe('buildAddressGroupContentsTree', () => {
     )
   })
 
-  it('uses binding namespace as a fallback for omitted related resource namespaces', () => {
+  it('uses binding namespace as a fallback for omitted host and network AddressGroup namespaces', () => {
     const tree = buildAddressGroupContentsTree({
       addressGroupName: 'ag-a',
       addressGroupNamespace: 'tenant-a',
@@ -251,12 +252,12 @@ describe('buildAddressGroupContentsTree', () => {
           },
         },
       ] as any,
-      serviceBindings: [
+      networkBindings: [
         {
-          metadata: { name: 'service-binding-b', namespace: 'tenant-b' },
+          metadata: { name: 'network-binding-a', namespace: 'tenant-a' },
           spec: {
-            addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
-            service: { name: 'svc-b' },
+            addressGroup: { name: 'ag-a' },
+            network: { name: 'network-a' },
           },
         },
       ] as any,
@@ -266,10 +267,10 @@ describe('buildAddressGroupContentsTree', () => {
           spec: { displayName: 'Host A' },
         },
       ] as any,
-      services: [
+      networks: [
         {
-          metadata: { name: 'svc-b', namespace: 'tenant-b' },
-          spec: { displayName: 'Service B' },
+          metadata: { name: 'network-a', namespace: 'tenant-a' },
+          spec: { CIDR: '10.0.0.0/24' },
         },
       ] as any,
     })
@@ -278,9 +279,53 @@ describe('buildAddressGroupContentsTree', () => {
     expect(tree[0].children?.[0].children?.[0]).toEqual(
       expect.objectContaining({ key: 'hosts-root-host-tenant-a-host-binding-a' }),
     )
+    expect(tree[1].children?.[0]).toEqual(expect.objectContaining({ key: 'networks-root-namespace-tenant-a' }))
+    expect(tree[1].children?.[0].children?.[0]).toEqual(
+      expect.objectContaining({ key: 'networks-root-network-tenant-a-network-binding-a' }),
+    )
+  })
+
+  it('does not use ServiceBinding namespace as an AddressGroup namespace fallback', () => {
+    const tree = buildAddressGroupContentsTree({
+      addressGroupName: 'ag-a',
+      addressGroupNamespace: 'tenant-a',
+      serviceBindings: [
+        {
+          metadata: { name: 'service-binding-a', namespace: 'tenant-a' },
+          spec: {
+            addressGroup: { name: 'ag-a' },
+            service: { name: 'svc-a' },
+          },
+        },
+        {
+          metadata: { name: 'service-binding-b', namespace: 'tenant-b' },
+          spec: {
+            addressGroup: { name: 'ag-a' },
+            service: { name: 'svc-b' },
+          },
+        },
+        {
+          metadata: { name: 'service-binding-c', namespace: 'tenant-b' },
+          spec: {
+            addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
+            service: { name: 'svc-c' },
+          },
+        },
+      ] as any,
+      services: [
+        {
+          metadata: { name: 'svc-c', namespace: 'tenant-b' },
+          spec: { displayName: 'Service C' },
+        },
+      ] as any,
+    })
+
+    const { container } = render(<>{tree[2].title}</>)
+
+    expect(container.textContent).toBe('Services (1)')
     expect(tree[2].children?.[0]).toEqual(expect.objectContaining({ key: 'services-root-namespace-tenant-b' }))
     expect(tree[2].children?.[0].children?.[0]).toEqual(
-      expect.objectContaining({ key: 'services-root-service-tenant-b-service-binding-b' }),
+      expect.objectContaining({ key: 'services-root-service-tenant-b-service-binding-c' }),
     )
   })
 

@@ -30,42 +30,42 @@ jest.mock('utils', () => ({
   renderTimestampWithIcon: (value?: string) => value || '-',
 }))
 
-import { SgroupsAddressGroupRulesTab } from './SgroupsAddressGroupRulesTab'
+import { SgroupsServiceRulesTab } from './SgroupsServiceRulesTab'
 
 const rules = [
   {
     metadata: { name: 'rule-from', namespace: 'tenant-a', creationTimestamp: '2026-05-01T10:00:00Z' },
     spec: {
-      displayName: 'Allow from Admin Segment',
+      displayName: 'Allow from API',
       endpoints: {
-        local: { type: 'AddressGroup', name: 'ag-admin', namespace: 'tenant-a' },
-        remote: { type: 'Service', name: 'svc-api', namespace: 'tenant-a' },
+        local: { type: 'Service', name: 'service-a', namespace: 'tenant-a' },
+        remote: { type: 'AddressGroup', name: 'ag-web', namespace: 'tenant-a' },
       },
     },
   },
   {
     metadata: { name: 'rule-to', namespace: 'tenant-a', creationTimestamp: '2026-05-02T10:00:00Z' },
     spec: {
-      displayName: 'Allow to Admin Segment',
+      displayName: 'Allow to API',
       endpoints: {
-        local: { type: 'AddressGroup', name: 'ag-web', namespace: 'tenant-a' },
-        remote: { type: 'AddressGroup', name: 'ag-admin', namespace: 'tenant-a' },
+        local: { type: 'AddressGroup', name: 'ag-admin', namespace: 'tenant-a' },
+        remote: { type: 'Service', name: 'service-a', namespace: 'tenant-a' },
       },
     },
   },
   {
     metadata: { name: 'rule-other', namespace: 'tenant-a', creationTimestamp: '2026-05-03T10:00:00Z' },
     spec: {
-      displayName: 'Other Segment Rule',
+      displayName: 'Other Service Rule',
       endpoints: {
-        local: { type: 'AddressGroup', name: 'ag-other', namespace: 'tenant-a' },
-        remote: { type: 'Service', name: 'svc-api', namespace: 'tenant-a' },
+        local: { type: 'Service', name: 'service-b', namespace: 'tenant-a' },
+        remote: { type: 'AddressGroup', name: 'ag-web', namespace: 'tenant-a' },
       },
     },
   },
 ]
 
-describe('SgroupsAddressGroupRulesTab', () => {
+describe('SgroupsServiceRulesTab', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     mockUseK8sSmartResource.mockReturnValue({
@@ -75,25 +75,25 @@ describe('SgroupsAddressGroupRulesTab', () => {
     })
   })
 
-  it('shows rules from the current AddressGroup by default', () => {
-    render(<SgroupsAddressGroupRulesTab data={{ clusterId: 'cluster-a', namespace: 'tenant-a', name: 'ag-admin' }} />)
+  it('shows rules from the current Service by default', () => {
+    render(<SgroupsServiceRulesTab data={{ clusterId: 'cluster-a', namespace: 'tenant-a', name: 'service-a' }} />)
 
-    expect(screen.getByText('Allow from Admin Segment')).toBeInTheDocument()
-    expect(screen.queryByText('Allow to Admin Segment')).not.toBeInTheDocument()
-    expect(screen.queryByText('Other Segment Rule')).not.toBeInTheDocument()
+    expect(screen.getByText('Allow from API')).toBeInTheDocument()
+    expect(screen.queryByText('Allow to API')).not.toBeInTheDocument()
+    expect(screen.queryByText('Other Service Rule')).not.toBeInTheDocument()
   })
 
-  it('switches to rules targeting the current AddressGroup', () => {
-    render(<SgroupsAddressGroupRulesTab data={{ clusterId: 'cluster-a', namespace: 'tenant-a', name: 'ag-admin' }} />)
+  it('switches to rules targeting the current Service', () => {
+    render(<SgroupsServiceRulesTab data={{ clusterId: 'cluster-a', namespace: 'tenant-a', name: 'service-a' }} />)
 
     fireEvent.click(screen.getByText('Rules to'))
 
-    expect(screen.getByText('Allow to Admin Segment')).toBeInTheDocument()
-    expect(screen.queryByText('Allow from Admin Segment')).not.toBeInTheDocument()
+    expect(screen.getByText('Allow to API')).toBeInTheDocument()
+    expect(screen.queryByText('Allow from API')).not.toBeInTheDocument()
   })
 
   it('opens create rule modal from the add button', () => {
-    render(<SgroupsAddressGroupRulesTab data={{ clusterId: 'cluster-a', namespace: 'tenant-a', name: 'ag-admin' }} />)
+    render(<SgroupsServiceRulesTab data={{ clusterId: 'cluster-a', namespace: 'tenant-a', name: 'service-a' }} />)
 
     fireEvent.click(within(screen.getByRole('button', { name: /add/i })).getByText('Add'))
 
@@ -101,28 +101,33 @@ describe('SgroupsAddressGroupRulesTab', () => {
     expect(mockUniRuleFormModal).toHaveBeenLastCalledWith(
       expect.objectContaining({
         cluster: 'cluster-a',
+        initialValues: {
+          local: {
+            name: 'service-a',
+            namespace: 'tenant-a',
+            type: 'Service',
+          },
+        },
         namespace: 'tenant-a',
         open: true,
-        initialValues: {
-          local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-admin' },
-        },
       }),
     )
   })
 
   it('prefills the remote endpoint when adding from Rules to', () => {
-    render(<SgroupsAddressGroupRulesTab data={{ clusterId: 'cluster-a', namespace: 'tenant-a', name: 'ag-admin' }} />)
+    render(<SgroupsServiceRulesTab data={{ clusterId: 'cluster-a', namespace: 'tenant-a', name: 'service-a' }} />)
 
     fireEvent.click(screen.getByText('Rules to'))
     fireEvent.click(within(screen.getByRole('button', { name: /add/i })).getByText('Add'))
 
     expect(mockUniRuleFormModal).toHaveBeenLastCalledWith(
       expect.objectContaining({
-        cluster: 'cluster-a',
-        namespace: 'tenant-a',
-        open: true,
         initialValues: {
-          remote: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-admin' },
+          remote: {
+            name: 'service-a',
+            namespace: 'tenant-a',
+            type: 'Service',
+          },
         },
       }),
     )

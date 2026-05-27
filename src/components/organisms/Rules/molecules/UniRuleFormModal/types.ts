@@ -33,6 +33,7 @@ export type TUniRuleFormModalProps = {
   cluster: string
   namespace?: string
   open: boolean
+  initialValues?: Partial<TUniRuleFormValues>
   rule?: TRuleRow | null
   onClose: () => void
 }

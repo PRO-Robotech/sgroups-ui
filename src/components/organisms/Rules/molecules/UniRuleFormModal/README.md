@@ -68,6 +68,13 @@ There are no Host, Service, Network, or AddressGroup binding resources in this f
 
 Create payloads normalize `spec.session.traffic` to the local OpenAPI enum casing (`Both`, `Ingress`, or `Egress`).
 
+Create mode accepts optional `initialValues` from related detail pages. These values are merged into the default create form values before the one-time create prefill runs, so callers can preselect a Local or Remote endpoint while keeping the generated Rule name and default action/session values.
+
+AddressGroup and Service detail `Rules` tabs pass these values from their segmented Add flow:
+
+- `Rules from`: preselects the current resource as the Local endpoint.
+- `Rules to`: preselects the current resource as the Remote endpoint.
+
 ## Edit Flow
 
 Edit mode receives an existing `rule` prop.
@@ -95,6 +102,8 @@ Patched fields include:
 ## Structure Overview
 
 The sidebar wraps local and remote endpoint trees under `overview-local` and `overview-remote`. AddressGroup endpoint contents inherit the verbose rule tree shape, including namespace grouping for Hosts, Networks, and Services.
+
+The Local and Remote overview count badges count configured endpoint roots only. Empty placeholder leaves such as `No endpoint configured` must stay visible in the tree but must not increment the badge count.
 
 In edit mode, changed Local or Remote endpoint selections are shown with a high-contrast green highlight, left accent, bold text, and a `Changed` marker on both the Local/Remote overview wrapper and the changed endpoint root node. This highlight is based on normalized endpoint payload comparison, so unchanged fields do not mark the overview.
 

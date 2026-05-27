@@ -56,7 +56,7 @@ AddressGroup nodes in the overview and verbose-panel trees include a small detai
 
 The Network detail page uses the local `SgroupsNetworkDetailsSection` injected into the shared factory renderer. It follows the Figma card structure with `Info`, `Assignments`, and `Main` sections:
 
-- `Info`: creation time, namespace, owner refs.
+- `Info`: creation time and namespace.
 - `Assignments`: editable AddressGroup, label, and annotation counters.
 - `Main`: `spec.CIDR`, `spec.description`, and `spec.comment`.
 
