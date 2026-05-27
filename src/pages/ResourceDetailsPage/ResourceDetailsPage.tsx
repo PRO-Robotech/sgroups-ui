@@ -10,6 +10,7 @@ import {
   SgroupsAddressGroupRulesTab,
   SgroupsHostDetailsSection,
   SgroupsNetworkDetailsSection,
+  SgroupsResourceActionsDropdown,
   SgroupsServiceAddressGroupsTab,
   SgroupsServiceDetailsSection,
   SgroupsServiceRulesTab,
@@ -19,6 +20,7 @@ import type { TSgroupsAddressGroupEntitiesTabData } from 'components/organisms/S
 import type { TSgroupsAddressGroupRulesTabData } from 'components/organisms/SgroupsAddressGroupRulesTab'
 import type { TSgroupsHostDetailsSectionData } from 'components/organisms/SgroupsHostDetailsSection'
 import type { TSgroupsNetworkDetailsSectionData } from 'components/organisms/SgroupsNetworkDetailsSection'
+import type { TSgroupsResourceActionsDropdownData } from 'components/organisms/SgroupsResourceActionsDropdown'
 import type { TSgroupsServiceAddressGroupsTabData } from 'components/organisms/SgroupsServiceAddressGroupsTab'
 import type { TSgroupsServiceDetailsSectionData } from 'components/organisms/SgroupsServiceDetailsSection'
 import type { TSgroupsServiceRulesTabData } from 'components/organisms/SgroupsServiceRulesTab'
@@ -58,6 +60,7 @@ export type TSgroupsResourceDetailsComponentMap = TDynamicComponentsAppTypeMap &
   SgroupsAddressGroupRulesTab: TSgroupsAddressGroupRulesTabData
   SgroupsHostDetailsSection: TSgroupsHostDetailsSectionData
   SgroupsNetworkDetailsSection: TSgroupsNetworkDetailsSectionData
+  SgroupsResourceActionsDropdown: TSgroupsResourceActionsDropdownData
   SgroupsServiceAddressGroupsTab: TSgroupsServiceAddressGroupsTabData
   SgroupsServiceDetailsSection: TSgroupsServiceDetailsSectionData
   SgroupsServiceRulesTab: TSgroupsServiceRulesTabData
@@ -78,6 +81,7 @@ export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, re
       SgroupsAddressGroupRulesTab,
       SgroupsHostDetailsSection,
       SgroupsNetworkDetailsSection,
+      SgroupsResourceActionsDropdown,
       SgroupsServiceAddressGroupsTab,
       SgroupsServiceDetailsSection,
       SgroupsServiceRulesTab,

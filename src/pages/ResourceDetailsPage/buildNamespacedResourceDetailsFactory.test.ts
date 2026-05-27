@@ -70,7 +70,7 @@ describe('buildNamespacedResourceDetailsFactory', () => {
     expect(collectByType(factory.data, 'YamlEditorSingleton')).toHaveLength(1)
   })
 
-  it('does not redirect when the delete modal is closed', () => {
+  it('configures custom resource actions without delete redirect data', () => {
     const factory = buildNamespacedResourceDetailsFactory({
       basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
       clusterId: 'cluster-a',
@@ -80,11 +80,17 @@ describe('buildNamespacedResourceDetailsFactory', () => {
       namespace: 'tenant-a',
     })
 
-    const actionsDropdown = collectByType(factory.data, 'ActionsDropdown')[0]
-    const actions = actionsDropdown.data?.actions as Array<{ props?: Record<string, unknown>; type?: string }>
-    const deleteAction = actions.find(action => action.type === 'delete')
+    const actionsDropdown = collectByType(factory.data, 'SgroupsResourceActionsDropdown')[0]
 
-    expect(deleteAction?.props).not.toHaveProperty('redirectTo')
+    expect(actionsDropdown.data).toEqual({
+      clusterId: 'cluster-a',
+      endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/hosts/host-a',
+      kind: 'Host',
+      name: 'host-a',
+      namespace: 'tenant-a',
+      plural: 'hosts',
+    })
+    expect(actionsDropdown.data).not.toHaveProperty('redirectTo')
   })
 
   it('uses the custom Host details section for Host resources', () => {
