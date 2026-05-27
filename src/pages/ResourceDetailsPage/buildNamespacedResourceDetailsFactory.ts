@@ -12,11 +12,25 @@ const ANNOTATIONS_ICON =
 const buildResourcePath = (basePath: string, plural: string, namespace: string) =>
   `${basePath}/${plural}/${encodeURIComponent(namespace)}/{chosenEntryValue}`
 
+const buildAddressGroupRulesTab = (clusterId: string, namespace: string, name: string) => ({
+  key: 'rules',
+  label: 'Rules',
+  children: [
+    {
+      type: 'SgroupsAddressGroupRulesTab',
+      data: {
+        clusterId,
+        namespace,
+        name,
+      },
+    },
+  ],
+})
+
 export const buildNamespacedResourceDetailsFactory = ({
   basePath,
   clusterId,
   config,
-  displayName,
   name,
   namespace,
 }: {
@@ -32,6 +46,7 @@ export const buildNamespacedResourceDetailsFactory = ({
   const namespaceHref = `${OPENAPI_UI_BASEPREFIX}/${clusterId}/factory/namespace-details/v1/namespaces/${namespace}`
   const injectedDetailsSectionType =
     {
+      AddressGroup: 'SgroupsAddressGroupDetailsSection',
       Host: 'SgroupsHostDetailsSection',
       Network: 'SgroupsNetworkDetailsSection',
       Service: 'SgroupsServiceDetailsSection',
@@ -75,9 +90,10 @@ export const buildNamespacedResourceDetailsFactory = ({
                   apiGroup: SGROUPS_API_GROUP,
                   apiVersion: SGROUPS_API_VERSION,
                   cluster: clusterId,
-                  currentValue: displayName,
+                  currentValue: name,
                   id: 'resource-name-dropdown',
                   jsonPath: '.metadata.name',
+                  labelJsonPath: '.spec.displayName',
                   namespace,
                   placeholder: 'Select item...',
                   plural: config.plural,
@@ -573,6 +589,7 @@ export const buildNamespacedResourceDetailsFactory = ({
                 },
               ],
             },
+            ...(config.kind === 'AddressGroup' ? [buildAddressGroupRulesTab(clusterId, namespace, name)] : []),
           ],
         },
       },

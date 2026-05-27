@@ -2,13 +2,17 @@ import React, { FC, useMemo } from 'react'
 import { Alert, Empty, Typography } from 'antd'
 import { DynamicComponents, TDynamicComponentsAppTypeMap, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { useParams } from 'react-router-dom'
-import { SgroupsPageShell } from 'components/molecules'
+import { SgroupsDropdownRedirect, SgroupsPageShell } from 'components/molecules'
 import {
   SgroupsFactoryRenderer,
+  SgroupsAddressGroupDetailsSection,
+  SgroupsAddressGroupRulesTab,
   SgroupsHostDetailsSection,
   SgroupsNetworkDetailsSection,
   SgroupsServiceDetailsSection,
 } from 'components/organisms'
+import type { TSgroupsAddressGroupDetailsSectionData } from 'components/organisms/SgroupsAddressGroupDetailsSection'
+import type { TSgroupsAddressGroupRulesTabData } from 'components/organisms/SgroupsAddressGroupRulesTab'
 import type { TSgroupsHostDetailsSectionData } from 'components/organisms/SgroupsHostDetailsSection'
 import type { TSgroupsNetworkDetailsSectionData } from 'components/organisms/SgroupsNetworkDetailsSection'
 import type { TSgroupsServiceDetailsSectionData } from 'components/organisms/SgroupsServiceDetailsSection'
@@ -43,6 +47,8 @@ type TResourceDetailsPageProps = {
 }
 
 export type TSgroupsResourceDetailsComponentMap = TDynamicComponentsAppTypeMap & {
+  SgroupsAddressGroupDetailsSection: TSgroupsAddressGroupDetailsSectionData
+  SgroupsAddressGroupRulesTab: TSgroupsAddressGroupRulesTabData
   SgroupsHostDetailsSection: TSgroupsHostDetailsSectionData
   SgroupsNetworkDetailsSection: TSgroupsNetworkDetailsSectionData
   SgroupsServiceDetailsSection: TSgroupsServiceDetailsSectionData
@@ -57,6 +63,9 @@ export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, re
   const components = useMemo(
     () => ({
       ...DynamicComponents,
+      DropdownRedirect: SgroupsDropdownRedirect,
+      SgroupsAddressGroupDetailsSection,
+      SgroupsAddressGroupRulesTab,
       SgroupsHostDetailsSection,
       SgroupsNetworkDetailsSection,
       SgroupsServiceDetailsSection,

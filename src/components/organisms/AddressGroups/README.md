@@ -61,6 +61,25 @@ The AddressGroups table uses badge/tag/icon formatting consistently:
 - `Default Action` renders as a colored AntD tag.
 - `Trace` renders as a status icon: a green check for enabled and a red cross for disabled.
 
+## Detail page
+
+The AddressGroup detail route is `addressgroups/{namespace}/{metadata.name}`. Breadcrumbs and the resource dropdown prefer `spec.displayName`, but API requests, links, and edit/delete endpoints always use immutable `metadata.name` and `metadata.namespace`.
+
+The detail body uses the Figma card layout for:
+
+- `Info`: creation timestamp, namespace label, canonical `Tenant` badge, and owner reference.
+- `Assignments`: total bindings count plus labels and annotations counters.
+- `Main`: immutable name, display name, default action, description, and comment.
+
+The assignment counter opens `AddressGroupFormModal` in edit mode so Hosts, Services, and Networks are still managed through binding resources. The detail page does not render the Figma `Incoming ports` card because the local `v2` OpenAPI dump has no AddressGroup incoming-port or transport fields.
+
+The detail page also includes a `Rules` tab for AddressGroup-related UniRules:
+
+- `Rules from` shows rules whose `spec.endpoints.local` is this AddressGroup.
+- `Rules to` shows rules whose `spec.endpoints.remote` is this AddressGroup.
+- Rule links show `spec.displayName`, falling back to `metadata.name`, while routes still use immutable namespace/name identifiers.
+- `Add` opens `UniRuleFormModal` in the current AddressGroup namespace.
+
 ## Edit modal
 
 The table actions column includes edit and delete actions.

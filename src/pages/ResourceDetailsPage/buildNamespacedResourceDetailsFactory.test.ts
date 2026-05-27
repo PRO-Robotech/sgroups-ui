@@ -49,7 +49,8 @@ describe('buildNamespacedResourceDetailsFactory', () => {
     ])
     expect(dropdown.data).toEqual(
       expect.objectContaining({
-        currentValue: 'Production Host',
+        currentValue: 'host-a',
+        labelJsonPath: '.spec.displayName',
         redirectUrl: '/openapi-ui/cluster-a/plugins/plugin-sgroups/hosts/tenant-a/{chosenEntryValue}',
       }),
     )
@@ -101,6 +102,49 @@ describe('buildNamespacedResourceDetailsFactory', () => {
       name: 'host-a',
       namespace: 'tenant-a',
     })
+  })
+
+  it('uses the custom AddressGroup details section for AddressGroup resources', () => {
+    const factory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.addressgroups,
+      displayName: 'Production Address Group',
+      name: 'ag-a',
+      namespace: 'tenant-a',
+    })
+
+    expect(collectByType(factory.data, 'SgroupsAddressGroupDetailsSection')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'ag-a',
+      namespace: 'tenant-a',
+    })
+  })
+
+  it('adds the AddressGroup rules tab only for AddressGroup resources', () => {
+    const addressGroupFactory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.addressgroups,
+      displayName: 'Production Address Group',
+      name: 'ag-a',
+      namespace: 'tenant-a',
+    })
+    const hostFactory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.hosts,
+      displayName: 'Production Host',
+      name: 'host-a',
+      namespace: 'tenant-a',
+    })
+
+    expect(collectByType(addressGroupFactory.data, 'SgroupsAddressGroupRulesTab')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'ag-a',
+      namespace: 'tenant-a',
+    })
+    expect(collectByType(hostFactory.data, 'SgroupsAddressGroupRulesTab')).toEqual([])
   })
 
   it('uses the custom Service details section for Service resources', () => {
