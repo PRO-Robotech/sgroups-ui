@@ -192,6 +192,14 @@ const matchesAddressGroup = (binding: TBindingBase, addressGroupName?: string, a
   binding.spec?.addressGroup?.name === addressGroupName &&
   (binding.spec?.addressGroup?.namespace || '') === (addressGroupNamespace || '')
 
+const matchesAddressGroupWithBindingNamespaceFallback = (
+  binding: TBindingBase,
+  addressGroupName?: string,
+  addressGroupNamespace?: string,
+) =>
+  binding.spec?.addressGroup?.name === addressGroupName &&
+  (binding.spec?.addressGroup?.namespace || binding.metadata.namespace || '') === (addressGroupNamespace || '')
+
 const withBindingNamespaceFallback = (identifier: TResourceIdentifier | undefined, bindingNamespace?: string) => ({
   ...identifier,
   namespace: identifier?.namespace || bindingNamespace,
@@ -339,10 +347,10 @@ export const buildAddressGroupContentsTree = ({
   const highlightedServiceValues = new Set(highlightedServices)
 
   const matchedHostBindings = hostBindings.filter(binding =>
-    matchesAddressGroup(binding, addressGroupName, addressGroupNamespace),
+    matchesAddressGroupWithBindingNamespaceFallback(binding, addressGroupName, addressGroupNamespace),
   )
   const matchedNetworkBindings = networkBindings.filter(binding =>
-    matchesAddressGroup(binding, addressGroupName, addressGroupNamespace),
+    matchesAddressGroupWithBindingNamespaceFallback(binding, addressGroupName, addressGroupNamespace),
   )
   const matchedServiceBindings = serviceBindings.filter(binding =>
     matchesAddressGroup(binding, addressGroupName, addressGroupNamespace),

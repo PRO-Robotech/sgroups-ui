@@ -5,31 +5,30 @@ import type { ColumnsType } from 'antd/es/table'
 import { useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { formatDateTime, renderLinkedResourceBadge, renderTimestampWithIcon } from 'utils'
 import { UniRuleFormModal } from 'components/organisms/Rules/molecules'
-import type { TUniRuleFormValues } from 'components/organisms/Rules/molecules/UniRuleFormModal/types'
 import type { TRuleEndpoint, TRuleResource } from 'components/organisms/Rules/tableConfig'
 
-export type TSgroupsAddressGroupRulesTabData = {
+export type TSgroupsServiceRulesTabData = {
   clusterId: string
   namespace: string
   name: string
 }
 
-type TSgroupsAddressGroupRulesTabProps = {
-  data: TSgroupsAddressGroupRulesTabData
+type TSgroupsServiceRulesTabProps = {
+  data: TSgroupsServiceRulesTabData
 }
 
 type TRulesDirection = 'from' | 'to'
 
-type TAddressGroupRuleRow = TRuleResource & {
+type TServiceRuleRow = TRuleResource & {
   key: string
   displayName: string
   created: string
 }
 
-const isCurrentAddressGroupEndpoint = (endpoint: TRuleEndpoint | undefined, name: string, namespace: string) =>
-  endpoint?.type === 'AddressGroup' && endpoint.name === name && endpoint.namespace === namespace
+const isCurrentServiceEndpoint = (endpoint: TRuleEndpoint | undefined, name: string, namespace: string) =>
+  endpoint?.type === 'Service' && endpoint.name === name && endpoint.namespace === namespace
 
-const mapRulesToRows = (items: TRuleResource[]): TAddressGroupRuleRow[] =>
+const mapRulesToRows = (items: TRuleResource[]): TServiceRuleRow[] =>
   items.map(item => ({
     ...item,
     key: `${item.metadata.namespace || 'unknown'}-${item.metadata.name || 'unknown'}`,
@@ -37,7 +36,7 @@ const mapRulesToRows = (items: TRuleResource[]): TAddressGroupRuleRow[] =>
     created: formatDateTime(item.metadata.creationTimestamp),
   }))
 
-const columns: ColumnsType<TAddressGroupRuleRow> = [
+const columns: ColumnsType<TServiceRuleRow> = [
   {
     title: 'Name',
     dataIndex: 'displayName',
@@ -63,7 +62,7 @@ const columns: ColumnsType<TAddressGroupRuleRow> = [
   },
 ]
 
-export const SgroupsAddressGroupRulesTab: FC<TSgroupsAddressGroupRulesTabProps> = ({ data }) => {
+export const SgroupsServiceRulesTab: FC<TSgroupsServiceRulesTabProps> = ({ data }) => {
   const [direction, setDirection] = useState<TRulesDirection>('from')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const {
@@ -85,23 +84,14 @@ export const SgroupsAddressGroupRulesTab: FC<TSgroupsAddressGroupRulesTabProps> 
         const endpoints = rule.spec?.endpoints
         const endpoint = direction === 'from' ? endpoints?.local : endpoints?.remote
 
-        return isCurrentAddressGroupEndpoint(endpoint, data.name, data.namespace)
+        return isCurrentServiceEndpoint(endpoint, data.name, data.namespace)
       }),
     [data.name, data.namespace, direction, rulesData?.items],
   )
   const dataSource = useMemo(() => mapRulesToRows(filteredRules), [filteredRules])
-  const createRuleInitialValues = useMemo<Partial<TUniRuleFormValues>>(() => {
-    const currentAddressGroupEndpoint = {
-      type: 'AddressGroup' as const,
-      namespace: data.namespace,
-      name: data.name,
-    }
-
-    return direction === 'from' ? { local: currentAddressGroupEndpoint } : { remote: currentAddressGroupEndpoint }
-  }, [data.name, data.namespace, direction])
 
   if (error) {
-    return <Alert type="error" message="Error while loading AddressGroup rules" />
+    return <Alert type="error" message="Error while loading Service rules" />
   }
 
   return (
@@ -120,7 +110,7 @@ export const SgroupsAddressGroupRulesTab: FC<TSgroupsAddressGroupRulesTabProps> 
             Add
           </Button>
         </Flex>
-        <Table<TAddressGroupRuleRow>
+        <Table<TServiceRuleRow>
           columns={columns}
           dataSource={dataSource}
           loading={isLoading}
@@ -134,8 +124,14 @@ export const SgroupsAddressGroupRulesTab: FC<TSgroupsAddressGroupRulesTabProps> 
         <UniRuleFormModal
           cluster={data.clusterId}
           namespace={data.namespace}
+          initialValues={{
+            [direction === 'from' ? 'local' : 'remote']: {
+              type: 'Service',
+              namespace: data.namespace,
+              name: data.name,
+            },
+          }}
           open={isCreateModalOpen}
-          initialValues={createRuleInitialValues}
           onClose={() => setIsCreateModalOpen(false)}
         />
       )}

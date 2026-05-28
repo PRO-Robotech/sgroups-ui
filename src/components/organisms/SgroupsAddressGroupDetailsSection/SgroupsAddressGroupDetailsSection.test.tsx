@@ -53,7 +53,9 @@ const addressGroupResource = {
   },
   spec: {
     displayName: 'Production AG',
-    defaultAction: 'Allow',
+    defaultAction: 'Deny',
+    logs: false,
+    trace: true,
     description: 'Address group description',
     comment: 'Address group comment',
   },
@@ -62,6 +64,9 @@ const addressGroupResource = {
 describe('SgroupsAddressGroupDetailsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks()
+    addressGroupResource.spec.defaultAction = 'Deny'
+    addressGroupResource.spec.logs = false
+    addressGroupResource.spec.trace = true
     mockPatchEntryWithReplaceOp.mockResolvedValue(undefined)
     mockUseK8sSmartResource.mockImplementation((params: { plural: string }) => {
       if (params.plural === 'addressgroups') {
@@ -117,6 +122,41 @@ describe('SgroupsAddressGroupDetailsSection', () => {
         }
       }
 
+      if (params.plural === 'hosts') {
+        return {
+          data: {
+            items: [
+              {
+                metadata: { name: 'host-a', namespace: 'tenant-a' },
+                spec: { displayName: 'db-master-01', IPs: { IPv4: ['3.3.3.3/32'] } },
+              },
+            ],
+          },
+          error: undefined,
+          isLoading: false,
+        }
+      }
+
+      if (params.plural === 'networks') {
+        return {
+          data: {
+            items: [{ metadata: { name: 'network-a', namespace: 'tenant-a' }, spec: { CIDR: '10.0.0.0/24' } }],
+          },
+          error: undefined,
+          isLoading: false,
+        }
+      }
+
+      if (params.plural === 'services') {
+        return {
+          data: {
+            items: [{ metadata: { name: 'service-a', namespace: 'service-tenant' }, spec: { displayName: 'API' } }],
+          },
+          error: undefined,
+          isLoading: false,
+        }
+      }
+
       return { data: undefined, error: undefined, isLoading: false }
     })
   })
@@ -127,9 +167,21 @@ describe('SgroupsAddressGroupDetailsSection', () => {
     expect(screen.getByText('Info')).toBeInTheDocument()
     expect(screen.getByText('Assignments')).toBeInTheDocument()
     expect(screen.getByText('Main')).toBeInTheDocument()
+    expect(screen.getByText('Entities')).toBeInTheDocument()
     expect(screen.getByText('Namespace')).toBeInTheDocument()
-    expect(screen.getByText('Production AG')).toBeInTheDocument()
+    expect(screen.getByText('Default action')).toBeInTheDocument()
+    expect(screen.getByText('Deny')).toBeInTheDocument()
+    expect(screen.getByRole('switch')).not.toBeChecked()
+    expect(screen.getByText('Trace')).toBeInTheDocument()
+    expect(screen.getByText('Logs')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Disabled' })).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Enabled' })).toBeInTheDocument()
     expect(screen.getByText('Address group description')).toBeInTheDocument()
+    expect(screen.getByText(/Hosts/)).toBeInTheDocument()
+    expect(screen.getByText(/Networks/)).toBeInTheDocument()
+    expect(screen.getByText(/Services/)).toBeInTheDocument()
+    expect(screen.queryByText('db-master-01')).not.toBeInTheDocument()
+    expect(screen.queryByText('3.3.3.3/32')).not.toBeInTheDocument()
     expect(screen.queryByText('Incoming ports')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /3 assignments/i })).toBeInTheDocument()
   })
@@ -148,6 +200,35 @@ describe('SgroupsAddressGroupDetailsSection', () => {
         open: true,
       }),
     )
+  })
+
+  it('patches default action from the detail switch', async () => {
+    renderWithQueryClient()
+
+    fireEvent.click(screen.getByRole('switch'))
+
+    await waitFor(() => expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledTimes(1))
+    expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledWith({
+      endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/addressgroups/ag-a',
+      pathToValue: '/spec/defaultAction',
+      body: 'Allow',
+    })
+  })
+
+  it('patches default action to Deny when turning the detail switch off', async () => {
+    addressGroupResource.spec.defaultAction = 'Allow'
+    renderWithQueryClient()
+
+    expect(screen.getByRole('switch')).toBeChecked()
+
+    fireEvent.click(screen.getByRole('switch'))
+
+    await waitFor(() => expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledTimes(1))
+    expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledWith({
+      endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/addressgroups/ag-a',
+      pathToValue: '/spec/defaultAction',
+      body: 'Deny',
+    })
   })
 
   it('patches labels from the labels modal', async () => {

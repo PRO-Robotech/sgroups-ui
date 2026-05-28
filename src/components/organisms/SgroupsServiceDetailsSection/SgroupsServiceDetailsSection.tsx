@@ -1,6 +1,22 @@
 import React, { FC, ReactNode, useEffect, useMemo, useState } from 'react'
-import { CopyOutlined, EditFilled, MinusOutlined, PlusOutlined } from '@ant-design/icons'
-import { Alert, Button, Card, Empty, Flex, Form, Input, Modal, Select, Spin, Tooltip, Typography, message } from 'antd'
+import { EditFilled, MinusOutlined, PlusOutlined } from '@ant-design/icons'
+import {
+  Alert,
+  Button,
+  Card,
+  Empty,
+  Flex,
+  Form,
+  Input,
+  Modal,
+  Select,
+  Spin,
+  Table,
+  Tag,
+  Typography,
+  message,
+} from 'antd'
+import type { ColumnsType } from 'antd/es/table'
 import { patchEntryWithReplaceOp, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { useQueryClient } from '@tanstack/react-query'
 import { TAddressGroupResource, TServiceBindingResource, TServiceResource } from 'localTypes'
@@ -11,7 +27,6 @@ import {
   getAddressGroupOptions,
   getApiEndpoint,
   renderBadge,
-  renderBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
 
@@ -27,10 +42,6 @@ type TSgroupsServiceDetailsSectionProps = {
 
 type TServiceDetailsResource = TServiceResource & {
   metadata: TServiceResource['metadata'] & {
-    ownerReferences?: Array<{
-      kind?: string
-      name?: string
-    }>
     uid?: string
   }
 }
@@ -47,32 +58,19 @@ const fieldValueStyle: React.CSSProperties = {
   minWidth: 0,
 }
 
-const ellipsisValueStyle: React.CSSProperties = {
-  ...fieldValueStyle,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-}
-
 const sectionTitleStyle: React.CSSProperties = {
+  display: 'block',
   fontSize: 16,
   fontWeight: 700,
   lineHeight: '24px',
-  marginBottom: 16,
+  paddingBottom: 16,
+}
+
+const cardStyles = {
+  body: { padding: 24 },
 }
 
 const renderValue = (value?: string) => value || EMPTY_VALUE
-
-const copyToClipboard = async (value?: string) => {
-  if (!value) return
-
-  try {
-    await navigator.clipboard.writeText(value)
-    message.success(`Copied: ${value}`)
-  } catch {
-    message.error('Failed to copy text')
-  }
-}
 
 const DetailField: FC<{ label: string; children: ReactNode; align?: 'center' | 'flex-start' }> = ({
   label,
@@ -87,23 +85,6 @@ const DetailField: FC<{ label: string; children: ReactNode; align?: 'center' | '
   </Flex>
 )
 
-const CopyableValue: FC<{ value?: string }> = ({ value }) => (
-  <Flex align="center" gap={8} style={{ minWidth: 0 }}>
-    <Typography.Text style={ellipsisValueStyle}>{renderValue(value)}</Typography.Text>
-    {value && (
-      <Tooltip title="Copy">
-        <Button
-          aria-label={`Copy ${value}`}
-          icon={<CopyOutlined />}
-          size="small"
-          type="text"
-          onClick={() => copyToClipboard(value)}
-        />
-      </Tooltip>
-    )}
-  </Flex>
-)
-
 const CountChip: FC<{ text: string; editable?: boolean; onClick?: () => void }> = ({ text, editable, onClick }) => (
   <Button
     icon={editable ? <EditFilled /> : undefined}
@@ -115,37 +96,50 @@ const CountChip: FC<{ text: string; editable?: boolean; onClick?: () => void }> 
   </Button>
 )
 
-const SmallCountChip: FC<{ text: string }> = ({ text }) => (
-  <span
-    style={{
-      alignItems: 'center',
-      background: 'rgba(0, 0, 0, 0.04)',
-      borderRadius: 4,
-      display: 'inline-flex',
-      lineHeight: '22px',
-      minHeight: 24,
-      padding: '0 8px',
-    }}
-  >
-    {text}
-  </span>
-)
-
 const isBindingForService = (binding: TServiceBindingResource, serviceName: string, serviceNamespace: string) =>
   binding.spec?.service?.name === serviceName && binding.spec?.service?.namespace === serviceNamespace
 
-const renderOwnerRefs = (ownerReferences?: TServiceDetailsResource['metadata']['ownerReferences']) => {
-  if (!ownerReferences?.length) return <Typography.Text type="secondary">-</Typography.Text>
-
-  const [firstOwnerRef, ...restOwnerRefs] = ownerReferences
-
-  return (
-    <Flex align="center" gap={6} style={{ minWidth: 0 }}>
-      {renderBadgeWithValue(firstOwnerRef.kind || 'OwnerRef', firstOwnerRef.name)}
-      {restOwnerRefs.length > 0 && <Typography.Text type="secondary">+{restOwnerRefs.length}</Typography.Text>}
-    </Flex>
-  )
+type TIncomingPortRow = {
+  key: string
+  port: string
+  protocol: string
+  description: string
 }
+
+const buildIncomingPortRows = (service: TServiceDetailsResource): TIncomingPortRow[] =>
+  (service.spec?.transports || []).flatMap((transport, transportIndex) =>
+    (transport.entries || []).map((entry, entryIndex) => ({
+      key: `${transportIndex}-${entryIndex}`,
+      port: entry.ports || (entry.types?.length ? entry.types.join(', ') : EMPTY_VALUE),
+      protocol: transport.protocol || EMPTY_VALUE,
+      description: entry.description || EMPTY_VALUE,
+    })),
+  )
+
+const incomingPortsColumns: ColumnsType<TIncomingPortRow> = [
+  {
+    title: 'Port',
+    dataIndex: 'port',
+    key: 'port',
+    width: 120,
+    sorter: (a, b) => a.port.localeCompare(b.port, undefined, { numeric: true, sensitivity: 'base' }),
+  },
+  {
+    title: 'Protocol',
+    dataIndex: 'protocol',
+    key: 'protocol',
+    width: 120,
+    sorter: (a, b) => a.protocol.localeCompare(b.protocol, undefined, { numeric: true, sensitivity: 'base' }),
+    render: value => (value === EMPTY_VALUE ? value : <Tag>{value}</Tag>),
+  },
+  {
+    title: 'Description',
+    dataIndex: 'description',
+    key: 'description',
+    ellipsis: true,
+    sorter: (a, b) => a.description.localeCompare(b.description, undefined, { numeric: true, sensitivity: 'base' }),
+  },
+]
 
 const MetadataLabelsModal: FC<{
   endpoint: string
@@ -400,23 +394,6 @@ const ServiceAddressGroupsModal: FC<{
   )
 }
 
-const uniqueValues = (values: Array<string | undefined>) => [...new Set(values.filter(Boolean) as string[])]
-
-const formatTransportDetails = (service: TServiceDetailsResource) => {
-  const transports = service.spec?.transports || []
-  const entries = transports.flatMap(transport =>
-    (transport.entries || []).map(entry => {
-      const parts = [transport.IPv, transport.protocol, entry.ports && `ports ${entry.ports}`].filter(Boolean)
-
-      if (entry.types?.length) parts.push(`types ${entry.types.join(', ')}`)
-
-      return parts.join(' / ') || EMPTY_VALUE
-    }),
-  )
-
-  return entries.length > 0 ? entries.join('; ') : EMPTY_VALUE
-}
-
 export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps> = ({ data }) => {
   const queryClient = useQueryClient()
   const [activeModal, setActiveModal] = useState<'addressGroups' | 'labels' | 'annotations' | null>(null)
@@ -459,10 +436,7 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
   })
 
   const service = serviceData?.items?.[0]
-  const transports = service?.spec?.transports || []
-  const protocols = uniqueValues(transports.map(transport => transport.protocol))
-  const ipFamilies = uniqueValues(transports.map(transport => transport.IPv))
-  const entriesCount = transports.reduce((sum, transport) => sum + (transport.entries?.length || 0), 0)
+  const incomingPortRows = useMemo(() => (service ? buildIncomingPortRows(service) : []), [service])
   const labelsCount = Object.keys(service?.metadata.labels || {}).length
   const annotationsCount = Object.keys(service?.metadata.annotations || {}).length
   const currentBindings = useMemo(
@@ -501,7 +475,7 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
     <>
       <Flex gap={8} vertical>
         <Flex gap={8} wrap="wrap">
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Info</Typography.Text>
             <Flex gap={16} wrap="wrap">
               <Flex gap={4} style={{ flex: '1 1 140px' }} vertical>
@@ -517,14 +491,10 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
                   </Typography.Link>
                 </Flex>
               </Flex>
-              <Flex gap={4} style={{ flex: '1 1 180px', minWidth: 0 }} vertical>
-                <Typography.Text type="secondary">OwnerRef</Typography.Text>
-                {renderOwnerRefs(service.metadata.ownerReferences)}
-              </Flex>
             </Flex>
           </Card>
 
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Assignments</Typography.Text>
             <Flex align="center" gap={8} wrap>
               <CountChip
@@ -543,50 +513,31 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
         </Flex>
 
         <Flex gap={8} wrap="wrap">
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Main</Typography.Text>
             <Flex gap={24} vertical>
-              <Flex gap={8} vertical>
-                <DetailField label="Service">
-                  <CopyableValue value={service.metadata.name} />
-                </DetailField>
-                <DetailField label="UUID">
-                  <CopyableValue value={service.metadata.uid} />
-                </DetailField>
-              </Flex>
-
-              <DetailField label="Transports">
-                <Flex align="center" gap={8} wrap>
-                  <SmallCountChip text={`${transports.length} transports`} />
-                  <SmallCountChip text={`${entriesCount} entries`} />
-                </Flex>
-              </DetailField>
-
               <DetailField label="Description" align="flex-start">
                 <Typography.Paragraph style={{ margin: 0 }}>
                   {renderValue(service.spec?.description)}
                 </Typography.Paragraph>
               </DetailField>
 
-              <DetailField label="Comments" align="flex-start">
+              <DetailField label="Comment" align="flex-start">
                 <Typography.Paragraph style={{ margin: 0 }}>{renderValue(service.spec?.comment)}</Typography.Paragraph>
               </DetailField>
             </Flex>
           </Card>
 
-          <Card style={{ flex: '1 1 460px' }}>
-            <Typography.Text style={sectionTitleStyle}>Meta info</Typography.Text>
-            <Flex gap={8} vertical>
-              <DetailField label="Protocols">
-                <Typography.Text>{protocols.length > 0 ? protocols.join(', ') : EMPTY_VALUE}</Typography.Text>
-              </DetailField>
-              <DetailField label="IP Families">
-                <Typography.Text>{ipFamilies.length > 0 ? ipFamilies.join(', ') : EMPTY_VALUE}</Typography.Text>
-              </DetailField>
-              <DetailField label="Transport details" align="flex-start">
-                <Typography.Paragraph style={{ margin: 0 }}>{formatTransportDetails(service)}</Typography.Paragraph>
-              </DetailField>
-            </Flex>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
+            <Typography.Text style={sectionTitleStyle}>Incoming ports</Typography.Text>
+            <Table<TIncomingPortRow>
+              columns={incomingPortsColumns}
+              dataSource={incomingPortRows}
+              locale={{ emptyText: <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No incoming ports" /> }}
+              pagination={false}
+              rowKey="key"
+              size="middle"
+            />
           </Card>
         </Flex>
       </Flex>

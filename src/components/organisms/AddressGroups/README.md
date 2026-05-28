@@ -67,18 +67,31 @@ The AddressGroup detail route is `addressgroups/{namespace}/{metadata.name}`. Br
 
 The detail body uses the Figma card layout for:
 
-- `Info`: creation timestamp, namespace label, canonical `Tenant` badge, and owner reference.
+- `Info`: creation timestamp, namespace label, and canonical `Tenant` badge.
 - `Assignments`: total bindings count plus labels and annotations counters.
-- `Main`: immutable name, display name, default action, description, and comment.
+- `Main`: editable default action switch, logs, trace, description, and comment.
+- `Entities`: the same read-only contents tree used by the AddressGroup verbose panel.
+
+The detail page bottom section follows the Figma two-card layout, but the fields stay aligned with the local OpenAPI shape and existing edit modal. The default action switch uses the same mapping as the modal `Allow access` control: checked patches `spec.defaultAction` to `Allow`, unchecked patches it to `Deny`. `spec.logs` and `spec.trace` are displayed as read-only status values here because they are not editable in the AddressGroup modal. The `Entities` card reuses `buildAddressGroupContentsTree`, so it groups and expands the same way as verbose panels and modal overviews instead of maintaining a detail-page-only tree shape.
 
 The assignment counter opens `AddressGroupFormModal` in edit mode so Hosts, Services, and Networks are still managed through binding resources. The detail page does not render the Figma `Incoming ports` card because the local `v2` OpenAPI dump has no AddressGroup incoming-port or transport fields.
+
+The detail page also includes binding-backed entity tabs matching the Figma table shape:
+
+- `Hosts`: lists HostBindings whose `spec.addressGroup` points at this AddressGroup. Matching tolerates omitted `spec.addressGroup.namespace` by falling back to `HostBinding.metadata.namespace`, because HostBindings are created in the AddressGroup namespace.
+- `Networks`: lists NetworkBindings whose `spec.addressGroup` points at this AddressGroup. Matching tolerates omitted `spec.addressGroup.namespace` by falling back to `NetworkBinding.metadata.namespace`, because NetworkBindings are created in the AddressGroup namespace.
+- `Services`: lists ServiceBindings whose `spec.addressGroup` explicitly points at this AddressGroup. ServiceBinding namespace is the selected Service namespace, so omitted `spec.addressGroup.namespace` is not treated as this AddressGroup namespace.
+
+Each entity tab has an `Add` button that opens `AddressGroupFormModal` in edit mode. Membership changes are still saved by creating or deleting HostBinding, NetworkBinding, and ServiceBinding resources; the UI does not write `AddressGroup.refs`.
+
+The entity tabs do not show binding-name columns. Bindings are only the backing join resources; the visible table identity is the connected Host, Network, or Service.
 
 The detail page also includes a `Rules` tab for AddressGroup-related UniRules:
 
 - `Rules from` shows rules whose `spec.endpoints.local` is this AddressGroup.
 - `Rules to` shows rules whose `spec.endpoints.remote` is this AddressGroup.
 - Rule links show `spec.displayName`, falling back to `metadata.name`, while routes still use immutable namespace/name identifiers.
-- `Add` opens `UniRuleFormModal` in the current AddressGroup namespace.
+- `Add` opens `UniRuleFormModal` in the current AddressGroup namespace. From `Rules from`, it preselects this AddressGroup as the Local endpoint. From `Rules to`, it preselects this AddressGroup as the Remote endpoint.
 
 ## Edit modal
 

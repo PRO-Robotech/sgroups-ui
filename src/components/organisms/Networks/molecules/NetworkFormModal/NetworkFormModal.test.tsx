@@ -9,7 +9,6 @@ const mockDeleteEntry = jest.fn()
 const mockPatchEntryWithDeleteOp = jest.fn()
 const mockPatchEntryWithReplaceOp = jest.fn()
 const mockUseK8sSmartResource = jest.fn()
-const mockAxiosGet = jest.fn()
 const mockMessage = {
   error: jest.fn(),
   info: jest.fn(),
@@ -27,13 +26,6 @@ jest.mock(
   }),
   { virtual: true },
 )
-
-jest.mock('axios', () => ({
-  __esModule: true,
-  default: {
-    get: (...args: unknown[]) => mockAxiosGet(...args),
-  },
-}))
 
 jest.mock('antd', () => {
   const actual = jest.requireActual('antd')
@@ -64,18 +56,16 @@ describe('NetworkFormModal', () => {
     mockDeleteEntry.mockResolvedValue(undefined)
     mockPatchEntryWithDeleteOp.mockResolvedValue(undefined)
     mockPatchEntryWithReplaceOp.mockResolvedValue(undefined)
-    mockAxiosGet.mockResolvedValue({
-      data: {
-        items: [{ metadata: { name: 'ag-a', namespace: 'tenant-a' }, spec: { displayName: 'Address Group A' } }],
-      },
-    })
     mockUseK8sSmartResource.mockImplementation((params: { plural?: string }) => ({
       data: {
         items:
           params.plural === 'tenants'
             ? [{ metadata: { name: 'tenant-a' } }]
             : params.plural === 'addressgroups'
-            ? [{ metadata: { name: 'ag-a', namespace: 'tenant-a' }, spec: { displayName: 'Address Group A' } }]
+            ? [
+                { metadata: { name: 'ag-a', namespace: 'tenant-a' }, spec: { displayName: 'Address Group A' } },
+                { metadata: { name: 'ag-b', namespace: 'tenant-b' }, spec: { displayName: 'Address Group B' } },
+              ]
             : [],
       },
       error: undefined,
@@ -152,16 +142,73 @@ describe('NetworkFormModal', () => {
     expect(onClose).not.toHaveBeenCalled()
   })
 
-  it('starts the address group options query from the initial namespace', async () => {
+  it('loads address group options across namespaces', async () => {
     renderModal(<NetworkFormModal cluster="cluster-a" namespace="tenant-a" open onClose={jest.fn()} />)
 
     await screen.findByPlaceholderText('e.g. h-api-prod-01')
 
-    await waitFor(() => {
-      expect(mockAxiosGet).toHaveBeenCalledWith(
-        '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/addressgroups',
-      )
+    expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
+      expect.objectContaining({
+        namespace: undefined,
+        plural: 'addressgroups',
+      }),
+    )
+  })
+
+  it('prefills edit AddressGroup selection from bindings in another namespace', async () => {
+    mockUseK8sSmartResource.mockImplementation((params: { plural?: string }) => {
+      if (params.plural === 'tenants') {
+        return { data: { items: [{ metadata: { name: 'tenant-a' } }, { metadata: { name: 'tenant-b' } }] }, isLoading: false }
+      }
+
+      if (params.plural === 'networkbindings') {
+        return {
+          data: {
+            items: [
+              {
+                metadata: { name: 'net-a-ag-b', namespace: 'tenant-a' },
+                spec: {
+                  addressGroup: { name: 'ag-b', namespace: 'tenant-b' },
+                  network: { name: 'net-a', namespace: 'tenant-a' },
+                },
+              },
+            ],
+          },
+          isLoading: false,
+        }
+      }
+
+      if (params.plural === 'addressgroups') {
+        return {
+          data: {
+            items: [{ metadata: { name: 'ag-b', namespace: 'tenant-b' }, spec: { displayName: 'Address Group B' } }],
+          },
+          isLoading: false,
+        }
+      }
+
+      return { data: { items: [] }, isLoading: false }
     })
+
+    renderModal(
+      <NetworkFormModal
+        network={{
+          cidr: '10.20.0.0/16',
+          created: '',
+          description: '',
+          displayName: 'Network A',
+          key: 'tenant-a/net-a',
+          metadata: { name: 'net-a', namespace: 'tenant-a' },
+          spec: { CIDR: '10.20.0.0/16', displayName: 'Network A' },
+        }}
+        cluster="cluster-a"
+        namespace="tenant-a"
+        open
+        onClose={jest.fn()}
+      />,
+    )
+
+    expect(await screen.findByText('Address Group B')).toBeInTheDocument()
   })
 
   it('shows the display name input from the title pencil only in edit mode', async () => {

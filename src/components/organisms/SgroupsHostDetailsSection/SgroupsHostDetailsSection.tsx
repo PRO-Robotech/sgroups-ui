@@ -10,7 +10,6 @@ import {
   getAddressGroupOptions,
   getApiEndpoint,
   renderBadge,
-  renderBadgeWithValue,
   renderTimestampWithIcon,
 } from 'utils'
 import { syncAddressGroupBindings } from 'components/organisms/Hosts/molecules/HostFormModal/utils'
@@ -27,10 +26,6 @@ type TSgroupsHostDetailsSectionProps = {
 
 type THostDetailsResource = THostResource & {
   metadata: THostResource['metadata'] & {
-    ownerReferences?: Array<{
-      kind?: string
-      name?: string
-    }>
     uid?: string
   }
 }
@@ -55,10 +50,15 @@ const ellipsisValueStyle: React.CSSProperties = {
 }
 
 const sectionTitleStyle: React.CSSProperties = {
+  display: 'block',
   fontSize: 16,
   fontWeight: 700,
   lineHeight: '24px',
-  marginBottom: 16,
+  paddingBottom: 16,
+}
+
+const cardStyles = {
+  body: { padding: 24 },
 }
 
 const renderValue = (value?: string) => value || EMPTY_VALUE
@@ -138,21 +138,6 @@ const isBindingForHost = (binding: THostBindingResource, hostName: string, hostN
   const bindingHostNamespace = hostRef?.namespace || binding.metadata.namespace
 
   return hostRef?.name === hostName && bindingHostNamespace === hostNamespace
-}
-
-const renderOwnerRefs = (ownerReferences?: THostDetailsResource['metadata']['ownerReferences']) => {
-  if (!ownerReferences?.length) {
-    return <Typography.Text type="secondary">-</Typography.Text>
-  }
-
-  const [firstOwnerRef, ...restOwnerRefs] = ownerReferences
-
-  return (
-    <Flex align="center" gap={6} style={{ minWidth: 0 }}>
-      {renderBadgeWithValue(firstOwnerRef.kind || 'OwnerRef', firstOwnerRef.name)}
-      {restOwnerRefs.length > 0 && <Typography.Text type="secondary">+{restOwnerRefs.length}</Typography.Text>}
-    </Flex>
-  )
 }
 
 const MetadataLabelsModal: FC<{
@@ -496,7 +481,7 @@ export const SgroupsHostDetailsSection: FC<TSgroupsHostDetailsSectionProps> = ({
     <>
       <Flex gap={8} vertical>
         <Flex gap={8} wrap="wrap">
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Info</Typography.Text>
             <Flex gap={16} wrap="wrap">
               <Flex gap={4} style={{ flex: '1 1 140px' }} vertical>
@@ -512,14 +497,10 @@ export const SgroupsHostDetailsSection: FC<TSgroupsHostDetailsSectionProps> = ({
                   </Typography.Link>
                 </Flex>
               </Flex>
-              <Flex gap={4} style={{ flex: '1 1 180px', minWidth: 0 }} vertical>
-                <Typography.Text type="secondary">OwnerRef</Typography.Text>
-                {renderOwnerRefs(host.metadata.ownerReferences)}
-              </Flex>
             </Flex>
           </Card>
 
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Assignments</Typography.Text>
             <Flex align="center" gap={8} wrap>
               <CountChip
@@ -538,7 +519,7 @@ export const SgroupsHostDetailsSection: FC<TSgroupsHostDetailsSectionProps> = ({
         </Flex>
 
         <Flex gap={8} wrap="wrap">
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Main</Typography.Text>
             <Flex gap={24} vertical>
               <Flex gap={8} vertical>
@@ -567,7 +548,7 @@ export const SgroupsHostDetailsSection: FC<TSgroupsHostDetailsSectionProps> = ({
             </Flex>
           </Card>
 
-          <Card style={{ flex: '1 1 460px' }}>
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
             <Typography.Text style={sectionTitleStyle}>Meta info</Typography.Text>
             <Flex gap={8} vertical>
               <DetailField label="Hostname">

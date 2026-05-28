@@ -6,16 +6,24 @@ import { SgroupsDropdownRedirect, SgroupsPageShell } from 'components/molecules'
 import {
   SgroupsFactoryRenderer,
   SgroupsAddressGroupDetailsSection,
+  SgroupsAddressGroupEntitiesTab,
   SgroupsAddressGroupRulesTab,
   SgroupsHostDetailsSection,
   SgroupsNetworkDetailsSection,
+  SgroupsResourceActionsDropdown,
+  SgroupsServiceAddressGroupsTab,
   SgroupsServiceDetailsSection,
+  SgroupsServiceRulesTab,
 } from 'components/organisms'
 import type { TSgroupsAddressGroupDetailsSectionData } from 'components/organisms/SgroupsAddressGroupDetailsSection'
+import type { TSgroupsAddressGroupEntitiesTabData } from 'components/organisms/SgroupsAddressGroupEntitiesTab'
 import type { TSgroupsAddressGroupRulesTabData } from 'components/organisms/SgroupsAddressGroupRulesTab'
 import type { TSgroupsHostDetailsSectionData } from 'components/organisms/SgroupsHostDetailsSection'
 import type { TSgroupsNetworkDetailsSectionData } from 'components/organisms/SgroupsNetworkDetailsSection'
+import type { TSgroupsResourceActionsDropdownData } from 'components/organisms/SgroupsResourceActionsDropdown'
+import type { TSgroupsServiceAddressGroupsTabData } from 'components/organisms/SgroupsServiceAddressGroupsTab'
 import type { TSgroupsServiceDetailsSectionData } from 'components/organisms/SgroupsServiceDetailsSection'
+import type { TSgroupsServiceRulesTabData } from 'components/organisms/SgroupsServiceRulesTab'
 import { useTheme } from 'hooks/ThemeModeContext'
 import { buildSgroupsResourceDetailsBreadcrumbs } from 'utils'
 import { getPluginBasePath } from 'utils/getPluginBasePath'
@@ -48,10 +56,14 @@ type TResourceDetailsPageProps = {
 
 export type TSgroupsResourceDetailsComponentMap = TDynamicComponentsAppTypeMap & {
   SgroupsAddressGroupDetailsSection: TSgroupsAddressGroupDetailsSectionData
+  SgroupsAddressGroupEntitiesTab: TSgroupsAddressGroupEntitiesTabData
   SgroupsAddressGroupRulesTab: TSgroupsAddressGroupRulesTabData
   SgroupsHostDetailsSection: TSgroupsHostDetailsSectionData
   SgroupsNetworkDetailsSection: TSgroupsNetworkDetailsSectionData
+  SgroupsResourceActionsDropdown: TSgroupsResourceActionsDropdownData
+  SgroupsServiceAddressGroupsTab: TSgroupsServiceAddressGroupsTabData
   SgroupsServiceDetailsSection: TSgroupsServiceDetailsSectionData
+  SgroupsServiceRulesTab: TSgroupsServiceRulesTabData
 }
 
 const isKnownResourcePlural = (value?: string): value is TSgroupsResourcePlural =>
@@ -65,10 +77,14 @@ export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, re
       ...DynamicComponents,
       DropdownRedirect: SgroupsDropdownRedirect,
       SgroupsAddressGroupDetailsSection,
+      SgroupsAddressGroupEntitiesTab,
       SgroupsAddressGroupRulesTab,
       SgroupsHostDetailsSection,
       SgroupsNetworkDetailsSection,
+      SgroupsResourceActionsDropdown,
+      SgroupsServiceAddressGroupsTab,
       SgroupsServiceDetailsSection,
+      SgroupsServiceRulesTab,
     }),
     [],
   )

@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable no-void */
 /* eslint-disable max-lines-per-function */
 import { FC, useEffect, useMemo, useRef, useState } from 'react'
@@ -118,7 +119,14 @@ const withFallbackNamespace = <TResource extends { metadata: { namespace?: strin
         },
   )
 
-export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespace, open, rule, onClose }) => {
+export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
+  cluster,
+  namespace,
+  open,
+  initialValues,
+  rule,
+  onClose,
+}) => {
   const [form] = Form.useForm<TUniRuleFormValues>()
   const [activeTab, setActiveTab] = useState<'info' | 'ports'>('info')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -132,8 +140,43 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
   const modalTitle = rule?.spec?.displayName || rule?.metadata.name || 'UniRule'
   const modalTitleFallback = rule?.metadata.name || 'UniRule'
   const currentRuleFormValues = useMemo(() => buildFormValuesFromRule(rule), [rule])
-  const localFormEndpoint = localFormValue ?? (!isInitialized ? currentRuleFormValues.local : undefined)
-  const remoteFormEndpoint = remoteFormValue ?? (!isInitialized ? currentRuleFormValues.remote : undefined)
+  const initialCreateFormValues = useMemo<Partial<TUniRuleFormValues>>(() => {
+    const defaultValues: Partial<TUniRuleFormValues> = {
+      namespace,
+      action: 'Allow',
+      traffic: 'Both',
+      description: undefined,
+      comment: undefined,
+      local: {
+        type: 'AddressGroup',
+      },
+      remote: {
+        type: 'AddressGroup',
+      },
+      transportIPv: 'IPv4',
+      transportProtocol: undefined,
+      transportEntries: [],
+    }
+
+    return {
+      ...defaultValues,
+      ...initialValues,
+      local: {
+        type: 'AddressGroup',
+        ...initialValues?.local,
+      },
+      remote: {
+        type: 'AddressGroup',
+        ...initialValues?.remote,
+      },
+    }
+  }, [initialValues, namespace])
+  const localFormEndpoint =
+    localFormValue ??
+    (!isInitialized ? (rule ? currentRuleFormValues.local : initialCreateFormValues.local) : undefined)
+  const remoteFormEndpoint =
+    remoteFormValue ??
+    (!isInitialized ? (rule ? currentRuleFormValues.remote : initialCreateFormValues.remote) : undefined)
   const localType = localFormEndpoint?.type
   const remoteType = remoteFormEndpoint?.type
   const localNamespace = localFormEndpoint?.namespace
@@ -399,26 +442,13 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({ cluster, namespac
     if (!rule && !isFormResourcesLoading && !didApplyCreatePrefillRef.current) {
       didApplyCreatePrefillRef.current = true
       form.setFieldsValue({
-        namespace,
         name: uuidv4(),
         displayName: getCreateDisplayName(),
-        action: 'Allow',
-        traffic: 'Both',
-        description: undefined,
-        comment: undefined,
-        local: {
-          type: 'AddressGroup',
-        },
-        remote: {
-          type: 'AddressGroup',
-        },
-        transportIPv: 'IPv4',
-        transportProtocol: undefined,
-        transportEntries: [],
+        ...initialCreateFormValues,
       })
       setIsInitialized(true)
     }
-  }, [form, isFormResourcesLoading, namespace, open, rule])
+  }, [form, initialCreateFormValues, isFormResourcesLoading, open, rule])
 
   useEffect(() => {
     if (open) {

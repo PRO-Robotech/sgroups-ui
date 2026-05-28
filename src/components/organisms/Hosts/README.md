@@ -57,7 +57,7 @@ The Host detail page keeps the shared resource-detail header, actions menu, cond
 
 The section uses the local card concept from Figma:
 
-- `Info`: creation time, namespace, and owner reference summary.
+- `Info`: creation time and namespace.
 - `Assignments`: current HostBinding count for the Host, plus label and annotation counts.
 - `Main`: hostname, UID, IPv4/IPv6 counts, description, and comment.
 - `Meta info`: backend-owned host metadata such as OS, platform, platform version, kernel, and optional platform family.

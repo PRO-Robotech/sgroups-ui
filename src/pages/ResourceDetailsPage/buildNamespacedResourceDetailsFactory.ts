@@ -1,6 +1,7 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable max-lines-per-function */
 import type { TFactoryDataK8s } from '@prorobotech/openapi-k8s-toolkit'
-import { getRuntimeFactoryConfig, OPENAPI_UI_BASEPREFIX } from 'utils/runtimeConfig'
+import { OPENAPI_UI_BASEPREFIX } from 'utils/runtimeConfig'
 import type { TSgroupsResourceDetailsComponentMap } from './ResourceDetailsPage'
 import { SGROUPS_API_GROUP, SGROUPS_API_VERSION, TSgroupsResourceDetailsConfig } from './resourceDetailsConfig'
 
@@ -27,6 +28,57 @@ const buildAddressGroupRulesTab = (clusterId: string, namespace: string, name: s
   ],
 })
 
+const buildAddressGroupEntitiesTab = (
+  clusterId: string,
+  namespace: string,
+  name: string,
+  kind: 'hosts' | 'networks' | 'services',
+) => ({
+  key: kind,
+  label: kind === 'hosts' ? 'Hosts' : kind === 'networks' ? 'Networks' : 'Services',
+  children: [
+    {
+      type: 'SgroupsAddressGroupEntitiesTab',
+      data: {
+        clusterId,
+        namespace,
+        name,
+        kind,
+      },
+    },
+  ],
+})
+
+const buildServiceAddressGroupsTab = (clusterId: string, namespace: string, name: string) => ({
+  key: 'addressgroups',
+  label: 'AddressGroups',
+  children: [
+    {
+      type: 'SgroupsServiceAddressGroupsTab',
+      data: {
+        clusterId,
+        namespace,
+        name,
+      },
+    },
+  ],
+})
+
+const buildServiceRulesTab = (clusterId: string, namespace: string, name: string) => ({
+  key: 'rules',
+  label: 'Rules',
+  children: [
+    {
+      type: 'SgroupsServiceRulesTab',
+      data: {
+        clusterId,
+        namespace,
+        name,
+      },
+    },
+  ],
+})
+
 export const buildNamespacedResourceDetailsFactory = ({
   basePath,
   clusterId,
@@ -41,7 +93,6 @@ export const buildNamespacedResourceDetailsFactory = ({
   name: string
   namespace: string
 }): TFactoryDataK8s<TSgroupsResourceDetailsComponentMap> => {
-  const runtimeFactoryConfig = getRuntimeFactoryConfig()
   const endpoint = `/api/clusters/${clusterId}/k8s/apis/${SGROUPS_API_GROUP}/${SGROUPS_API_VERSION}/namespaces/${namespace}/${config.plural}/${name}`
   const namespaceHref = `${OPENAPI_UI_BASEPREFIX}/${clusterId}/factory/namespace-details/v1/namespaces/${namespace}`
   const injectedDetailsSectionType =
@@ -113,72 +164,14 @@ export const buildNamespacedResourceDetailsFactory = ({
             ],
           },
           {
-            type: 'ActionsDropdown',
+            type: 'SgroupsResourceActionsDropdown',
             data: {
-              buttonText: 'Actions',
-              id: 'resource-actions',
-              actions: [
-                {
-                  type: 'editLabels',
-                  props: {
-                    editModalWidth: 650,
-                    endpoint,
-                    icon: 'TagsOutlined',
-                    jsonPathToLabels: '.items.0.metadata.labels',
-                    maxEditTagTextLength: 35,
-                    modalTitle: 'Edit Labels',
-                    paddingContainerEnd: '24px',
-                    pathToValue: '/metadata/labels',
-                    permissionContext: {
-                      apiGroup: SGROUPS_API_GROUP,
-                      apiVersion: SGROUPS_API_VERSION,
-                      cluster: clusterId,
-                      namespace,
-                      plural: config.plural,
-                    },
-                    reqIndex: '0',
-                    text: 'Edit Labels',
-                  },
-                },
-                {
-                  type: 'editAnnotations',
-                  props: {
-                    cols: [11, 11, 2],
-                    editModalWidth: '800px',
-                    endpoint,
-                    icon: 'FileTextOutlined',
-                    jsonPathToObj: '.items.0.metadata.annotations',
-                    modalTitle: 'Edit Annotations',
-                    pathToValue: '/metadata/annotations',
-                    permissionContext: {
-                      apiGroup: SGROUPS_API_GROUP,
-                      apiVersion: SGROUPS_API_VERSION,
-                      cluster: clusterId,
-                      namespace,
-                      plural: config.plural,
-                    },
-                    reqIndex: '0',
-                    text: 'Edit Annotations',
-                  },
-                },
-                {
-                  type: 'delete',
-                  props: {
-                    danger: true,
-                    endpoint,
-                    icon: 'DeleteOutlined',
-                    name: "{reqsJsonPath[0]['.items.0.metadata.name']['-']}",
-                    permissionContext: {
-                      apiGroup: SGROUPS_API_GROUP,
-                      apiVersion: SGROUPS_API_VERSION,
-                      cluster: clusterId,
-                      namespace,
-                      plural: config.plural,
-                    },
-                    text: 'Delete',
-                  },
-                },
-              ],
+              clusterId,
+              endpoint,
+              kind: config.kind,
+              name,
+              namespace,
+              plural: config.plural,
             },
           },
         ],
@@ -263,7 +256,7 @@ export const buildNamespacedResourceDetailsFactory = ({
                                         children: [
                                           {
                                             type: 'antdCol',
-                                            data: { id: 'resource-info-col-created', span: 8 },
+                                            data: { id: 'resource-info-col-created', span: 12 },
                                             children: [
                                               {
                                                 type: 'antdFlex',
@@ -283,7 +276,7 @@ export const buildNamespacedResourceDetailsFactory = ({
                                           },
                                           {
                                             type: 'antdCol',
-                                            data: { id: 'resource-info-col-namespace', span: 8 },
+                                            data: { id: 'resource-info-col-namespace', span: 12 },
                                             children: [
                                               {
                                                 type: 'antdFlex',
@@ -316,58 +309,6 @@ export const buildNamespacedResourceDetailsFactory = ({
                                                           href: namespaceHref,
                                                           id: 'namespace-link',
                                                           text: '{reqsJsonPath[0][".items.0.metadata.namespace"]["-"]}',
-                                                        },
-                                                      },
-                                                    ],
-                                                  },
-                                                ],
-                                              },
-                                            ],
-                                          },
-                                          {
-                                            type: 'antdCol',
-                                            data: { id: 'resource-info-col-ownerrefs', span: 8 },
-                                            children: [
-                                              {
-                                                type: 'VisibilityContainer',
-                                                data: {
-                                                  id: 'ds-init-containers-container',
-                                                  style: { margin: 0, padding: 0 },
-                                                  value: "{reqsJsonPath[0]['.items.0.metadata.ownerReferences']['-']}",
-                                                },
-                                                children: [
-                                                  {
-                                                    type: 'antdFlex',
-                                                    data: { gap: 8, id: 'ref-link-block', vertical: true },
-                                                    children: [
-                                                      {
-                                                        type: 'antdText',
-                                                        data: { id: 'meta-ref', strong: true, text: 'OwnerRef' },
-                                                      },
-                                                      {
-                                                        type: 'OwnerRefs',
-                                                        data: {
-                                                          baseFactoryClusterSceopedAPIKey:
-                                                            runtimeFactoryConfig.baseFactoryClusterSceopedAPIKey,
-                                                          baseFactoryClusterSceopedBuiltinKey:
-                                                            runtimeFactoryConfig.baseFactoryClusterSceopedBuiltinKey,
-                                                          baseFactoryNamespacedAPIKey:
-                                                            runtimeFactoryConfig.baseFactoryNamespacedAPIKey,
-                                                          baseFactoryNamespacedBuiltinKey:
-                                                            runtimeFactoryConfig.baseFactoryNamespacedBuiltinKey,
-                                                          baseNamespaceFactoryKey:
-                                                            runtimeFactoryConfig.baseNamespaceFactoryKey,
-                                                          baseNavigationName: 'navigation',
-                                                          baseNavigationPlural: 'navigations',
-                                                          baseprefix: OPENAPI_UI_BASEPREFIX,
-                                                          cluster: clusterId,
-                                                          emptyArrayErrorText: '-',
-                                                          errorText: 'error getting refs',
-                                                          id: 'refs',
-                                                          isNotRefsArrayErrorText: 'objects in arr are not refs',
-                                                          jsonPathToArrayOfRefs: '.items.0.metadata.ownerReferences',
-                                                          notArrayErrorText: 'refs on path are not arr',
-                                                          reqIndex: '0',
                                                         },
                                                       },
                                                     ],
@@ -589,7 +530,20 @@ export const buildNamespacedResourceDetailsFactory = ({
                 },
               ],
             },
-            ...(config.kind === 'AddressGroup' ? [buildAddressGroupRulesTab(clusterId, namespace, name)] : []),
+            ...(config.kind === 'AddressGroup'
+              ? [
+                  buildAddressGroupEntitiesTab(clusterId, namespace, name, 'hosts'),
+                  buildAddressGroupEntitiesTab(clusterId, namespace, name, 'networks'),
+                  buildAddressGroupEntitiesTab(clusterId, namespace, name, 'services'),
+                  buildAddressGroupRulesTab(clusterId, namespace, name),
+                ]
+              : []),
+            ...(config.kind === 'Service'
+              ? [
+                  buildServiceAddressGroupsTab(clusterId, namespace, name),
+                  buildServiceRulesTab(clusterId, namespace, name),
+                ]
+              : []),
           ],
         },
       },

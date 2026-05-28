@@ -53,7 +53,7 @@ const serviceResource = {
       {
         IPv: 'IPv4',
         protocol: 'TCP',
-        entries: [{ ports: '80,443' }],
+        entries: [{ ports: '80,443', description: 'HTTPS and HTTP' }],
       },
     ],
   },
@@ -104,6 +104,11 @@ describe('SgroupsServiceDetailsSection', () => {
     expect(screen.getByRole('button', { name: /1 address groups/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /1 labels/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /1 annotations/i })).toBeInTheDocument()
+    expect(screen.getByText('Incoming ports')).toBeInTheDocument()
+    expect(screen.getByText('80,443')).toBeInTheDocument()
+    expect(screen.getByText('TCP')).toBeInTheDocument()
+    expect(screen.getByText('HTTPS and HTTP')).toBeInTheDocument()
+    expect(screen.queryByText('Meta info')).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /1 address groups/i }))
 

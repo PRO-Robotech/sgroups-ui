@@ -1,17 +1,37 @@
 import React, { FC, ReactNode, useEffect, useMemo, useState } from 'react'
-import { CopyOutlined, EditFilled, MinusOutlined, PlusOutlined } from '@ant-design/icons'
-import { Alert, Button, Card, Empty, Flex, Form, Input, Modal, Select, Spin, Tooltip, Typography, message } from 'antd'
+import { CaretDownOutlined, EditFilled, MinusOutlined, PlusOutlined } from '@ant-design/icons'
+import {
+  Alert,
+  Button,
+  Card,
+  Empty,
+  Flex,
+  Form,
+  Input,
+  Modal,
+  Select,
+  Spin,
+  Switch,
+  Tree,
+  Typography,
+  message,
+} from 'antd'
 import { patchEntryWithReplaceOp, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { useQueryClient } from '@tanstack/react-query'
 import {
   TAddressGroupResource,
   THostBindingResource,
+  THostResource,
   TNetworkBindingResource,
+  TNetworkResource,
   TServiceBindingResource,
+  TServiceResource,
 } from 'localTypes'
 import { OPENAPI_UI_BASEPREFIX } from 'utils/runtimeConfig'
-import { getApiEndpoint, renderBadge, renderBadgeWithValue, renderTimestampWithIcon } from 'utils'
+import { getApiEndpoint, renderBadge, renderBooleanStatusIcon, renderTimestampWithIcon } from 'utils'
+import { TreeContainer } from 'components/atoms'
 import { AddressGroupFormModal } from 'components/organisms/AddressGroups/molecules'
+import { buildAddressGroupContentsTree } from 'components/organisms/AddressGroups/molecules/VerboseAddressGroupPanel/contentsTree'
 
 export type TSgroupsAddressGroupDetailsSectionData = {
   clusterId: string
@@ -23,14 +43,7 @@ type TSgroupsAddressGroupDetailsSectionProps = {
   data: TSgroupsAddressGroupDetailsSectionData
 }
 
-type TAddressGroupDetailsResource = TAddressGroupResource & {
-  metadata: TAddressGroupResource['metadata'] & {
-    ownerReferences?: Array<{
-      kind?: string
-      name?: string
-    }>
-  }
-}
+type TAddressGroupDetailsResource = TAddressGroupResource
 
 const EMPTY_VALUE = '-'
 
@@ -44,39 +57,19 @@ const fieldValueStyle: React.CSSProperties = {
   minWidth: 0,
 }
 
-const ellipsisValueStyle: React.CSSProperties = {
-  ...fieldValueStyle,
-  overflow: 'hidden',
-  textOverflow: 'ellipsis',
-  whiteSpace: 'nowrap',
-}
-
 const sectionTitleStyle: React.CSSProperties = {
   display: 'block',
   fontSize: 16,
   fontWeight: 700,
   lineHeight: '24px',
-  marginBottom: 12,
+  paddingBottom: 16,
 }
 
 const cardStyles = {
-  body: { padding: 16 },
+  body: { padding: 24 },
 }
 
 const renderValue = (value?: string) => value || EMPTY_VALUE
-
-const copyToClipboard = async (value?: string) => {
-  if (!value) {
-    return
-  }
-
-  try {
-    await navigator.clipboard.writeText(value)
-    message.success(`Copied: ${value}`)
-  } catch {
-    message.error('Failed to copy text')
-  }
-}
 
 const DetailField: FC<{
   label: string
@@ -91,23 +84,6 @@ const DetailField: FC<{
   </Flex>
 )
 
-const CopyableValue: FC<{ value?: string }> = ({ value }) => (
-  <Flex align="center" gap={8} style={{ minWidth: 0 }}>
-    <Typography.Text style={ellipsisValueStyle}>{renderValue(value)}</Typography.Text>
-    {value && (
-      <Tooltip title="Copy">
-        <Button
-          aria-label={`Copy ${value}`}
-          icon={<CopyOutlined />}
-          size="small"
-          type="text"
-          onClick={() => copyToClipboard(value)}
-        />
-      </Tooltip>
-    )}
-  </Flex>
-)
-
 const CountChip: FC<{ text: string; editable?: boolean; onClick?: () => void }> = ({ text, editable, onClick }) => (
   <Button
     icon={editable ? <EditFilled /> : undefined}
@@ -118,21 +94,6 @@ const CountChip: FC<{ text: string; editable?: boolean; onClick?: () => void }> 
     {text}
   </Button>
 )
-
-const renderOwnerRefs = (ownerReferences?: TAddressGroupDetailsResource['metadata']['ownerReferences']) => {
-  if (!ownerReferences?.length) {
-    return <Typography.Text type="secondary">-</Typography.Text>
-  }
-
-  const [firstOwnerRef, ...restOwnerRefs] = ownerReferences
-
-  return (
-    <Flex align="center" gap={6} style={{ minWidth: 0 }}>
-      {renderBadgeWithValue(firstOwnerRef.kind || 'OwnerRef', firstOwnerRef.name)}
-      {restOwnerRefs.length > 0 && <Typography.Text type="secondary">+{restOwnerRefs.length}</Typography.Text>}
-    </Flex>
-  )
-}
 
 const isHostBindingForAddressGroup = (
   binding: THostBindingResource,
@@ -327,6 +288,7 @@ const MetadataAnnotationsModal: FC<{
 export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSectionProps> = ({ data }) => {
   const queryClient = useQueryClient()
   const [activeModal, setActiveModal] = useState<'assignments' | 'labels' | 'annotations' | null>(null)
+  const [isDefaultActionSubmitting, setIsDefaultActionSubmitting] = useState(false)
   const {
     data: addressGroupData,
     isLoading: isAddressGroupLoading,
@@ -376,6 +338,42 @@ export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSe
     namespace: undefined,
     plural: 'servicebindings',
   })
+  const {
+    data: hostsData,
+    isLoading: isHostsLoading,
+    error: hostsError,
+  } = useK8sSmartResource<{ items?: THostResource[] }>({
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    cluster: data.clusterId,
+    isEnabled: Boolean(data.clusterId && data.namespace),
+    namespace: data.namespace,
+    plural: 'hosts',
+  })
+  const {
+    data: networksData,
+    isLoading: isNetworksLoading,
+    error: networksError,
+  } = useK8sSmartResource<{ items?: TNetworkResource[] }>({
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    cluster: data.clusterId,
+    isEnabled: Boolean(data.clusterId && data.namespace),
+    namespace: data.namespace,
+    plural: 'networks',
+  })
+  const {
+    data: servicesData,
+    isLoading: isServicesLoading,
+    error: servicesError,
+  } = useK8sSmartResource<{ items?: TServiceResource[] }>({
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    cluster: data.clusterId,
+    isEnabled: Boolean(data.clusterId),
+    namespace: undefined,
+    plural: 'services',
+  })
 
   const addressGroup = addressGroupData?.items?.[0]
   const hostBindings = useMemo(
@@ -399,6 +397,41 @@ export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSe
       ),
     [data.name, data.namespace, serviceBindingsData?.items],
   )
+  const entitiesTreeData = useMemo(
+    () =>
+      buildAddressGroupContentsTree({
+        addressGroupName: data.name,
+        addressGroupNamespace: data.namespace,
+        hostBindings: hostBindingsData?.items || [],
+        hosts: hostsData?.items || [],
+        networkBindings: networkBindingsData?.items || [],
+        networks: networksData?.items || [],
+        serviceBindings: serviceBindingsData?.items || [],
+        services: servicesData?.items || [],
+        hostBindingsError: Boolean(hostBindingsError),
+        networkBindingsError: Boolean(networkBindingsError),
+        serviceBindingsError: Boolean(serviceBindingsError),
+        hostsError: Boolean(hostsError),
+        networksError: Boolean(networksError),
+        servicesError: Boolean(servicesError),
+      }),
+    [
+      data.name,
+      data.namespace,
+      hostBindingsData?.items,
+      hostsData?.items,
+      networkBindingsData?.items,
+      networksData?.items,
+      serviceBindingsData?.items,
+      servicesData?.items,
+      hostBindingsError,
+      networkBindingsError,
+      serviceBindingsError,
+      hostsError,
+      networksError,
+      servicesError,
+    ],
+  )
   const labelsCount = Object.keys(addressGroup?.metadata.labels || {}).length
   const annotationsCount = Object.keys(addressGroup?.metadata.annotations || {}).length
   const assignmentsCount = hostBindings.length + networkBindings.length + serviceBindings.length
@@ -414,8 +447,45 @@ export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSe
     queryClient.invalidateQueries({ queryKey: ['multi'] })
     message.success(description)
   }
+  const handleDefaultActionChange = async (allowAccess: boolean) => {
+    if (!endpoint) {
+      return
+    }
 
-  if (isAddressGroupLoading || isHostBindingsLoading || isNetworkBindingsLoading || isServiceBindingsLoading) {
+    const nextDefaultAction = allowAccess ? 'Allow' : 'Deny'
+    const currentDefaultAction = addressGroup?.spec?.defaultAction || 'Deny'
+
+    if (nextDefaultAction === currentDefaultAction) {
+      return
+    }
+
+    setIsDefaultActionSubmitting(true)
+
+    try {
+      await patchEntryWithReplaceOp({
+        endpoint,
+        pathToValue: '/spec/defaultAction',
+        body: nextDefaultAction,
+      })
+      await queryClient.invalidateQueries({ queryKey: ['k8s-list'] })
+      await queryClient.invalidateQueries({ queryKey: ['multi'] })
+      message.success('Default action has been updated')
+    } catch (error) {
+      message.error(`Failed to update default action: ${String(error)}`)
+    } finally {
+      setIsDefaultActionSubmitting(false)
+    }
+  }
+
+  if (
+    isAddressGroupLoading ||
+    isHostBindingsLoading ||
+    isNetworkBindingsLoading ||
+    isServiceBindingsLoading ||
+    isHostsLoading ||
+    isNetworksLoading ||
+    isServicesLoading
+  ) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', padding: '24px 0' }}>
         <Spin />
@@ -423,7 +493,15 @@ export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSe
     )
   }
 
-  if (addressGroupError || hostBindingsError || networkBindingsError || serviceBindingsError) {
+  if (
+    addressGroupError ||
+    hostBindingsError ||
+    networkBindingsError ||
+    serviceBindingsError ||
+    hostsError ||
+    networksError ||
+    servicesError
+  ) {
     return <Alert type="error" message="Error while loading AddressGroup details" />
   }
 
@@ -451,10 +529,6 @@ export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSe
                   </Typography.Link>
                 </Flex>
               </Flex>
-              <Flex gap={4} style={{ flex: '1 1 180px', minWidth: 0 }} vertical>
-                <Typography.Text type="secondary">OwnerRef</Typography.Text>
-                {renderOwnerRefs(addressGroup.metadata.ownerReferences)}
-              </Flex>
             </Flex>
           </Card>
 
@@ -476,30 +550,41 @@ export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSe
           </Card>
         </Flex>
 
-        <Card styles={cardStyles}>
-          <Typography.Text style={sectionTitleStyle}>Main</Typography.Text>
-          <Flex gap={24} vertical>
-            <DetailField label="Name">
-              <CopyableValue value={addressGroup.metadata.name} />
-            </DetailField>
-            <DetailField label="Display name">
-              <Typography.Text>{renderValue(addressGroup.spec?.displayName)}</Typography.Text>
-            </DetailField>
-            <DetailField label="Default action">
-              <Typography.Text>{renderValue(addressGroup.spec?.defaultAction)}</Typography.Text>
-            </DetailField>
-            <DetailField label="Description" align="flex-start">
-              <Typography.Paragraph style={{ margin: 0 }}>
-                {renderValue(addressGroup.spec?.description)}
-              </Typography.Paragraph>
-            </DetailField>
-            <DetailField label="Comment" align="flex-start">
-              <Typography.Paragraph style={{ margin: 0 }}>
-                {renderValue(addressGroup.spec?.comment)}
-              </Typography.Paragraph>
-            </DetailField>
-          </Flex>
-        </Card>
+        <Flex gap={8} wrap="wrap">
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
+            <Typography.Text style={sectionTitleStyle}>Main</Typography.Text>
+            <Flex gap={24} vertical>
+              <DetailField label="Default action">
+                <Switch
+                  checked={(addressGroup.spec?.defaultAction || 'Deny') === 'Allow'}
+                  checkedChildren="Allow"
+                  loading={isDefaultActionSubmitting}
+                  unCheckedChildren="Deny"
+                  onChange={handleDefaultActionChange}
+                />
+              </DetailField>
+              <DetailField label="Logs">{renderBooleanStatusIcon(Boolean(addressGroup.spec?.logs))}</DetailField>
+              <DetailField label="Trace">{renderBooleanStatusIcon(Boolean(addressGroup.spec?.trace))}</DetailField>
+              <DetailField label="Description" align="flex-start">
+                <Typography.Paragraph style={{ margin: 0 }}>
+                  {renderValue(addressGroup.spec?.description)}
+                </Typography.Paragraph>
+              </DetailField>
+              <DetailField label="Comment" align="flex-start">
+                <Typography.Paragraph style={{ margin: 0 }}>
+                  {renderValue(addressGroup.spec?.comment)}
+                </Typography.Paragraph>
+              </DetailField>
+            </Flex>
+          </Card>
+
+          <Card styles={cardStyles} style={{ flex: '1 1 460px' }}>
+            <Typography.Text style={sectionTitleStyle}>Entities</Typography.Text>
+            <TreeContainer>
+              <Tree showLine switcherIcon={<CaretDownOutlined />} treeData={entitiesTreeData} />
+            </TreeContainer>
+          </Card>
+        </Flex>
       </Flex>
       <AddressGroupFormModal
         cluster={data.clusterId}

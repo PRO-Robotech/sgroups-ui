@@ -130,6 +130,28 @@ describe('UniRuleFormModal utils', () => {
     ])
   })
 
+  it('does not count empty placeholder leaves as configured overview roots', () => {
+    const tree = buildOverviewTreeData({
+      localTreeData: [{ title: 'No endpoint configured', key: 'endpoint-empty', isLeaf: true }],
+      remoteTreeData: [
+        { title: 'No endpoint configured', key: 'endpoint-empty', isLeaf: true },
+        { title: 'Remote endpoint', key: 'remote-a' },
+      ],
+    })
+
+    render(
+      <>
+        {tree[0].title}
+        {tree[1].title}
+      </>,
+    )
+
+    expect(screen.getByText('Local')).toBeInTheDocument()
+    expect(screen.getByText('Remote')).toBeInTheDocument()
+    expect(screen.getByText('0')).toBeInTheDocument()
+    expect(screen.getByText('1')).toBeInTheDocument()
+  })
+
   it('renders changed overview and endpoint roots with Changed markers', () => {
     const tree = buildOverviewTreeData({
       localTreeData: [{ key: 'local-a', title: 'Local endpoint' }],

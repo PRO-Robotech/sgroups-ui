@@ -70,7 +70,7 @@ describe('buildNamespacedResourceDetailsFactory', () => {
     expect(collectByType(factory.data, 'YamlEditorSingleton')).toHaveLength(1)
   })
 
-  it('does not redirect when the delete modal is closed', () => {
+  it('configures custom resource actions without delete redirect data', () => {
     const factory = buildNamespacedResourceDetailsFactory({
       basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
       clusterId: 'cluster-a',
@@ -80,11 +80,17 @@ describe('buildNamespacedResourceDetailsFactory', () => {
       namespace: 'tenant-a',
     })
 
-    const actionsDropdown = collectByType(factory.data, 'ActionsDropdown')[0]
-    const actions = actionsDropdown.data?.actions as Array<{ props?: Record<string, unknown>; type?: string }>
-    const deleteAction = actions.find(action => action.type === 'delete')
+    const actionsDropdown = collectByType(factory.data, 'SgroupsResourceActionsDropdown')[0]
 
-    expect(deleteAction?.props).not.toHaveProperty('redirectTo')
+    expect(actionsDropdown.data).toEqual({
+      clusterId: 'cluster-a',
+      endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/hosts/host-a',
+      kind: 'Host',
+      name: 'host-a',
+      namespace: 'tenant-a',
+      plural: 'hosts',
+    })
+    expect(actionsDropdown.data).not.toHaveProperty('redirectTo')
   })
 
   it('uses the custom Host details section for Host resources', () => {
@@ -147,6 +153,32 @@ describe('buildNamespacedResourceDetailsFactory', () => {
     expect(collectByType(hostFactory.data, 'SgroupsAddressGroupRulesTab')).toEqual([])
   })
 
+  it('adds AddressGroup Hosts, Networks, and Services tabs only for AddressGroup resources', () => {
+    const addressGroupFactory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.addressgroups,
+      displayName: 'Production Address Group',
+      name: 'ag-a',
+      namespace: 'tenant-a',
+    })
+    const serviceFactory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.services,
+      displayName: 'API Service',
+      name: 'service-a',
+      namespace: 'tenant-a',
+    })
+
+    expect(collectByType(addressGroupFactory.data, 'SgroupsAddressGroupEntitiesTab').map(item => item.data)).toEqual([
+      { clusterId: 'cluster-a', kind: 'hosts', name: 'ag-a', namespace: 'tenant-a' },
+      { clusterId: 'cluster-a', kind: 'networks', name: 'ag-a', namespace: 'tenant-a' },
+      { clusterId: 'cluster-a', kind: 'services', name: 'ag-a', namespace: 'tenant-a' },
+    ])
+    expect(collectByType(serviceFactory.data, 'SgroupsAddressGroupEntitiesTab')).toEqual([])
+  })
+
   it('uses the custom Service details section for Service resources', () => {
     const factory = buildNamespacedResourceDetailsFactory({
       basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
@@ -162,6 +194,38 @@ describe('buildNamespacedResourceDetailsFactory', () => {
       name: 'service-a',
       namespace: 'tenant-a',
     })
+  })
+
+  it('adds Service AddressGroups and Rules tabs only for Service resources', () => {
+    const serviceFactory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.services,
+      displayName: 'API Service',
+      name: 'service-a',
+      namespace: 'tenant-a',
+    })
+    const networkFactory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.networks,
+      displayName: 'Production Network',
+      name: 'network-a',
+      namespace: 'tenant-a',
+    })
+
+    expect(collectByType(serviceFactory.data, 'SgroupsServiceAddressGroupsTab')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'service-a',
+      namespace: 'tenant-a',
+    })
+    expect(collectByType(serviceFactory.data, 'SgroupsServiceRulesTab')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'service-a',
+      namespace: 'tenant-a',
+    })
+    expect(collectByType(networkFactory.data, 'SgroupsServiceAddressGroupsTab')).toEqual([])
+    expect(collectByType(networkFactory.data, 'SgroupsServiceRulesTab')).toEqual([])
   })
 
   it('uses the custom Network details section for Network resources', () => {
