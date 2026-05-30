@@ -122,10 +122,11 @@ describe('Services', () => {
     expect(screen.getByRole('dialog')).toHaveTextContent('Service form create')
   })
 
-  it('opens delete modal from the table action', () => {
+  it('opens delete modal from the table action', async () => {
     render(<Services cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete service a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /actions for service a/i }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /delete/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/SService A')
   })

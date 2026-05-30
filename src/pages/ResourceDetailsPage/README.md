@@ -37,22 +37,24 @@ The first breadcrumb links back to the module table:
 ```
 
 The resource breadcrumb uses the visible display name, not the identifier.
+Tenant/namespace is kept in the route and API calls, but it is not rendered as a breadcrumb item.
 
 ## Factory contents
 
 The generated factory includes:
 
 - header badge, resource dropdown, copy button, and actions
-- labels and annotations actions/cards for generic resource detail layouts
-- resource info
+- the shared first Details-tab row: resource info, namespace, owner references, labels, and annotations
 - conditions table when `.status.conditions` exists
 - YAML editor
 
 The header selector overrides the toolkit `DropdownRedirect` locally so option values remain `metadata.name` for route changes while visible option labels use `spec.displayName`, falling back to `metadata.name`.
 
-AddressGroup, Host, Network, and Service details replace the generic info/metadata card row with local injected sections: `SgroupsAddressGroupDetailsSection`, `SgroupsHostDetailsSection`, `SgroupsNetworkDetailsSection`, and `SgroupsServiceDetailsSection`. This follows the RBAC plugin pattern of injecting a local React component into the dynamic renderer for domain-specific inner content while keeping the shared header, actions, conditions, and YAML tabs factory-driven.
+All five sgroups detail pages use the same factory-backed upper Details-tab row from the YAML factory shape. Labels and annotations are edited through the shared `AggregatedCounterCard` metadata cards, not through local React detail sections.
 
-The AddressGroup detail section follows the Figma card structure for `Info`, `Assignments`, `Main`, and `Entities` content. The `Main` card exposes a default-action switch using the same `Allow access` mapping as `AddressGroupFormModal`: checked patches `spec.defaultAction` to `Allow`, unchecked patches it to `Deny`. `Logs` and `Trace` render as read-only boolean status icons. The `Entities` card reuses the shared AddressGroup contents tree so it stays aligned with verbose panels and modal overviews. Figma's `Incoming ports` card is intentionally not rendered for AddressGroups because the local `v2` OpenAPI shape does not expose incoming ports or transports on `AddressGroup`.
+AddressGroup, Host, Network, and Service details add local injected sections below the shared metadata row: `SgroupsAddressGroupDetailsSection`, `SgroupsHostDetailsSection`, `SgroupsNetworkDetailsSection`, and `SgroupsServiceDetailsSection`. These sections contain only resource-specific cards while keeping the shared header, metadata, conditions, and YAML tabs factory-driven.
+
+The AddressGroup detail section renders `Main` and `Entities` cards. The `Main` card exposes a default-action switch using the same `Allow access` mapping as `AddressGroupFormModal`: checked patches `spec.defaultAction` to `Allow`, unchecked patches it to `Deny`. `Logs` and `Trace` render as read-only boolean status icons. The `Entities` card reuses the shared AddressGroup contents tree so it stays aligned with verbose panels and modal overviews. Figma's `Assignments` and `Incoming ports` cards are intentionally not rendered here: metadata belongs to the shared factory row, and the local `v2` OpenAPI shape does not expose incoming ports or transports on `AddressGroup`.
 
 AddressGroup details add a `Rules` tab with a segmented `Rules from` / `Rules to` table. `Rules from` matches `Rule.spec.endpoints.local` against the current AddressGroup; `Rules to` matches `Rule.spec.endpoints.remote`. The tab's `Add` button passes create-mode initial values into `UniRuleFormModal`: `Rules from` preselects the current AddressGroup as Local, and `Rules to` preselects it as Remote.
 

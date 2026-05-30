@@ -120,10 +120,11 @@ describe('AddressGroups', () => {
     expect(screen.getByRole('dialog')).toHaveTextContent('AddressGroup form create')
   })
 
-  it('opens delete modal from the table action', () => {
+  it('opens delete modal from the table action', async () => {
     render(<AddressGroups cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete address group a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /actions for address group a/i }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /delete/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/AGAddress Group A')
   })

@@ -79,6 +79,291 @@ const buildServiceRulesTab = (clusterId: string, namespace: string, name: string
   ],
 })
 
+const buildResourceInfoAndMetadataRow = ({
+  clusterId,
+  config,
+  endpoint,
+  namespace,
+}: {
+  clusterId: string
+  config: TSgroupsResourceDetailsConfig
+  endpoint: string
+  namespace: string
+}) => ({
+  type: 'antdRow',
+  data: { gutter: [24, 24] },
+  children: [
+    {
+      type: 'antdCol',
+      data: { span: 12, xl: 12, xs: 24 },
+      children: [
+        {
+          type: 'ContentCard',
+          data: { id: 'resource-info-card' },
+          children: [
+            {
+              type: 'DefaultDiv',
+              data: {
+                id: 'resource-info-card-title',
+                style: {
+                  alignItems: 'center',
+                  display: 'flex',
+                  gap: '12px',
+                  marginBottom: '12px',
+                },
+              },
+              children: [
+                {
+                  type: 'antdIcons',
+                  data: {
+                    iconName: 'InfoCircleOutlined',
+                    iconProps: {
+                      color: 'token.colorInfo',
+                      size: 24,
+                      style: { color: 'token.colorInfo', fontSize: 24 },
+                    },
+                    id: 'resource-info-icon',
+                  },
+                },
+                {
+                  type: 'parsedText',
+                  data: {
+                    id: 'resource-info-title-text',
+                    style: { fontSize: '16px', lineHeight: '24px' },
+                    text: "{reqsJsonPath[0]['.items.0.kind']['-']} Info",
+                  },
+                },
+              ],
+            },
+            {
+              type: 'antdRow',
+              data: { gutter: [24, 0] },
+              children: [
+                {
+                  type: 'antdCol',
+                  data: { id: 'resource-info-col-created', span: 8 },
+                  children: [
+                    {
+                      type: 'antdFlex',
+                      data: { gap: 4, vertical: true },
+                      children: [
+                        { type: 'antdText', data: { strong: true, text: 'Created' } },
+                        {
+                          type: 'parsedText',
+                          data: {
+                            formatter: 'timestamp',
+                            text: "{reqsJsonPath[0]['.items.0.metadata.creationTimestamp']['-']}",
+                          },
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: 'antdCol',
+                  data: { id: 'resource-info-col-namespace', span: 8 },
+                  children: [
+                    {
+                      type: 'antdFlex',
+                      data: { gap: 4, vertical: true },
+                      children: [
+                        {
+                          type: 'antdText',
+                          data: {
+                            id: 'meta-namespace-label',
+                            strong: true,
+                            text: 'Namespace',
+                          },
+                        },
+                        {
+                          type: 'antdFlex',
+                          data: {
+                            align: 'center',
+                            direction: 'row',
+                            gap: 6,
+                            id: 'namespace-badge-link-row',
+                          },
+                          children: [
+                            {
+                              type: 'ResourceBadge',
+                              data: { id: 'namespace-resource-badge', value: 'Namespace' },
+                            },
+                            {
+                              type: 'antdLink',
+                              data: {
+                                href: `${OPENAPI_UI_BASEPREFIX}/${clusterId}/factory/namespace-details/v1/namespaces/{reqsJsonPath[0]['.items.0.metadata.namespace']['-']}`,
+                                id: 'namespace-link',
+                                text: '{reqsJsonPath[0][".items.0.metadata.namespace"]["-"]}',
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+                {
+                  type: 'antdCol',
+                  data: { id: 'resource-info-col-ownerrefs', span: 8 },
+                  children: [
+                    {
+                      type: 'VisibilityContainer',
+                      data: {
+                        id: 'ds-init-containers-container',
+                        style: { margin: 0, padding: 0 },
+                        value: "{reqsJsonPath[0]['.items.0.metadata.ownerReferences']['-']}",
+                      },
+                      children: [
+                        {
+                          type: 'antdFlex',
+                          data: { gap: 8, id: 'ref-link-block', vertical: true },
+                          children: [
+                            {
+                              type: 'antdText',
+                              data: {
+                                id: 'meta-ref',
+                                strong: true,
+                                text: 'OwnerRef',
+                              },
+                            },
+                            {
+                              type: 'OwnerRefs',
+                              data: {
+                                baseFactoryClusterSceopedAPIKey: 'base-factory-clusterscoped-api',
+                                baseFactoryClusterSceopedBuiltinKey: 'base-factory-clusterscoped-builtin',
+                                baseFactoryNamespacedAPIKey: 'base-factory-namespaced-api',
+                                baseFactoryNamespacedBuiltinKey: 'base-factory-namespaced-builtin',
+                                baseNamespaceFactoryKey: 'namespace-details',
+                                baseNavigationName: 'navigation',
+                                baseNavigationPlural: 'navigations',
+                                baseprefix: OPENAPI_UI_BASEPREFIX,
+                                cluster: clusterId,
+                                emptyArrayErrorText: '-',
+                                errorText: 'error getting refs',
+                                id: 'refs',
+                                isNotRefsArrayErrorText: 'objects in arr are not refs',
+                                jsonPathToArrayOfRefs: '.items.0.metadata.ownerReferences',
+                                notArrayErrorText: 'refs on path are not arr',
+                                reqIndex: 0,
+                              },
+                            },
+                          ],
+                        },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+    {
+      type: 'antdCol',
+      data: { span: 12, xl: 12, xs: 24 },
+      children: [
+        {
+          type: 'ContentCard',
+          data: { id: 'metadata-card', title: 'Metadata' },
+          style: { marginBottom: '24px' },
+          children: [
+            {
+              type: 'DefaultDiv',
+              data: {
+                id: 'cards-container',
+                style: {
+                  columnGap: 16,
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  marginBottom: '16px',
+                  rowGap: 10,
+                },
+              },
+              children: [
+                {
+                  type: 'AggregatedCounterCard',
+                  data: {
+                    activeType: {
+                      props: {
+                        editModalWidth: 650,
+                        endpoint,
+                        inputLabel: '',
+                        jsonPathToLabels: '.items.0.metadata.labels',
+                        maxEditTagTextLength: 35,
+                        modalDescriptionText: '',
+                        modalTitle: 'Edit labels',
+                        notificationSuccessMessage: 'Updated successfully',
+                        notificationSuccessMessageDescription: 'Labels have been updated',
+                        paddingContainerEnd: '24px',
+                        pathToValue: '/metadata/labels',
+                        permissionContext: {
+                          apiGroup: SGROUPS_API_GROUP,
+                          apiVersion: SGROUPS_API_VERSION,
+                          cluster: clusterId,
+                          namespace,
+                          plural: config.plural,
+                        },
+                        reqIndex: '0',
+                      },
+                      type: 'labels',
+                    },
+                    counter: {
+                      props: { jsonPathToObj: '.items.0.metadata.labels', reqIndex: '0' },
+                      type: 'key',
+                    },
+                    iconBase64Encoded: LABELS_ICON,
+                    id: 'labels-counter-card',
+                    text: 'Labels',
+                  },
+                },
+                {
+                  type: 'AggregatedCounterCard',
+                  data: {
+                    activeType: {
+                      props: {
+                        cols: [11, 11, 2],
+                        editModalWidth: '800px',
+                        endpoint,
+                        inputLabel: '',
+                        jsonPathToObj: '.items.0.metadata.annotations',
+                        modalDescriptionText: '',
+                        modalTitle: 'Edit annotations',
+                        notificationSuccessMessage: 'Updated successfully',
+                        notificationSuccessMessageDescription: 'Annotations have been updated',
+                        pathToValue: '/metadata/annotations',
+                        permissionContext: {
+                          apiGroup: SGROUPS_API_GROUP,
+                          apiVersion: SGROUPS_API_VERSION,
+                          cluster: clusterId,
+                          namespace,
+                          plural: config.plural,
+                        },
+                        reqIndex: '0',
+                      },
+                      type: 'annotations',
+                    },
+                    counter: {
+                      props: {
+                        jsonPathToObj: '.items.0.metadata.annotations',
+                        reqIndex: '0',
+                      },
+                      type: 'key',
+                    },
+                    iconBase64Encoded: ANNOTATIONS_ICON,
+                    id: 'annotations-counter-card',
+                    text: 'Annotations',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+})
+
 export const buildNamespacedResourceDetailsFactory = ({
   basePath,
   clusterId,
@@ -94,7 +379,6 @@ export const buildNamespacedResourceDetailsFactory = ({
   namespace: string
 }): TFactoryDataK8s<TSgroupsResourceDetailsComponentMap> => {
   const endpoint = `/api/clusters/${clusterId}/k8s/apis/${SGROUPS_API_GROUP}/${SGROUPS_API_VERSION}/namespaces/${namespace}/${config.plural}/${name}`
-  const namespaceHref = `${OPENAPI_UI_BASEPREFIX}/${clusterId}/factory/namespace-details/v1/namespaces/${namespace}`
   const injectedDetailsSectionType =
     {
       AddressGroup: 'SgroupsAddressGroupDetailsSection',
@@ -192,6 +476,7 @@ export const buildNamespacedResourceDetailsFactory = ({
                   type: 'antdFlex',
                   data: { gap: 24, id: 'details-stack', vertical: true },
                   children: [
+                    buildResourceInfoAndMetadataRow({ clusterId, config, endpoint, namespace }),
                     ...(injectedDetailsSectionType
                       ? [
                           {
@@ -203,231 +488,7 @@ export const buildNamespacedResourceDetailsFactory = ({
                             },
                           },
                         ]
-                      : [
-                          {
-                            type: 'antdRow',
-                            data: { gutter: [24, 24] },
-                            children: [
-                              {
-                                type: 'antdCol',
-                                data: { span: 12, xl: 12, xs: 24 },
-                                children: [
-                                  {
-                                    type: 'ContentCard',
-                                    data: { id: 'resource-info-card' },
-                                    children: [
-                                      {
-                                        type: 'DefaultDiv',
-                                        data: {
-                                          id: 'resource-info-card-title',
-                                          style: {
-                                            alignItems: 'center',
-                                            display: 'flex',
-                                            gap: '12px',
-                                            marginBottom: '12px',
-                                          },
-                                        },
-                                        children: [
-                                          {
-                                            type: 'antdIcons',
-                                            data: {
-                                              iconName: 'InfoCircleOutlined',
-                                              iconProps: {
-                                                color: 'token.colorInfo',
-                                                size: 24,
-                                                style: { color: 'token.colorInfo', fontSize: 24 },
-                                              },
-                                              id: 'resource-info-icon',
-                                            },
-                                          },
-                                          {
-                                            type: 'parsedText',
-                                            data: {
-                                              id: 'resource-info-title-text',
-                                              style: { fontSize: '16px', lineHeight: '24px' },
-                                              text: "{reqsJsonPath[0]['.items.0.kind']['-']} Info",
-                                            },
-                                          },
-                                        ],
-                                      },
-                                      {
-                                        type: 'antdRow',
-                                        data: { gutter: [24, 0] },
-                                        children: [
-                                          {
-                                            type: 'antdCol',
-                                            data: { id: 'resource-info-col-created', span: 12 },
-                                            children: [
-                                              {
-                                                type: 'antdFlex',
-                                                data: { gap: 4, vertical: true },
-                                                children: [
-                                                  { type: 'antdText', data: { strong: true, text: 'Created' } },
-                                                  {
-                                                    type: 'parsedText',
-                                                    data: {
-                                                      formatter: 'timestamp',
-                                                      text: "{reqsJsonPath[0]['.items.0.metadata.creationTimestamp']['-']}",
-                                                    },
-                                                  },
-                                                ],
-                                              },
-                                            ],
-                                          },
-                                          {
-                                            type: 'antdCol',
-                                            data: { id: 'resource-info-col-namespace', span: 12 },
-                                            children: [
-                                              {
-                                                type: 'antdFlex',
-                                                data: { gap: 4, vertical: true },
-                                                children: [
-                                                  {
-                                                    type: 'antdText',
-                                                    data: {
-                                                      id: 'meta-namespace-label',
-                                                      strong: true,
-                                                      text: 'Tenant',
-                                                    },
-                                                  },
-                                                  {
-                                                    type: 'antdFlex',
-                                                    data: {
-                                                      align: 'center',
-                                                      direction: 'row',
-                                                      gap: 6,
-                                                      id: 'namespace-badge-link-row',
-                                                    },
-                                                    children: [
-                                                      {
-                                                        type: 'ResourceBadge',
-                                                        data: { id: 'namespace-resource-badge', value: 'Tenant' },
-                                                      },
-                                                      {
-                                                        type: 'antdLink',
-                                                        data: {
-                                                          href: namespaceHref,
-                                                          id: 'namespace-link',
-                                                          text: '{reqsJsonPath[0][".items.0.metadata.namespace"]["-"]}',
-                                                        },
-                                                      },
-                                                    ],
-                                                  },
-                                                ],
-                                              },
-                                            ],
-                                          },
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                ],
-                              },
-                              {
-                                type: 'antdCol',
-                                data: { span: 12, xl: 12, xs: 24 },
-                                children: [
-                                  {
-                                    type: 'ContentCard',
-                                    data: { id: 'metadata-card', title: 'Metadata', style: { marginBottom: '24px' } },
-                                    children: [
-                                      {
-                                        type: 'DefaultDiv',
-                                        data: {
-                                          id: 'cards-container',
-                                          style: {
-                                            columnGap: 16,
-                                            display: 'grid',
-                                            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-                                            marginBottom: '16px',
-                                            rowGap: 10,
-                                          },
-                                        },
-                                        children: [
-                                          {
-                                            type: 'AggregatedCounterCard',
-                                            data: {
-                                              activeType: {
-                                                props: {
-                                                  editModalWidth: 650,
-                                                  endpoint,
-                                                  inputLabel: '',
-                                                  jsonPathToLabels: '.items.0.metadata.labels',
-                                                  maxEditTagTextLength: 35,
-                                                  modalDescriptionText: '',
-                                                  modalTitle: 'Edit labels',
-                                                  notificationSuccessMessage: 'Updated successfully',
-                                                  notificationSuccessMessageDescription: 'Labels have been updated',
-                                                  paddingContainerEnd: '24px',
-                                                  pathToValue: '/metadata/labels',
-                                                  permissionContext: {
-                                                    apiGroup: SGROUPS_API_GROUP,
-                                                    apiVersion: SGROUPS_API_VERSION,
-                                                    cluster: clusterId,
-                                                    namespace,
-                                                    plural: config.plural,
-                                                  },
-                                                  reqIndex: '0',
-                                                },
-                                                type: 'labels',
-                                              },
-                                              counter: {
-                                                props: { jsonPathToObj: '.items.0.metadata.labels', reqIndex: '0' },
-                                                type: 'key',
-                                              },
-                                              iconBase64Encoded: LABELS_ICON,
-                                              id: 'labels-counter-card',
-                                              text: 'Labels',
-                                            },
-                                          },
-                                          {
-                                            type: 'AggregatedCounterCard',
-                                            data: {
-                                              activeType: {
-                                                props: {
-                                                  cols: [11, 11, 2],
-                                                  editModalWidth: '800px',
-                                                  endpoint,
-                                                  inputLabel: '',
-                                                  jsonPathToObj: '.items.0.metadata.annotations',
-                                                  modalDescriptionText: '',
-                                                  modalTitle: 'Edit annotations',
-                                                  notificationSuccessMessage: 'Updated successfully',
-                                                  notificationSuccessMessageDescription:
-                                                    'Annotations have been updated',
-                                                  pathToValue: '/metadata/annotations',
-                                                  permissionContext: {
-                                                    apiGroup: SGROUPS_API_GROUP,
-                                                    apiVersion: SGROUPS_API_VERSION,
-                                                    cluster: clusterId,
-                                                    namespace,
-                                                    plural: config.plural,
-                                                  },
-                                                  reqIndex: '0',
-                                                },
-                                                type: 'annotations',
-                                              },
-                                              counter: {
-                                                props: {
-                                                  jsonPathToObj: '.items.0.metadata.annotations',
-                                                  reqIndex: '0',
-                                                },
-                                                type: 'key',
-                                              },
-                                              iconBase64Encoded: ANNOTATIONS_ICON,
-                                              id: 'annotations-counter-card',
-                                              text: 'Annotations',
-                                            },
-                                          },
-                                        ],
-                                      },
-                                    ],
-                                  },
-                                ],
-                              },
-                            ],
-                          },
-                        ]),
+                      : []),
                     {
                       type: 'VisibilityContainer',
                       data: {
