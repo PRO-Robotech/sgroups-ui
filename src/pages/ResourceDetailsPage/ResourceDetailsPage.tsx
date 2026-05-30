@@ -125,13 +125,12 @@ export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, re
       config
         ? buildSgroupsResourceDetailsBreadcrumbs({
             basePath,
-            namespace: resourceNamespace,
             plural: config.plural,
             resourceName: resourceDisplayName,
             resourceTitle: config.title,
           })
         : [],
-    [basePath, config, resourceDisplayName, resourceNamespace],
+    [basePath, config, resourceDisplayName],
   )
 
   if (!clusterId) {

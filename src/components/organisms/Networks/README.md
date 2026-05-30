@@ -54,17 +54,15 @@ AddressGroup nodes in the overview and verbose-panel trees include a small detai
 
 ## Detail page
 
-The Network detail page uses the local `SgroupsNetworkDetailsSection` injected into the shared factory renderer. It follows the Figma card structure with `Info`, `Assignments`, and `Main` sections:
+The Network detail page keeps the shared resource-detail header, actions menu, upper resource info/metadata row, conditions section, and YAML editor. It uses the local `SgroupsNetworkDetailsSection` only for Network-specific content below that row.
 
-- `Info`: creation time and namespace.
-- `Assignments`: editable AddressGroup, label, and annotation counters.
-- `Main`: `spec.CIDR`, `spec.description`, and `spec.comment`.
+The shared factory row owns creation time, namespace, owner references, labels, and annotations. `SgroupsNetworkDetailsSection` renders the `Main` card with `spec.CIDR`, `spec.description`, and `spec.comment`.
 
-AddressGroup edits from the detail page are saved through `NetworkBinding` resources in the Network namespace. The detail page does not write computed `refs`.
+The detail section does not render a Figma `Assignments` card. AddressGroup membership is edited through `NetworkFormModal` from table actions; labels and annotations are edited through the shared factory metadata cards. The detail page does not write computed `refs`.
 
 ## Edit modal
 
-The table actions column includes edit and delete actions.
+The table `Actions` column uses the same compact three-dot dropdown pattern as `openapi-ui`. Edit and delete are menu items inside that row dropdown.
 
 Edit opens the same `NetworkFormModal` for a selected Network by passing it as the optional `network` prop.
 

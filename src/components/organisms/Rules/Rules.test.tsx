@@ -137,10 +137,11 @@ describe('Rules', () => {
     expect(screen.getByRole('dialog')).toHaveTextContent('Rule form create')
   })
 
-  it('opens delete modal from the table action', () => {
+  it('opens delete modal from the table action', async () => {
     render(<Rules cluster="cluster-a" namespace="tenant-a" />)
 
-    fireEvent.click(screen.getByRole('button', { name: /delete rule a/i }))
+    fireEvent.click(screen.getByRole('button', { name: /actions for rule a/i }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /delete/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/RRule A')
   })

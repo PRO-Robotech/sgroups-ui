@@ -53,28 +53,20 @@ AddressGroup nodes in the overview and verbose-panel trees include a small detai
 
 ## Detail page
 
-The Host detail page keeps the shared resource-detail header, actions menu, conditions section, and YAML editor, but uses a Host-specific `SgroupsHostDetailsSection` for the inner Details tab content.
+The Host detail page keeps the shared resource-detail header, actions menu, upper resource info/metadata row, conditions section, and YAML editor, but uses a Host-specific `SgroupsHostDetailsSection` for the resource-specific Details-tab content below that row.
 
-The section uses the local card concept from Figma:
+The shared factory row owns creation time, namespace, owner references, labels, and annotations. `SgroupsHostDetailsSection` renders only Host-specific cards:
 
-- `Info`: creation time and namespace.
-- `Assignments`: current HostBinding count for the Host, plus label and annotation counts.
 - `Main`: hostname, UID, IPv4/IPv6 counts, description, and comment.
 - `Meta info`: backend-owned host metadata such as OS, platform, platform version, kernel, and optional platform family.
 
-The three Assignment chips are editable:
-
-- `address groups` opens a Host-specific selector modal. Saving creates and deletes only `HostBinding` resources in the Host namespace; it does not write `Host.refs`.
-- `labels` patches `/metadata/labels`.
-- `annotations` patches `/metadata/annotations`.
-
 Host IPs and metainfo are read-only in this view. Reads tolerate both the local OpenAPI shape under `spec.IPs` / `spec.metaInfo` and the legacy flattened `ips` / `metaInfo` payload.
 
-Assignment counts are derived from `HostBinding` resources in the Host namespace. Matching tolerates omitted `spec.host.namespace` by falling back to the binding namespace.
+The detail section does not render a Figma `Assignments` card. AddressGroup membership is edited through `HostFormModal` from table actions; labels and annotations are edited through the shared factory metadata cards.
 
 ## Edit modal
 
-The table actions column includes edit and delete actions.
+The table `Actions` column uses the same compact three-dot dropdown pattern as `openapi-ui`. Edit and delete are menu items inside that row dropdown.
 
 Edit opens the same `HostFormModal` for a selected Host by passing it as the optional `host` prop.
 

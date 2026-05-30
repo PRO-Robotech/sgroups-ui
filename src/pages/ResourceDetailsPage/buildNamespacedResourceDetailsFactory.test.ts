@@ -93,6 +93,31 @@ describe('buildNamespacedResourceDetailsFactory', () => {
     expect(actionsDropdown.data).not.toHaveProperty('redirectTo')
   })
 
+  it('adds the YAML-style info and metadata cards for every sgroups detail resource', () => {
+    Object.values(SGROUPS_RESOURCE_DETAILS_CONFIG).forEach(config => {
+      const factory = buildNamespacedResourceDetailsFactory({
+        basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+        clusterId: 'cluster-a',
+        config,
+        displayName: `${config.title} Display`,
+        name: `${config.plural}-a`,
+        namespace: 'tenant-a',
+      })
+      const infoCards = collectByType(factory.data, 'ContentCard').filter(
+        item => item.data?.id === 'resource-info-card',
+      )
+      const metadataCards = collectByType(factory.data, 'ContentCard').filter(item => item.data?.id === 'metadata-card')
+      const counterCards = collectByType(factory.data, 'AggregatedCounterCard')
+
+      expect(infoCards).toHaveLength(1)
+      expect(metadataCards).toHaveLength(1)
+      expect(counterCards.map(item => item.data?.id)).toEqual(
+        expect.arrayContaining(['labels-counter-card', 'annotations-counter-card']),
+      )
+      expect(collectByType(factory.data, 'OwnerRefs')).toHaveLength(1)
+    })
+  })
+
   it('uses the custom Host details section for Host resources', () => {
     const factory = buildNamespacedResourceDetailsFactory({
       basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',

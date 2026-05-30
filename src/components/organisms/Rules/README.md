@@ -96,7 +96,7 @@ The Rules table uses badge/tag formatting consistently:
 
 ## Edit modal
 
-The table actions column includes edit and delete actions.
+The table `Actions` column uses the same compact three-dot dropdown pattern as `openapi-ui`. Edit and delete are menu items inside that row dropdown.
 
 Edit opens the same `UniRuleFormModal` for a selected Rule by passing it as the optional `rule` prop.
 

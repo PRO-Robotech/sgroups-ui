@@ -2,24 +2,17 @@
 /* eslint-disable import/first */
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 
-const mockPatchEntryWithReplaceOp = jest.fn()
 const mockUseK8sSmartResource = jest.fn()
-const mockSyncAddressGroupBindings = jest.fn()
 
 jest.mock(
   '@prorobotech/openapi-k8s-toolkit',
   () => ({
-    patchEntryWithReplaceOp: (...args: unknown[]) => mockPatchEntryWithReplaceOp(...args),
     useK8sSmartResource: (...args: unknown[]) => mockUseK8sSmartResource(...args),
   }),
   { virtual: true },
 )
-
-jest.mock('components/organisms/Networks/molecules/NetworkFormModal/utils', () => ({
-  syncAddressGroupBindings: (...args: unknown[]) => mockSyncAddressGroupBindings(...args),
-}))
 
 import { SgroupsNetworkDetailsSection } from './SgroupsNetworkDetailsSection'
 
@@ -53,103 +46,25 @@ const networkResource = {
   },
 }
 
-const currentBinding = {
-  metadata: { name: 'network-a-ag-a', namespace: 'tenant-a' },
-  spec: {
-    network: { name: 'network-a', namespace: 'tenant-a' },
-    addressGroup: { name: 'ag-a', namespace: 'tenant-a' },
-  },
-}
-
 describe('SgroupsNetworkDetailsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockPatchEntryWithReplaceOp.mockResolvedValue(undefined)
-    mockSyncAddressGroupBindings.mockResolvedValue(1)
     mockUseK8sSmartResource.mockImplementation((params: { plural: string }) => {
       if (params.plural === 'networks') {
         return { data: { items: [networkResource] }, error: undefined, isLoading: false }
-      }
-
-      if (params.plural === 'networkbindings') {
-        return { data: { items: [currentBinding] }, error: undefined, isLoading: false }
-      }
-
-      if (params.plural === 'addressgroups') {
-        return {
-          data: {
-            items: [
-              { metadata: { name: 'ag-a', namespace: 'tenant-a' }, spec: { displayName: 'Group A' } },
-              { metadata: { name: 'ag-b', namespace: 'tenant-a' }, spec: { displayName: 'Group B' } },
-            ],
-          },
-          error: undefined,
-          isLoading: false,
-        }
       }
 
       return { data: undefined, error: undefined, isLoading: false }
     })
   })
 
-  it('renders network assignment counts and saves AddressGroup bindings', async () => {
+  it('renders Network details without an assignments card', () => {
     renderWithQueryClient()
 
-    expect(screen.getByRole('button', { name: /1 address groups/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /1 labels/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /1 annotations/i })).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: /1 address groups/i }))
-
-    expect(await screen.findByText('Edit Address Groups')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() => expect(mockSyncAddressGroupBindings).toHaveBeenCalledTimes(1))
-    expect(mockSyncAddressGroupBindings).toHaveBeenCalledWith(
-      'cluster-a',
-      { name: 'network-a', namespace: 'tenant-a' },
-      expect.objectContaining({
-        namespace: 'tenant-a',
-        name: 'network-a',
-        addressGroups: ['tenant-a/ag-a'],
-        cidr: '10.0.0.0/24',
-      }),
-      [currentBinding],
-    )
-  })
-
-  it('patches network labels from the labels modal', async () => {
-    renderWithQueryClient()
-
-    fireEvent.click(screen.getByRole('button', { name: /1 labels/i }))
-
-    expect(await screen.findByText('Edit Labels')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() => expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledTimes(1))
-    expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledWith({
-      endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/networks/network-a',
-      pathToValue: '/metadata/labels',
-      body: { env: 'prod' },
-    })
-  })
-
-  it('patches network annotations from the annotations modal', async () => {
-    renderWithQueryClient()
-
-    fireEvent.click(screen.getByRole('button', { name: /1 annotations/i }))
-
-    expect(await screen.findByText('Edit Annotations')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() => expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledTimes(1))
-    expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledWith({
-      endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/networks/network-a',
-      pathToValue: '/metadata/annotations',
-      body: { note: 'keep' },
-    })
+    expect(screen.queryByText('Assignments')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /address groups/i })).not.toBeInTheDocument()
+    expect(screen.getByText('Main')).toBeInTheDocument()
+    expect(screen.getByText('10.0.0.0/24')).toBeInTheDocument()
+    expect(screen.getByText('Network description')).toBeInTheDocument()
   })
 })

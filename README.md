@@ -22,9 +22,10 @@ Resource nodes in modal overview trees and verbose-panel trees expose the same i
 
 Detail pages are built from the shared namespaced resource factory in `src/pages/ResourceDetailsPage`. They include:
 
-- breadcrumbs back to the module table
-- basic resource metadata
+- breadcrumbs back to the module table, then the resource label and Details; tenant/namespace is not shown as a breadcrumb
+- the shared resource info and metadata row
 - labels and annotations cards/actions
+- owner references when present
 - conditions when present
 - YAML
 

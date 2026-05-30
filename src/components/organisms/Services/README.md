@@ -57,31 +57,23 @@ The Services table keeps transport display aligned with verbose panels:
 
 ## Detail page
 
-The Service detail page keeps the shared resource-detail header, actions menu, conditions section, and YAML editor, but uses a Service-specific `SgroupsServiceDetailsSection` for the inner Details tab content.
+The Service detail page keeps the shared resource-detail header, actions menu, upper resource info/metadata row, conditions section, and YAML editor, but uses a Service-specific `SgroupsServiceDetailsSection` for the resource-specific Details-tab content below that row.
 
 Service details also add:
 
 - `AddressGroups`: lists AddressGroups connected to the current Service through `ServiceBinding` resources. The tab does not read or write Service `refs`. The `Add` button opens the Service edit modal so membership changes continue to create/delete `ServiceBinding` resources.
 - `Rules`: lists UniRules where the current Service appears as an endpoint. `Rules from` matches `spec.endpoints.local` with type `Service`; `Rules to` matches `spec.endpoints.remote` with type `Service`. The `Add` button opens `UniRuleFormModal` in the current Service namespace; from `Rules from` it preselects this Service as the Local endpoint, and from `Rules to` it preselects this Service as the Remote endpoint.
 
-The section uses the same local card concept as Hosts:
+The shared factory row owns creation time, namespace, owner references, labels, and annotations. `SgroupsServiceDetailsSection` renders only Service-specific cards:
 
-- `Info`: creation time and namespace.
-- `Assignments`: current ServiceBinding count for the Service, plus label and annotation counts.
 - `Main`: description and comment.
 - `Incoming ports`: table derived from `spec.transports[].entries[]`, with Port, Protocol, and Description columns.
 
-The three Assignment chips are editable:
-
-- `address groups` opens a Service-specific selector modal. Saving creates and deletes only `ServiceBinding` resources in the Service namespace; it does not write a refs-like field on Service.
-- `labels` patches `/metadata/labels`.
-- `annotations` patches `/metadata/annotations`.
-
-Assignment counts are derived from `ServiceBinding` resources whose `spec.service` matches the Service name and namespace.
+The detail section does not render a Figma `Assignments` card. AddressGroup membership is edited through `ServiceFormModal` from table actions; labels and annotations are edited through the shared factory metadata cards.
 
 ## Edit modal
 
-The table actions column includes edit and delete actions.
+The table `Actions` column uses the same compact three-dot dropdown pattern as `openapi-ui`. Edit and delete are menu items inside that row dropdown.
 
 Edit opens the same `ServiceFormModal` for a selected Service by passing it as the optional `service` prop.
 

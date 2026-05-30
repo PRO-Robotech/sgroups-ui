@@ -1,7 +1,6 @@
 /* eslint-disable react/no-array-index-key */
 import React from 'react'
-import { Button, Space, TableProps, Tag, Tooltip, Typography } from 'antd'
-import { DeleteOutlined, EditOutlined } from '@ant-design/icons'
+import { Space, TableProps, Tag, Tooltip, Typography } from 'antd'
 import { ColumnsType } from 'antd/es/table'
 import {
   formatDateTime,
@@ -10,6 +9,7 @@ import {
   renderLinkedResourceBadge,
   renderNamespacedResourceValue,
   renderNamespaceBadgeWithValue,
+  renderTableActionsDropdown,
   renderTimestampWithIcon,
   TSgroupsResourcePlural,
 } from 'utils'
@@ -357,42 +357,16 @@ export const buildRulesColumns = ({
     columns.push({
       title: 'Actions',
       key: 'actions',
+      className: 'controls',
       fixed: 'right',
       width: 120,
       render: (_, record) =>
-        React.createElement(
-          Space,
-          { size: 4 },
-          onEdit &&
-            React.createElement(
-              Tooltip,
-              { title: 'Edit' },
-              React.createElement(Button, {
-                'aria-label': `Edit ${record.displayName || 'rule'}`,
-                type: 'text',
-                icon: React.createElement(EditOutlined),
-                onClick: event => {
-                  event.stopPropagation()
-                  onEdit(record)
-                },
-              }),
-            ),
-          onDelete &&
-            React.createElement(
-              Tooltip,
-              { title: 'Delete' },
-              React.createElement(Button, {
-                'aria-label': `Delete ${record.displayName || 'rule'}`,
-                danger: true,
-                type: 'text',
-                icon: React.createElement(DeleteOutlined),
-                onClick: event => {
-                  event.stopPropagation()
-                  onDelete(record)
-                },
-              }),
-            ),
-        ),
+        renderTableActionsDropdown({
+          label: record.displayName || 'rule',
+          onDelete,
+          onEdit,
+          record,
+        }),
     })
   }
 

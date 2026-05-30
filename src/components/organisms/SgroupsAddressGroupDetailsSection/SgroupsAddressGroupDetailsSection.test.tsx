@@ -6,7 +6,6 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 
 const mockPatchEntryWithReplaceOp = jest.fn()
 const mockUseK8sSmartResource = jest.fn()
-const mockAddressGroupFormModal = jest.fn()
 
 jest.mock(
   '@prorobotech/openapi-k8s-toolkit',
@@ -16,16 +15,6 @@ jest.mock(
   }),
   { virtual: true },
 )
-
-jest.mock('components/organisms/AddressGroups/molecules', () => ({
-  AddressGroupFormModal: (props: any) => {
-    const { open } = props
-
-    mockAddressGroupFormModal(props)
-
-    return open ? <div>Edit AddressGroup Assignments</div> : null
-  },
-}))
 
 import { SgroupsAddressGroupDetailsSection } from './SgroupsAddressGroupDetailsSection'
 
@@ -164,11 +153,9 @@ describe('SgroupsAddressGroupDetailsSection', () => {
   it('renders Figma-shaped AddressGroup detail cards without unsupported incoming ports', () => {
     renderWithQueryClient()
 
-    expect(screen.getByText('Info')).toBeInTheDocument()
-    expect(screen.getByText('Assignments')).toBeInTheDocument()
     expect(screen.getByText('Main')).toBeInTheDocument()
     expect(screen.getByText('Entities')).toBeInTheDocument()
-    expect(screen.getByText('Namespace')).toBeInTheDocument()
+    expect(screen.queryByText('Assignments')).not.toBeInTheDocument()
     expect(screen.getByText('Default action')).toBeInTheDocument()
     expect(screen.getByText('Deny')).toBeInTheDocument()
     expect(screen.getByRole('switch')).not.toBeChecked()
@@ -183,23 +170,6 @@ describe('SgroupsAddressGroupDetailsSection', () => {
     expect(screen.queryByText('db-master-01')).not.toBeInTheDocument()
     expect(screen.queryByText('3.3.3.3/32')).not.toBeInTheDocument()
     expect(screen.queryByText('Incoming ports')).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /3 assignments/i })).toBeInTheDocument()
-  })
-
-  it('opens the AddressGroup edit modal from the assignments counter', () => {
-    renderWithQueryClient()
-
-    fireEvent.click(screen.getByRole('button', { name: /3 assignments/i }))
-
-    expect(screen.getByText('Edit AddressGroup Assignments')).toBeInTheDocument()
-    expect(mockAddressGroupFormModal).toHaveBeenLastCalledWith(
-      expect.objectContaining({
-        cluster: 'cluster-a',
-        namespace: 'tenant-a',
-        addressGroup: addressGroupResource,
-        open: true,
-      }),
-    )
   })
 
   it('patches default action from the detail switch', async () => {
@@ -228,40 +198,6 @@ describe('SgroupsAddressGroupDetailsSection', () => {
       endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/addressgroups/ag-a',
       pathToValue: '/spec/defaultAction',
       body: 'Deny',
-    })
-  })
-
-  it('patches labels from the labels modal', async () => {
-    renderWithQueryClient()
-
-    fireEvent.click(screen.getByRole('button', { name: /1 labels/i }))
-
-    expect(await screen.findByText('Edit Labels')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() => expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledTimes(1))
-    expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledWith({
-      endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/addressgroups/ag-a',
-      pathToValue: '/metadata/labels',
-      body: { env: 'prod' },
-    })
-  })
-
-  it('patches annotations from the annotations modal', async () => {
-    renderWithQueryClient()
-
-    fireEvent.click(screen.getByRole('button', { name: /1 annotations/i }))
-
-    expect(await screen.findByText('Edit Annotations')).toBeInTheDocument()
-
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() => expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledTimes(1))
-    expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledWith({
-      endpoint: '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/addressgroups/ag-a',
-      pathToValue: '/metadata/annotations',
-      body: { note: 'keep' },
     })
   })
 })

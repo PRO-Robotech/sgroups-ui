@@ -63,18 +63,21 @@ The AddressGroups table uses badge/tag/icon formatting consistently:
 
 ## Detail page
 
-The AddressGroup detail route is `addressgroups/{namespace}/{metadata.name}`. Breadcrumbs and the resource dropdown prefer `spec.displayName`, but API requests, links, and edit/delete endpoints always use immutable `metadata.name` and `metadata.namespace`.
+The AddressGroup detail route is `addressgroups/{namespace}/{metadata.name}`. Breadcrumbs omit the namespace and prefer `spec.displayName`; the resource dropdown also prefers `spec.displayName`. API requests, links, and edit/delete endpoints always use immutable `metadata.name` and `metadata.namespace`.
 
-The detail body uses the Figma card layout for:
+The upper Details-tab row is shared factory content for all sgroups resources:
 
-- `Info`: creation timestamp, namespace label, and canonical `Tenant` badge.
-- `Assignments`: total bindings count plus labels and annotations counters.
+- resource info: creation timestamp, namespace label, owner references, and canonical namespace badge.
+- metadata: editable labels and annotations counters.
+
+Below that shared row, `SgroupsAddressGroupDetailsSection` renders resource-specific cards:
+
 - `Main`: editable default action switch, logs, trace, description, and comment.
 - `Entities`: the same read-only contents tree used by the AddressGroup verbose panel.
 
-The detail page bottom section follows the Figma two-card layout, but the fields stay aligned with the local OpenAPI shape and existing edit modal. The default action switch uses the same mapping as the modal `Allow access` control: checked patches `spec.defaultAction` to `Allow`, unchecked patches it to `Deny`. `spec.logs` and `spec.trace` are displayed as read-only status values here because they are not editable in the AddressGroup modal. The `Entities` card reuses `buildAddressGroupContentsTree`, so it groups and expands the same way as verbose panels and modal overviews instead of maintaining a detail-page-only tree shape.
+The default action switch uses the same mapping as the modal `Allow access` control: checked patches `spec.defaultAction` to `Allow`, unchecked patches it to `Deny`. `spec.logs` and `spec.trace` are displayed as read-only status values here because they are not editable in the AddressGroup modal. The `Entities` card reuses `buildAddressGroupContentsTree`, so it groups and expands the same way as verbose panels and modal overviews instead of maintaining a detail-page-only tree shape.
 
-The assignment counter opens `AddressGroupFormModal` in edit mode so Hosts, Services, and Networks are still managed through binding resources. The detail page does not render the Figma `Incoming ports` card because the local `v2` OpenAPI dump has no AddressGroup incoming-port or transport fields.
+The detail section does not render Figma `Assignments` or `Incoming ports` cards. Membership is managed through the binding-backed entity tabs and edit modal, labels/annotations are managed by the shared metadata cards, and the local `v2` OpenAPI dump has no AddressGroup incoming-port or transport fields.
 
 The detail page also includes binding-backed entity tabs matching the Figma table shape:
 
@@ -95,7 +98,7 @@ The detail page also includes a `Rules` tab for AddressGroup-related UniRules:
 
 ## Edit modal
 
-The table actions column includes edit and delete actions.
+The table `Actions` column uses the same compact three-dot dropdown pattern as `openapi-ui`. Edit and delete are menu items inside that row dropdown.
 
 Edit opens the same `AddressGroupFormModal` for a selected AddressGroup by passing it as the optional `addressGroup` prop.
 
