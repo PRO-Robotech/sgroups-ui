@@ -33,6 +33,23 @@ describe('renderTableActionsDropdown', () => {
     expect(onDelete).toHaveBeenCalledWith(record)
   })
 
+  it('calls extra action handlers from menu items', async () => {
+    const onClick = jest.fn()
+
+    render(
+      renderTableActionsDropdown({
+        extraActions: [{ key: 'socket-stats', label: 'Socket Stats', onClick }],
+        label: 'Row A',
+        record,
+      }),
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /actions for row a/i }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /socket stats/i }))
+
+    expect(onClick).toHaveBeenCalledWith(record)
+  })
+
   it('returns no control without actions', () => {
     const { container } = render(<>{renderTableActionsDropdown({ label: 'Row A', record })}</>)
 

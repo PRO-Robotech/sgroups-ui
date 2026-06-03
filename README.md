@@ -20,6 +20,14 @@ Visible labels prefer `spec.displayName` and fall back to `metadata.name`. URLs,
 
 Resource nodes in modal overview trees and verbose-panel trees expose the same internal detail routes through a small link icon next to the resource badge. The icon uses the resolved resource namespace and immutable `metadata.name`; display names remain label-only.
 
+Hosts also expose a socket statistics route:
+
+```txt
+hosts/{namespace}/{metadata.name}/sockstats
+```
+
+The page submits user-filled backend selectors to the Host `sockstats` subresource and can run either a one-shot snapshot request or `watch=true`. Watch events are full `SocketStatList` snapshots, so the UI replaces the whole table for every streamed batch.
+
 Detail pages are built from the shared namespaced resource factory in `src/pages/ResourceDetailsPage`. They include:
 
 - breadcrumbs back to the module table, then the resource label and Details; tenant/namespace is not shown as a breadcrumb

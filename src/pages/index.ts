@@ -1,4 +1,5 @@
 export { HostsPage } from './HostsPage'
+export { HostSockStatsPage } from './HostSockStatsPage'
 export { AddressGroupsPage } from './AddressGroupsPage'
 export { NetworksPage } from './NetworksPage'
 export { RulesPage } from './RulesPage'

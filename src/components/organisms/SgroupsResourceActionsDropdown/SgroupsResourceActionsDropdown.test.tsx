@@ -3,6 +3,7 @@
 import React from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 
 const mockUseK8sSmartResource = jest.fn()
 
@@ -41,6 +42,12 @@ jest.mock('utils/SgroupsDeleteModal', () => ({
 
 import { SgroupsResourceActionsDropdown, TSgroupsResourceActionsDropdownData } from './SgroupsResourceActionsDropdown'
 
+const LocationProbe = () => {
+  const location = useLocation()
+
+  return <div data-testid="location-path">{location.pathname}</div>
+}
+
 const renderDropdown = (data: TSgroupsResourceActionsDropdownData) => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -49,9 +56,22 @@ const renderDropdown = (data: TSgroupsResourceActionsDropdownData) => {
   })
 
   return render(
-    <QueryClientProvider client={queryClient}>
-      <SgroupsResourceActionsDropdown data={data} />
-    </QueryClientProvider>,
+    <MemoryRouter initialEntries={[`/${data.plural}/${data.namespace}/${data.name}`]}>
+      <QueryClientProvider client={queryClient}>
+        <Routes>
+          <Route
+            path="/:plural/:namespace/:name"
+            element={
+              <>
+                <SgroupsResourceActionsDropdown data={data} />
+                <LocationProbe />
+              </>
+            }
+          />
+          <Route path="/:plural/:namespace/:name/sockstats" element={<LocationProbe />} />
+        </Routes>
+      </QueryClientProvider>
+    </MemoryRouter>,
   )
 }
 
@@ -158,4 +178,24 @@ describe('SgroupsResourceActionsDropdown', () => {
       await waitFor(() => expect(screen.getByText(modalText)).toBeInTheDocument())
     },
   )
+
+  it('routes to socket stats from the Host actions dropdown', async () => {
+    const hostCase = cases.find(item => item.data.plural === 'hosts')
+
+    if (!hostCase) {
+      throw new Error('Host case is missing')
+    }
+
+    mockUseK8sSmartResource.mockReturnValue({
+      data: { items: [hostCase.resource] },
+      isLoading: false,
+    })
+
+    renderDropdown(hostCase.data)
+
+    fireEvent.click(screen.getByRole('button', { name: /actions/i }))
+    fireEvent.click(await screen.findByText('Socket Stats'))
+
+    expect(screen.getByTestId('location-path')).toHaveTextContent('/hosts/tenant-a/host-a/sockstats')
+  })
 })

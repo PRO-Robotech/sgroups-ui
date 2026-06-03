@@ -3,6 +3,7 @@ import { PlusOutlined } from '@ant-design/icons'
 import { Alert, Button, Flex, Spin, theme as antdTheme } from 'antd'
 import { useSelector } from 'react-redux'
 import { ContentCard, EnrichedTable, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
+import { useNavigate } from 'react-router-dom'
 import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
@@ -40,6 +41,7 @@ const clampVerboseWidth = (width: number, containerWidth?: number) => {
 }
 
 export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
+  const navigate = useNavigate()
   const theme = useSelector((state: RootState) => state.theme.theme)
   const { token } = antdTheme.useToken()
   const contentCardHeight = useContentCardHeight()
@@ -106,9 +108,23 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
     setDeletingHost(null)
   }, [])
 
+  const openSocketStatsPage = useCallback(
+    (hostRecord: THostRow) => {
+      const hostNamespace = hostRecord.metadata.namespace || namespace
+      const hostName = hostRecord.metadata.name
+
+      if (!hostNamespace || !hostName) {
+        return
+      }
+
+      navigate(`${hostNamespace}/${hostName}/sockstats`)
+    },
+    [namespace, navigate],
+  )
+
   const columns = useMemo(
-    () => buildHostsColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
-    [openDeleteModal, openEditModal],
+    () => buildHostsColumns({ onDelete: openDeleteModal, onEdit: openEditModal, onSocketStats: openSocketStatsPage }),
+    [openDeleteModal, openEditModal, openSocketStatsPage],
   )
   const dataSource = useMemo(() => mapHostsToRows(hostsData?.items || []), [hostsData?.items])
   const selectedHost = useMemo(

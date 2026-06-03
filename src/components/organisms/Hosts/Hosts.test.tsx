@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 
 const mockUseK8sSmartResource = jest.fn()
 
@@ -72,6 +73,30 @@ jest.mock('./molecules', () => ({
 
 import { Hosts } from './Hosts'
 
+const LocationProbe = () => {
+  const location = useLocation()
+
+  return <div data-testid="location-path">{location.pathname}</div>
+}
+
+const renderHosts = (ui: React.ReactElement) =>
+  render(
+    <MemoryRouter initialEntries={['/hosts']}>
+      <Routes>
+        <Route
+          path="/hosts"
+          element={
+            <>
+              {ui}
+              <LocationProbe />
+            </>
+          }
+        />
+        <Route path="/hosts/:namespace/:name/sockstats" element={<LocationProbe />} />
+      </Routes>
+    </MemoryRouter>,
+  )
+
 describe('Hosts', () => {
   beforeEach(() => {
     jest.clearAllMocks()
@@ -90,7 +115,7 @@ describe('Hosts', () => {
   })
 
   it('shows a guard when cluster is missing', () => {
-    render(<Hosts />)
+    renderHosts(<Hosts />)
 
     expect(screen.getByText('No cluster has been set')).toBeInTheDocument()
     expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
@@ -99,7 +124,7 @@ describe('Hosts', () => {
   })
 
   it('renders table data, opens details on row click, and opens create modal', () => {
-    render(<Hosts cluster="cluster-a" namespace="tenant-a" />)
+    renderHosts(<Hosts cluster="cluster-a" namespace="tenant-a" />)
 
     expect(mockUseK8sSmartResource).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -120,12 +145,21 @@ describe('Hosts', () => {
   })
 
   it('opens delete modal from the table action', async () => {
-    render(<Hosts cluster="cluster-a" namespace="tenant-a" />)
+    renderHosts(<Hosts cluster="cluster-a" namespace="tenant-a" />)
 
     fireEvent.click(screen.getByRole('button', { name: /actions for host a/i }))
     fireEvent.click(await screen.findByRole('menuitem', { name: /delete/i }))
 
     expect(screen.getByRole('dialog')).toHaveTextContent('DeleteTtenant-a/HHost A')
+  })
+
+  it('routes to host socket stats from the table action', async () => {
+    renderHosts(<Hosts cluster="cluster-a" namespace="tenant-a" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /actions for host a/i }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /socket stats/i }))
+
+    expect(screen.getByTestId('location-path')).toHaveTextContent('/hosts/tenant-a/host-a/sockstats')
   })
 
   it('shows a loading error', () => {
@@ -135,7 +169,7 @@ describe('Hosts', () => {
       isLoading: false,
     })
 
-    render(<Hosts cluster="cluster-a" namespace="tenant-a" />)
+    renderHosts(<Hosts cluster="cluster-a" namespace="tenant-a" />)
 
     expect(screen.getByText('Failed to load hosts: Error: boom')).toBeInTheDocument()
   })

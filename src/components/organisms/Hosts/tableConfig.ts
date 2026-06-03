@@ -72,6 +72,7 @@ export type THostRow = THostResource & {
 type TBuildHostsColumnsParams = {
   onEdit?: (record: THostRow) => void
   onDelete?: (record: THostRow) => void
+  onSocketStats?: (record: THostRow) => void
 }
 
 const EMPTY_VALUE = '-'
@@ -114,7 +115,11 @@ const renderTagList = (values?: string[]) => {
   )
 }
 
-export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams = {}): ColumnsType<THostRow> => {
+export const buildHostsColumns = ({
+  onDelete,
+  onEdit,
+  onSocketStats,
+}: TBuildHostsColumnsParams = {}): ColumnsType<THostRow> => {
   const columns: ColumnsType<THostRow> = [
     {
       title: 'Display Name',
@@ -196,7 +201,7 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
     },
   ]
 
-  if (onEdit || onDelete) {
+  if (onEdit || onDelete || onSocketStats) {
     columns.push({
       title: 'Actions',
       key: 'actions',
@@ -205,6 +210,15 @@ export const buildHostsColumns = ({ onDelete, onEdit }: TBuildHostsColumnsParams
       width: 120,
       render: (_, record) =>
         renderTableActionsDropdown({
+          extraActions: onSocketStats
+            ? [
+                {
+                  key: 'socket-stats',
+                  label: 'Socket Stats',
+                  onClick: onSocketStats,
+                },
+              ]
+            : undefined,
           label: record.displayName || 'host',
           onDelete,
           onEdit,

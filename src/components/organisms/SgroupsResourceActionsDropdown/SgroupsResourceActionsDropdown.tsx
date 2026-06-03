@@ -11,6 +11,7 @@ import {
 import { Button, Dropdown, Flex, Form, Input, MenuProps, Modal, Select, message } from 'antd'
 import { patchEntryWithReplaceOp, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { useQueryClient } from '@tanstack/react-query'
+import { useNavigate } from 'react-router-dom'
 import { TAddressGroupResource, THostResource, TNetworkResource, TServiceResource } from 'localTypes'
 import { AddressGroupFormModal } from 'components/organisms/AddressGroups/molecules'
 import { mapAddressGroupsToRows } from 'components/organisms/AddressGroups/tableConfig'
@@ -199,6 +200,7 @@ const MetadataAnnotationsModal: FC<{
 }
 
 export const SgroupsResourceActionsDropdown: FC<TSgroupsResourceActionsDropdownProps> = ({ data }) => {
+  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [activeModal, setActiveModal] = useState<TActiveModal>(null)
   const [deletingResource, setDeletingResource] = useState<TDeleteModalResource | null>(null)
@@ -251,6 +253,7 @@ export const SgroupsResourceActionsDropdown: FC<TSgroupsResourceActionsDropdownP
     setDeletingResource(getDeleteModalResource(data.clusterId, data.namespace, data.plural, rowResource))
   }
   const items: MenuProps['items'] = [
+    ...(data.plural === 'hosts' ? [{ key: 'sockstats', icon: <FileTextOutlined />, label: 'Socket Stats' }] : []),
     { key: 'edit', icon: <EditOutlined />, label: `Edit ${data.kind}` },
     { key: 'labels', icon: <TagsOutlined />, label: 'Edit Labels' },
     { key: 'annotations', icon: <FileTextOutlined />, label: 'Edit Annotations' },
@@ -264,6 +267,11 @@ export const SgroupsResourceActionsDropdown: FC<TSgroupsResourceActionsDropdownP
         menu={{
           items,
           onClick: ({ key }) => {
+            if (key === 'sockstats') {
+              navigate('sockstats')
+              return
+            }
+
             if (key === 'delete') {
               handleDelete()
               return

@@ -5,6 +5,9 @@ describe('getPluginBasePath', () => {
     expect(getPluginBasePath('/openapi-ui/cluster-a/plugins/plugin-sgroups/hosts/tenant-a/host-a')).toBe(
       '/openapi-ui/cluster-a/plugins/plugin-sgroups',
     )
+    expect(getPluginBasePath('/openapi-ui/cluster-a/plugins/plugin-sgroups/hosts/tenant-a/host-a/sockstats')).toBe(
+      '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+    )
     expect(getPluginBasePath('/openapi-ui/cluster-a/plugins/plugin-sgroups/services/tenant-a/service-a')).toBe(
       '/openapi-ui/cluster-a/plugins/plugin-sgroups',
     )

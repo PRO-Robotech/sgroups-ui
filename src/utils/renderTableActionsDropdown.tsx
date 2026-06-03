@@ -5,21 +5,36 @@ import { Button, Dropdown, MenuProps } from 'antd'
 type TRenderTableActionsDropdownParams<T> = {
   record: T
   label: string
+  extraActions?: Array<{
+    key: string
+    label: string
+    danger?: boolean
+    onClick: (record: T) => void
+  }>
   onEdit?: (record: T) => void
   onDelete?: (record: T) => void
 }
 
 export const renderTableActionsDropdown = <T,>({
+  extraActions = [],
   label,
   onDelete,
   onEdit,
   record,
 }: TRenderTableActionsDropdownParams<T>) => {
-  if (!onEdit && !onDelete) {
+  if (!onEdit && !onDelete && extraActions.length === 0) {
     return null
   }
 
   const items: NonNullable<MenuProps['items']> = []
+
+  extraActions.forEach(action => {
+    items.push({
+      key: action.key,
+      label: action.label,
+      danger: action.danger,
+    })
+  })
 
   if (onEdit) {
     items.push({
@@ -45,6 +60,12 @@ export const renderTableActionsDropdown = <T,>({
         onClick: ({ domEvent, key }) => {
           domEvent.preventDefault()
           domEvent.stopPropagation()
+
+          const extraAction = extraActions.find(action => action.key === key)
+
+          if (extraAction) {
+            extraAction.onClick(record)
+          }
 
           if (key === 'edit') {
             onEdit?.(record)
