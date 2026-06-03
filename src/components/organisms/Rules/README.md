@@ -90,8 +90,9 @@ The Rules table uses badge/tag formatting consistently:
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Tenant` renders a canonical `Tenant` badge.
 - `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints using the referenced resource display name when available, falling back to the referenced resource name only when no display name exists. Those concrete resource values link to their internal detail pages using the referenced namespace and `metadata.name`. `FQDN` and `CIDR` endpoints render their direct values.
-- `Action`, `Protocol`, `IP family`, and transport entries render as AntD tags.
-- Transport entries render one tag per entry. Entry descriptions and comments are shown in tooltips instead of inline tag text.
+- `Action` renders as an AntD tag.
+- Transport details stay available in the verbose panel and modal, but the compact table does not show `Protocol`, `IP family`, or `Ports / Types` columns.
+- The `Protocol`, `IP Family`, and `Ports / Types` table column definitions remain commented in `tableConfig.ts` so they can be restored without rebuilding the transport renderers.
 - `Local`, `Remote`, and `Created` are intentionally wider than compact enum columns so common endpoint labels and timestamps wrap less often.
 
 ## Edit modal

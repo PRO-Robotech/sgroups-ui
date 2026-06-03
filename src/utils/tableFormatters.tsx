@@ -16,6 +16,16 @@ const DATE_FORMATTER = new Intl.DateTimeFormat(undefined, {
 
 const KUBECTL_ANNOTATION_PREFIX = 'kubectl.kubernetes.io/'
 
+type ThemeMode = 'light' | 'dark'
+
+const getThemeMode = (): ThemeMode => {
+  if (typeof localStorage === 'undefined') {
+    return 'light'
+  }
+
+  return localStorage.getItem('theme') === 'dark' ? 'dark' : 'light'
+}
+
 const fnv1a32 = (value: string): number => {
   const hash = [...value].reduce((acc, char) => {
     // eslint-disable-next-line no-bitwise
@@ -31,14 +41,17 @@ const fnv1a32 = (value: string): number => {
 
 const pickInRange = (value: number, min: number, max: number): number => min + (value % (max - min + 1))
 
-const getBadgeColor = (value: string): string => {
+const getBadgeColor = (value: string, theme: ThemeMode = getThemeMode()): string => {
   const hash = fnv1a32(value)
   const hue = hash % 345
 
+  const [saturationMin, saturationMax] = theme === 'light' ? [90, 100] : [78, 80]
+  const [lightnessMin, lightnessMax] = theme === 'light' ? [78, 80] : [25, 35]
+
   // eslint-disable-next-line no-bitwise
-  const saturation = pickInRange(hash >>> 8, 90, 100)
+  const saturation = pickInRange(hash >>> 8, saturationMin, saturationMax)
   // eslint-disable-next-line no-bitwise
-  const lightness = pickInRange(hash >>> 16, 78, 80)
+  const lightness = pickInRange(hash >>> 16, lightnessMin, lightnessMax)
 
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`
 }
@@ -129,29 +142,35 @@ export const formatTrafficValue = (value?: string): string => {
   return normalizedValue || value || EMPTY_VALUE
 }
 
-export const renderBadge = (value: string, displayValue = value) =>
-  React.createElement(
+export const renderBadge = (value: string, displayValue = value) => {
+  const badgeColor = getBadgeColor(value)
+
+  return React.createElement(
     'span',
     {
       style: {
-        backgroundColor: getBadgeColor(value),
-        borderRadius: '10px',
-        padding: '0 5px',
-        minHeight: '20px',
-        fontSize: '12px',
+        backgroundColor: badgeColor,
+        border: `1px solid ${badgeColor}`,
+        borderRadius: '4px',
+        padding: '0 7px',
+        height: '22px',
+        fontFamily: '"SF Pro", sans-serif',
+        fontSize: 12,
+        fontStyle: 'normal',
+        fontWeight: 400,
         lineHeight: '20px',
-        height: 'min-content',
-        display: 'inline-flex',
+        display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         textTransform: 'uppercase',
         letterSpacing: 0,
-        boxSizing: 'content-box',
+        boxSizing: 'border-box',
         flexShrink: 0,
       },
     },
     getBadgeText(displayValue),
   )
+}
 
 export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode, displayBadgeValue = badgeValue) =>
   React.createElement(

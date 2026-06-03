@@ -115,6 +115,7 @@ In edit mode:
 - Edit prefill should run only once per modal open, after host/network/service binding queries are ready. Repeated partial `setFieldsValue` calls can leave AntD selects visually stuck on reopen.
 - Resource badge rendering is reused from the table formatter for the modal title, options, tags, and overview. User-facing resource labels should show `spec.displayName`, falling back to `metadata.name` only when no display name exists.
 - Badge color inputs must be canonical resource kinds so colors match `openapi-ui` / `openapi-k8s-toolkit`: use `AddressGroup`, `Tenant`, `HostBinding`, `NetworkBinding`, and `ServiceBinding`, not display labels or abbreviations such as `Address Group`, `AG`, or `NS`.
+- Badge colors also follow toolkit theme ranges. Light mode uses the light HSL saturation/lightness ranges; when `localStorage.theme` is `dark`, badges use the toolkit dark ranges.
 
 ## Delete modal
 

@@ -13,6 +13,10 @@ import {
 } from './tableFormatters'
 
 describe('tableFormatters', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
   it('formats dates and falls back for empty or invalid values', () => {
     expect(formatDateTime()).toBe('-')
     expect(formatDateTime('not-a-date')).toBe('not-a-date')
@@ -69,6 +73,19 @@ describe('tableFormatters', () => {
 
     expect(screen.getByText('AG')).toBeInTheDocument()
     expect(container.querySelector('span')?.style.backgroundColor).not.toBe(fullKindColor)
+  })
+
+  it('uses toolkit theme badge color ranges', () => {
+    const { container, rerender } = render(<>{renderBadge('AddressGroup')}</>)
+    const lightKindColor = container.querySelector('span')?.style.backgroundColor
+
+    expect(lightKindColor).toBe('rgb(227, 253, 150)')
+
+    localStorage.setItem('theme', 'dark')
+    rerender(<>{renderBadge('AddressGroup')}</>)
+
+    expect(container.querySelector('span')?.style.backgroundColor).not.toBe(lightKindColor)
+    expect(container.querySelector('span')?.style.backgroundColor).toBe('rgb(96, 124, 14)')
   })
 
   it('renders a badge with value and fallback placeholder', () => {

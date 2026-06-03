@@ -25,7 +25,7 @@ import type { TSgroupsServiceAddressGroupsTabData } from 'components/organisms/S
 import type { TSgroupsServiceDetailsSectionData } from 'components/organisms/SgroupsServiceDetailsSection'
 import type { TSgroupsServiceRulesTabData } from 'components/organisms/SgroupsServiceRulesTab'
 import { useTheme } from 'hooks/ThemeModeContext'
-import { buildSgroupsResourceDetailsBreadcrumbs } from 'utils'
+import { buildSgroupsResourceDetailsBreadcrumbs, renderBadge } from 'utils'
 import { getPluginBasePath } from 'utils/getPluginBasePath'
 import { buildNamespacedResourceDetailsFactory } from './buildNamespacedResourceDetailsFactory'
 import {
@@ -69,6 +69,9 @@ export type TSgroupsResourceDetailsComponentMap = TDynamicComponentsAppTypeMap &
 const isKnownResourcePlural = (value?: string): value is TSgroupsResourcePlural =>
   value ? value in SGROUPS_RESOURCE_DETAILS_CONFIG : false
 
+const SgroupsResourceBadge: FC<{ data: TDynamicComponentsAppTypeMap['ResourceBadge'] }> = ({ data }) =>
+  renderBadge(data.value, data.abbreviation || data.value)
+
 export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, resourceConfig }) => {
   const { mode } = useTheme()
   const { name, namespace, plural } = useParams<{ name: string; namespace: string; plural?: string }>()
@@ -76,6 +79,7 @@ export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, re
     () => ({
       ...DynamicComponents,
       DropdownRedirect: SgroupsDropdownRedirect,
+      ResourceBadge: SgroupsResourceBadge,
       SgroupsAddressGroupDetailsSection,
       SgroupsAddressGroupEntitiesTab,
       SgroupsAddressGroupRulesTab,

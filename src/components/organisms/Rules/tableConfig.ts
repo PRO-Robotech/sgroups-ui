@@ -107,7 +107,7 @@ const renderActionTag = (value?: string) => {
   return React.createElement(Tag, { color: value === 'Allow' ? 'green' : 'red' }, value)
 }
 
-const renderValueTag = (value?: string) => {
+export const renderValueTag = (value?: string) => {
   if (!value || value === EMPTY_VALUE) {
     return EMPTY_VALUE
   }
@@ -172,7 +172,7 @@ export const renderEndpointLabel = (endpoint?: TRuleEndpoint, endpointDisplayLoo
   return renderNamespacedResourceValue(endpoint.type || 'Endpoint', endpoint.namespace, name)
 }
 
-const formatTransportEntryText = (entry: TRuleTransportEntry, index: number) => {
+export const formatTransportEntryText = (entry: TRuleTransportEntry, index: number) => {
   const parts = []
 
   if (entry.ports) {
@@ -186,7 +186,7 @@ const formatTransportEntryText = (entry: TRuleTransportEntry, index: number) => 
   return parts.join(' | ') || `Entry ${index + 1}`
 }
 
-const renderTransportEntryTooltip = (entry: TRuleTransportEntry) => {
+export const renderTransportEntryTooltip = (entry: TRuleTransportEntry) => {
   const details = []
 
   if (entry.description) {
@@ -215,7 +215,7 @@ const renderTransportEntryTooltip = (entry: TRuleTransportEntry) => {
   )
 }
 
-const renderTransportEntries = (entries?: TRuleTransportEntry[]) => {
+export const renderTransportEntries = (entries?: TRuleTransportEntry[]) => {
   if (!entries || entries.length === 0) {
     return EMPTY_VALUE
   }
@@ -296,22 +296,22 @@ export const buildRulesColumns = ({
       width: 140,
       sorter: (a, b) => stringSorter(a.traffic, b.traffic),
     },
-    {
-      title: 'Protocol',
-      dataIndex: 'protocol',
-      key: 'protocol',
-      width: 140,
-      sorter: (a, b) => stringSorter(a.protocol, b.protocol),
-      render: value => renderValueTag(value),
-    },
-    {
-      title: 'IP Family',
-      dataIndex: 'ipFamily',
-      key: 'ipFamily',
-      width: 140,
-      sorter: (a, b) => stringSorter(a.ipFamily, b.ipFamily),
-      render: value => renderValueTag(value),
-    },
+    // {
+    //   title: 'Protocol',
+    //   dataIndex: 'protocol',
+    //   key: 'protocol',
+    //   width: 140,
+    //   sorter: (a, b) => stringSorter(a.protocol, b.protocol),
+    //   render: value => renderValueTag(value),
+    // },
+    // {
+    //   title: 'IP Family',
+    //   dataIndex: 'ipFamily',
+    //   key: 'ipFamily',
+    //   width: 140,
+    //   sorter: (a, b) => stringSorter(a.ipFamily, b.ipFamily),
+    //   render: value => renderValueTag(value),
+    // },
     {
       title: 'Local',
       dataIndex: 'localEndpoint',
@@ -328,12 +328,12 @@ export const buildRulesColumns = ({
       sorter: (a, b) => stringSorter(a.remoteEndpoint, b.remoteEndpoint),
       render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.remote, endpointDisplayLookup),
     },
-    {
-      title: 'Ports / Types',
-      key: 'transportEntries',
-      width: 240,
-      render: (_, record) => renderTransportEntries(record.spec?.transport?.entries),
-    },
+    // {
+    //   title: 'Ports / Types',
+    //   key: 'transportEntries',
+    //   width: 240,
+    //   render: (_, record) => renderTransportEntries(record.spec?.transport?.entries),
+    // },
     {
       title: 'Description',
       dataIndex: 'description',
@@ -375,6 +375,6 @@ export const buildRulesColumns = ({
 
 export const RULES_TABLE_PROPS: Partial<TableProps<TRuleRow>> = {
   pagination: false,
-  scroll: { x: 2710 },
+  scroll: { x: 2190 },
   size: 'middle',
 }
