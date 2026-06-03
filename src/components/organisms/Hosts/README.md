@@ -50,10 +50,19 @@ AddressGroup nodes in the overview and verbose-panel trees include a small detai
 - The `Display Name` value links to the Host detail page at `hosts/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Tenant` renders a canonical `Tenant` badge.
+- The row actions menu includes `Socket Stats`, which routes to `hosts/{namespace}/{metadata.name}/sockstats`.
 
 ## Detail page
 
 The Host detail page keeps the shared resource-detail header, actions menu, upper resource info/metadata row, conditions section, and YAML editor, but uses a Host-specific `SgroupsHostDetailsSection` for the resource-specific Details-tab content below that row.
+
+The Host detail actions menu includes `Socket Stats`, which routes to:
+
+```txt
+hosts/{namespace}/{metadata.name}/sockstats
+```
+
+That page reads the backend-owned `sockstats` subresource for the routed Host. User-filled selector cards are encoded as `selector` query params, and watch mode uses `watch=true`. Watch batches replace the full socket-stat table because the aggregation layer emits complete `SocketStatList` snapshots.
 
 The shared factory row owns creation time, namespace, owner references, labels, and annotations. `SgroupsHostDetailsSection` renders only Host-specific cards:
 
