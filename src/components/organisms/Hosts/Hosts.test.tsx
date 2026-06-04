@@ -76,7 +76,7 @@ import { Hosts } from './Hosts'
 const LocationProbe = () => {
   const location = useLocation()
 
-  return <div data-testid="location-path">{location.pathname}</div>
+  return <div data-testid="location-path">{`${location.pathname}${location.hash}`}</div>
 }
 
 const renderHosts = (ui: React.ReactElement) =>
@@ -92,7 +92,7 @@ const renderHosts = (ui: React.ReactElement) =>
             </>
           }
         />
-        <Route path="/hosts/:namespace/:name/sockstats" element={<LocationProbe />} />
+        <Route path="/hosts/:namespace/:name" element={<LocationProbe />} />
       </Routes>
     </MemoryRouter>,
   )
@@ -159,7 +159,7 @@ describe('Hosts', () => {
     fireEvent.click(screen.getByRole('button', { name: /actions for host a/i }))
     fireEvent.click(await screen.findByRole('menuitem', { name: /socket stats/i }))
 
-    expect(screen.getByTestId('location-path')).toHaveTextContent('/hosts/tenant-a/host-a/sockstats')
+    expect(screen.getByTestId('location-path')).toHaveTextContent('/hosts/tenant-a/host-a#sockstats')
   })
 
   it('shows a loading error', () => {

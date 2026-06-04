@@ -50,19 +50,21 @@ AddressGroup nodes in the overview and verbose-panel trees include a small detai
 - The `Display Name` value links to the Host detail page at `hosts/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Tenant` renders a canonical `Tenant` badge.
-- The row actions menu includes `Socket Stats`, which routes to `hosts/{namespace}/{metadata.name}/sockstats`.
+- The row actions menu includes `Socket Stats`, which routes to the Host detail socket-stat tab at `hosts/{namespace}/{metadata.name}#sockstats`.
 
 ## Detail page
 
 The Host detail page keeps the shared resource-detail header, actions menu, upper resource info/metadata row, conditions section, and YAML editor, but uses a Host-specific `SgroupsHostDetailsSection` for the resource-specific Details-tab content below that row.
 
-The Host detail actions menu includes `Socket Stats`, which routes to:
+The Host detail page includes a `Socket Stats` tab:
 
 ```txt
-hosts/{namespace}/{metadata.name}/sockstats
+hosts/{namespace}/{metadata.name}#sockstats
 ```
 
-That page reads the backend-owned `sockstats` subresource for the routed Host. User-filled selector cards are encoded as `selector` query params, and watch mode uses `watch=true`. Watch batches replace the full socket-stat table because the aggregation layer emits complete `SocketStatList` snapshots.
+The Host detail actions menu includes `Socket Stats`, which switches to that hash-synced tab. The legacy `hosts/{namespace}/{metadata.name}/sockstats` path redirects to the same tab for existing links.
+
+That tab reads the backend-owned `sockstats` subresource for the routed Host. User-filled selector conditions are encoded as one comma-separated `selector` query param. The tab defaults to `watch=true` and submits the initial watch request on open. Watch batches replace the full socket-stat table because the aggregation layer emits complete `SocketStatList` snapshots.
 
 The shared factory row owns creation time, namespace, owner references, labels, and annotations. `SgroupsHostDetailsSection` renders only Host-specific cards:
 

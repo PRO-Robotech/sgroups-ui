@@ -3,7 +3,6 @@ import React, { FC } from 'react'
 import { Routes, Route, Navigate, useInRouterContext } from 'react-router-dom'
 import {
   AddressGroupsPage,
-  HostSockStatsPage,
   HostsPage,
   NetworksPage,
   ResourceDetailsPage,
@@ -20,6 +19,8 @@ export type TAppInnerProps = {
   pluginPath?: string
   toggleTheme?: () => void
 }
+
+const HostSockStatsRouteRedirect: FC = () => <Navigate to="..#sockstats" relative="path" replace />
 
 export const AppInner: FC<TAppInnerProps> = ({
   cluster,
@@ -51,19 +52,7 @@ export const AppInner: FC<TAppInnerProps> = ({
           />
         }
       />
-      <Route
-        path="hosts/:namespace/:name/sockstats"
-        element={
-          <HostSockStatsPage
-            cluster={cluster}
-            namespace={namespace}
-            syntheticProject={syntheticProject}
-            pluginName={pluginName}
-            pluginPath={pluginPath}
-            toggleTheme={toggleTheme}
-          />
-        }
-      />
+      <Route path="hosts/:namespace/:name/sockstats" element={<HostSockStatsRouteRedirect />} />
       <Route
         path="hosts/:namespace/:name"
         element={

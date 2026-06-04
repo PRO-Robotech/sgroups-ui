@@ -1,12 +1,14 @@
-# HostSockStatsPage
+# Host Socket Stats
 
-`HostSockStatsPage` renders the `Host` socket statistics subresource:
+`SgroupsHostSockStatsTab` renders the `Host` socket statistics subresource inside the Host detail page:
 
 ```txt
-hosts/{namespace}/{metadata.name}/sockstats
+hosts/{namespace}/{metadata.name}#sockstats
 ```
 
-The route uses immutable Host identifiers from routing. It does not select a Host from form state.
+The tab uses immutable Host identifiers from the detail factory. It does not select a Host from form state.
+
+`HostSockStatsPage` remains as a compatibility wrapper for the legacy route shape, but `AppInner` redirects `hosts/{namespace}/{metadata.name}/sockstats` to `hosts/{namespace}/{metadata.name}#sockstats`.
 
 ## Backend endpoint
 
@@ -24,13 +26,13 @@ This maps to the backend raw path:
 
 ## Selectors
 
-Selectors are user-submitted. One selector card is encoded as comma-separated `key=value` conditions:
+Selectors are user-submitted. Conditions are encoded as one comma-separated `key=value` selector:
 
 ```txt
 selector=state=Listen,protocol=tcp
 ```
 
-Multiple selector cards are sent as repeated `selector` query params. The backend OR-joins repeated selector params.
+The UI does not expose repeated selector params or OR selector groups.
 
 Supported keys come from the backend OpenAPI spec:
 
@@ -46,13 +48,13 @@ Supported keys come from the backend OpenAPI spec:
 - `pid`
 - `comm`
 
-The initial form defaults to `state=Listen`.
+The initial form defaults to `state=Listen` and `watch=true`. Opening the tab automatically submits that initial request.
 
 ## Watch
 
-When `watch=true`, the aggregation layer streams newline-delimited `SocketStatList` objects.
+When `watch=true`, the UI first fetches one non-watch snapshot with the same selectors to populate the current table, then opens the `watch=true` stream for subsequent `SocketStatList` snapshots. Watch is enabled by default.
 
-Each watch event is a full socket-stat table snapshot, not a row patch. The UI replaces the entire table for every received batch. Stopping the watch aborts the fetch stream.
+Each watch event is a full socket-stat table snapshot, not a row patch. The UI accepts raw `SocketStatList` objects, Kubernetes-style watch events with the list under `object`, and `data:`-prefixed stream lines. The UI replaces the entire table for every received batch. Stopping the watch aborts the fetch stream.
 
 ## Display
 

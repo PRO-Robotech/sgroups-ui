@@ -8,7 +8,6 @@ import {
   Form,
   Input,
   Select,
-  Space,
   Switch,
   Table,
   Tag,
@@ -22,7 +21,7 @@ import { useParams } from 'react-router-dom'
 import { SgroupsPageShell } from 'components/molecules'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { getPluginBasePath } from 'utils/getPluginBasePath'
-import { getApiEndpoint, renderBadgeWithValue, renderNamespaceBadgeWithValue } from 'utils'
+import { getApiEndpoint } from 'utils'
 
 type THostSockStatsPageProps = {
   cluster?: string
@@ -31,6 +30,16 @@ type THostSockStatsPageProps = {
   pluginName?: string
   pluginPath?: string
   toggleTheme?: () => void
+}
+
+export type TSgroupsHostSockStatsTabData = {
+  clusterId: string
+  namespace: string
+  name: string
+}
+
+type TSgroupsHostSockStatsTabProps = {
+  data: TSgroupsHostSockStatsTabData
 }
 
 type TSelectorKey =
@@ -51,13 +60,9 @@ type TSelectorCondition = {
   value?: string
 }
 
-type TSelectorGroup = {
-  conditions?: TSelectorCondition[]
-}
-
 type TFormValues = {
   watch?: boolean
-  selectors?: TSelectorGroup[]
+  selectors?: TSelectorCondition[]
 }
 
 type TSocketProcess = {
@@ -85,6 +90,11 @@ type TSocketStatList = {
   }
 }
 
+type TSocketStatWatchEvent = {
+  object?: TSocketStatList
+  type?: string
+}
+
 type TSocketStatRow = TSocketStat & {
   key: string
 }
@@ -104,6 +114,12 @@ const SELECTOR_KEYS: Array<{ label: string; value: TSelectorKey }> = [
 ]
 
 const EMPTY_VALUE = '-'
+const TABLE_MIN_SCROLL_Y = 240
+const SOCKET_STATS_TABLE_SUBTRACT_HEIGHT = 350
+const INITIAL_FORM_VALUES: TFormValues = {
+  watch: true,
+  selectors: [{ key: 'state', value: 'Listen' }],
+}
 
 const renderValue = (value?: string | number) => (value === undefined || value === '' ? EMPTY_VALUE : String(value))
 
@@ -150,28 +166,60 @@ const buildRows = (items?: TSocketStat[]): TSocketStatRow[] =>
       .join(':'),
   }))
 
-const normalizeSelectorGroups = (selectors?: TSelectorGroup[]) =>
+const isSocketStatList = (payload: unknown): payload is TSocketStatList =>
+  Boolean(payload && typeof payload === 'object' && 'items' in payload)
+
+const normalizeSocketStatPayload = (payload: unknown): TSocketStatList | null => {
+  if (isSocketStatList(payload)) {
+    return payload
+  }
+
+  const event = payload as TSocketStatWatchEvent
+
+  if (isSocketStatList(event?.object)) {
+    return event.object
+  }
+
+  return null
+}
+
+const parseWatchLine = (line: string) => {
+  const trimmedLine = line.trim()
+
+  if (!trimmedLine) {
+    return null
+  }
+
+  const jsonLine = trimmedLine.startsWith('data:') ? trimmedLine.slice('data:'.length).trim() : trimmedLine
+
+  if (!jsonLine || jsonLine === '[DONE]') {
+    return null
+  }
+
+  try {
+    return JSON.parse(jsonLine)
+  } catch {
+    return null
+  }
+}
+
+const normalizeSelector = (selectors?: TSelectorCondition[]) =>
   (selectors || [])
-    .map(group =>
-      (group.conditions || [])
-        .map(condition => ({
-          key: condition.key,
-          value: condition.value?.trim(),
-        }))
-        .filter((condition): condition is { key: TSelectorKey; value: string } =>
-          Boolean(condition.key && condition.value),
-        )
-        .map(condition => `${condition.key}=${condition.value}`)
-        .join(','),
-    )
-    .filter(Boolean)
+    .map(condition => ({
+      key: condition.key,
+      value: condition.value?.trim(),
+    }))
+    .filter((condition): condition is { key: TSelectorKey; value: string } => Boolean(condition.key && condition.value))
+    .map(condition => `${condition.key}=${condition.value}`)
+    .join(',')
 
 const buildSockStatsEndpoint = (cluster: string, namespace: string, name: string, values: TFormValues) => {
   const params = new URLSearchParams()
+  const selector = normalizeSelector(values.selectors)
 
-  normalizeSelectorGroups(values.selectors).forEach(selector => {
+  if (selector) {
     params.append('selector', selector)
-  })
+  }
 
   if (values.watch) {
     params.set('watch', 'true')
@@ -269,10 +317,10 @@ const columns: ColumnsType<TSocketStatRow> = [
   },
 ]
 
-export const HostSockStatsPage: FC<THostSockStatsPageProps> = ({ cluster }) => {
+export const SgroupsHostSockStatsTab: FC<TSgroupsHostSockStatsTabProps> = ({ data }) => {
   const { token } = antdTheme.useToken()
   const contentCardHeight = useContentCardHeight()
-  const { namespace, name } = useParams<{ namespace: string; name: string }>()
+  const { clusterId: cluster, namespace, name } = data
   const [form] = Form.useForm<TFormValues>()
   const [rows, setRows] = useState<TSocketStatRow[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -281,15 +329,9 @@ export const HostSockStatsPage: FC<THostSockStatsPageProps> = ({ cluster }) => {
   const [lastResourceVersion, setLastResourceVersion] = useState<string>()
   const [lastEndpoint, setLastEndpoint] = useState<string>()
   const abortControllerRef = useRef<AbortController | null>(null)
-  const basePath = useMemo(() => getPluginBasePath(typeof window === 'undefined' ? '' : window.location.pathname), [])
-  const breadcrumbItems = useMemo(
-    () => [
-      { key: 'hosts', label: 'Host', link: `${basePath}/hosts` },
-      { key: 'host-name', label: name || 'Host', link: `${basePath}/hosts/${namespace}/${name}` },
-      { key: 'sockstats', label: 'Socket Stats' },
-    ],
-    [basePath, name, namespace],
-  )
+  const autoSubmitRef = useRef(false)
+  const cardMinHeight = Math.max(360, contentCardHeight - 170)
+  const tableScrollY = Math.max(TABLE_MIN_SCROLL_Y, contentCardHeight - SOCKET_STATS_TABLE_SUBTRACT_HEIGHT)
 
   const stopWatch = useCallback(() => {
     abortControllerRef.current?.abort()
@@ -305,6 +347,17 @@ export const HostSockStatsPage: FC<THostSockStatsPageProps> = ({ cluster }) => {
     setLastUpdated(new Date().toLocaleTimeString())
   }, [])
 
+  const applySocketStatPayload = useCallback(
+    (payload: unknown) => {
+      const socketStatList = normalizeSocketStatPayload(payload)
+
+      if (socketStatList) {
+        applySocketStatList(socketStatList)
+      }
+    },
+    [applySocketStatList],
+  )
+
   const runSnapshotRequest = useCallback(
     async (endpoint: string, signal: AbortSignal) => {
       const response = await fetch(endpoint, { signal })
@@ -313,9 +366,9 @@ export const HostSockStatsPage: FC<THostSockStatsPageProps> = ({ cluster }) => {
         throw new Error(await readErrorText(response))
       }
 
-      applySocketStatList((await response.json()) as TSocketStatList)
+      applySocketStatPayload(await response.json())
     },
-    [applySocketStatList],
+    [applySocketStatPayload],
   )
 
   const runWatchRequest = useCallback(
@@ -347,20 +400,77 @@ export const HostSockStatsPage: FC<THostSockStatsPageProps> = ({ cluster }) => {
         buffer = lines.pop() || ''
 
         lines
-          .map(line => line.trim())
+          .map(parseWatchLine)
           .filter(Boolean)
           .forEach(line => {
-            applySocketStatList(JSON.parse(line) as TSocketStatList)
+            applySocketStatPayload(line)
           })
+
+        const bufferedPayload = parseWatchLine(buffer)
+
+        if (bufferedPayload) {
+          applySocketStatPayload(bufferedPayload)
+          buffer = ''
+        }
       }
 
       const trailingLine = buffer.trim()
 
       if (trailingLine && !signal.aborted) {
-        applySocketStatList(JSON.parse(trailingLine) as TSocketStatList)
+        applySocketStatPayload(parseWatchLine(trailingLine))
       }
     },
-    [applySocketStatList],
+    [applySocketStatPayload],
+  )
+
+  const runRequest = useCallback(
+    async (values: TFormValues) => {
+      if (!cluster || !namespace || !name) {
+        return
+      }
+
+      stopWatch()
+
+      const endpoint = buildSockStatsEndpoint(cluster, namespace, name, values)
+      const controller = new AbortController()
+
+      abortControllerRef.current = controller
+      setRows([])
+      setLastResourceVersion(undefined)
+      setLastUpdated(undefined)
+      setLastEndpoint(endpoint)
+      setIsLoading(true)
+      setIsWatching(Boolean(values.watch))
+
+      try {
+        if (values.watch) {
+          await runSnapshotRequest(
+            buildSockStatsEndpoint(cluster, namespace, name, { ...values, watch: false }),
+            controller.signal,
+          )
+
+          if (controller.signal.aborted) {
+            return
+          }
+
+          await runWatchRequest(endpoint, controller.signal)
+        } else {
+          await runSnapshotRequest(endpoint, controller.signal)
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          message.error(`Failed to load socket stats: ${String(error)}`)
+        }
+      } finally {
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null
+        }
+
+        setIsLoading(false)
+        setIsWatching(false)
+      }
+    },
+    [cluster, name, namespace, runSnapshotRequest, runWatchRequest, stopWatch],
   )
 
   const handleSubmit = useCallback(async () => {
@@ -368,36 +478,18 @@ export const HostSockStatsPage: FC<THostSockStatsPageProps> = ({ cluster }) => {
       return
     }
 
-    stopWatch()
-
     const values = await form.validateFields()
-    const endpoint = buildSockStatsEndpoint(cluster, namespace, name, values)
-    const controller = new AbortController()
+    await runRequest(values)
+  }, [cluster, form, name, namespace, runRequest])
 
-    abortControllerRef.current = controller
-    setLastEndpoint(endpoint)
-    setIsLoading(true)
-    setIsWatching(Boolean(values.watch))
-
-    try {
-      if (values.watch) {
-        await runWatchRequest(endpoint, controller.signal)
-      } else {
-        await runSnapshotRequest(endpoint, controller.signal)
-      }
-    } catch (error) {
-      if (!controller.signal.aborted) {
-        message.error(`Failed to load socket stats: ${String(error)}`)
-      }
-    } finally {
-      if (abortControllerRef.current === controller) {
-        abortControllerRef.current = null
-      }
-
-      setIsLoading(false)
-      setIsWatching(false)
+  useEffect(() => {
+    if (autoSubmitRef.current || !cluster || !namespace || !name) {
+      return
     }
-  }, [cluster, form, name, namespace, runSnapshotRequest, runWatchRequest, stopWatch])
+
+    autoSubmitRef.current = true
+    runRequest(INITIAL_FORM_VALUES).catch(() => undefined)
+  }, [cluster, name, namespace, runRequest])
 
   if (!cluster) {
     return <Alert type="error" message="Cluster is required to open host socket stats." showIcon />
@@ -408,129 +500,101 @@ export const HostSockStatsPage: FC<THostSockStatsPageProps> = ({ cluster }) => {
   }
 
   return (
-    <SgroupsPageShell breadcrumbItems={breadcrumbItems}>
-      <Card
-        title={
-          <Space size={12} wrap>
-            {renderNamespaceBadgeWithValue(namespace)}
-            {renderBadgeWithValue('Host', name)}
-            <Typography.Text>Socket Stats</Typography.Text>
-          </Space>
-        }
-        style={{ minHeight: contentCardHeight, background: token.colorBgContainer }}
-      >
-        <Flex vertical gap={16}>
-          <Form<TFormValues>
-            form={form}
-            initialValues={{
-              watch: false,
-              selectors: [{ conditions: [{ key: 'state', value: 'Listen' }] }],
-            }}
-            layout="vertical"
-            onFinish={handleSubmit}
-          >
-            <Flex vertical gap={12}>
-              <Form.List name="selectors">
-                {(groups, { add: addGroup, remove: removeGroup }) => (
-                  <Flex vertical gap={12}>
-                    {groups.map(group => (
-                      <Card
-                        key={group.key}
-                        size="small"
-                        title={`Selector ${group.name + 1}`}
-                        extra={
-                          groups.length > 1 ? (
-                            <Button
-                              aria-label={`Remove selector ${group.name + 1}`}
-                              icon={<MinusOutlined />}
-                              size="small"
-                              type="text"
-                              onClick={() => removeGroup(group.name)}
-                            />
-                          ) : null
-                        }
+    <Card style={{ minHeight: cardMinHeight, background: token.colorBgContainer }}>
+      <Flex vertical gap={16}>
+        <Form<TFormValues> form={form} initialValues={INITIAL_FORM_VALUES} layout="vertical" onFinish={handleSubmit}>
+          <Flex vertical gap={12}>
+            <Form.List name="selectors">
+              {(selectors, { add: addSelector, remove: removeSelector }) => (
+                <Flex vertical gap={8}>
+                  {selectors.map(selector => (
+                    <Flex key={selector.key} gap={8} align="flex-start" wrap="wrap">
+                      <Form.Item
+                        name={[selector.name, 'key']}
+                        rules={[{ required: true, message: 'Key is required' }]}
+                        style={{ flex: '0 1 180px', marginBottom: 0 }}
                       >
-                        <Form.List name={[group.name, 'conditions']}>
-                          {(conditions, { add: addCondition, remove: removeCondition }) => (
-                            <Flex vertical gap={8}>
-                              {conditions.map(condition => (
-                                <Flex key={condition.key} gap={8} align="flex-start" wrap="wrap">
-                                  <Form.Item
-                                    name={[condition.name, 'key']}
-                                    rules={[{ required: true, message: 'Key is required' }]}
-                                    style={{ flex: '0 1 180px', marginBottom: 0 }}
-                                  >
-                                    <Select options={SELECTOR_KEYS} placeholder="Key" showSearch />
-                                  </Form.Item>
-                                  <Form.Item
-                                    name={[condition.name, 'value']}
-                                    rules={[{ required: true, message: 'Value is required' }]}
-                                    style={{ flex: '1 1 240px', marginBottom: 0 }}
-                                  >
-                                    <Input placeholder="Value" />
-                                  </Form.Item>
-                                  <Button
-                                    aria-label="Remove condition"
-                                    disabled={conditions.length === 1}
-                                    icon={<MinusOutlined />}
-                                    type="text"
-                                    onClick={() => removeCondition(condition.name)}
-                                  />
-                                </Flex>
-                              ))}
-                              <Button icon={<PlusOutlined />} type="dashed" onClick={() => addCondition({})}>
-                                Add condition
-                              </Button>
-                            </Flex>
-                          )}
-                        </Form.List>
-                      </Card>
-                    ))}
-                    <Button icon={<PlusOutlined />} onClick={() => addGroup({ conditions: [{}] })}>
-                      Add OR selector
-                    </Button>
-                  </Flex>
-                )}
-              </Form.List>
-
-              <Flex gap={16} align="center" wrap="wrap">
-                <Form.Item name="watch" valuePropName="checked" style={{ marginBottom: 0 }}>
-                  <Switch checkedChildren="Watch" unCheckedChildren="Snapshot" />
-                </Form.Item>
-                <Button htmlType="submit" icon={<ReloadOutlined />} loading={isLoading && !isWatching} type="primary">
-                  Submit
-                </Button>
-                {isWatching && (
-                  <Button danger onClick={stopWatch}>
-                    Stop watch
+                        <Select options={SELECTOR_KEYS} placeholder="Key" showSearch />
+                      </Form.Item>
+                      <Form.Item
+                        name={[selector.name, 'value']}
+                        rules={[{ required: true, message: 'Value is required' }]}
+                        style={{ flex: '1 1 240px', marginBottom: 0 }}
+                      >
+                        <Input placeholder="Value" />
+                      </Form.Item>
+                      <Button
+                        aria-label="Remove condition"
+                        disabled={selectors.length === 1}
+                        icon={<MinusOutlined />}
+                        type="text"
+                        onClick={() => removeSelector(selector.name)}
+                      />
+                    </Flex>
+                  ))}
+                  <Button icon={<PlusOutlined />} type="dashed" onClick={() => addSelector({})}>
+                    Add condition
                   </Button>
-                )}
-                {lastUpdated && (
-                  <Typography.Text type="secondary">
-                    Updated {lastUpdated}
-                    {lastResourceVersion ? `, rv ${lastResourceVersion}` : ''}
-                  </Typography.Text>
-                )}
-              </Flex>
+                </Flex>
+              )}
+            </Form.List>
+
+            <Flex gap={16} align="center" wrap="wrap">
+              <Form.Item name="watch" valuePropName="checked" style={{ marginBottom: 0 }}>
+                <Switch checkedChildren="Watch" unCheckedChildren="Snapshot" />
+              </Form.Item>
+              <Button htmlType="submit" icon={<ReloadOutlined />} loading={isLoading && !isWatching} type="primary">
+                Submit
+              </Button>
+              {isWatching && (
+                <Button danger onClick={stopWatch}>
+                  Stop watch
+                </Button>
+              )}
+              {lastUpdated && (
+                <Typography.Text type="secondary">
+                  Updated {lastUpdated}
+                  {lastResourceVersion ? `, rv ${lastResourceVersion}` : ''}
+                </Typography.Text>
+              )}
             </Flex>
-          </Form>
+          </Flex>
+        </Form>
 
-          {lastEndpoint && (
-            <Typography.Text code copyable style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>
-              {lastEndpoint}
-            </Typography.Text>
-          )}
+        {lastEndpoint && (
+          <Typography.Text code copyable style={{ whiteSpace: 'normal', wordBreak: 'break-all' }}>
+            {lastEndpoint}
+          </Typography.Text>
+        )}
 
-          <Table<TSocketStatRow>
-            columns={columns}
-            dataSource={rows}
-            loading={isLoading && !isWatching}
-            pagination={false}
-            size="middle"
-            scroll={{ x: 1510, y: Math.max(240, contentCardHeight - 360) }}
-          />
-        </Flex>
-      </Card>
+        <Table<TSocketStatRow>
+          columns={columns}
+          dataSource={rows}
+          loading={isLoading && !isWatching}
+          pagination={false}
+          size="middle"
+          scroll={{ x: 1510, y: tableScrollY }}
+        />
+      </Flex>
+    </Card>
+  )
+}
+
+export const HostSockStatsPage: FC<THostSockStatsPageProps> = ({ cluster }) => {
+  const { namespace, name } = useParams<{ namespace: string; name: string }>()
+  const basePath = useMemo(() => getPluginBasePath(typeof window === 'undefined' ? '' : window.location.pathname), [])
+  const breadcrumbItems = useMemo(
+    () => [
+      { key: 'hosts', label: 'Host', link: `${basePath}/hosts` },
+      { key: 'host-name', label: name || 'Host', link: `${basePath}/hosts/${namespace}/${name}` },
+      { key: 'sockstats', label: 'Socket Stats' },
+    ],
+    [basePath, name, namespace],
+  )
+
+  return (
+    <SgroupsPageShell breadcrumbItems={breadcrumbItems}>
+      <SgroupsHostSockStatsTab data={{ clusterId: cluster || '', namespace: namespace || '', name: name || '' }} />
     </SgroupsPageShell>
   )
 }

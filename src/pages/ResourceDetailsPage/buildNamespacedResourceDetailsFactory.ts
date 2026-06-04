@@ -79,6 +79,21 @@ const buildServiceRulesTab = (clusterId: string, namespace: string, name: string
   ],
 })
 
+const buildHostSockStatsTab = (clusterId: string, namespace: string, name: string) => ({
+  key: 'sockstats',
+  label: 'Socket Stats',
+  children: [
+    {
+      type: 'SgroupsHostSockStatsTab',
+      data: {
+        clusterId,
+        namespace,
+        name,
+      },
+    },
+  ],
+})
+
 const buildResourceInfoAndMetadataRow = ({
   clusterId,
   config,
@@ -605,6 +620,7 @@ export const buildNamespacedResourceDetailsFactory = ({
                   buildServiceRulesTab(clusterId, namespace, name),
                 ]
               : []),
+            ...(config.kind === 'Host' ? [buildHostSockStatsTab(clusterId, namespace, name)] : []),
           ],
         },
       },

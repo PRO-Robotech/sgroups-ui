@@ -135,6 +135,32 @@ describe('buildNamespacedResourceDetailsFactory', () => {
     })
   })
 
+  it('adds the Host socket stats tab only for Host resources', () => {
+    const hostFactory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.hosts,
+      displayName: 'Production Host',
+      name: 'host-a',
+      namespace: 'tenant-a',
+    })
+    const serviceFactory = buildNamespacedResourceDetailsFactory({
+      basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
+      clusterId: 'cluster-a',
+      config: SGROUPS_RESOURCE_DETAILS_CONFIG.services,
+      displayName: 'API Service',
+      name: 'service-a',
+      namespace: 'tenant-a',
+    })
+
+    expect(collectByType(hostFactory.data, 'SgroupsHostSockStatsTab')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'host-a',
+      namespace: 'tenant-a',
+    })
+    expect(collectByType(serviceFactory.data, 'SgroupsHostSockStatsTab')).toEqual([])
+  })
+
   it('uses the custom AddressGroup details section for AddressGroup resources', () => {
     const factory = buildNamespacedResourceDetailsFactory({
       basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
