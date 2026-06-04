@@ -117,7 +117,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
         return
       }
 
-      navigate(`${hostNamespace}/${hostName}/sockstats`)
+      navigate(`${hostNamespace}/${hostName}#sockstats`)
     },
     [namespace, navigate],
   )

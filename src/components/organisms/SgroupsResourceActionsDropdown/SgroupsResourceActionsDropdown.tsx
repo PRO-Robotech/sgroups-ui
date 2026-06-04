@@ -268,7 +268,7 @@ export const SgroupsResourceActionsDropdown: FC<TSgroupsResourceActionsDropdownP
           items,
           onClick: ({ key }) => {
             if (key === 'sockstats') {
-              navigate('sockstats')
+              navigate({ hash: 'sockstats' })
               return
             }
 

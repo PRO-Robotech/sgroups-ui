@@ -25,6 +25,7 @@ import type { TSgroupsServiceAddressGroupsTabData } from 'components/organisms/S
 import type { TSgroupsServiceDetailsSectionData } from 'components/organisms/SgroupsServiceDetailsSection'
 import type { TSgroupsServiceRulesTabData } from 'components/organisms/SgroupsServiceRulesTab'
 import { useTheme } from 'hooks/ThemeModeContext'
+import { SgroupsHostSockStatsTab, type TSgroupsHostSockStatsTabData } from 'pages/HostSockStatsPage/HostSockStatsPage'
 import { buildSgroupsResourceDetailsBreadcrumbs, renderBadge } from 'utils'
 import { getPluginBasePath } from 'utils/getPluginBasePath'
 import { buildNamespacedResourceDetailsFactory } from './buildNamespacedResourceDetailsFactory'
@@ -59,6 +60,7 @@ export type TSgroupsResourceDetailsComponentMap = TDynamicComponentsAppTypeMap &
   SgroupsAddressGroupEntitiesTab: TSgroupsAddressGroupEntitiesTabData
   SgroupsAddressGroupRulesTab: TSgroupsAddressGroupRulesTabData
   SgroupsHostDetailsSection: TSgroupsHostDetailsSectionData
+  SgroupsHostSockStatsTab: TSgroupsHostSockStatsTabData
   SgroupsNetworkDetailsSection: TSgroupsNetworkDetailsSectionData
   SgroupsResourceActionsDropdown: TSgroupsResourceActionsDropdownData
   SgroupsServiceAddressGroupsTab: TSgroupsServiceAddressGroupsTabData
@@ -84,6 +86,7 @@ export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, re
       SgroupsAddressGroupEntitiesTab,
       SgroupsAddressGroupRulesTab,
       SgroupsHostDetailsSection,
+      SgroupsHostSockStatsTab,
       SgroupsNetworkDetailsSection,
       SgroupsResourceActionsDropdown,
       SgroupsServiceAddressGroupsTab,

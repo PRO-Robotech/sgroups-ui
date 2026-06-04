@@ -45,7 +45,7 @@ import { SgroupsResourceActionsDropdown, TSgroupsResourceActionsDropdownData } f
 const LocationProbe = () => {
   const location = useLocation()
 
-  return <div data-testid="location-path">{location.pathname}</div>
+  return <div data-testid="location-path">{`${location.pathname}${location.hash}`}</div>
 }
 
 const renderDropdown = (data: TSgroupsResourceActionsDropdownData) => {
@@ -68,7 +68,6 @@ const renderDropdown = (data: TSgroupsResourceActionsDropdownData) => {
               </>
             }
           />
-          <Route path="/:plural/:namespace/:name/sockstats" element={<LocationProbe />} />
         </Routes>
       </QueryClientProvider>
     </MemoryRouter>,
@@ -196,6 +195,6 @@ describe('SgroupsResourceActionsDropdown', () => {
     fireEvent.click(screen.getByRole('button', { name: /actions/i }))
     fireEvent.click(await screen.findByText('Socket Stats'))
 
-    expect(screen.getByTestId('location-path')).toHaveTextContent('/hosts/tenant-a/host-a/sockstats')
+    expect(screen.getByTestId('location-path')).toHaveTextContent('/hosts/tenant-a/host-a#sockstats')
   })
 })
