@@ -62,6 +62,8 @@ AddressGroup details also add `Hosts`, `Networks`, and `Services` tabs. These ta
 
 Service details add `AddressGroups` and `Rules` tabs. The `AddressGroups` tab is backed by `ServiceBinding` resources whose `spec.service` matches the current Service name and namespace. The `Rules` tab uses the same segmented `Rules from` / `Rules to` pattern and matches `Rule.spec.endpoints.local` or `Rule.spec.endpoints.remote` when the endpoint type is `Service`. Its `Add` button also passes create-mode initial values into `UniRuleFormModal`, preselecting the current Service as Local from `Rules from` or Remote from `Rules to`.
 
+Host details add `Socket Stats` and `NFT` tabs. Both tabs read backend-owned Host subresources through the cluster proxy, default to `watch=true`, fetch one snapshot before opening the stream, and replace the full table on every streamed list snapshot. `Socket Stats` sends user-filled backend selectors; `NFT` sends only the backend-supported `watch` query knob.
+
 Delete actions intentionally do not pass `redirectTo` from detail pages. The shared delete modal close handler navigates to `redirectTo` on any close, so canceling or closing the modal would otherwise jump back to the resource table. The local sgroups delete modal also sets `maskClosable={false}`, so backdrop clicks do not close it.
 
 The generic Events tab is intentionally omitted for sgroups resources because current sgroups flows do not provide resource-specific event behavior.

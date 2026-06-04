@@ -3,7 +3,7 @@ const DETAIL_ROUTE_PLURALS = ['addressgroups', 'hosts', 'networks', 'rules', 'se
 export const getPluginBasePath = (pathname: string) => {
   const segments = pathname.split('/').filter(Boolean)
 
-  if (DETAIL_ROUTE_PLURALS.includes(segments.at(-4) ?? '') && segments.at(-1) === 'sockstats') {
+  if (DETAIL_ROUTE_PLURALS.includes(segments.at(-4) ?? '') && ['nft', 'sockstats'].includes(segments.at(-1) ?? '')) {
     return `/${segments.slice(0, -4).join('/')}`
   }
 

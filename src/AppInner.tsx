@@ -21,6 +21,7 @@ export type TAppInnerProps = {
 }
 
 const HostSockStatsRouteRedirect: FC = () => <Navigate to="..#sockstats" relative="path" replace />
+const HostNftRouteRedirect: FC = () => <Navigate to="..#nft" relative="path" replace />
 
 export const AppInner: FC<TAppInnerProps> = ({
   cluster,
@@ -53,6 +54,7 @@ export const AppInner: FC<TAppInnerProps> = ({
         }
       />
       <Route path="hosts/:namespace/:name/sockstats" element={<HostSockStatsRouteRedirect />} />
+      <Route path="hosts/:namespace/:name/nft" element={<HostNftRouteRedirect />} />
       <Route
         path="hosts/:namespace/:name"
         element={

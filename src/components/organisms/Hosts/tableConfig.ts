@@ -72,6 +72,7 @@ export type THostRow = THostResource & {
 type TBuildHostsColumnsParams = {
   onEdit?: (record: THostRow) => void
   onDelete?: (record: THostRow) => void
+  onNft?: (record: THostRow) => void
   onSocketStats?: (record: THostRow) => void
 }
 
@@ -118,6 +119,7 @@ const renderTagList = (values?: string[]) => {
 export const buildHostsColumns = ({
   onDelete,
   onEdit,
+  onNft,
   onSocketStats,
 }: TBuildHostsColumnsParams = {}): ColumnsType<THostRow> => {
   const columns: ColumnsType<THostRow> = [
@@ -201,7 +203,7 @@ export const buildHostsColumns = ({
     },
   ]
 
-  if (onEdit || onDelete || onSocketStats) {
+  if (onEdit || onDelete || onNft || onSocketStats) {
     columns.push({
       title: 'Actions',
       key: 'actions',
@@ -210,15 +212,26 @@ export const buildHostsColumns = ({
       width: 120,
       render: (_, record) =>
         renderTableActionsDropdown({
-          extraActions: onSocketStats
-            ? [
-                {
-                  key: 'socket-stats',
-                  label: 'Socket Stats',
-                  onClick: onSocketStats,
-                },
-              ]
-            : undefined,
+          extraActions: [
+            ...(onSocketStats
+              ? [
+                  {
+                    key: 'socket-stats',
+                    label: 'Socket Stats',
+                    onClick: onSocketStats,
+                  },
+                ]
+              : []),
+            ...(onNft
+              ? [
+                  {
+                    key: 'nft',
+                    label: 'NFT',
+                    onClick: onNft,
+                  },
+                ]
+              : []),
+          ],
           label: record.displayName || 'host',
           onDelete,
           onEdit,

@@ -122,9 +122,29 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
     [namespace, navigate],
   )
 
+  const openNftPage = useCallback(
+    (hostRecord: THostRow) => {
+      const hostNamespace = hostRecord.metadata.namespace || namespace
+      const hostName = hostRecord.metadata.name
+
+      if (!hostNamespace || !hostName) {
+        return
+      }
+
+      navigate(`${hostNamespace}/${hostName}#nft`)
+    },
+    [namespace, navigate],
+  )
+
   const columns = useMemo(
-    () => buildHostsColumns({ onDelete: openDeleteModal, onEdit: openEditModal, onSocketStats: openSocketStatsPage }),
-    [openDeleteModal, openEditModal, openSocketStatsPage],
+    () =>
+      buildHostsColumns({
+        onDelete: openDeleteModal,
+        onEdit: openEditModal,
+        onNft: openNftPage,
+        onSocketStats: openSocketStatsPage,
+      }),
+    [openDeleteModal, openEditModal, openNftPage, openSocketStatsPage],
   )
   const dataSource = useMemo(() => mapHostsToRows(hostsData?.items || []), [hostsData?.items])
   const selectedHost = useMemo(
