@@ -72,6 +72,8 @@ The Host table actions menu includes `NFT`, which switches to the hash-synced nf
 
 That tab reads the backend-owned `nft` subresource for the routed Host. The backend OpenAPI spec exposes only `watch` for this subresource, so the UI does not send selectors. The tab defaults to `watch=true`, submits an initial snapshot before opening the stream, and replaces the full nftables table for every streamed `NftList` snapshot.
 
+When structured `nft -j` output is available, the NFT tab renders one overview row per nftables object with type, family, table, chain, hook, policy, handle, and compact details. Raw object JSON is available from row expansion, and full raw ruleset text/JSON remains in the collapsed `Ruleset` section.
+
 The shared factory row owns creation time, namespace, owner references, labels, and annotations. `SgroupsHostDetailsSection` renders only Host-specific cards:
 
 - `Main`: hostname, UID, IPv4/IPv6 counts, description, and comment.

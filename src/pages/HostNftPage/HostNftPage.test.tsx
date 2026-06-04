@@ -107,9 +107,37 @@ describe('HostNftPage', () => {
       )
     })
 
-    expect(await screen.findByText('table inet filter')).toBeInTheDocument()
-    expect(screen.getByText(/"family": "inet"/)).toBeInTheDocument()
+    expect(await screen.findByText('TABLE')).toBeInTheDocument()
+    expect(screen.getByText('inet')).toBeInTheDocument()
+    expect(screen.getByText('filter')).toBeInTheDocument()
     expect(screen.getByText(/rv 42/)).toBeInTheDocument()
+  })
+
+  it('renders array-shaped nftables JSON as structured rows', async () => {
+    mockWatchFetch(
+      {
+        items: [
+          {
+            text: 'table ip raw',
+            json: [
+              { table: { family: 'ip', name: 'raw' } },
+              { chain: { family: 'ip', table: 'nat', name: 'KUBE-SVC-123', handle: 174 } },
+            ],
+          },
+        ],
+      },
+      [],
+    )
+
+    await renderPage('cluster-a')
+
+    expect(await screen.findByText('TABLE')).toBeInTheDocument()
+    expect(screen.getByText('CHAIN')).toBeInTheDocument()
+    expect(screen.getAllByText('ip')).toHaveLength(2)
+    expect(screen.getByText('raw')).toBeInTheDocument()
+    expect(screen.getByText('nat')).toBeInTheDocument()
+    expect(screen.getByText('KUBE-SVC-123')).toBeInTheDocument()
+    expect(screen.queryByText('TEXT')).not.toBeInTheDocument()
   })
 
   it('renders Kubernetes-style watch events that wrap the NftList in object', async () => {

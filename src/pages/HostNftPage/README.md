@@ -34,8 +34,12 @@ Each watch event is a full nftables table snapshot, not a row patch. The UI acce
 
 ## Display
 
-The table renders:
+The primary table renders one row per structured `nftables` JSON object when JSON is available:
 
-- entry index
-- text output from `nft list ruleset`
-- structured JSON output from `nft -j`
+- object type such as `TABLE`, `CHAIN`, `RULE`, or `SET`
+- family, table, chain, hook, policy, and handle when those fields are present
+- a compact details column for chain metadata and rule expression summaries
+
+Each overview row can expand to show the raw object JSON. A collapsed `Ruleset` section below the table keeps the full text output from `nft list ruleset` and the full structured JSON output from `nft -j` available for troubleshooting.
+
+If the backend returns text without parseable JSON, the table falls back to one text-only summary row for that ruleset.

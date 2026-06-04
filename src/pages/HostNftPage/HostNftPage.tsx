@@ -1,5 +1,18 @@
 import React, { FC, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Alert, Button, Card, Empty, Flex, Switch, Table, Typography, message, theme as antdTheme } from 'antd'
+import {
+  Alert,
+  Button,
+  Card,
+  Collapse,
+  Empty,
+  Flex,
+  Switch,
+  Table,
+  Tag,
+  Typography,
+  message,
+  theme as antdTheme,
+} from 'antd'
 import { ReloadOutlined } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import { useParams } from 'react-router-dom'
@@ -49,8 +62,37 @@ type TNftRow = TNft & {
   index: number
 }
 
+type TNftSummaryRow = {
+  chain?: string
+  details: string
+  family?: string
+  handle?: string
+  hook?: string
+  key: string
+  policy?: string
+  rawJson?: unknown
+  rawText?: string
+  table?: string
+  type: string
+}
+
 const TABLE_MIN_SCROLL_Y = 240
 const NFT_TABLE_SUBTRACT_HEIGHT = 300
+const RAW_PRE_STYLE: React.CSSProperties = {
+  display: 'block',
+  maxHeight: 320,
+  overflow: 'auto',
+  whiteSpace: 'pre-wrap',
+}
+
+const TYPE_COLORS: Record<string, string> = {
+  chain: 'blue',
+  flowtable: 'purple',
+  rule: 'green',
+  set: 'gold',
+  table: 'cyan',
+  text: 'default',
+}
 
 const formatJson = (value: unknown) => {
   if (value === undefined || value === null) {
@@ -69,7 +111,7 @@ const formatJson = (value: unknown) => {
 }
 
 const renderPreformatted = (value?: string) => (
-  <Typography.Text code style={{ display: 'block', maxHeight: 260, overflow: 'auto', whiteSpace: 'pre-wrap' }}>
+  <Typography.Text code style={RAW_PRE_STYLE}>
     {value || '-'}
   </Typography.Text>
 )
@@ -80,6 +122,122 @@ const buildRows = (items?: TNft[]): TNftRow[] =>
     index: index + 1,
     key: `${index}-${item.text || ''}-${formatJson(item.json).slice(0, 80)}`,
   }))
+
+const asRecord = (value: unknown): Record<string, unknown> | null =>
+  value && typeof value === 'object' && !Array.isArray(value) ? (value as Record<string, unknown>) : null
+
+const normalizeJsonValue = (value: unknown): unknown => {
+  if (typeof value === 'string') {
+    try {
+      return JSON.parse(value)
+    } catch {
+      return value
+    }
+  }
+
+  return value
+}
+
+const getNftEntries = (value: unknown) => {
+  const normalizedValue = normalizeJsonValue(value)
+
+  if (Array.isArray(normalizedValue)) {
+    return normalizedValue
+  }
+
+  const normalizedObject = asRecord(normalizedValue)
+  const nftables = normalizedObject?.nftables
+
+  return Array.isArray(nftables) ? nftables : []
+}
+
+const getStringValue = (record: Record<string, unknown> | null, key: string) => {
+  const value = record?.[key]
+
+  if (value === undefined || value === null || value === '') {
+    return undefined
+  }
+
+  return String(value)
+}
+
+const summarizeExpression = (expr: unknown) => {
+  if (!Array.isArray(expr) || expr.length === 0) {
+    return ''
+  }
+
+  return expr
+    .map(item => {
+      const record = asRecord(item)
+      const key = record ? Object.keys(record)[0] : undefined
+
+      return key || JSON.stringify(item)
+    })
+    .filter(Boolean)
+    .join(' -> ')
+}
+
+const summarizeEntry = (type: string, payload: Record<string, unknown> | null) => {
+  if (!payload) {
+    return ''
+  }
+
+  if (type === 'chain') {
+    return [
+      getStringValue(payload, 'type') ? `type ${getStringValue(payload, 'type')}` : undefined,
+      getStringValue(payload, 'prio') ? `priority ${getStringValue(payload, 'prio')}` : undefined,
+    ]
+      .filter(Boolean)
+      .join(', ')
+  }
+
+  if (type === 'rule') {
+    return summarizeExpression(payload.expr)
+  }
+
+  if (type === 'set') {
+    return getStringValue(payload, 'type') ? `type ${getStringValue(payload, 'type')}` : ''
+  }
+
+  return ''
+}
+
+const buildSummaryRows = (rows: TNftRow[]): TNftSummaryRow[] =>
+  rows.flatMap(row => {
+    const entries = getNftEntries(row.json)
+
+    if (entries.length === 0) {
+      return [
+        {
+          details: row.text?.split(/\r?\n/).find(Boolean) || 'Text-only ruleset',
+          key: `${row.key}-text`,
+          rawJson: row.json,
+          rawText: row.text,
+          type: 'text',
+        },
+      ]
+    }
+
+    return entries.map((entry, entryIndex) => {
+      const entryRecord = asRecord(entry)
+      const type = entryRecord ? Object.keys(entryRecord)[0] || 'entry' : 'entry'
+      const payload = asRecord(entryRecord?.[type])
+
+      return {
+        chain: type === 'chain' ? getStringValue(payload, 'name') : getStringValue(payload, 'chain'),
+        details: summarizeEntry(type, payload),
+        family: getStringValue(payload, 'family'),
+        handle: getStringValue(payload, 'handle'),
+        hook: getStringValue(payload, 'hook'),
+        key: `${row.key}-${entryIndex}-${type}`,
+        policy: getStringValue(payload, 'policy'),
+        rawJson: entry,
+        rawText: row.text,
+        table: type === 'table' ? getStringValue(payload, 'name') : getStringValue(payload, 'table'),
+        type,
+      }
+    })
+  })
 
 const isNftList = (payload: unknown): payload is TNftList =>
   Boolean(payload && typeof payload === 'object' && 'items' in payload)
@@ -138,26 +296,73 @@ const readErrorText = async (response: Response) => {
   }
 }
 
-const columns: ColumnsType<TNftRow> = [
+const summaryColumns: ColumnsType<TNftSummaryRow> = [
   {
-    title: '#',
-    dataIndex: 'index',
-    key: 'index',
-    width: 70,
+    title: 'Type',
+    dataIndex: 'type',
+    key: 'type',
+    width: 110,
+    render: value => <Tag color={TYPE_COLORS[value] || 'default'}>{String(value).toUpperCase()}</Tag>,
   },
   {
-    title: 'Text',
-    dataIndex: 'text',
-    key: 'text',
-    render: renderPreformatted,
+    title: 'Family',
+    dataIndex: 'family',
+    key: 'family',
+    width: 100,
+    render: value => value || '-',
   },
   {
-    title: 'JSON',
-    dataIndex: 'json',
-    key: 'json',
-    render: value => renderPreformatted(formatJson(value)),
+    title: 'Table',
+    dataIndex: 'table',
+    key: 'table',
+    width: 180,
+    render: value => value || '-',
+  },
+  {
+    title: 'Chain',
+    dataIndex: 'chain',
+    key: 'chain',
+    width: 180,
+    render: value => value || '-',
+  },
+  {
+    title: 'Hook',
+    dataIndex: 'hook',
+    key: 'hook',
+    width: 140,
+    render: value => value || '-',
+  },
+  {
+    title: 'Policy',
+    dataIndex: 'policy',
+    key: 'policy',
+    width: 120,
+    render: value => value || '-',
+  },
+  {
+    title: 'Handle',
+    dataIndex: 'handle',
+    key: 'handle',
+    width: 110,
+    render: value => value || '-',
+  },
+  {
+    title: 'Details',
+    dataIndex: 'details',
+    key: 'details',
+    ellipsis: true,
+    render: value => value || '-',
   },
 ]
+
+const renderExpandedSummaryRow = (record: TNftSummaryRow) => (
+  <Flex vertical gap={12}>
+    <div>
+      <Typography.Text strong>Object JSON</Typography.Text>
+      {renderPreformatted(formatJson(record.rawJson))}
+    </div>
+  </Flex>
+)
 
 export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
   const { token } = antdTheme.useToken()
@@ -174,6 +379,27 @@ export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
   const autoSubmitRef = useRef(false)
   const cardMinHeight = Math.max(360, contentCardHeight - 170)
   const tableScrollY = Math.max(TABLE_MIN_SCROLL_Y, contentCardHeight - NFT_TABLE_SUBTRACT_HEIGHT)
+  const summaryRows = useMemo(() => buildSummaryRows(rows), [rows])
+  const rawCollapseItems = useMemo(
+    () =>
+      rows.map(row => ({
+        key: row.key,
+        label: `Ruleset ${row.index}`,
+        children: (
+          <Flex vertical gap={12}>
+            <div>
+              <Typography.Text strong>Text</Typography.Text>
+              {renderPreformatted(row.text)}
+            </div>
+            <div>
+              <Typography.Text strong>JSON</Typography.Text>
+              {renderPreformatted(formatJson(row.json))}
+            </div>
+          </Flex>
+        ),
+      })),
+    [rows],
+  )
 
   const stopWatch = useCallback(() => {
     abortControllerRef.current?.abort()
@@ -358,14 +584,20 @@ export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
           </Typography.Text>
         )}
 
-        <Table<TNftRow>
-          columns={columns}
-          dataSource={rows}
+        <Table<TNftSummaryRow>
+          columns={summaryColumns}
+          dataSource={summaryRows}
+          expandable={{
+            expandedRowRender: renderExpandedSummaryRow,
+            rowExpandable: record => Boolean(record.rawJson),
+          }}
           loading={isLoading && !isWatching}
           pagination={false}
           size="middle"
-          scroll={{ x: 1200, y: tableScrollY }}
+          scroll={{ x: 1300, y: tableScrollY }}
         />
+
+        {rawCollapseItems.length > 0 && <Collapse items={rawCollapseItems} />}
       </Flex>
     </Card>
   )
