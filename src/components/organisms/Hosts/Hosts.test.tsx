@@ -162,6 +162,15 @@ describe('Hosts', () => {
     expect(screen.getByTestId('location-path')).toHaveTextContent('/hosts/tenant-a/host-a#sockstats')
   })
 
+  it('routes to host NFT from the table action', async () => {
+    renderHosts(<Hosts cluster="cluster-a" namespace="tenant-a" />)
+
+    fireEvent.click(screen.getByRole('button', { name: /actions for host a/i }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /nft/i }))
+
+    expect(screen.getByTestId('location-path')).toHaveTextContent('/hosts/tenant-a/host-a#nft')
+  })
+
   it('shows a loading error', () => {
     mockUseK8sSmartResource.mockReturnValue({
       data: undefined,

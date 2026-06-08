@@ -94,6 +94,21 @@ const buildHostSockStatsTab = (clusterId: string, namespace: string, name: strin
   ],
 })
 
+const buildHostNftTab = (clusterId: string, namespace: string, name: string) => ({
+  key: 'nft',
+  label: 'NFT',
+  children: [
+    {
+      type: 'SgroupsHostNftTab',
+      data: {
+        clusterId,
+        namespace,
+        name,
+      },
+    },
+  ],
+})
+
 const buildResourceInfoAndMetadataRow = ({
   clusterId,
   config,
@@ -620,7 +635,9 @@ export const buildNamespacedResourceDetailsFactory = ({
                   buildServiceRulesTab(clusterId, namespace, name),
                 ]
               : []),
-            ...(config.kind === 'Host' ? [buildHostSockStatsTab(clusterId, namespace, name)] : []),
+            ...(config.kind === 'Host'
+              ? [buildHostSockStatsTab(clusterId, namespace, name), buildHostNftTab(clusterId, namespace, name)]
+              : []),
           ],
         },
       },

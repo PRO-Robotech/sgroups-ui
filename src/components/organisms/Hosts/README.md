@@ -51,20 +51,28 @@ AddressGroup nodes in the overview and verbose-panel trees include a small detai
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
 - `Tenant` renders a canonical `Tenant` badge.
 - The row actions menu includes `Socket Stats`, which routes to the Host detail socket-stat tab at `hosts/{namespace}/{metadata.name}#sockstats`.
+- The row actions menu includes `NFT`, which routes to the Host detail nftables tab at `hosts/{namespace}/{metadata.name}#nft`.
 
 ## Detail page
 
 The Host detail page keeps the shared resource-detail header, actions menu, upper resource info/metadata row, conditions section, and YAML editor, but uses a Host-specific `SgroupsHostDetailsSection` for the resource-specific Details-tab content below that row.
 
-The Host detail page includes a `Socket Stats` tab:
+The Host detail page includes `Socket Stats` and `NFT` tabs:
 
 ```txt
 hosts/{namespace}/{metadata.name}#sockstats
+hosts/{namespace}/{metadata.name}#nft
 ```
 
 The Host detail actions menu includes `Socket Stats`, which switches to that hash-synced tab. The legacy `hosts/{namespace}/{metadata.name}/sockstats` path redirects to the same tab for existing links.
 
 That tab reads the backend-owned `sockstats` subresource for the routed Host. User-filled selector conditions are encoded as one comma-separated `selector` query param. The tab defaults to `watch=true` and submits the initial watch request on open. Watch batches replace the full socket-stat table because the aggregation layer emits complete `SocketStatList` snapshots.
+
+The Host table actions menu includes `NFT`, which switches to the hash-synced nftables tab. The legacy `hosts/{namespace}/{metadata.name}/nft` path redirects to the same tab for existing links.
+
+That tab reads the backend-owned `nft` subresource for the routed Host. The backend OpenAPI spec exposes only `watch` for this subresource, so the UI does not send selectors. The tab defaults to `watch=true`, submits an initial snapshot before opening the stream, and replaces the full nftables table for every streamed `NftList` snapshot.
+
+When structured `nft -j` output is available, the NFT tab renders one overview row per nftables object with type, family, table, chain, hook, policy, handle, and compact details. Raw object JSON is available from row expansion, and full raw ruleset text/JSON remains in the collapsed `Ruleset` section.
 
 The shared factory row owns creation time, namespace, owner references, labels, and annotations. `SgroupsHostDetailsSection` renders only Host-specific cards:
 

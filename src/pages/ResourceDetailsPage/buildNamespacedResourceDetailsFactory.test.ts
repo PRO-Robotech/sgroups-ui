@@ -135,7 +135,7 @@ describe('buildNamespacedResourceDetailsFactory', () => {
     })
   })
 
-  it('adds the Host socket stats tab only for Host resources', () => {
+  it('adds Host socket stats and NFT tabs only for Host resources', () => {
     const hostFactory = buildNamespacedResourceDetailsFactory({
       basePath: '/openapi-ui/cluster-a/plugins/plugin-sgroups',
       clusterId: 'cluster-a',
@@ -158,7 +158,13 @@ describe('buildNamespacedResourceDetailsFactory', () => {
       name: 'host-a',
       namespace: 'tenant-a',
     })
+    expect(collectByType(hostFactory.data, 'SgroupsHostNftTab')[0].data).toEqual({
+      clusterId: 'cluster-a',
+      name: 'host-a',
+      namespace: 'tenant-a',
+    })
     expect(collectByType(serviceFactory.data, 'SgroupsHostSockStatsTab')).toEqual([])
+    expect(collectByType(serviceFactory.data, 'SgroupsHostNftTab')).toEqual([])
   })
 
   it('uses the custom AddressGroup details section for AddressGroup resources', () => {
