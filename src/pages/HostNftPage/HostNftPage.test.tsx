@@ -14,6 +14,13 @@ jest.mock('hooks/useContentCardHeight', () => ({
   useContentCardHeight: () => 720,
 }))
 
+jest.mock('@monaco-editor/react', () => ({
+  __esModule: true,
+  default: ({ defaultLanguage, value }: { defaultLanguage?: string; value?: string }) => (
+    <textarea aria-label="Plain response" data-language={defaultLanguage} readOnly value={value || ''} />
+  ),
+}))
+
 import { HostNftPage } from './HostNftPage'
 
 const renderPage = async (cluster?: string, path = '/hosts/tenant-a/host-a/nft') => {
@@ -116,9 +123,18 @@ describe('HostNftPage', () => {
       )
     })
 
-    expect(await screen.findByText('TABLE')).toBeInTheDocument()
-    expect(screen.getByText('inet')).toBeInTheDocument()
-    expect(screen.getByText('filter')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('table inet filter')).toBeInTheDocument()
+    expect(screen.getByLabelText('Plain response')).toHaveAttribute('data-language', 'nftables')
+    expect(document.querySelector('.ant-table')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByText('Structure'))
+
+    await waitFor(() => {
+      expect(screen.getAllByText('TABLE').length).toBeGreaterThan(0)
+    })
+    expect(screen.getAllByText('inet').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('filter').length).toBeGreaterThan(0)
+    expect(screen.queryByText('Raw object JSON')).not.toBeInTheDocument()
     expect(screen.getByText(/rv 42/)).toBeInTheDocument()
     expect(screen.queryByText('Ruleset 0')).not.toBeInTheDocument()
   })
@@ -132,6 +148,33 @@ describe('HostNftPage', () => {
             json: [
               { table: { family: 'ip', name: 'raw' } },
               { chain: { family: 'ip', table: 'nat', name: 'KUBE-SVC-123', handle: 174 } },
+              {
+                rule: {
+                  family: 'ip',
+                  table: 'nat',
+                  chain: 'KUBE-SVC-123',
+                  handle: 175,
+                  expr: [
+                    { payload: { protocol: 'ip', field: 'saddr' } },
+                    { cmp: { op: '==', data: '10.0.0.1' } },
+                    { accept: null },
+                  ],
+                },
+              },
+              {
+                rule: {
+                  family: 'ip',
+                  table: 'nat',
+                  chain: 'KUBE-SVC-123',
+                  handle: 176,
+                  exprs: [
+                    { match: { left: { payload: { protocol: 'tcp', field: 'dport' } }, op: '==', right: 443 } },
+                    { xt: { name: 'comment' } },
+                    { counter: { packets: 10, bytes: 2048 } },
+                    { jump: { target: 'SGROUPS-ALLOW' } },
+                  ],
+                },
+              },
             ],
           },
         ],
@@ -139,14 +182,32 @@ describe('HostNftPage', () => {
       [],
     )
 
-    await renderPage('cluster-a')
+    const { container } = await renderPage('cluster-a')
 
-    expect(await screen.findByText('TABLE')).toBeInTheDocument()
+    fireEvent.click(screen.getByText('Structure'))
+    expect(screen.getByRole('tab', { name: 'Structure' })).toHaveAttribute('aria-selected', 'true')
+    expect(container.querySelector('.ant-table')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(container.querySelector('.ant-spin-spinning')).toBeInTheDocument()
+    })
+
+    await waitFor(() => {
+      expect(screen.getAllByText('TABLE').length).toBeGreaterThan(0)
+    })
     expect(screen.getByText('CHAIN')).toBeInTheDocument()
-    expect(screen.getAllByText('ip')).toHaveLength(2)
-    expect(screen.getByText('raw')).toBeInTheDocument()
-    expect(screen.getByText('nat')).toBeInTheDocument()
-    expect(screen.getByText('KUBE-SVC-123')).toBeInTheDocument()
+    expect(screen.getAllByText('ip').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('raw').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('nat').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('KUBE-SVC-123').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('RULE').length).toBeGreaterThan(0)
+    expect(screen.getByText('ip.saddr == 10.0.0.1')).toBeInTheDocument()
+    expect(screen.getByText('accept')).toBeInTheDocument()
+    expect(screen.getByText('tcp.dport == 443')).toBeInTheDocument()
+    expect(screen.getByText('Match extension: comment')).toBeInTheDocument()
+    expect(screen.getByText('Count traffic: 10 packets, 2048 bytes')).toBeInTheDocument()
+    expect(screen.getByText('Jump to SGROUPS-ALLOW')).toBeInTheDocument()
+    expect(screen.queryByText('exprs')).not.toBeInTheDocument()
+    expect(screen.queryByText('Handle')).not.toBeInTheDocument()
     expect(screen.queryByText('TEXT')).not.toBeInTheDocument()
   })
 
@@ -163,7 +224,7 @@ describe('HostNftPage', () => {
 
     await renderPage('cluster-a')
 
-    expect(await screen.findByText('chain input')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('chain input')).toBeInTheDocument()
     expect(screen.getByText(/rv 55/)).toBeInTheDocument()
   })
 
@@ -172,7 +233,7 @@ describe('HostNftPage', () => {
 
     await renderPage('cluster-a')
 
-    expect(await screen.findByText('initial ruleset')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('initial ruleset')).toBeInTheDocument()
     ;(global.fetch as jest.Mock).mockResolvedValueOnce({
       json: async () => ({ items: [{ text: 'snapshot ruleset' }] }),
       ok: true,
@@ -181,7 +242,7 @@ describe('HostNftPage', () => {
     fireEvent.click(screen.getByRole('switch'))
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
 
-    expect(await screen.findByText('snapshot ruleset')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('snapshot ruleset')).toBeInTheDocument()
     expect(global.fetch).toHaveBeenLastCalledWith(
       '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/hosts/host-a/nft',
       expect.objectContaining({ signal: expect.any(AbortSignal) }),
@@ -193,13 +254,13 @@ describe('HostNftPage', () => {
 
     await renderPage('cluster-a')
 
-    expect(await screen.findByText('old ruleset')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('old ruleset')).toBeInTheDocument()
 
     appendWatchFetch({ items: [] }, [])
     fireEvent.click(screen.getByRole('button', { name: /submit/i }))
 
     await waitFor(() => {
-      expect(screen.queryByText('old ruleset')).not.toBeInTheDocument()
+      expect(screen.queryByDisplayValue('old ruleset')).not.toBeInTheDocument()
     })
   })
 
@@ -225,6 +286,56 @@ describe('HostNftPage', () => {
     await waitFor(() => {
       expect(container.querySelector('.ant-spin-spinning')).not.toBeInTheDocument()
     })
-    expect(container.querySelector('.ant-table')).toBeInTheDocument()
+    expect(screen.getByLabelText('Plain response')).toBeInTheDocument()
+    expect(container.querySelector('.ant-table')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByText('Structure'))
+
+    await waitFor(() => {
+      expect(container.querySelector('.ant-spin-spinning')).not.toBeInTheDocument()
+      expect(screen.getByText('No nftables structure found.')).toBeInTheDocument()
+    })
+    expect(container.querySelector('.ant-table')).not.toBeInTheDocument()
+  })
+
+  it('keeps rule rows self-describing when virtual scrolling into rules', async () => {
+    mockWatchFetch(
+      {
+        items: [
+          {
+            text: 'table ip nat',
+            json: {
+              nftables: [
+                { table: { family: 'ip', name: 'nat' } },
+                { chain: { family: 'ip', table: 'nat', name: 'CHAIN-A' } },
+                ...Array.from({ length: 80 }, (_, index) => ({
+                  rule: {
+                    family: 'ip',
+                    table: 'nat',
+                    chain: 'CHAIN-A',
+                    expr: [{ accept: null }],
+                    handle: index,
+                  },
+                })),
+              ],
+            },
+          },
+        ],
+      },
+      [],
+    )
+
+    await renderPage('cluster-a')
+
+    fireEvent.click(screen.getByText('Structure'))
+    await waitFor(() => {
+      expect(screen.getAllByText('RULE').length).toBeGreaterThan(0)
+    })
+
+    const scroller = screen.getByTestId('nft-structure-virtual-scroll')
+    fireEvent.scroll(scroller, { target: { scrollTop: 1800 } })
+
+    expect(screen.getAllByText('RULE').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('CHAIN-A').length).toBeGreaterThan(0)
   })
 })

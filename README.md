@@ -29,7 +29,7 @@ hosts/{namespace}/{metadata.name}#nft
 
 The legacy `hosts/{namespace}/{metadata.name}/sockstats` path redirects to the same tab. The tab submits user-filled backend selectors to the Host `sockstats` subresource, defaults to `watch=true`, and runs the initial watch request on open. Watch events are full `SocketStatList` snapshots, so the UI replaces the whole table for every streamed batch.
 
-The legacy `hosts/{namespace}/{metadata.name}/nft` path redirects to the `#nft` tab. The NFT tab reads the Host `nft` subresource, sends only the backend-supported `watch` query knob, defaults to `watch=true`, and replaces the whole table for every streamed `NftList` snapshot.
+The legacy `hosts/{namespace}/{metadata.name}/nft` path redirects to the `#nft` tab. The NFT tab reads the Host `nft` subresource, sends only the backend-supported `watch` query knob, defaults to `watch=true`, and replaces the displayed plain response or structure view from every streamed `NftList` snapshot.
 
 Detail pages are built from the shared namespaced resource factory in `src/pages/ResourceDetailsPage`. They include:
 
