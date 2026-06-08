@@ -40,6 +40,8 @@ The primary table renders one row per structured `nftables` JSON object when JSO
 - family, table, chain, hook, policy, and handle when those fields are present
 - a compact details column for chain metadata and rule expression summaries
 
-Each overview row can expand to show the raw object JSON. A collapsed `Ruleset` section below the table keeps the full text output from `nft list ruleset` and the full structured JSON output from `nft -j` available for troubleshooting.
+Each overview row can expand to show the raw object JSON.
 
 If the backend returns text without parseable JSON, the table falls back to one text-only summary row for that ruleset.
+
+The table is replaced by a standalone loading spinner while the current request has no resolved rows yet. Once the backend response has been converted, a real empty response renders as an empty table instead of continuing to spin.

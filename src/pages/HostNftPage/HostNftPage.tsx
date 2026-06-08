@@ -3,9 +3,9 @@ import {
   Alert,
   Button,
   Card,
-  Collapse,
   Empty,
   Flex,
+  Spin,
   Switch,
   Table,
   Tag,
@@ -368,38 +368,21 @@ export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
   const { token } = antdTheme.useToken()
   const contentCardHeight = useContentCardHeight()
   const { clusterId: cluster, namespace, name } = data
-  const [rows, setRows] = useState<TNftRow[]>([])
   const [isLoading, setIsLoading] = useState(false)
+  const [isComputingRows, setIsComputingRows] = useState(false)
   const [isWatching, setIsWatching] = useState(false)
+  const [summaryRows, setSummaryRows] = useState<TNftSummaryRow[]>([])
+  const [hasResolvedRows, setHasResolvedRows] = useState(false)
   const [watch, setWatch] = useState(true)
   const [lastUpdated, setLastUpdated] = useState<string>()
   const [lastResourceVersion, setLastResourceVersion] = useState<string>()
   const [lastEndpoint, setLastEndpoint] = useState<string>()
   const abortControllerRef = useRef<AbortController | null>(null)
   const autoSubmitRef = useRef(false)
+  const computeTimeoutRef = useRef<number>()
   const cardMinHeight = Math.max(360, contentCardHeight - 170)
   const tableScrollY = Math.max(TABLE_MIN_SCROLL_Y, contentCardHeight - NFT_TABLE_SUBTRACT_HEIGHT)
-  const summaryRows = useMemo(() => buildSummaryRows(rows), [rows])
-  const rawCollapseItems = useMemo(
-    () =>
-      rows.map(row => ({
-        key: row.key,
-        label: `Ruleset ${row.index}`,
-        children: (
-          <Flex vertical gap={12}>
-            <div>
-              <Typography.Text strong>Text</Typography.Text>
-              {renderPreformatted(row.text)}
-            </div>
-            <div>
-              <Typography.Text strong>JSON</Typography.Text>
-              {renderPreformatted(formatJson(row.json))}
-            </div>
-          </Flex>
-        ),
-      })),
-    [rows],
-  )
+  const isTableLoading = !hasResolvedRows && (isLoading || isComputingRows)
 
   const stopWatch = useCallback(() => {
     abortControllerRef.current?.abort()
@@ -409,10 +392,29 @@ export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
 
   useEffect(() => stopWatch, [stopWatch])
 
+  useEffect(() => {
+    return () => {
+      if (computeTimeoutRef.current) {
+        window.clearTimeout(computeTimeoutRef.current)
+      }
+    }
+  }, [])
+
   const applyNftList = useCallback((payload: TNftList) => {
-    setRows(buildRows(payload.items))
+    if (computeTimeoutRef.current) {
+      window.clearTimeout(computeTimeoutRef.current)
+    }
+
+    setIsComputingRows(true)
     setLastResourceVersion(payload.metadata?.resourceVersion)
     setLastUpdated(new Date().toLocaleTimeString())
+
+    computeTimeoutRef.current = window.setTimeout(() => {
+      setSummaryRows(buildSummaryRows(buildRows(payload.items)))
+      setHasResolvedRows(true)
+      setIsComputingRows(false)
+      computeTimeoutRef.current = undefined
+    }, 0)
   }, [])
 
   const applyNftPayload = useCallback(
@@ -503,7 +505,14 @@ export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
       const controller = new AbortController()
 
       abortControllerRef.current = controller
-      setRows([])
+      if (computeTimeoutRef.current) {
+        window.clearTimeout(computeTimeoutRef.current)
+        computeTimeoutRef.current = undefined
+      }
+
+      setSummaryRows([])
+      setHasResolvedRows(false)
+      setIsComputingRows(false)
       setLastResourceVersion(undefined)
       setLastUpdated(undefined)
       setLastEndpoint(endpoint)
@@ -524,6 +533,7 @@ export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
         }
       } catch (error) {
         if (!controller.signal.aborted) {
+          setHasResolvedRows(true)
           message.error(`Failed to load nftables ruleset: ${String(error)}`)
         }
       } finally {
@@ -584,20 +594,23 @@ export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
           </Typography.Text>
         )}
 
-        <Table<TNftSummaryRow>
-          columns={summaryColumns}
-          dataSource={summaryRows}
-          expandable={{
-            expandedRowRender: renderExpandedSummaryRow,
-            rowExpandable: record => Boolean(record.rawJson),
-          }}
-          loading={isLoading && !isWatching}
-          pagination={false}
-          size="middle"
-          scroll={{ x: 1300, y: tableScrollY }}
-        />
-
-        {rawCollapseItems.length > 0 && <Collapse items={rawCollapseItems} />}
+        {isTableLoading ? (
+          <Flex align="center" justify="center" style={{ minHeight: tableScrollY }}>
+            <Spin />
+          </Flex>
+        ) : (
+          <Table<TNftSummaryRow>
+            columns={summaryColumns}
+            dataSource={summaryRows}
+            expandable={{
+              expandedRowRender: renderExpandedSummaryRow,
+              rowExpandable: record => Boolean(record.rawJson),
+            }}
+            pagination={false}
+            size="middle"
+            scroll={{ x: 1300, y: tableScrollY }}
+          />
+        )}
       </Flex>
     </Card>
   )

@@ -66,6 +66,15 @@ const appendWatchFetch = (snapshot: unknown, batches: unknown[]) => {
     })
 }
 
+const createDeferred = <T,>() => {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>(promiseResolve => {
+    resolve = promiseResolve
+  })
+
+  return { promise, resolve }
+}
+
 describe('HostNftPage', () => {
   beforeEach(() => {
     global.fetch = jest.fn()
@@ -111,6 +120,7 @@ describe('HostNftPage', () => {
     expect(screen.getByText('inet')).toBeInTheDocument()
     expect(screen.getByText('filter')).toBeInTheDocument()
     expect(screen.getByText(/rv 42/)).toBeInTheDocument()
+    expect(screen.queryByText('Ruleset 0')).not.toBeInTheDocument()
   })
 
   it('renders array-shaped nftables JSON as structured rows', async () => {
@@ -191,5 +201,30 @@ describe('HostNftPage', () => {
     await waitFor(() => {
       expect(screen.queryByText('old ruleset')).not.toBeInTheDocument()
     })
+  })
+
+  it('shows a standalone spinner until an empty response is resolved', async () => {
+    const snapshotRequest = createDeferred<Response>()
+    const watchRequest = createDeferred<Response>()
+    ;(global.fetch as jest.Mock).mockReturnValueOnce(snapshotRequest.promise).mockReturnValueOnce(watchRequest.promise)
+
+    const { container } = await renderPage('cluster-a')
+
+    await waitFor(() => {
+      expect(container.querySelector('.ant-spin-spinning')).toBeInTheDocument()
+    })
+    expect(container.querySelector('.ant-table')).not.toBeInTheDocument()
+
+    await act(async () => {
+      snapshotRequest.resolve({
+        json: async () => ({ items: [] }),
+        ok: true,
+      } as Response)
+    })
+
+    await waitFor(() => {
+      expect(container.querySelector('.ant-spin-spinning')).not.toBeInTheDocument()
+    })
+    expect(container.querySelector('.ant-table')).toBeInTheDocument()
   })
 })
