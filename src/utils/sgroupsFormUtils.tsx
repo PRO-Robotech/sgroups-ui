@@ -582,36 +582,22 @@ export const validateCIDR = (value?: string) => {
   const prefix = Number(prefixPart)
 
   if (addressPart.includes('.')) {
-    return isValidIPv4(addressPart) && prefix >= 0 && prefix <= 32
+    const address = parseIPv4ToBigInt(addressPart)
+
+    return address !== null && prefix >= 0 && prefix <= 32 && hasZeroHostBits(address, prefix, IPV4_BIT_LENGTH)
   }
 
   if (addressPart.includes(':')) {
-    return isValidIPv6(addressPart) && prefix >= 0 && prefix <= 128
+    const address = parseIPv6ToBigInt(addressPart)
+
+    return address !== null && prefix >= 0 && prefix <= 128 && hasZeroHostBits(address, prefix, IPV6_BIT_LENGTH)
   }
 
   return false
 }
 
 export const validateNetworkCIDR = (value?: string) => {
-  const normalizedValue = normalizeOptionalString(value)
-
-  if (!normalizedValue || !validateCIDR(normalizedValue)) {
-    return false
-  }
-
-  const separatorIndex = normalizedValue.lastIndexOf('/')
-  const addressPart = normalizedValue.slice(0, separatorIndex)
-  const prefix = Number(normalizedValue.slice(separatorIndex + 1))
-
-  if (addressPart.includes('.')) {
-    const address = parseIPv4ToBigInt(addressPart)
-
-    return address !== null && hasZeroHostBits(address, prefix, IPV4_BIT_LENGTH)
-  }
-
-  const address = parseIPv6ToBigInt(addressPart)
-
-  return address !== null && hasZeroHostBits(address, prefix, IPV6_BIT_LENGTH)
+  return validateCIDR(value)
 }
 
 export const validatePortToken = (value: string) => {

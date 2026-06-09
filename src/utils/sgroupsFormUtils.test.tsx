@@ -227,11 +227,14 @@ describe('sgroupsFormUtils', () => {
     expect(validateDisplayName('host-')).toBe(false)
   })
 
-  it('validates IPv4 and IPv6 CIDRs', () => {
+  it('validates canonical IPv4 and IPv6 CIDRs', () => {
     expect(validateCIDR('10.0.0.0/8')).toBe(true)
     expect(validateCIDR('192.168.1.0/24')).toBe(true)
+    expect(validateCIDR('192.168.1.1/32')).toBe(true)
     expect(validateCIDR('2001:db8::/64')).toBe(true)
     expect(validateCIDR('2001:db8:0:0:0:0:0:1/128')).toBe(true)
+    expect(validateCIDR('10.0.0.1/24')).toBe(false)
+    expect(validateCIDR('2001:db8::1/64')).toBe(false)
     expect(validateCIDR('10.0.0.0/33')).toBe(false)
     expect(validateCIDR('01.0.0.0/8')).toBe(false)
     expect(validateCIDR('256.0.0.0/8')).toBe(false)
@@ -241,11 +244,13 @@ describe('sgroupsFormUtils', () => {
     expect(validateCIDR('   ')).toBe(false)
   })
 
-  it('validates network CIDRs with zero host bits', () => {
+  it('validates network CIDRs with the shared backend CIDR rules', () => {
     expect(validateNetworkCIDR('10.0.0.0/8')).toBe(true)
     expect(validateNetworkCIDR('0.0.0.0/0')).toBe(true)
     expect(validateNetworkCIDR('192.168.1.0/24')).toBe(true)
+    expect(validateNetworkCIDR('192.168.1.1/32')).toBe(true)
     expect(validateNetworkCIDR('2001:db8::/64')).toBe(true)
+    expect(validateNetworkCIDR('2001:db8::1/128')).toBe(true)
     expect(validateNetworkCIDR('::/0')).toBe(true)
     expect(validateNetworkCIDR('5.5.5.5/8')).toBe(false)
     expect(validateNetworkCIDR('::1/8')).toBe(false)

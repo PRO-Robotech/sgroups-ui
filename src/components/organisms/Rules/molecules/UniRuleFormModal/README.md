@@ -49,7 +49,7 @@ AntD form validation runs before the create or patch flow reads the full form st
 - Local endpoints are limited to `AddressGroup` and `Service`.
 - Remote endpoints allow `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 - `FQDN` values must match the shared hostname-like FQDN validator.
-- `CIDR` values must pass the shared IPv4/IPv6 CIDR validator.
+- `CIDR` values must pass the shared backend-aligned IPv4/IPv6 CIDR validator. Non-zero host bits are rejected, for example `10.0.0.1/24`; full host prefixes like `192.168.1.1/32` are valid.
 - TCP/UDP port entries accept comma-separated ports and ranges, for example `80,443` or `1000-2000`.
 - ICMP type entries accept integer values from `0` through `255`.
 - Selecting a protocol in the Ports panel initializes and expands one blank transport entry when no entry exists yet. The blank entry is only UI state; it does not produce `spec.transport` until the user fills ports, ICMP types, description, or comment.

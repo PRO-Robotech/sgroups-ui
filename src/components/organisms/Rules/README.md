@@ -49,7 +49,7 @@ For `AddressGroup` and `Service` endpoints:
 For string endpoints:
 
 - `FQDN` is validated as a hostname-like FQDN
-- `CIDR` is validated for both IPv4 and IPv6 CIDR formats
+- `CIDR` is validated for backend canonical IPv4 and IPv6 CIDR form. Non-zero host bits are rejected, for example `10.0.0.1/24`; full host prefixes like `192.168.1.1/32` are valid.
 
 ## API flow
 
