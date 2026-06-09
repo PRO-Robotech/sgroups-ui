@@ -217,4 +217,30 @@ describe('UniRuleFormModal', () => {
 
     expect(screen.getByPlaceholderText('e.g. api-to-db')).toBeInTheDocument()
   })
+
+  it('adds the first transport entry when a protocol has been selected', async () => {
+    renderModal(
+      <UniRuleFormModal
+        cluster="cluster-a"
+        namespace="tenant-a"
+        open
+        initialValues={{ transportProtocol: 'TCP' }}
+        onClose={jest.fn()}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByDisplayValue(/^rules-/)).toBeInTheDocument()
+    })
+    fireEvent.click(screen.getByRole('radio', { name: 'Ports' }))
+
+    await waitFor(() => {
+      expect(
+        Array.from(document.body.querySelectorAll('.ant-collapse-item-active')).some(collapseItem =>
+          collapseItem.textContent?.includes('Port 1'),
+        ),
+      ).toBe(true)
+    })
+    expect(screen.queryByText('No transport entries')).not.toBeInTheDocument()
+  })
 })

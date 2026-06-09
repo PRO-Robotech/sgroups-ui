@@ -90,6 +90,12 @@ const hasTransportEntryValue = (entry?: TTransportEntryFormValue) =>
 
 const hasTransportEntries = (entries?: TUniRuleFormValues['transportEntries']) =>
   (entries || []).some(entry => hasTransportEntryValue(entry))
+const EMPTY_TRANSPORT_ENTRY: TTransportEntryFormValue = {
+  ports: undefined,
+  types: undefined,
+  description: undefined,
+  comment: undefined,
+}
 
 const isActionValue = (value?: string) => ACTION_VALUES.some(optionValue => optionValue === value)
 const isTrafficValue = (value?: string) => TRAFFIC_VALUES.some(optionValue => optionValue === value)
@@ -119,6 +125,17 @@ const withFallbackNamespace = <TResource extends { metadata: { namespace?: strin
         },
   )
 
+const withInitialTransportEntry = <TValues extends Partial<TUniRuleFormValues>>(values: TValues): TValues => {
+  if (!values.transportProtocol || values.transportEntries?.length) {
+    return values
+  }
+
+  return {
+    ...values,
+    transportEntries: [{ ...EMPTY_TRANSPORT_ENTRY }],
+  }
+}
+
 export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
   cluster,
   namespace,
@@ -129,6 +146,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
 }) => {
   const [form] = Form.useForm<TUniRuleFormValues>()
   const [activeTab, setActiveTab] = useState<'info' | 'ports'>('info')
+  const [activeTransportEntryKeys, setActiveTransportEntryKeys] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const didApplyEditPrefillRef = useRef(false)
@@ -434,18 +452,32 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
 
     if (rule && !isFormResourcesLoading && !didApplyEditPrefillRef.current) {
       didApplyEditPrefillRef.current = true
-      form.setFieldsValue(buildFormValuesFromRule(rule) as TUniRuleFormValues)
+      const nextValues = withInitialTransportEntry(buildFormValuesFromRule(rule))
+
+      form.setFieldsValue(nextValues as TUniRuleFormValues)
+      setActiveTransportEntryKeys(
+        nextValues.transportEntries?.length === 1 && !hasTransportEntryValue(nextValues.transportEntries[0])
+          ? ['0']
+          : [],
+      )
       setIsInitialized(true)
       return
     }
 
     if (!rule && !isFormResourcesLoading && !didApplyCreatePrefillRef.current) {
       didApplyCreatePrefillRef.current = true
-      form.setFieldsValue({
+      const nextValues = withInitialTransportEntry({
         name: uuidv4(),
         displayName: getCreateDisplayName(),
         ...initialCreateFormValues,
       })
+
+      form.setFieldsValue(nextValues)
+      setActiveTransportEntryKeys(
+        nextValues.transportEntries?.length === 1 && !hasTransportEntryValue(nextValues.transportEntries[0])
+          ? ['0']
+          : [],
+      )
       setIsInitialized(true)
     }
   }, [form, initialCreateFormValues, isFormResourcesLoading, open, rule])
@@ -459,6 +491,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     didApplyCreatePrefillRef.current = false
     setIsInitialized(false)
     setActiveTab('info')
+    setActiveTransportEntryKeys([])
     setIsSubmitting(false)
     form.resetFields()
   }, [form, open])
@@ -468,6 +501,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     didApplyCreatePrefillRef.current = false
     setIsInitialized(false)
     setActiveTab('info')
+    setActiveTransportEntryKeys([])
     setIsSubmitting(false)
     form.resetFields()
     onClose()
@@ -1032,8 +1066,15 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                       options={PROTOCOL_OPTIONS as unknown as { label: string; value: string }[]}
                       onChange={value => {
                         const entries = form.getFieldValue('transportEntries') as TUniRuleFormValues['transportEntries']
+                        const nextEntries =
+                          entries && entries.length > 0 ? entries : value ? [{ ...EMPTY_TRANSPORT_ENTRY }] : []
 
-                        ;(entries || []).forEach((_, index) => {
+                        if (nextEntries !== entries) {
+                          form.setFieldsValue({ transportEntries: nextEntries })
+                          setActiveTransportEntryKeys(value ? ['0'] : [])
+                        }
+
+                        nextEntries.forEach((_, index) => {
                           if (value === 'ICMP') {
                             form.setFieldValue(['transportEntries', index, 'ports'], undefined)
                           } else {
@@ -1050,8 +1091,12 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No transport entries" />
                         ) : null}
                         <Collapse
+                          activeKey={activeTransportEntryKeys}
+                          onChange={keys => setActiveTransportEntryKeys(Array.isArray(keys) ? keys : [keys])}
                           items={fields.map(field => {
-                            const { key: fieldKey, ...fieldItemProps } = field
+                            const fieldItemProps = {
+                              fieldKey: field.fieldKey,
+                            }
                             const protocol = form.getFieldValue('transportProtocol') as
                               | 'TCP'
                               | 'UDP'
@@ -1059,7 +1104,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                               | undefined
 
                             return {
-                              key: `transport-entry-${field.name}-${fieldKey}`,
+                              key: String(field.name),
                               label: `Port ${field.name + 1}`,
                               extra: (
                                 <Button
@@ -1067,6 +1112,9 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                                   icon={<MinusOutlined />}
                                   onClick={event => {
                                     event.stopPropagation()
+                                    setActiveTransportEntryKeys(keys =>
+                                      keys.filter(key => key !== String(field.name)),
+                                    )
                                     remove(field.name)
                                   }}
                                   aria-label={`Remove transport entry ${field.name + 1}`}
@@ -1146,7 +1194,13 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                           })}
                         />
                         <Styled.EntryActions>
-                          <Button type="dashed" onClick={() => add({})}>
+                          <Button
+                            type="dashed"
+                            onClick={() => {
+                              add({ ...EMPTY_TRANSPORT_ENTRY })
+                              setActiveTransportEntryKeys([String(fields.length)])
+                            }}
+                          >
                             <PlusOutlined />
                             Add transport entry
                           </Button>

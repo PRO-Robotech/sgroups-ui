@@ -18,6 +18,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `IP family`: transport selector. Required when Remote is not `Service`; otherwise optional until transport data is entered. `IPv4` or `IPv6`.
 - `Protocol`: transport selector. Required when Remote is not `Service`; otherwise optional until transport data is entered. `TCP`, `UDP`, or `ICMP`.
 - `Transport entries`: repeated section. Required when Remote is not `Service`; otherwise optional until transport data is entered.
+  - selecting a protocol auto-adds and expands the first blank entry if the section is empty
   - for `TCP` and `UDP`, each entry uses `ports`
   - for `ICMP`, each entry uses `types`
   - each entry may also include optional `description` and `comment`
@@ -147,6 +148,7 @@ The implementation validates with AntD before building the save payload.
 - `ICMP` entries validate type values from `0` to `255`
 - `spec.transport` is required when the Remote endpoint is not `Service`
 - selecting a protocol requires at least one transport entry
+- selecting a protocol auto-adds and expands the first blank transport entry in the Ports panel when none exists yet
 - adding a transport entry requires both protocol and IP family
 - transport payload may be omitted only when the Remote endpoint is `Service` and the whole transport section is empty
 - nested transport entry edits revalidate the protocol and IP family selector errors so a valid port or ICMP type immediately clears stale selector-level validation messages
