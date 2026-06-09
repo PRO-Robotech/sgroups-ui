@@ -1112,9 +1112,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                                   icon={<MinusOutlined />}
                                   onClick={event => {
                                     event.stopPropagation()
-                                    setActiveTransportEntryKeys(keys =>
-                                      keys.filter(key => key !== String(field.name)),
-                                    )
+                                    setActiveTransportEntryKeys(keys => keys.filter(key => key !== String(field.name)))
                                     remove(field.name)
                                   }}
                                   aria-label={`Remove transport entry ${field.name + 1}`}

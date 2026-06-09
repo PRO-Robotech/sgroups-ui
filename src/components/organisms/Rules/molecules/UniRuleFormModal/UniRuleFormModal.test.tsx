@@ -236,8 +236,8 @@ describe('UniRuleFormModal', () => {
 
     await waitFor(() => {
       expect(
-        Array.from(document.body.querySelectorAll('.ant-collapse-item-active')).some(collapseItem =>
-          collapseItem.textContent?.includes('Port 1'),
+        Array.from(document.body.querySelectorAll('.ant-collapse-item-active')).some(
+          collapseItem => collapseItem.textContent?.includes('Port 1'),
         ),
       ).toBe(true)
     })
