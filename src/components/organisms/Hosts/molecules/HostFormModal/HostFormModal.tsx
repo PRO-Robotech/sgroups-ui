@@ -395,7 +395,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
     <Modal
       title={null}
       open={open}
-      maskClosable={false}
+      mask={{ closable: false }}
       onCancel={handleCancel}
       onOk={handleSubmit}
       afterClose={() => {

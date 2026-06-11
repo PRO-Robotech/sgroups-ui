@@ -64,6 +64,6 @@ Service details add `AddressGroups` and `Rules` tabs. The `AddressGroups` tab is
 
 Host details add `Socket Stats` and `NFT` tabs. Both tabs read backend-owned Host subresources through the cluster proxy, default to `watch=true`, and fetch one snapshot before opening the stream. `Socket Stats` replaces the full table on every streamed list snapshot and sends user-filled backend selectors. `NFT` sends only the backend-supported `watch` query knob, shows a plain Monaco response by default, and offers a deferred `Structure` view for tables, chains, rules, sets, and other nftables objects.
 
-Delete actions intentionally do not pass `redirectTo` from detail pages. The shared delete modal close handler navigates to `redirectTo` on any close, so canceling or closing the modal would otherwise jump back to the resource table. The local sgroups delete modal also sets `maskClosable={false}`, so backdrop clicks do not close it.
+Delete actions intentionally do not pass `redirectTo` from detail pages. The shared delete modal close handler navigates to `redirectTo` on any close, so canceling or closing the modal would otherwise jump back to the resource table. The local sgroups delete modal also sets `mask={{ closable: false }}`, so backdrop clicks do not close it.
 
 The generic Events tab is intentionally omitted for sgroups resources because current sgroups flows do not provide resource-specific event behavior.

@@ -119,7 +119,7 @@ export const SgroupsNetworkDetailsSection: FC<TSgroupsNetworkDetailsSectionProps
   }
 
   if (networkError) {
-    return <Alert type="error" message="Error while loading Network details" />
+    return <Alert type="error" title="Error while loading Network details" />
   }
 
   if (!network) {

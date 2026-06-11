@@ -91,7 +91,7 @@ export const SgroupsServiceRulesTab: FC<TSgroupsServiceRulesTabProps> = ({ data 
   const dataSource = useMemo(() => mapRulesToRows(filteredRules), [filteredRules])
 
   if (error) {
-    return <Alert type="error" message="Error while loading Service rules" />
+    return <Alert type="error" title="Error while loading Service rules" />
   }
 
   return (

@@ -492,7 +492,7 @@ export const SgroupsHostSockStatsTab: FC<TSgroupsHostSockStatsTabProps> = ({ dat
   }, [cluster, name, namespace, runRequest])
 
   if (!cluster) {
-    return <Alert type="error" message="Cluster is required to open host socket stats." showIcon />
+    return <Alert type="error" title="Cluster is required to open host socket stats." showIcon />
   }
 
   if (!namespace || !name) {

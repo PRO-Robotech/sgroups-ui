@@ -27,7 +27,9 @@ jest.mock('antd', () => {
   const ReactActual = jest.requireActual<typeof React>('react')
 
   return {
-    Alert: ({ message }: { message: React.ReactNode }) => <div role="alert">{message}</div>,
+    Alert: ({ message, title }: { message?: React.ReactNode; title?: React.ReactNode }) => (
+      <div role="alert">{title ?? message}</div>
+    ),
     Flex: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
     Select: ({
       disabled,

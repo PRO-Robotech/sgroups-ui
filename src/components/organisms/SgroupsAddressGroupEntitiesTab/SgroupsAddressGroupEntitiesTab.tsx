@@ -94,7 +94,7 @@ const renderInfoValues = (values: string[]) => {
   }
 
   return (
-    <Space direction="vertical" size={4}>
+    <Space orientation="vertical" size={4}>
       {values.map(value => (
         <Tag key={value}>{value}</Tag>
       ))}
@@ -388,7 +388,7 @@ export const SgroupsAddressGroupEntitiesTab: FC<TSgroupsAddressGroupEntitiesTabP
     servicesError
 
   if (hasError) {
-    return <Alert type="error" message={`Error while loading AddressGroup ${config.title}`} />
+    return <Alert type="error" title={`Error while loading AddressGroup ${config.title}`} />
   }
 
   return (

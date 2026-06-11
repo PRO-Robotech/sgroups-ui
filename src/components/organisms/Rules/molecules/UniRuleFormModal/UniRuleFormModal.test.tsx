@@ -208,11 +208,14 @@ describe('UniRuleFormModal', () => {
 
     await waitFor(() => expect(screen.getByDisplayValue(/^rules-/)).toBeInTheDocument())
 
-    const localSelect = screen.getAllByText('Select address group')[0].closest('.ant-select')
-    const localSelector = localSelect?.querySelector('.ant-select-selector')
+    let localSelector: HTMLElement | undefined
 
-    expect(localSelector).toBeInTheDocument()
-    fireEvent.mouseDown(localSelector as Element)
+    await waitFor(() => {
+      localSelector = document.getElementById('local_name') || undefined
+      expect(localSelector).toBeInTheDocument()
+    })
+
+    fireEvent.mouseDown(localSelector as HTMLElement)
 
     expect(await screen.findByText('Address Group A')).toBeInTheDocument()
   })

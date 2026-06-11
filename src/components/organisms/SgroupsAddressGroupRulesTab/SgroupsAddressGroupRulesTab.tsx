@@ -101,7 +101,7 @@ export const SgroupsAddressGroupRulesTab: FC<TSgroupsAddressGroupRulesTabProps> 
   }, [data.name, data.namespace, direction])
 
   if (error) {
-    return <Alert type="error" message="Error while loading AddressGroup rules" />
+    return <Alert type="error" title="Error while loading AddressGroup rules" />
   }
 
   return (

@@ -127,7 +127,7 @@ export const SgroupsServiceDetailsSection: FC<TSgroupsServiceDetailsSectionProps
   }
 
   if (serviceError) {
-    return <Alert type="error" message="Error while loading Service details" />
+    return <Alert type="error" title="Error while loading Service details" />
   }
 
   if (!service) {

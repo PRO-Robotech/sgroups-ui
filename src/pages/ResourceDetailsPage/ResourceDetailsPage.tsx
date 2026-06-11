@@ -144,7 +144,7 @@ export const ResourceDetailsPage: FC<TResourceDetailsPageProps> = ({ cluster, re
   )
 
   if (!clusterId) {
-    return <Alert type="error" message="Cluster is required to open resource details." />
+    return <Alert type="error" title="Cluster is required to open resource details." />
   }
 
   if (!config || !resourceNamespace || !resourceName) {

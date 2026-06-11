@@ -218,7 +218,7 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
   }, [])
 
   if (!cluster) {
-    return <Alert type="error" message="No cluster has been set" showIcon />
+    return <Alert type="error" title="No cluster has been set" showIcon />
   }
 
   return (
@@ -226,7 +226,7 @@ export const Networks: FC<TNetworksProps> = ({ cluster, namespace }) => {
       <Styled.TablePageShell $height={contentCardHeight}>
         <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
           <TenantSelector cluster={cluster} tenant={namespace} />
-          {error && <Alert type="error" message={`Failed to load networks: ${String(error)}`} showIcon />}
+          {error && <Alert type="error" title={`Failed to load networks: ${String(error)}`} showIcon />}
           {isLoading && !networksData && <Spin />}
           {!error && networksData && (
             <Flex vertical style={{ flex: 1, minHeight: 0 }}>

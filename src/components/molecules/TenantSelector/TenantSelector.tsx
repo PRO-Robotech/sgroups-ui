@@ -90,7 +90,7 @@ export const TenantSelector: FC<TTenantSelectorProps> = ({ cluster, tenant }) =>
           style={{ minWidth: 260 }}
         />
       </Flex>
-      {error && <Alert type="error" message={`Failed to load tenants: ${String(error)}`} showIcon />}
+      {error && <Alert type="error" title={`Failed to load tenants: ${String(error)}`} showIcon />}
     </Flex>
   )
 }

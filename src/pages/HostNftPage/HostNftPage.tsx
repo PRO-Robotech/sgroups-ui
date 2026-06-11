@@ -1252,7 +1252,7 @@ export const SgroupsHostNftTab: FC<TSgroupsHostNftTabProps> = ({ data }) => {
   }, [cluster, name, namespace, runRequest])
 
   if (!cluster) {
-    return <Alert type="error" message="Cluster is required to open host nftables." showIcon />
+    return <Alert type="error" title="Cluster is required to open host nftables." showIcon />
   }
 
   if (!namespace || !name) {

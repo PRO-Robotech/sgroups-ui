@@ -142,7 +142,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 ## Modal lifecycle
 
-- AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
+- AntD modals must set `mask={{ closable: false }}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
 - That hard reset is intentional. Soft resets were not enough for AntD multi-select state in this flow.
 

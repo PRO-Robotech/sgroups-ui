@@ -96,7 +96,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 ## Modal lifecycle
 
-- AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
+- AntD modals must set `mask={{ closable: false }}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, and the parent gives each open cycle a fresh React `key`, so closing and reopening mounts a new modal instance.
 - That hard reset is intentional. It clears component state and hooks outside the AntD `<Modal>` subtree, which `destroyOnHidden` alone does not reset.
 - Edit prefill waits for existing `NetworkBinding` resources and AddressGroup options before setting selected AddressGroups, so edit tags render with the same badge labels as create selections. Structure Overview graph lookups do not block the modal after initialization; the sidebar renders from currently available data.

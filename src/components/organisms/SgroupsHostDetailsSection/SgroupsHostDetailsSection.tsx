@@ -139,7 +139,7 @@ export const SgroupsHostDetailsSection: FC<TSgroupsHostDetailsSectionProps> = ({
   }
 
   if (hostError) {
-    return <Alert type="error" message="Error while loading Host details" />
+    return <Alert type="error" title="Error while loading Host details" />
   }
 
   if (!host) {

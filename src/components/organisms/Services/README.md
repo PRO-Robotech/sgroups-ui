@@ -108,7 +108,7 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 
 ## Modal lifecycle
 
-- AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
+- AntD modals must set `mask={{ closable: false }}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
 - Segmented content reads and submits the full form store, not only the currently visible panel fields.
 - Transport data is kept UI-friendly in the form and normalized back to `spec.transports` only at submit time.

@@ -86,7 +86,7 @@ const MetadataLabelsModal: FC<{
     <Modal
       title="Edit Labels"
       open={open}
-      maskClosable={false}
+      mask={{ closable: false }}
       onCancel={onClose}
       onOk={handleSubmit}
       confirmLoading={isSubmitting}
@@ -160,7 +160,7 @@ const MetadataAnnotationsModal: FC<{
     <Modal
       title="Edit Annotations"
       open={open}
-      maskClosable={false}
+      mask={{ closable: false }}
       onCancel={onClose}
       onOk={handleSubmit}
       confirmLoading={isSubmitting}

@@ -215,7 +215,7 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
   }, [])
 
   if (!cluster) {
-    return <Alert type="error" message="No cluster has been set" showIcon />
+    return <Alert type="error" title="No cluster has been set" showIcon />
   }
 
   return (
@@ -223,7 +223,7 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
       <Styled.TablePageShell $height={contentCardHeight}>
         <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
           <TenantSelector cluster={cluster} tenant={namespace} />
-          {error && <Alert type="error" message={`Failed to load services: ${String(error)}`} showIcon />}
+          {error && <Alert type="error" title={`Failed to load services: ${String(error)}`} showIcon />}
           {isLoading && !servicesData && <Spin />}
           {!error && servicesData && (
             <Flex vertical style={{ flex: 1, minHeight: 0 }}>

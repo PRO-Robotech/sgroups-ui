@@ -253,7 +253,7 @@ export const SgroupsAddressGroupDetailsSection: FC<TSgroupsAddressGroupDetailsSe
     networksError ||
     servicesError
   ) {
-    return <Alert type="error" message="Error while loading AddressGroup details" />
+    return <Alert type="error" title="Error while loading AddressGroup details" />
   }
 
   if (!addressGroup) {

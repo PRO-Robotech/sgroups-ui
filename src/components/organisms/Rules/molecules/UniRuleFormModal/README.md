@@ -120,7 +120,7 @@ The overview tree starts collapsed by default. Do not set `defaultExpandAll` or 
 
 ## Lifecycle
 
-Set `maskClosable={false}` on the AntD `Modal`. Backdrop clicks must not close the modal; use the Cancel button or close icon for explicit close actions.
+Set `mask={{ closable: false }}` on the AntD `Modal`. Backdrop clicks must not close the modal; use the Cancel button or close icon for explicit close actions.
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 

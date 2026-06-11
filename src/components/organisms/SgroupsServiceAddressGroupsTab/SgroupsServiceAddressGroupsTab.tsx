@@ -143,7 +143,7 @@ export const SgroupsServiceAddressGroupsTab: FC<TSgroupsServiceAddressGroupsTabP
   )
 
   if (serviceError || serviceBindingsError || addressGroupsError) {
-    return <Alert type="error" message="Error while loading Service AddressGroups" />
+    return <Alert type="error" title="Error while loading Service AddressGroups" />
   }
 
   return (

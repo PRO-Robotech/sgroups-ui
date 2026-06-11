@@ -219,15 +219,18 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     }
   }, [initialValues, namespace])
   const localFormEndpoint =
-    localFormValue ??
+    (localFormValue?.type ? localFormValue : undefined) ??
+    (form.getFieldValue('local') as TUniRuleFormValues['local'] | undefined) ??
     (!isInitialized ? (rule ? currentRuleFormValues.local : initialCreateFormValues.local) : undefined)
   const remoteFormEndpoint =
-    remoteFormValue ??
+    (remoteFormValue?.type ? remoteFormValue : undefined) ??
+    (form.getFieldValue('remote') as TUniRuleFormValues['remote'] | undefined) ??
     (!isInitialized ? (rule ? currentRuleFormValues.remote : initialCreateFormValues.remote) : undefined)
   const localType = localFormEndpoint?.type
   const remoteType = remoteFormEndpoint?.type
   const ruleNamespace =
     ruleNamespaceFormValue ??
+    (form.getFieldValue('namespace') as string | undefined) ??
     (!isInitialized ? rule?.metadata.namespace || initialCreateFormValues.namespace : undefined)
   const localNamespace = ruleNamespace
   const remoteNamespace = remoteFormEndpoint?.namespace
@@ -601,6 +604,13 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     let values: TUniRuleFormValues
 
     try {
+      const currentValues = form.getFieldsValue(true) as TUniRuleFormValues
+      const nextTraffic = normalizeRuleTrafficForEndpoints(currentValues)
+
+      if (nextTraffic && nextTraffic !== currentValues.traffic) {
+        form.setFieldValue('traffic', nextTraffic)
+      }
+
       await form.validateFields()
       values = form.getFieldsValue(true) as TUniRuleFormValues
     } catch (error) {
@@ -706,7 +716,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     <Modal
       title={null}
       open={open}
-      maskClosable={false}
+      mask={{ closable: false }}
       onCancel={handleCancel}
       onOk={handleSubmit}
       afterClose={() => {
@@ -1174,9 +1184,6 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                           activeKey={activeTransportEntryKeys}
                           onChange={keys => setActiveTransportEntryKeys(Array.isArray(keys) ? keys : [keys])}
                           items={fields.map(field => {
-                            const fieldItemProps = {
-                              fieldKey: field.fieldKey,
-                            }
                             const protocol = form.getFieldValue('transportProtocol') as
                               | 'TCP'
                               | 'UDP'
@@ -1202,7 +1209,6 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                                 <>
                                   {protocol === 'ICMP' ? (
                                     <Form.Item
-                                      {...fieldItemProps}
                                       name={[field.name, 'types']}
                                       label="ICMP types"
                                       rules={[
@@ -1227,7 +1233,6 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                                     </Form.Item>
                                   ) : (
                                     <Form.Item
-                                      {...fieldItemProps}
                                       name={[field.name, 'ports']}
                                       label="Port"
                                       rules={[
@@ -1257,10 +1262,10 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                                       <Input placeholder="e.g. 443 or 5000-6000, 6500" />
                                     </Form.Item>
                                   )}
-                                  <Form.Item {...fieldItemProps} name={[field.name, 'description']} label="Description">
+                                  <Form.Item name={[field.name, 'description']} label="Description">
                                     <Input placeholder="Briefly describe this entry" />
                                   </Form.Item>
-                                  <Form.Item {...fieldItemProps} name={[field.name, 'comment']} label="Comment">
+                                  <Form.Item name={[field.name, 'comment']} label="Comment">
                                     <Input.TextArea
                                       placeholder="Add any additional notes here..."
                                       autoSize={{ minRows: 2, maxRows: 4 }}

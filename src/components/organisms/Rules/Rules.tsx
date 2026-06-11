@@ -259,7 +259,7 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
   }, [])
 
   if (!cluster) {
-    return <Alert type="error" message="No cluster has been set" showIcon />
+    return <Alert type="error" title="No cluster has been set" showIcon />
   }
 
   return (
@@ -267,7 +267,7 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
       <Styled.TablePageShell $height={contentCardHeight}>
         <Flex vertical gap={16} style={{ flex: 1, minHeight: 0 }}>
           <TenantSelector cluster={cluster} tenant={namespace} />
-          {error && <Alert type="error" message={`Failed to load rules: ${String(error)}`} showIcon />}
+          {error && <Alert type="error" title={`Failed to load rules: ${String(error)}`} showIcon />}
           {(isLoading || isAddressGroupsLoading || isServicesLoading) && <Spin />}
           {!error && rulesData && !isLoading && !isAddressGroupsLoading && !isServicesLoading && (
             <Flex vertical style={{ flex: 1, minHeight: 0 }}>

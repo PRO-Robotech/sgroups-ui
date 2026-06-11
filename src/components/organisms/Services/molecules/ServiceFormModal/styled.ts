@@ -95,14 +95,14 @@ export const TreeContainer = styled.div`
     background: transparent;
   }
 
+  .ant-tree-switcher_close .ant-tree-switcher-line-icon svg {
+    transform: rotate(-90deg);
+  }
+
   .ant-tree-switcher {
     display: flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .ant-tree-switcher:before {
-    top: initial !important;
   }
 
   .ant-tree .ant-tree-node-content-wrapper {
