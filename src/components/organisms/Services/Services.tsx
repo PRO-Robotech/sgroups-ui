@@ -7,7 +7,13 @@ import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
-import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
+import {
+  getDeleteModalResource,
+  getNamespaceDisplayLookup,
+  getSgroupsTableProps,
+  TDeleteModalResource,
+  TNamespaceResource,
+} from 'utils'
 import { SgroupsDeleteModal } from 'utils/SgroupsDeleteModal'
 import { Styled } from './styled'
 import {
@@ -82,6 +88,14 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
     plural: 'services',
     isEnabled: Boolean(cluster),
   })
+  const { data: tenantsData } = useK8sSmartResource<{ items: TNamespaceResource[] }>({
+    cluster: cluster || '',
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    plural: 'tenants',
+    isEnabled: Boolean(cluster),
+  })
+  const namespaceDisplayLookup = useMemo(() => getNamespaceDisplayLookup(tenantsData?.items), [tenantsData?.items])
 
   const openCreateModal = useCallback(() => {
     setEditingService(null)
@@ -100,9 +114,11 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
 
   const openDeleteModal = useCallback(
     (serviceRecord: TServiceRow) => {
-      setDeletingService(getDeleteModalResource(cluster || '', namespace, 'services', serviceRecord))
+      setDeletingService(
+        getDeleteModalResource(cluster || '', namespace, 'services', serviceRecord, namespaceDisplayLookup),
+      )
     },
-    [cluster, namespace],
+    [cluster, namespace, namespaceDisplayLookup],
   )
 
   const closeDeleteModal = useCallback(() => {
@@ -110,8 +126,8 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
   }, [])
 
   const columns = useMemo(
-    () => buildServicesColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
-    [openDeleteModal, openEditModal],
+    () => buildServicesColumns({ namespaceDisplayLookup, onDelete: openDeleteModal, onEdit: openEditModal }),
+    [namespaceDisplayLookup, openDeleteModal, openEditModal],
   )
   const dataSource = useMemo(() => mapServicesToRows(servicesData?.items || []), [servicesData?.items])
   const selectedService = useMemo(
@@ -246,6 +262,7 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
                         cluster={cluster}
                         namespace={namespace}
                         service={selectedService}
+                        namespaceDisplayLookup={namespaceDisplayLookup}
                         width={verboseWidth}
                         onClose={closeVerbose}
                         onCollapse={collapseVerbose}
@@ -261,6 +278,7 @@ export const Services: FC<TServicesProps> = ({ cluster, namespace }) => {
                     cluster={cluster}
                     namespace={namespace}
                     service={selectedService}
+                    namespaceDisplayLookup={namespaceDisplayLookup}
                     onClose={closeVerbose}
                     onCollapse={collapseVerbose}
                     onExpand={expandVerbose}

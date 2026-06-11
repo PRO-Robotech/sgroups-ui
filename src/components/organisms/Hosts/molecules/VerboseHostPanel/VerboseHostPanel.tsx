@@ -41,6 +41,7 @@ import {
   renderLinkedTreeResourceTitle,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 import { THostRow } from '../../tableConfig'
 
@@ -50,6 +51,7 @@ type TVerboseHostPanelProps = {
   cluster?: string
   namespace?: string
   host: THostRow
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
   width?: number
   onClose: () => void
   onExpand: () => void
@@ -229,6 +231,7 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
   cluster,
   namespace,
   host,
+  namespaceDisplayLookup = {},
   width,
   onClose,
   onExpand,
@@ -303,7 +306,13 @@ export const VerboseHostPanel: FC<TVerboseHostPanelProps> = ({
         <OverflowContainer>
           <SpecGridHosts>
             <Typography.Text type="secondary">Tenant</Typography.Text>
-            <div>{renderNamespaceBadgeWithValue(host.metadata.namespace)}</div>
+            <div>
+              {renderNamespaceBadgeWithValue(
+                host.metadata.namespace
+                  ? namespaceDisplayLookup[host.metadata.namespace] || host.metadata.namespace
+                  : undefined,
+              )}
+            </div>
 
             <Typography.Text type="secondary">Description</Typography.Text>
             <div>{renderValue(host.spec?.description)}</div>

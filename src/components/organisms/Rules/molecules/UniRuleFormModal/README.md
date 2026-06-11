@@ -23,19 +23,22 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Rule. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
+- Tenant option labels and search text use `spec.displayName`, falling back to `metadata.name`; option values remain `metadata.name` for API namespaces.
 - `displayName`, `action`, `traffic`, `description`, and `comment` map to editable `spec` fields. In edit mode, `displayName` is edited from the title pencil instead of a body form row.
 - `local` and `remote` endpoint blocks map to `spec.endpoints.local` and `spec.endpoints.remote`.
 - Transport panel values normalize back to `spec.transport` at submit time.
 
-`traffic` is stored in the form as the capitalized select value (`Both`, `Ingress`, or `Egress`) and saved with the same casing.
+`traffic` is stored in the form as the capitalized select value (`Both`, `Ingress`, or `Egress`) and saved with the same casing. When Local is `AddressGroup` or `Service` and Remote is `FQDN`, the select is constrained to `Egress` and submit normalizes stale values to `Egress`. When Local is `AddressGroup` or `Service` and Remote is `CIDR`, the select is constrained to `Ingress` or `Egress` and submit normalizes stale `Both` values before writing.
 
 Edit prefill normalizes backend traffic values before calling `setFieldsValue` so AntD can match the current select option. It also waits for endpoint resource options needed by the current Local and Remote endpoint types, so prefilled AddressGroup and Service selections render with the same badge labels as create-mode selections.
 
 Endpoint types currently supported by the modal are `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 
-For `AddressGroup` and `Service` endpoints, Local and Remote render one Cascader selector instead of separate visible Tenant and Name selects. The first Cascader level is namespace and the second level is the selected resource. The form still stores `namespace` and `name` separately under the endpoint block so submit, validation, and patch comparison keep the backend reference shape.
+For Local `AddressGroup` and `Service` endpoints, the visible selector is a plain AntD `Select`, scoped to the exact Rule tenant. Local endpoint `namespace` is hidden and synchronized from the Rule `namespace`; changing the Rule tenant clears the Local resource name so stale selections cannot cross tenants. Local endpoint options are loaded with explicit namespace-scoped requests keyed by the watched Rule tenant, matching the Host modal pattern.
 
-For `AddressGroup` endpoints, the modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in the Local and Remote namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Services use the shared service option list. Both resource types are grouped by namespace in the Cascader.
+For Remote `AddressGroup` and `Service` endpoints, the visible selector is an AntD Cascader. The first Cascader level is namespace and the second level is the selected resource. The form still stores `namespace` and `name` separately under the endpoint block so submit, validation, and patch comparison keep the backend reference shape.
+
+For `AddressGroup` endpoints, the modal uses the cluster-wide AddressGroup list for the shared lookup graph and merges in namespace-scoped query results as fallbacks. If a namespace-scoped AddressGroup response omits `metadata.namespace`, the selected endpoint namespace is applied before options are built. Remote AddressGroups and Services are grouped by namespace in the Cascader. Local AddressGroups and Services trust the Rule tenant request namespace, force that namespace onto returned option resources, and show resource labels without a namespace level.
 
 AddressGroup and Service endpoint option labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists. Submitted endpoint payloads still store resource names and namespaces because the backend references resources by identifier.
 
@@ -46,6 +49,7 @@ AntD form validation runs before the create or patch flow reads the full form st
 - `namespace`, hidden generated `name`, and selected endpoint resource identifiers use Kubernetes DNS label validation with a 63 character limit.
 - `displayName` is optional and limited to 63 characters. It uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-` plus six random digits.
 - `action`, `traffic`, endpoint types, IP family, and protocol are checked against local `v3` / `v3sgroups` enum values.
+- Traffic is constrained to `Egress` for local `AddressGroup` or `Service` endpoints targeting remote `FQDN`, and to `Ingress` or `Egress` for local `AddressGroup` or `Service` endpoints targeting remote `CIDR`.
 - Local endpoints are limited to `AddressGroup` and `Service`.
 - Remote endpoints allow `AddressGroup`, `Service`, `FQDN`, and `CIDR`.
 - `FQDN` values must match the shared hostname-like FQDN validator.
@@ -67,7 +71,7 @@ The create payload uses the hidden generated `name` as `metadata.name`; users do
 
 There are no Host, Service, Network, or AddressGroup binding resources in this flow. Endpoint references are written directly into the Rule payload.
 
-Create payloads normalize `spec.session.traffic` to the local OpenAPI enum casing (`Both`, `Ingress`, or `Egress`).
+Create payloads normalize `spec.session.traffic` to the local OpenAPI enum casing (`Both`, `Ingress`, or `Egress`). Local `AddressGroup` or `Service` to remote `FQDN` rules always write `Egress`. Local `AddressGroup` or `Service` to remote `CIDR` rules write only `Ingress` or `Egress`; stale `Both` values are normalized before submit.
 
 Create mode accepts optional `initialValues` from related detail pages. These values are merged into the default create form values before the one-time create prefill runs, so callers can preselect a Local or Remote endpoint while keeping the generated Rule name and default action/session values.
 
@@ -120,6 +124,6 @@ Set `maskClosable={false}` on the AntD `Modal`. Backdrop clicks must not close t
 
 The parent conditionally renders the modal only while it is open. The modal also uses AntD `destroyOnHidden` and resets refs/state after close.
 
-Edit prefill should run once per open cycle after resources needed for the form are ready, including endpoint resource options for selected AddressGroup and Service endpoints. Cascader values are derived from the stored endpoint `namespace` and `name`; keep those hidden fields registered so reopening and patch payloads stay stable. Modal loading gates should use React state, not refs read during render.
+Edit prefill should run once per open cycle after resources needed for the form are ready, including endpoint resource options for selected AddressGroup and Service endpoints. Local endpoint namespace is derived from the Rule namespace and local option queries should be keyed by that watched namespace. Remote Cascader values are derived from the stored endpoint `namespace` and `name`; keep those hidden fields registered so reopening and patch payloads stay stable. Modal loading gates should use React state, not refs read during render.
 
 Use field-specific AntD watchers for Local and Remote endpoint blocks. Watching the whole form can return an empty object before initialization and accidentally disable endpoint option queries that need edit-mode endpoint namespaces.

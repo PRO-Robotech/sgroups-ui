@@ -99,6 +99,7 @@ describe('VerboseHostPanel', () => {
             refs: [{ kind: 'HostBinding', namespace: 'tenant-a', name: 'host-binding-a' }],
           } as any
         }
+        namespaceDisplayLookup={{ 'tenant-a': 'Tenant A' }}
         onClose={jest.fn()}
         onExpand={jest.fn()}
         onCollapse={jest.fn()}
@@ -106,6 +107,7 @@ describe('VerboseHostPanel', () => {
     )
 
     expect(screen.getByText('Host A')).toBeInTheDocument()
+    expect(screen.getByText('Tenant A')).toBeInTheDocument()
     expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('Production host')).toBeInTheDocument()
     expect(screen.getByText('node-a')).toBeInTheDocument()

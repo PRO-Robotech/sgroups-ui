@@ -96,6 +96,7 @@ describe('VerboseRulePanel', () => {
             },
           } as any
         }
+        namespaceDisplayLookup={{ 'tenant-a': 'Tenant A' }}
         onClose={jest.fn()}
         onExpand={jest.fn()}
         onCollapse={jest.fn()}
@@ -103,6 +104,7 @@ describe('VerboseRulePanel', () => {
     )
 
     expect(screen.getByText('Rule A')).toBeInTheDocument()
+    expect(screen.getAllByText('Tenant A').length).toBeGreaterThan(0)
     expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('Allow')).toBeInTheDocument()
     expect(screen.getByText('Ingress')).toBeInTheDocument()

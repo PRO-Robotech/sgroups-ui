@@ -7,7 +7,13 @@ import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
-import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
+import {
+  getDeleteModalResource,
+  getNamespaceDisplayLookup,
+  getSgroupsTableProps,
+  TDeleteModalResource,
+  TNamespaceResource,
+} from 'utils'
 import { SgroupsDeleteModal } from 'utils/SgroupsDeleteModal'
 import { AddressGroupFormModal, VerboseAddressGroupPanel } from './molecules'
 import {
@@ -82,6 +88,14 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
     plural: 'addressgroups',
     isEnabled: Boolean(cluster),
   })
+  const { data: tenantsData } = useK8sSmartResource<{ items: TNamespaceResource[] }>({
+    cluster: cluster || '',
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    plural: 'tenants',
+    isEnabled: Boolean(cluster),
+  })
+  const namespaceDisplayLookup = useMemo(() => getNamespaceDisplayLookup(tenantsData?.items), [tenantsData?.items])
 
   const openCreateModal = useCallback(() => {
     setEditingAddressGroup(null)
@@ -100,9 +114,11 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
 
   const openDeleteModal = useCallback(
     (addressGroup: TAddressGroupRow) => {
-      setDeletingAddressGroup(getDeleteModalResource(cluster || '', namespace, 'addressgroups', addressGroup))
+      setDeletingAddressGroup(
+        getDeleteModalResource(cluster || '', namespace, 'addressgroups', addressGroup, namespaceDisplayLookup),
+      )
     },
-    [cluster, namespace],
+    [cluster, namespace, namespaceDisplayLookup],
   )
 
   const closeDeleteModal = useCallback(() => {
@@ -110,8 +126,8 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
   }, [])
 
   const columns = useMemo(
-    () => buildAddressGroupsColumns({ onDelete: openDeleteModal, onEdit: openEditModal }),
-    [openDeleteModal, openEditModal],
+    () => buildAddressGroupsColumns({ namespaceDisplayLookup, onDelete: openDeleteModal, onEdit: openEditModal }),
+    [namespaceDisplayLookup, openDeleteModal, openEditModal],
   )
   const dataSource = useMemo(() => mapAddressGroupsToRows(addressGroupsData?.items || []), [addressGroupsData?.items])
   const selectedAddressGroup = useMemo(
@@ -248,6 +264,7 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
                         cluster={cluster}
                         namespace={namespace}
                         addressGroup={selectedAddressGroup}
+                        namespaceDisplayLookup={namespaceDisplayLookup}
                         width={verboseWidth}
                         onClose={closeVerbose}
                         onCollapse={collapseVerbose}
@@ -263,6 +280,7 @@ export const AddressGroups: FC<TAddressGroupsProps> = ({ cluster, namespace }) =
                     cluster={cluster}
                     namespace={namespace}
                     addressGroup={selectedAddressGroup}
+                    namespaceDisplayLookup={namespaceDisplayLookup}
                     onClose={closeVerbose}
                     onCollapse={collapseVerbose}
                     onExpand={expandVerbose}

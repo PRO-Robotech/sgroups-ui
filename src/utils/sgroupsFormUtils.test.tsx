@@ -11,10 +11,12 @@ import {
   getAddressGroupOptions,
   getAddressGroupValuesFromCascader,
   getBindingLookupKey,
+  getDeleteModalResource,
   getNamespacedResourceOptions,
   getNamespacedResourceCascaderOptions,
   getNamespacedResourceCascaderValue,
   getNamespacedResourceFromCascaderValue,
+  getNamespaceDisplayLookup,
   getNamespaceOptions,
   getScopedResourceOptions,
   NAME_PATTERN,
@@ -105,13 +107,19 @@ describe('sgroupsFormUtils', () => {
     const namespaceOptions = getNamespaceOptions([
       { metadata: { name: 'zeta' } },
       { metadata: {} },
-      { metadata: { name: 'alpha' } },
+      { metadata: { name: 'alpha' }, spec: { displayName: 'Alpha Tenant' } },
     ])
 
     expect(namespaceOptions.map(option => option.value)).toEqual(['alpha', 'zeta'])
+    expect(namespaceOptions.map(option => option.searchText)).toEqual(['alpha Alpha Tenant', 'zeta zeta'])
+    expect(getNamespaceDisplayLookup([{ metadata: { name: 'alpha' }, spec: { displayName: 'Alpha Tenant' } }])).toEqual(
+      {
+        alpha: 'Alpha Tenant',
+      },
+    )
     render(<div>{namespaceOptions[0].label}</div>)
     expect(screen.getByText('T')).toBeInTheDocument()
-    expect(screen.getByText('alpha')).toBeInTheDocument()
+    expect(screen.getByText('Alpha Tenant')).toBeInTheDocument()
 
     const options = getNamespacedResourceOptions(
       [
@@ -126,6 +134,30 @@ describe('sgroupsFormUtils', () => {
       { value: 'tenant-a/svc-a', searchText: 'tenant-a svc-a' },
       { value: 'tenant-b/svc-b', searchText: 'tenant-b Backend' },
     ])
+  })
+
+  it('uses tenant display names in delete modal titles without changing endpoints', () => {
+    const resource = getDeleteModalResource(
+      'cluster-a',
+      undefined,
+      'hosts',
+      {
+        key: 'host-a',
+        metadata: { name: 'host-a', namespace: 'tenant-a' },
+        spec: { displayName: 'Host A' },
+      },
+      { 'tenant-a': 'Tenant A' },
+    )
+
+    expect(resource?.name).toBe('tenant-a/host-a')
+    expect(resource?.endpoint).toBe(
+      '/api/clusters/cluster-a/k8s/apis/sgroups.io/v1alpha1/namespaces/tenant-a/hosts/host-a',
+    )
+
+    render(<div>{resource?.title}</div>)
+
+    expect(screen.getByText('Tenant A')).toBeInTheDocument()
+    expect(screen.getByText('Host A')).toBeInTheDocument()
   })
 
   it('scopes namespaced options to a selected namespace', () => {

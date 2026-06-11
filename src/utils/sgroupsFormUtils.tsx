@@ -67,6 +67,44 @@ type TNamespacedResourceOptionsConfig = {
   showNamespace?: boolean
 }
 
+export type TNamespaceResource = {
+  metadata?: {
+    name?: string
+  }
+  spec?: unknown
+}
+
+const getNamespaceDisplayName = (item: TNamespaceResource) => {
+  const value = item.metadata?.name
+
+  if (!value) {
+    return undefined
+  }
+
+  const displayName =
+    item.spec &&
+    typeof item.spec === 'object' &&
+    'displayName' in item.spec &&
+    typeof item.spec.displayName === 'string'
+      ? item.spec.displayName
+      : value
+
+  return { value, displayName }
+}
+
+export type TNamespaceDisplayLookup = Record<string, string>
+
+export const getNamespaceDisplayLookup = (items?: TNamespaceResource[]): TNamespaceDisplayLookup =>
+  (items || []).reduce<TNamespaceDisplayLookup>((acc, item) => {
+    const namespaceDisplayName = getNamespaceDisplayName(item)
+
+    if (namespaceDisplayName) {
+      acc[namespaceDisplayName.value] = namespaceDisplayName.displayName
+    }
+
+    return acc
+  }, {})
+
 export type TDeleteModalResource = {
   key: string
   name: string
@@ -90,6 +128,7 @@ export const getDeleteModalResource = (
   fallbackNamespace: string | undefined,
   plural: string,
   resource: TNamespacedResource & { key: string },
+  namespaceDisplayLookup: TNamespaceDisplayLookup = {},
 ): TDeleteModalResource | null => {
   const resourceName = resource.metadata.name
   const resourceNamespace = resource.metadata.namespace || fallbackNamespace
@@ -105,6 +144,7 @@ export const getDeleteModalResource = (
       RESOURCE_KIND_BY_PLURAL[plural] || resource.kind || plural,
       resourceNamespace,
       resource.spec?.displayName || resourceName,
+      namespaceDisplayLookup[resourceNamespace],
     ),
     endpoint: `${getApiEndpoint(cluster, resourceNamespace, plural)}/${resourceName}`,
   }
@@ -183,10 +223,31 @@ export const withFallbackNamespace = <TResource extends { metadata: { namespace?
         },
   )
 
-export const getNamespaceOptions = (items?: Array<{ metadata?: { name?: string } }>) =>
-  [...new Set((items || []).map(item => item.metadata?.name).filter((value): value is string => Boolean(value)))]
-    .sort((first, second) => first.localeCompare(second))
-    .map(value => ({ value, label: renderNamespaceBadgeWithValue(value) }))
+export const getNamespaceOptions = (items?: TNamespaceResource[]) =>
+  [
+    ...new Map(
+      (items || []).reduce<Array<[string, { value: string; label: ReactNode; searchText: string }]>>((acc, item) => {
+        const namespaceDisplayName = getNamespaceDisplayName(item)
+
+        if (!namespaceDisplayName) {
+          return acc
+        }
+
+        const { value, displayName } = namespaceDisplayName
+
+        acc.push([
+          value,
+          {
+            value,
+            label: renderNamespaceBadgeWithValue(displayName),
+            searchText: `${value} ${displayName}`.trim(),
+          },
+        ])
+
+        return acc
+      }, []),
+    ).values(),
+  ].sort((first, second) => first.searchText.localeCompare(second.searchText))
 
 export const getNamespacedResourceOptions = (
   items: TNamespacedResource[] | undefined,

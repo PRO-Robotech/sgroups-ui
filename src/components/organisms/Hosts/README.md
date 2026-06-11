@@ -49,7 +49,7 @@ AddressGroup nodes in the overview and verbose-panel trees include a small detai
 - `Display Name` is the first pinned column and renders a canonical `Host` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the Host detail page at `hosts/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Tenant` renders a canonical `Tenant` badge.
+- `Tenant` renders a canonical `Tenant` badge using tenant `spec.displayName`, falling back to `metadata.name`; table cells, verbose details, and delete titles use this display label, while routes and API calls keep using `metadata.name`.
 - The row actions menu includes `Socket Stats`, which routes to the Host detail socket-stat tab at `hosts/{namespace}/{metadata.name}#sockstats`.
 - The row actions menu includes `NFT`, which routes to the Host detail nftables tab at `hosts/{namespace}/{metadata.name}#nft`.
 
@@ -107,7 +107,7 @@ In edit mode:
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `Host` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the tenant display name when available, then a canonical `Host` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 

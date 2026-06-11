@@ -125,12 +125,14 @@ export const renderLinkedNamespacedResourceValue = ({
   displayValue,
   name,
   namespace,
+  namespaceDisplayValue,
   plural,
 }: {
   badgeValue: string
   displayValue?: string
   name?: string
   namespace?: string
+  namespaceDisplayValue?: string
   plural: TSgroupsResourcePlural
 }) => {
   if (!namespace) {
@@ -141,5 +143,6 @@ export const renderLinkedNamespacedResourceValue = ({
     badgeValue,
     namespace,
     renderResourceLink(getInternalSgroupsResourceHref({ name, namespace, plural }), displayValue),
+    namespaceDisplayValue,
   )
 }

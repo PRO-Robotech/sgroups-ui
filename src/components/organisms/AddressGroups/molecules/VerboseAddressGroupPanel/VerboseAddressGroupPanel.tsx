@@ -35,6 +35,7 @@ import {
   renderBadgeWithValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 import {
   THostBindingResource,
@@ -51,6 +52,7 @@ type TVerboseAddressGroupPanelProps = {
   cluster?: string
   namespace?: string
   addressGroup: TAddressGroupRow
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
   width?: number
   onClose: () => void
   onExpand: () => void
@@ -87,6 +89,7 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
   cluster,
   namespace,
   addressGroup,
+  namespaceDisplayLookup = {},
   width,
   onClose,
   onExpand,
@@ -244,7 +247,13 @@ export const VerboseAddressGroupPanel: FC<TVerboseAddressGroupPanelProps> = ({
         <OverflowContainer>
           <SpecGrid>
             <Typography.Text type="secondary">Tenant</Typography.Text>
-            <div>{renderNamespaceBadgeWithValue(addressGroup.metadata.namespace)}</div>
+            <div>
+              {renderNamespaceBadgeWithValue(
+                addressGroup.metadata.namespace
+                  ? namespaceDisplayLookup[addressGroup.metadata.namespace] || addressGroup.metadata.namespace
+                  : undefined,
+              )}
+            </div>
 
             <Typography.Text type="secondary">Logs</Typography.Text>
             <div>{renderBooleanStatusIcon(addressGroup.spec?.logs)}</div>

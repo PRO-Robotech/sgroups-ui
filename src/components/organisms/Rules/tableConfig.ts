@@ -12,6 +12,7 @@ import {
   renderTableActionsDropdown,
   renderTimestampWithIcon,
   TSgroupsResourcePlural,
+  TNamespaceDisplayLookup,
 } from 'utils'
 
 export type TRuleEndpointType = 'AddressGroup' | 'Service' | 'FQDN' | 'CIDR'
@@ -84,6 +85,7 @@ type TBuildRulesColumnsParams = {
   onEdit?: (record: TRuleRow) => void
   onDelete?: (record: TRuleRow) => void
   endpointDisplayLookup?: TEndpointDisplayLookup
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
 }
 
 const EMPTY_VALUE = '-'
@@ -139,7 +141,11 @@ const formatEndpointLabel = (endpoint?: TRuleEndpoint, endpointDisplayLookup: TE
   return endpoint.namespace ? `${name} (${endpoint.namespace})` : name
 }
 
-export const renderEndpointLabel = (endpoint?: TRuleEndpoint, endpointDisplayLookup: TEndpointDisplayLookup = {}) => {
+export const renderEndpointLabel = (
+  endpoint?: TRuleEndpoint,
+  endpointDisplayLookup: TEndpointDisplayLookup = {},
+  namespaceDisplayLookup: TNamespaceDisplayLookup = {},
+) => {
   if (!endpoint) {
     return EMPTY_VALUE
   }
@@ -165,11 +171,17 @@ export const renderEndpointLabel = (endpoint?: TRuleEndpoint, endpointDisplayLoo
       displayValue: name,
       name: endpoint.name,
       namespace: endpoint.namespace,
+      namespaceDisplayValue: namespaceDisplayLookup[endpoint.namespace],
       plural: pluralByType[endpoint.type],
     })
   }
 
-  return renderNamespacedResourceValue(endpoint.type || 'Endpoint', endpoint.namespace, name)
+  return renderNamespacedResourceValue(
+    endpoint.type || 'Endpoint',
+    endpoint.namespace,
+    name,
+    endpoint.namespace ? namespaceDisplayLookup[endpoint.namespace] : undefined,
+  )
 }
 
 export const formatTransportEntryText = (entry: TRuleTransportEntry, index: number) => {
@@ -255,6 +267,7 @@ export const buildRulesColumns = ({
   onDelete,
   onEdit,
   endpointDisplayLookup = {},
+  namespaceDisplayLookup = {},
 }: TBuildRulesColumnsParams = {}): ColumnsType<TRuleRow> => {
   const columns: ColumnsType<TRuleRow> = [
     {
@@ -279,7 +292,7 @@ export const buildRulesColumns = ({
       key: 'namespace',
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-      render: value => renderNamespaceBadgeWithValue(value),
+      render: value => renderNamespaceBadgeWithValue(namespaceDisplayLookup[value] || value),
     },
     {
       title: 'Action',
@@ -318,7 +331,8 @@ export const buildRulesColumns = ({
       key: 'localEndpoint',
       width: 360,
       sorter: (a, b) => stringSorter(a.localEndpoint, b.localEndpoint),
-      render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.local, endpointDisplayLookup),
+      render: (_, record) =>
+        renderEndpointLabel(record.spec?.endpoints?.local, endpointDisplayLookup, namespaceDisplayLookup),
     },
     {
       title: 'Remote',
@@ -326,7 +340,8 @@ export const buildRulesColumns = ({
       key: 'remoteEndpoint',
       width: 360,
       sorter: (a, b) => stringSorter(a.remoteEndpoint, b.remoteEndpoint),
-      render: (_, record) => renderEndpointLabel(record.spec?.endpoints?.remote, endpointDisplayLookup),
+      render: (_, record) =>
+        renderEndpointLabel(record.spec?.endpoints?.remote, endpointDisplayLookup, namespaceDisplayLookup),
     },
     // {
     //   title: 'Ports / Types',

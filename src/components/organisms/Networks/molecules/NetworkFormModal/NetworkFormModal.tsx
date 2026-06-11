@@ -422,6 +422,7 @@ export const NetworkFormModal: FC<TNetworkFormModalProps> = ({ cluster, namespac
                   <Select
                     showSearch
                     placeholder="Select tenant"
+                    optionFilterProp="searchText"
                     options={namespaceOptions}
                     loading={isTenantsLoading}
                     disabled={isEditMode}

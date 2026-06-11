@@ -40,7 +40,7 @@ jest.mock('antd', () => {
       disabled?: boolean
       loading?: boolean
       onChange: (value: string) => void
-      options: Array<{ label: React.ReactNode; value: string }>
+      options: Array<{ label: React.ReactNode; searchText?: string; value: string }>
       placeholder?: string
       value?: string
     }) => (
@@ -53,7 +53,7 @@ jest.mock('antd', () => {
       >
         {options.map(option => (
           <option key={option.value} value={option.value}>
-            {typeof option.label === 'string' ? option.label : option.value}
+            {option.searchText || (typeof option.label === 'string' ? option.label : option.value)}
           </option>
         ))}
       </select>
@@ -84,7 +84,11 @@ describe('TenantSelector', () => {
   it('loads tenant options for the selected cluster and sorts tenant names', () => {
     mockUseK8sSmartResource.mockReturnValue({
       data: {
-        items: [{ metadata: { name: 'zeta' } }, { metadata: { name: undefined } }, { metadata: { name: 'alpha' } }],
+        items: [
+          { metadata: { name: 'zeta' } },
+          { metadata: { name: undefined } },
+          { metadata: { name: 'alpha' }, spec: { displayName: 'Alpha Tenant' } },
+        ],
       },
       error: undefined,
       isLoading: true,
@@ -105,6 +109,7 @@ describe('TenantSelector', () => {
       'alpha',
       'zeta',
     ])
+    expect(screen.getByRole('option', { name: 'alpha Alpha Tenant' })).toBeInTheDocument()
   })
 
   it('inserts the selected tenant after the cluster segment and preserves search params', () => {

@@ -23,6 +23,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Host. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
+- Tenant option labels and search text use `spec.displayName`, falling back to `metadata.name`; option values remain `metadata.name` for API namespaces.
 - `displayName`, `description`, and `comment` map to editable `spec` fields. In edit mode, `displayName` is edited from the title pencil instead of a body form row.
 - `addressGroupNamespace` is hidden and mirrors the Host namespace. It controls the namespace-scoped AddressGroup query.
 - `addressGroups` stores selected AddressGroups as namespaced values.

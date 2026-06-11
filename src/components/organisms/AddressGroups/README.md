@@ -57,7 +57,7 @@ The AddressGroups table uses badge/tag/icon formatting consistently:
 - `Display Name` is the first pinned column and renders an `AddressGroup` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the AddressGroup detail page at `addressgroups/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Tenant` renders a canonical `Tenant` badge.
+- `Tenant` renders a canonical `Tenant` badge using tenant `spec.displayName`, falling back to `metadata.name`; table cells, verbose details, and delete titles use this display label, while routes and API calls keep using `metadata.name`.
 - `Default Action` renders as a colored AntD tag.
 - `Trace` renders as a status icon: a green check for enabled and a red cross for disabled.
 
@@ -121,7 +121,7 @@ In edit mode:
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `AddressGroup` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the tenant display name when available, then a canonical `AddressGroup` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 

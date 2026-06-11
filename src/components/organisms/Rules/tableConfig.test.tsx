@@ -1,5 +1,7 @@
 import fs from 'fs'
 import path from 'path'
+import React from 'react'
+import { render, screen } from '@testing-library/react'
 import { buildRulesColumns } from './tableConfig'
 
 describe('Rules table config', () => {
@@ -17,5 +19,44 @@ describe('Rules table config', () => {
     expect(source).toContain("//   title: 'Protocol',")
     expect(source).toContain("//   title: 'IP Family',")
     expect(source).toContain("//   title: 'Ports / Types',")
+  })
+
+  it('renders Tenant column with tenant display name when available', () => {
+    const tenantColumn = buildRulesColumns({
+      namespaceDisplayLookup: { 'tenant-a': 'Tenant A' },
+    }).find(column => column.key === 'namespace')
+
+    const renderedTenant = tenantColumn?.render?.('tenant-a', {} as never, 0) as React.ReactNode
+
+    render(<div>{renderedTenant}</div>)
+
+    expect(screen.getByText('Tenant A')).toBeInTheDocument()
+    expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
+  })
+
+  it('renders endpoint namespace badges with tenant display names when available', () => {
+    const localColumn = buildRulesColumns({
+      endpointDisplayLookup: { 'tenant-a/ag-a': 'Address Group A' },
+      namespaceDisplayLookup: { 'tenant-a': 'Tenant A' },
+    }).find(column => column.key === 'localEndpoint')
+
+    const renderedLocal = localColumn?.render?.(
+      undefined,
+      {
+        metadata: { name: 'rule-a', namespace: 'tenant-a' },
+        spec: {
+          endpoints: {
+            local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
+          },
+        },
+      } as never,
+      0,
+    ) as React.ReactNode
+
+    render(<div>{renderedLocal}</div>)
+
+    expect(screen.getByText('Tenant A')).toBeInTheDocument()
+    expect(screen.getByText('Address Group A')).toBeInTheDocument()
+    expect(screen.queryByText('tenant-a')).not.toBeInTheDocument()
   })
 })
