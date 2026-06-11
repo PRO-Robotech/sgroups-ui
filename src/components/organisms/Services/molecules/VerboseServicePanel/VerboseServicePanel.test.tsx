@@ -92,6 +92,7 @@ describe('VerboseServicePanel', () => {
             refs: [{ kind: 'ServiceBinding', namespace: 'tenant-a', name: 'service-binding-a' }],
           } as any
         }
+        namespaceDisplayLookup={{ 'tenant-a': 'Tenant A' }}
         onClose={jest.fn()}
         onExpand={jest.fn()}
         onCollapse={jest.fn()}
@@ -99,6 +100,7 @@ describe('VerboseServicePanel', () => {
     )
 
     expect(screen.getByText('Service A')).toBeInTheDocument()
+    expect(screen.getByText('Tenant A')).toBeInTheDocument()
     expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('API service')).toBeInTheDocument()
     expect(screen.getByText('app: api')).toBeInTheDocument()

@@ -21,6 +21,8 @@ import {
   buildFormValuesFromRule,
   buildOverviewTreeData,
   buildTransportPayload,
+  getTrafficOptionsForEndpoints,
+  normalizeRuleTrafficForEndpoints,
   patchRuleSpec,
 } from './utils'
 
@@ -113,6 +115,59 @@ describe('UniRuleFormModal utils', () => {
         },
       } as any).traffic,
     ).toBe('Ingress')
+  })
+
+  it('limits AddressGroup to FQDN rule traffic to egress', () => {
+    const values = {
+      local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
+      remote: { type: 'FQDN', value: 'api.example.com' },
+      traffic: 'Both',
+    } as any
+
+    expect(getTrafficOptionsForEndpoints(values)).toEqual([{ label: 'Egress', value: 'Egress' }])
+    expect(normalizeRuleTrafficForEndpoints(values)).toBe('Egress')
+  })
+
+  it('limits Service to FQDN rule traffic to egress', () => {
+    const values = {
+      local: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },
+      remote: { type: 'FQDN', value: 'api.example.com' },
+      traffic: 'Ingress',
+    } as any
+
+    expect(getTrafficOptionsForEndpoints(values)).toEqual([{ label: 'Egress', value: 'Egress' }])
+    expect(normalizeRuleTrafficForEndpoints(values)).toBe('Egress')
+  })
+
+  it('limits AddressGroup to CIDR rule traffic to ingress or egress', () => {
+    const values = {
+      local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
+      remote: { type: 'CIDR', value: '10.0.0.0/24' },
+      traffic: 'Both',
+    } as any
+
+    expect(getTrafficOptionsForEndpoints(values).map(option => option.value)).toEqual(['Ingress', 'Egress'])
+    expect(normalizeRuleTrafficForEndpoints(values)).toBe('Egress')
+  })
+
+  it('limits Service to CIDR rule traffic to ingress or egress', () => {
+    const values = {
+      local: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },
+      remote: { type: 'CIDR', value: '10.0.0.0/24' },
+      traffic: 'Ingress',
+    } as any
+
+    expect(getTrafficOptionsForEndpoints(values).map(option => option.value)).toEqual(['Ingress', 'Egress'])
+    expect(normalizeRuleTrafficForEndpoints(values)).toBe('Ingress')
+  })
+
+  it('keeps normal traffic options for non-literal remote endpoint rules', () => {
+    expect(
+      getTrafficOptionsForEndpoints({
+        local: { type: 'AddressGroup', namespace: 'tenant-a', name: 'ag-a' },
+        remote: { type: 'Service', namespace: 'tenant-a', name: 'svc-a' },
+      } as any).map(option => option.value),
+    ).toEqual(['Both', 'Ingress', 'Egress'])
   })
 
   it('builds overview nodes for local and remote trees', () => {
@@ -218,13 +273,14 @@ describe('UniRuleFormModal utils', () => {
       pathToValue: '/spec/endpoints/remote',
       body: { type: 'FQDN', value: 'new.example.com' },
     })
-    expect(mockPatchEntryWithDeleteOp).toHaveBeenCalledWith({
+    expect(mockPatchEntryWithReplaceOp).toHaveBeenCalledWith({
       endpoint: '/rules/rule-a',
-      pathToValue: '/spec/description',
+      pathToValue: '/spec/session',
+      body: { traffic: 'Egress' },
     })
     expect(mockPatchEntryWithDeleteOp).toHaveBeenCalledWith({
       endpoint: '/rules/rule-a',
-      pathToValue: '/spec/session',
+      pathToValue: '/spec/description',
     })
     expect(mockPatchEntryWithDeleteOp).toHaveBeenCalledWith({
       endpoint: '/rules/rule-a',

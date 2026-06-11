@@ -10,7 +10,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `Name`: hidden. Create mode generates a UUID value for `metadata.name` and keeps it in the form store for submit.
 - `Display name`: optional, max 63 chars. Uses the shared hostname-label validator: letters, numbers, hyphens, and optional dots; a dot is not required. Create mode is prefilled with `rules-`.
 - `Action`: required. AntD validates `Allow` or `Deny`.
-- `Traffic`: required. UI labels and saved `spec.session.traffic` values are `Both`, `Ingress`, or `Egress`.
+- `Traffic`: required. UI labels and saved `spec.session.traffic` values are `Both`, `Ingress`, or `Egress`. When Local is `AddressGroup` or `Service` and Remote is `FQDN`, the modal allows and saves only `Egress`. When Local is `AddressGroup` or `Service` and Remote is `CIDR`, the modal allows and saves only `Ingress` or `Egress`.
 - `Local`: required endpoint block.
 - `Remote`: required endpoint block.
 - `Description`: optional.
@@ -18,6 +18,7 @@ The modal follows the Figma layout structure, but the payload and editable field
 - `IP family`: transport selector. Required when Remote is not `Service`; otherwise optional until transport data is entered. `IPv4` or `IPv6`.
 - `Protocol`: transport selector. Required when Remote is not `Service`; otherwise optional until transport data is entered. `TCP`, `UDP`, or `ICMP`.
 - `Transport entries`: repeated section. Required when Remote is not `Service`; otherwise optional until transport data is entered.
+  - selecting a protocol auto-adds and expands the first blank entry if the section is empty
   - for `TCP` and `UDP`, each entry uses `ports`
   - for `ICMP`, each entry uses `types`
   - each entry may also include optional `description` and `comment`
@@ -35,20 +36,21 @@ The current `RuleEndpoint` CRD supports these types:
 For `AddressGroup` and `Service` endpoints:
 
 - the form stores `namespace` and `name` separately
-- namespace is not locked to the rule namespace
-- the visible selector is an AntD Cascader with namespace as the first level and resource name as the second level
-- the endpoint namespace field is hidden but remains registered in the form store; selecting a Cascader leaf updates both endpoint `namespace` and `name`
 - visible labels and search text use `spec.displayName`, falling back to the resource name only when no display name exists
 - submitted endpoint values remain the selected resource names and namespaces because the backend stores references by identifier
-- services can be chosen from any namespace
-- AddressGroup options are grouped by namespace, using the cluster-wide AddressGroup list plus local/remote namespace-scoped query results as fallbacks
-- namespace-scoped AddressGroup responses may omit `metadata.namespace`; the modal fills it from the selected endpoint namespace before building options
+- Local namespace is locked to the Rule namespace
+- Local uses a plain AntD `Select` with resources from explicit namespace-scoped requests for the exact watched Rule tenant
+- Remote uses an AntD Cascader with namespace as the first level and resource name as the second level
+- the endpoint namespace field is hidden but remains registered in the form store; selecting a Remote Cascader leaf updates both endpoint `namespace` and `name`
+- Remote services can be chosen from any namespace
+- Remote AddressGroup options are grouped by namespace, using the cluster-wide AddressGroup list plus namespace-scoped query results as fallbacks
+- namespace-scoped AddressGroup responses may omit `metadata.namespace`; Local options fill it from the Rule tenant request namespace, and Remote options fill it from the selected endpoint namespace before building options
 - selected resource namespace and name are validated as Kubernetes DNS labels, max 63 chars
 
 For string endpoints:
 
 - `FQDN` is validated as a hostname-like FQDN
-- `CIDR` is validated for both IPv4 and IPv6 CIDR formats
+- `CIDR` is validated for backend canonical IPv4 and IPv6 CIDR form. Non-zero host bits are rejected, for example `10.0.0.1/24`; full host prefixes like `192.168.1.1/32` are valid.
 
 ## API flow
 
@@ -81,6 +83,8 @@ Rule.spec.session
 
 Traffic values are normalized to the local OpenAPI enum casing (`Both`, `Ingress`, or `Egress`) before form prefill and before writes.
 
+Rules from a local `AddressGroup` or `Service` endpoint to a remote `FQDN` endpoint are normalized to `Egress`; stale `Both` or `Ingress` form values are not written for that endpoint pair. Rules from a local `AddressGroup` or `Service` endpoint to a remote `CIDR` endpoint allow only `Ingress` or `Egress`; stale `Both` values are normalized before writes.
+
 ## Table display
 
 The Rules table uses badge/tag formatting consistently:
@@ -88,8 +92,8 @@ The Rules table uses badge/tag formatting consistently:
 - `Display Name` is the first pinned column and renders a canonical `Rule` badge. It shows `spec.displayName`, falling back to `metadata.name` only when the display name is empty.
 - The `Display Name` value links to the Rule detail page at `rules/{namespace}/{metadata.name}`. The link text uses the display name, but the URL uses immutable identifiers.
 - `Name` is intentionally hidden from the table, but remains in row data for edit/delete endpoints.
-- `Tenant` renders a canonical `Tenant` badge.
-- `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints using the referenced resource display name when available, falling back to the referenced resource name only when no display name exists. Those concrete resource values link to their internal detail pages using the referenced namespace and `metadata.name`. `FQDN` and `CIDR` endpoints render their direct values.
+- `Tenant` renders a canonical `Tenant` badge using tenant `spec.displayName`, falling back to `metadata.name`; table cells, verbose details, and delete titles use this display label, while routes and API calls keep using `metadata.name`.
+- `Local` and `Remote` render canonical resource-kind badges for `AddressGroup` and `Service` endpoints using the referenced resource display name when available, falling back to the referenced resource name only when no display name exists. Their namespace badges use tenant `spec.displayName` when available. Those concrete resource values link to their internal detail pages using the referenced namespace and `metadata.name`. `FQDN` and `CIDR` endpoints render their direct values.
 - `Action` renders as an AntD tag.
 - Transport details stay available in the verbose panel and modal, but the compact table does not show `Protocol`, `IP family`, or `Ports / Types` columns.
 - The `Protocol`, `IP Family`, and `Ports / Types` table column definitions remain commented in `tableConfig.ts` so they can be restored without rebuilding the transport renderers.
@@ -126,7 +130,7 @@ Patched fields are currently:
 
 The table delete action opens `SgroupsDeleteModal`, a local wrapper around the toolkit delete request behavior.
 
-The modal title renders `Delete`, a canonical `Tenant` badge with the row namespace, then a canonical `Rule` badge with `spec.displayName` falling back to `metadata.name`.
+The modal title renders `Delete`, a canonical `Tenant` badge with the tenant display name when available, then a canonical `Rule` badge with `spec.displayName` falling back to `metadata.name`.
 
 The delete endpoint is built from the selected row `metadata.namespace` and `metadata.name`:
 
@@ -141,12 +145,14 @@ If the row namespace is missing, the current screen namespace is used as a fallb
 The implementation validates with AntD before building the save payload.
 
 - `Action`, `Traffic`, endpoint type, IP family, and protocol are checked against local enum values from the `v3` / `v3sgroups` schema.
+- Traffic is constrained to `Egress` for local `AddressGroup` or `Service` endpoints targeting remote `FQDN`, and to `Ingress` or `Egress` for local `AddressGroup` or `Service` endpoints targeting remote `CIDR`.
 - Local endpoints can only be `AddressGroup` or `Service`.
 - Remote endpoints can be `AddressGroup`, `Service`, `FQDN`, or `CIDR`.
 - `TCP` and `UDP` transport entries validate single ports and ranges like `80,443` or `1000-2000`
 - `ICMP` entries validate type values from `0` to `255`
 - `spec.transport` is required when the Remote endpoint is not `Service`
 - selecting a protocol requires at least one transport entry
+- selecting a protocol auto-adds and expands the first blank transport entry in the Ports panel when none exists yet
 - adding a transport entry requires both protocol and IP family
 - transport payload may be omitted only when the Remote endpoint is `Service` and the whole transport section is empty
 - nested transport entry edits revalidate the protocol and IP family selector errors so a valid port or ICMP type immediately clears stale selector-level validation messages
@@ -170,7 +176,7 @@ The right sidebar renders a `Structure Overview` tree with separate top-level `L
 
 - AntD modals must set `maskClosable={false}`. Users should close modals only with the Cancel button or the close icon.
 - The modal is conditionally rendered only while open, so closing it fully unmounts the component and reopening mounts a fresh instance.
-- Edit prefill runs once per open cycle after the async resources needed for the form are ready, including endpoint options for selected AddressGroup and Service endpoints so Cascader labels render like create selections.
+- Edit prefill runs once per open cycle after the async resources needed for the form are ready, including endpoint options for selected AddressGroup and Service endpoints so Local Select and Remote Cascader labels render like create selections. Local option queries are keyed by the watched Rule tenant rather than a separate local endpoint namespace selector.
 - The loading state uses React state, not refs read during render.
 
 ## Schema Source

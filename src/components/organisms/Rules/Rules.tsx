@@ -8,7 +8,13 @@ import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { TAddressGroupResource, TServiceResource } from 'localTypes'
 import { RootState } from 'store/store'
-import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
+import {
+  getDeleteModalResource,
+  getNamespaceDisplayLookup,
+  getSgroupsTableProps,
+  TDeleteModalResource,
+  TNamespaceResource,
+} from 'utils'
 import { SgroupsDeleteModal } from 'utils/SgroupsDeleteModal'
 import { UniRuleFormModal, VerboseRulePanel } from './molecules'
 import { Styled } from './styled'
@@ -100,6 +106,14 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
     plural: 'services',
     isEnabled: Boolean(cluster),
   })
+  const { data: tenantsData } = useK8sSmartResource<{ items: TNamespaceResource[] }>({
+    cluster: cluster || '',
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    plural: 'tenants',
+    isEnabled: Boolean(cluster),
+  })
+  const namespaceDisplayLookup = useMemo(() => getNamespaceDisplayLookup(tenantsData?.items), [tenantsData?.items])
 
   const openCreateModal = useCallback(() => {
     setEditingRule(null)
@@ -118,9 +132,9 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
 
   const openDeleteModal = useCallback(
     (ruleRecord: TRuleRow) => {
-      setDeletingRule(getDeleteModalResource(cluster || '', namespace, 'rules', ruleRecord))
+      setDeletingRule(getDeleteModalResource(cluster || '', namespace, 'rules', ruleRecord, namespaceDisplayLookup))
     },
-    [cluster, namespace],
+    [cluster, namespace, namespaceDisplayLookup],
   )
 
   const closeDeleteModal = useCallback(() => {
@@ -147,8 +161,14 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
   }, [addressGroupsData?.items, servicesData?.items])
 
   const columns = useMemo(
-    () => buildRulesColumns({ onDelete: openDeleteModal, onEdit: openEditModal, endpointDisplayLookup }),
-    [endpointDisplayLookup, openDeleteModal, openEditModal],
+    () =>
+      buildRulesColumns({
+        endpointDisplayLookup,
+        namespaceDisplayLookup,
+        onDelete: openDeleteModal,
+        onEdit: openEditModal,
+      }),
+    [endpointDisplayLookup, namespaceDisplayLookup, openDeleteModal, openEditModal],
   )
   const dataSource = useMemo(
     () => mapRulesToRows(rulesData?.items || [], endpointDisplayLookup),
@@ -286,6 +306,7 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
                         cluster={cluster}
                         namespace={namespace}
                         rule={selectedRule}
+                        namespaceDisplayLookup={namespaceDisplayLookup}
                         width={verboseWidth}
                         onClose={closeVerbose}
                         onCollapse={collapseVerbose}
@@ -301,6 +322,7 @@ export const Rules: FC<TRulesProps> = ({ cluster, namespace }) => {
                     cluster={cluster}
                     namespace={namespace}
                     rule={selectedRule}
+                    namespaceDisplayLookup={namespaceDisplayLookup}
                     onClose={closeVerbose}
                     onCollapse={collapseVerbose}
                     onExpand={expandVerbose}

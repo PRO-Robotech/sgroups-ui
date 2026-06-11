@@ -2,7 +2,7 @@ import React, { FC, useEffect, useMemo, useState } from 'react'
 import { Alert, Flex, Select, Typography } from 'antd'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import { useK8sSmartResource, TSingleResource } from '@prorobotech/openapi-k8s-toolkit'
-import { renderNamespaceBadgeWithValue } from 'utils'
+import { getNamespaceOptions } from 'utils'
 
 type TTenantSelectorProps = {
   cluster?: string
@@ -23,7 +23,7 @@ export const TenantSelector: FC<TTenantSelectorProps> = ({ cluster, tenant }) =>
     isLoading,
     error,
   } = useK8sSmartResource<{
-    items: TSingleResource[]
+    items: Array<TSingleResource & { spec?: { displayName?: string } }>
   }>({
     cluster: cluster || '',
     apiGroup: 'sgroups.io',
@@ -37,14 +37,7 @@ export const TenantSelector: FC<TTenantSelectorProps> = ({ cluster, tenant }) =>
   }, [tenant])
 
   const options = useMemo(
-    () => [
-      { value: ALL_TENANTS, label: 'All Tenants' },
-      ...(tenantsData?.items
-        ?.map(item => item.metadata?.name)
-        .filter((value): value is string => Boolean(value))
-        .sort((a, b) => a.localeCompare(b))
-        .map(value => ({ value, label: renderNamespaceBadgeWithValue(value) })) || []),
-    ],
+    () => [{ value: ALL_TENANTS, label: 'All Tenants' }, ...getNamespaceOptions(tenantsData?.items)],
     [tenantsData],
   )
 
@@ -86,7 +79,9 @@ export const TenantSelector: FC<TTenantSelectorProps> = ({ cluster, tenant }) =>
       <Flex gap={12} align="center" wrap>
         <Typography.Text>Tenant:</Typography.Text>
         <Select
+          showSearch
           placeholder="Tenant"
+          optionFilterProp="searchText"
           options={options}
           value={selectedTenant || ALL_TENANTS}
           onChange={handleTenantChange}

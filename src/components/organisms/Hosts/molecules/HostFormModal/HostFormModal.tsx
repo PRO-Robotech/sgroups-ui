@@ -445,6 +445,7 @@ export const HostFormModal: FC<THostFormModalProps> = ({ cluster, namespace, ope
                   <Select
                     showSearch
                     placeholder="Select tenant"
+                    optionFilterProp="searchText"
                     options={namespaceOptions}
                     loading={isTenantsLoading}
                     disabled={isEditMode}

@@ -8,6 +8,7 @@ import {
   renderNamespaceBadgeWithValue,
   renderTableActionsDropdown,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 
 export type TServiceRef = {
@@ -62,6 +63,7 @@ export type TServiceRow = TServiceResource & {
 type TBuildServicesColumnsParams = {
   onEdit?: (record: TServiceRow) => void
   onDelete?: (record: TServiceRow) => void
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
 }
 
 const EMPTY_VALUE = '-'
@@ -208,6 +210,7 @@ export const mapServicesToRows = (items: TServiceResource[]): TServiceRow[] =>
 export const buildServicesColumns = ({
   onDelete,
   onEdit,
+  namespaceDisplayLookup = {},
 }: TBuildServicesColumnsParams = {}): ColumnsType<TServiceRow> => {
   const columns: ColumnsType<TServiceRow> = [
     {
@@ -232,7 +235,7 @@ export const buildServicesColumns = ({
       key: 'namespace',
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-      render: value => renderNamespaceBadgeWithValue(value),
+      render: value => renderNamespaceBadgeWithValue(namespaceDisplayLookup[value] || value),
     },
     {
       title: 'Protocols',

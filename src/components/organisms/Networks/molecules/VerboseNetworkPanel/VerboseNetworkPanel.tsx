@@ -40,6 +40,7 @@ import {
   renderLinkedTreeResourceTitle,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 import { TNetworkRow } from '../../tableConfig'
 
@@ -47,6 +48,7 @@ type TVerboseNetworkPanelProps = {
   cluster?: string
   namespace?: string
   network: TNetworkRow
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
   width?: number
   onClose: () => void
   onExpand: () => void
@@ -204,6 +206,7 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
   cluster,
   namespace,
   network,
+  namespaceDisplayLookup = {},
   width,
   onClose,
   onExpand,
@@ -281,7 +284,13 @@ export const VerboseNetworkPanel: FC<TVerboseNetworkPanelProps> = ({
         <OverflowContainer>
           <SpecGrid>
             <Typography.Text type="secondary">Tenant</Typography.Text>
-            <div>{renderNamespaceBadgeWithValue(network.metadata.namespace)}</div>
+            <div>
+              {renderNamespaceBadgeWithValue(
+                network.metadata.namespace
+                  ? namespaceDisplayLookup[network.metadata.namespace] || network.metadata.namespace
+                  : undefined,
+              )}
+            </div>
 
             <Typography.Text type="secondary">CIDR</Typography.Text>
             <div>{renderValue(network.spec?.CIDR)}</div>

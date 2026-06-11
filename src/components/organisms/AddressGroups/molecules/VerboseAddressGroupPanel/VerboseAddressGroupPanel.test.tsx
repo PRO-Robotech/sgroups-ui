@@ -125,6 +125,7 @@ describe('VerboseAddressGroupPanel', () => {
             refs: [{ kind: 'HostBinding', namespace: 'tenant-a', name: 'host-binding-a' }],
           } as any
         }
+        namespaceDisplayLookup={{ 'tenant-a': 'Tenant A' }}
         onClose={jest.fn()}
         onExpand={jest.fn()}
         onCollapse={jest.fn()}
@@ -132,6 +133,7 @@ describe('VerboseAddressGroupPanel', () => {
     )
 
     expect(screen.getByText('Address Group A')).toBeInTheDocument()
+    expect(screen.getByText('Tenant A')).toBeInTheDocument()
     expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('Allow')).toBeInTheDocument()
     expect(screen.queryByText('Default Action')).not.toBeInTheDocument()

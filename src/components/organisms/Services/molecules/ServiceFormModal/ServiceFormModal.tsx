@@ -508,6 +508,7 @@ export const ServiceFormModal: FC<TServiceFormModalProps> = ({ cluster, namespac
                     <Select
                       showSearch
                       placeholder="Select tenant"
+                      optionFilterProp="searchText"
                       options={namespaceOptions}
                       loading={isTenantsLoading}
                       disabled={isEditMode}

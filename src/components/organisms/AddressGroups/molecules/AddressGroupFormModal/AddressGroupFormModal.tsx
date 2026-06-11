@@ -12,7 +12,7 @@ import {
   TServiceBindingResource,
   TServiceResource,
 } from 'localTypes'
-import { EditableResourceTitle, renderBadgeWithValue, renderNamespaceBadgeWithValue, validateDisplayName } from 'utils'
+import { EditableResourceTitle, getNamespaceOptions, renderBadgeWithValue, validateDisplayName } from 'utils'
 import { TAddressGroupFormModalProps, TAddressGroupFormValues } from './types'
 import {
   API_GROUP,
@@ -156,15 +156,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
     isEnabled: open && Boolean(effectiveAddressGroupNamespace),
   })
 
-  const namespaceOptions = useMemo(
-    () =>
-      (tenantsData?.items || [])
-        .map(item => item.metadata?.name)
-        .filter((value): value is string => Boolean(value))
-        .sort((first, second) => first.localeCompare(second))
-        .map(value => ({ value, label: renderNamespaceBadgeWithValue(value) })),
-    [tenantsData?.items],
-  )
+  const namespaceOptions = useMemo(() => getNamespaceOptions(tenantsData?.items), [tenantsData?.items])
   const hostOptions = useMemo(() => getResourceOptions('Host', hostsData?.items), [hostsData?.items])
   const serviceOptions = useMemo(() => getNamespacedResourceOptions(servicesData?.items), [servicesData?.items])
   const networkOptions = useMemo(() => getResourceOptions('Network', networksData?.items), [networksData?.items])
@@ -491,6 +483,7 @@ export const AddressGroupFormModal: FC<TAddressGroupFormModalProps> = ({
                   <Select
                     showSearch
                     placeholder="Select tenant"
+                    optionFilterProp="searchText"
                     options={namespaceOptions}
                     loading={isTenantsLoading}
                     disabled={isEditMode}

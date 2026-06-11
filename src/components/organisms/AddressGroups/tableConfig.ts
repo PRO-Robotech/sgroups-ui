@@ -9,6 +9,7 @@ import {
   renderNamespaceBadgeWithValue,
   renderTableActionsDropdown,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 
 export type TAddressGroupRef = {
@@ -82,6 +83,7 @@ const renderDefaultActionTag = (value?: string) => {
 type TBuildAddressGroupsColumnsParams = {
   onEdit?: (record: TAddressGroupRow) => void
   onDelete?: (record: TAddressGroupRow) => void
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
 }
 
 export const mapAddressGroupsToRows = (items: TAddressGroupResource[]): TAddressGroupRow[] =>
@@ -98,6 +100,7 @@ export const mapAddressGroupsToRows = (items: TAddressGroupResource[]): TAddress
 export const buildAddressGroupsColumns = ({
   onDelete,
   onEdit,
+  namespaceDisplayLookup = {},
 }: TBuildAddressGroupsColumnsParams = {}): ColumnsType<TAddressGroupRow> => {
   const columns: ColumnsType<TAddressGroupRow> = [
     {
@@ -122,7 +125,7 @@ export const buildAddressGroupsColumns = ({
       key: 'namespace',
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-      render: value => renderNamespaceBadgeWithValue(value),
+      render: value => renderNamespaceBadgeWithValue(namespaceDisplayLookup[value] || value),
     },
     {
       title: 'Default Action',

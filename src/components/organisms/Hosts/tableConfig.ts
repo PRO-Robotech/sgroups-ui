@@ -7,6 +7,7 @@ import {
   renderNamespaceBadgeWithValue,
   renderTableActionsDropdown,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 
 export type THostRef = {
@@ -74,6 +75,7 @@ type TBuildHostsColumnsParams = {
   onDelete?: (record: THostRow) => void
   onNft?: (record: THostRow) => void
   onSocketStats?: (record: THostRow) => void
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
 }
 
 const EMPTY_VALUE = '-'
@@ -121,6 +123,7 @@ export const buildHostsColumns = ({
   onEdit,
   onNft,
   onSocketStats,
+  namespaceDisplayLookup = {},
 }: TBuildHostsColumnsParams = {}): ColumnsType<THostRow> => {
   const columns: ColumnsType<THostRow> = [
     {
@@ -145,7 +148,7 @@ export const buildHostsColumns = ({
       key: 'namespace',
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-      render: value => renderNamespaceBadgeWithValue(value),
+      render: value => renderNamespaceBadgeWithValue(namespaceDisplayLookup[value] || value),
     },
     {
       title: 'Host Name',

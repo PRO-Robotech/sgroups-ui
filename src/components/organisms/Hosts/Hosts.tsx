@@ -8,7 +8,13 @@ import { TenantSelector } from 'components'
 import { useContentCardHeight } from 'hooks/useContentCardHeight'
 import { useTableBodyHeight } from 'hooks/useTableBodyHeight'
 import { RootState } from 'store/store'
-import { getDeleteModalResource, getSgroupsTableProps, TDeleteModalResource } from 'utils'
+import {
+  getDeleteModalResource,
+  getNamespaceDisplayLookup,
+  getSgroupsTableProps,
+  TDeleteModalResource,
+  TNamespaceResource,
+} from 'utils'
 import { SgroupsDeleteModal } from 'utils/SgroupsDeleteModal'
 import { HostFormModal, VerboseHostPanel } from './molecules'
 import { Styled } from './styled'
@@ -79,6 +85,14 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
     plural: 'hosts',
     isEnabled: Boolean(cluster),
   })
+  const { data: tenantsData } = useK8sSmartResource<{ items: TNamespaceResource[] }>({
+    cluster: cluster || '',
+    apiGroup: 'sgroups.io',
+    apiVersion: 'v1alpha1',
+    plural: 'tenants',
+    isEnabled: Boolean(cluster),
+  })
+  const namespaceDisplayLookup = useMemo(() => getNamespaceDisplayLookup(tenantsData?.items), [tenantsData?.items])
 
   const openCreateModal = useCallback(() => {
     setFormModalInstanceKey(currentValue => currentValue + 1)
@@ -99,9 +113,9 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
 
   const openDeleteModal = useCallback(
     (hostRecord: THostRow) => {
-      setDeletingHost(getDeleteModalResource(cluster || '', namespace, 'hosts', hostRecord))
+      setDeletingHost(getDeleteModalResource(cluster || '', namespace, 'hosts', hostRecord, namespaceDisplayLookup))
     },
-    [cluster, namespace],
+    [cluster, namespace, namespaceDisplayLookup],
   )
 
   const closeDeleteModal = useCallback(() => {
@@ -139,12 +153,13 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
   const columns = useMemo(
     () =>
       buildHostsColumns({
+        namespaceDisplayLookup,
         onDelete: openDeleteModal,
         onEdit: openEditModal,
         onNft: openNftPage,
         onSocketStats: openSocketStatsPage,
       }),
-    [openDeleteModal, openEditModal, openNftPage, openSocketStatsPage],
+    [namespaceDisplayLookup, openDeleteModal, openEditModal, openNftPage, openSocketStatsPage],
   )
   const dataSource = useMemo(() => mapHostsToRows(hostsData?.items || []), [hostsData?.items])
   const selectedHost = useMemo(
@@ -279,6 +294,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
                         cluster={cluster}
                         namespace={namespace}
                         host={selectedHost}
+                        namespaceDisplayLookup={namespaceDisplayLookup}
                         width={verboseWidth}
                         onClose={closeVerbose}
                         onCollapse={collapseVerbose}
@@ -294,6 +310,7 @@ export const Hosts: FC<THostsProps> = ({ cluster, namespace }) => {
                     cluster={cluster}
                     namespace={namespace}
                     host={selectedHost}
+                    namespaceDisplayLookup={namespaceDisplayLookup}
                     onClose={closeVerbose}
                     onCollapse={collapseVerbose}
                     onExpand={expandVerbose}

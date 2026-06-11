@@ -49,6 +49,7 @@ import {
   renderBadgeWithValue,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 import { buildRuleEndpointTree } from './contentsTree'
 import {
@@ -63,6 +64,7 @@ type TVerboseRulePanelProps = {
   cluster?: string
   namespace?: string
   rule: TRuleRow
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
   width?: number
   onClose: () => void
   onExpand: () => void
@@ -81,7 +83,11 @@ const renderAction = (value?: string) => {
   return <InfoTag color={value === 'Allow' ? 'green' : 'red'}>{value}</InfoTag>
 }
 
-const renderEndpointSummary = (endpoint?: TRuleEndpoint, endpointDisplayLookup: TEndpointDisplayLookup = {}) => {
+const renderEndpointSummary = (
+  endpoint?: TRuleEndpoint,
+  endpointDisplayLookup: TEndpointDisplayLookup = {},
+  namespaceDisplayLookup: TNamespaceDisplayLookup = {},
+) => {
   if (!endpoint) {
     return '-'
   }
@@ -90,7 +96,7 @@ const renderEndpointSummary = (endpoint?: TRuleEndpoint, endpointDisplayLookup: 
     return endpoint.value || '-'
   }
 
-  return renderEndpointLabel(endpoint, endpointDisplayLookup)
+  return renderEndpointLabel(endpoint, endpointDisplayLookup, namespaceDisplayLookup)
 }
 
 const TagList: FC<{ values: string[] }> = ({ values }) => {
@@ -188,6 +194,7 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
   cluster,
   namespace,
   rule,
+  namespaceDisplayLookup = {},
   width,
   onClose,
   onExpand,
@@ -390,7 +397,13 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
         <OverflowContainer>
           <SpecGrid>
             <Typography.Text type="secondary">Tenant</Typography.Text>
-            <div>{renderNamespaceBadgeWithValue(rule.metadata.namespace)}</div>
+            <div>
+              {renderNamespaceBadgeWithValue(
+                rule.metadata.namespace
+                  ? namespaceDisplayLookup[rule.metadata.namespace] || rule.metadata.namespace
+                  : undefined,
+              )}
+            </div>
 
             <Typography.Text type="secondary">Action</Typography.Text>
             <div>{renderAction(rule.spec?.action)}</div>
@@ -410,10 +423,14 @@ export const VerboseRulePanel: FC<TVerboseRulePanelProps> = ({
             </div>
 
             <Typography.Text type="secondary">Local</Typography.Text>
-            <div>{renderEndpointSummary(rule.spec?.endpoints?.local, endpointDisplayLookup)}</div>
+            <div>
+              {renderEndpointSummary(rule.spec?.endpoints?.local, endpointDisplayLookup, namespaceDisplayLookup)}
+            </div>
 
             <Typography.Text type="secondary">Remote</Typography.Text>
-            <div>{renderEndpointSummary(rule.spec?.endpoints?.remote, endpointDisplayLookup)}</div>
+            <div>
+              {renderEndpointSummary(rule.spec?.endpoints?.remote, endpointDisplayLookup, namespaceDisplayLookup)}
+            </div>
 
             <Typography.Text type="secondary">Description</Typography.Text>
             <div>{renderValue(rule.spec?.description)}</div>

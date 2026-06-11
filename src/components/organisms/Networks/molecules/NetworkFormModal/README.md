@@ -23,6 +23,7 @@ On narrow screens, the overview sidebar is hidden and the form keeps the same in
 The form stores UI-friendly values:
 
 - `namespace` and `name` identify the Network. `name` is hidden in create and edit; create mode generates a UUID value and keeps it registered in the form store.
+- Tenant option labels and search text use `spec.displayName`, falling back to `metadata.name`; option values remain `metadata.name` for API namespaces.
 - `displayName`, `CIDR`, `description`, and `comment` map to editable `spec` fields. In edit mode, `displayName` is edited from the title pencil instead of a body form row.
 - `addressGroupNamespace` is hidden compatibility state and mirrors the Network namespace. AddressGroup options are loaded across namespaces, not from this field.
 - `addressGroups` stores selected AddressGroups as namespaced values.

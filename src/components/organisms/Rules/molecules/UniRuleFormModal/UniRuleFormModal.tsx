@@ -5,7 +5,8 @@ import { FC, useEffect, useMemo, useRef, useState } from 'react'
 import { CaretDownOutlined, MinusOutlined, PlusOutlined } from '@ant-design/icons'
 import { Button, Cascader, Collapse, Empty, Form, Input, message, Modal, Segmented, Select, Spin, Tree } from 'antd'
 import type { TreeDataNode } from 'antd'
-import { useQueryClient } from '@tanstack/react-query'
+import axios from 'axios'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createNewEntry, TSingleResource, useK8sSmartResource } from '@prorobotech/openapi-k8s-toolkit'
 import { v4 as uuidv4 } from 'uuid'
 import {
@@ -23,6 +24,7 @@ import {
   API_VERSION,
   FQDN_PATTERN,
   getApiEndpoint,
+  getNamespacedResourceOptions,
   getNamespacedResourceCascaderOptions,
   getNamespacedResourceCascaderValue,
   getNamespacedResourceFromCascaderValue,
@@ -30,7 +32,6 @@ import {
   IPV_OPTIONS,
   NAME_PATTERN,
   normalizeOptionalString,
-  normalizeTrafficValue,
   PORT_VALUE_SEPARATOR,
   PROTOCOL_OPTIONS,
   EditableResourceTitle,
@@ -49,9 +50,10 @@ import {
   buildOverviewTreeData,
   buildTransportPayload,
   ENDPOINT_TYPE_OPTIONS,
+  getTrafficOptionsForEndpoints,
   LOCAL_ENDPOINT_TYPE_OPTIONS,
+  normalizeRuleTrafficForEndpoints,
   patchRuleSpec,
-  TRAFFIC_OPTIONS,
 } from './utils'
 import { Styled } from './styled'
 
@@ -72,7 +74,6 @@ const DISPLAY_NAME_RULES = [
   },
 ]
 const ACTION_VALUES = ACTION_OPTIONS.map(option => option.value)
-const TRAFFIC_VALUES = TRAFFIC_OPTIONS.map(option => option.value)
 const ENDPOINT_TYPE_VALUES = ENDPOINT_TYPE_OPTIONS.map(option => option.value)
 const LOCAL_ENDPOINT_TYPE_VALUES = LOCAL_ENDPOINT_TYPE_OPTIONS.map(option => option.value)
 const IPV_VALUES = IPV_OPTIONS.map(option => option.value)
@@ -90,9 +91,14 @@ const hasTransportEntryValue = (entry?: TTransportEntryFormValue) =>
 
 const hasTransportEntries = (entries?: TUniRuleFormValues['transportEntries']) =>
   (entries || []).some(entry => hasTransportEntryValue(entry))
+const EMPTY_TRANSPORT_ENTRY: TTransportEntryFormValue = {
+  ports: undefined,
+  types: undefined,
+  description: undefined,
+  comment: undefined,
+}
 
 const isActionValue = (value?: string) => ACTION_VALUES.some(optionValue => optionValue === value)
-const isTrafficValue = (value?: string) => TRAFFIC_VALUES.some(optionValue => optionValue === value)
 const isEndpointTypeValue = (value?: string) => ENDPOINT_TYPE_VALUES.some(optionValue => optionValue === value)
 const isLocalEndpointTypeValue = (value?: string) =>
   LOCAL_ENDPOINT_TYPE_VALUES.some(optionValue => optionValue === value)
@@ -119,6 +125,45 @@ const withFallbackNamespace = <TResource extends { metadata: { namespace?: strin
         },
   )
 
+const withForcedNamespace = <TResource extends { metadata: { namespace?: string } }>(
+  items: TResource[] | undefined,
+  namespaceValue?: string,
+) =>
+  items?.map(item =>
+    !namespaceValue
+      ? item
+      : {
+          ...item,
+          metadata: {
+            ...item.metadata,
+            namespace: namespaceValue,
+          },
+        },
+  )
+
+const getLocalEndpointOptions = (
+  items: Array<{ metadata: { name?: string; namespace?: string }; spec?: { displayName?: string } }> | undefined,
+  namespaceValue: string | undefined,
+  badgeLabel: 'AddressGroup' | 'Service',
+) =>
+  getNamespacedResourceOptions(withForcedNamespace(items, namespaceValue), badgeLabel, { showNamespace: false }).map(
+    option => ({
+      ...option,
+      value: option.value.replace(`${namespaceValue || ''}/`, ''),
+    }),
+  )
+
+const withInitialTransportEntry = <TValues extends Partial<TUniRuleFormValues>>(values: TValues): TValues => {
+  if (!values.transportProtocol || values.transportEntries?.length) {
+    return values
+  }
+
+  return {
+    ...values,
+    transportEntries: [{ ...EMPTY_TRANSPORT_ENTRY }],
+  }
+}
+
 export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
   cluster,
   namespace,
@@ -129,11 +174,13 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
 }) => {
   const [form] = Form.useForm<TUniRuleFormValues>()
   const [activeTab, setActiveTab] = useState<'info' | 'ports'>('info')
+  const [activeTransportEntryKeys, setActiveTransportEntryKeys] = useState<string[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isInitialized, setIsInitialized] = useState(false)
   const didApplyEditPrefillRef = useRef(false)
   const didApplyCreatePrefillRef = useRef(false)
   const queryClient = useQueryClient()
+  const ruleNamespaceFormValue = Form.useWatch('namespace', form)
   const localFormValue = Form.useWatch('local', form) as TUniRuleFormValues['local'] | undefined
   const remoteFormValue = Form.useWatch('remote', form) as TUniRuleFormValues['remote'] | undefined
   const isEditMode = Boolean(rule)
@@ -179,10 +226,23 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     (!isInitialized ? (rule ? currentRuleFormValues.remote : initialCreateFormValues.remote) : undefined)
   const localType = localFormEndpoint?.type
   const remoteType = remoteFormEndpoint?.type
-  const localNamespace = localFormEndpoint?.namespace
+  const ruleNamespace =
+    ruleNamespaceFormValue ??
+    (!isInitialized ? rule?.metadata.namespace || initialCreateFormValues.namespace : undefined)
+  const localNamespace = ruleNamespace
   const remoteNamespace = remoteFormEndpoint?.namespace
   const isLocalAddressGroupsQueryEnabled = open && localType === 'AddressGroup' && Boolean(localNamespace)
   const isRemoteAddressGroupsQueryEnabled = open && remoteType === 'AddressGroup' && Boolean(remoteNamespace)
+  const trafficOptions = useMemo(
+    () =>
+      getTrafficOptionsForEndpoints({
+        local: localFormEndpoint,
+        remote: remoteFormEndpoint,
+      }),
+    [localFormEndpoint, remoteFormEndpoint],
+  )
+  const trafficValues = useMemo(() => trafficOptions.map(option => option.value), [trafficOptions])
+  const fallbackTraffic = trafficValues[0]
 
   const {
     data: tenantsData,
@@ -196,15 +256,16 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     isEnabled: open,
   })
 
-  const { data: localAddressGroupsData, isLoading: isLocalAddressGroupsLoading } = useK8sSmartResource<{
-    items: TAddressGroupResource[]
-  }>({
-    cluster,
-    namespace: localNamespace,
-    apiGroup: API_GROUP,
-    apiVersion: API_VERSION,
-    plural: 'addressgroups',
-    isEnabled: isLocalAddressGroupsQueryEnabled,
+  const { data: localAddressGroupsData, isLoading: isLocalAddressGroupsLoading } = useQuery({
+    queryKey: ['rule-local-endpoint-options', cluster, ruleNamespace, 'addressgroups'],
+    queryFn: async () => {
+      const response = await axios.get<{ items: TAddressGroupResource[] }>(
+        getApiEndpoint(cluster, ruleNamespace || '', 'addressgroups'),
+      )
+
+      return response.data
+    },
+    enabled: isLocalAddressGroupsQueryEnabled,
   })
 
   const { data: remoteAddressGroupsData, isLoading: isRemoteAddressGroupsLoading } = useK8sSmartResource<{
@@ -236,6 +297,18 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     apiVersion: API_VERSION,
     plural: 'services',
     isEnabled: open,
+  })
+
+  const { data: localServicesData, isLoading: isLocalServicesLoading } = useQuery({
+    queryKey: ['rule-local-endpoint-options', cluster, ruleNamespace, 'services'],
+    queryFn: async () => {
+      const response = await axios.get<{ items: TServiceResource[] }>(
+        getApiEndpoint(cluster, ruleNamespace || '', 'services'),
+      )
+
+      return response.data
+    },
+    enabled: open && localType === 'Service' && Boolean(ruleNamespace),
   })
 
   const { data: hostBindingsData, isLoading: isHostBindingsLoading } = useK8sSmartResource<{
@@ -332,6 +405,14 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
       }),
     [namespaceOptions, servicesData?.items],
   )
+  const localAddressGroupOptions = useMemo(
+    () => getLocalEndpointOptions(localAddressGroupsData?.items, ruleNamespace, 'AddressGroup'),
+    [localAddressGroupsData?.items, ruleNamespace],
+  )
+  const localServiceOptions = useMemo(
+    () => getLocalEndpointOptions(localServicesData?.items, ruleNamespace, 'Service'),
+    [localServicesData?.items, ruleNamespace],
+  )
   const localEndpoint = useMemo(() => buildEndpointPayload(localFormEndpoint), [localFormEndpoint])
   const remoteEndpoint = useMemo(() => buildEndpointPayload(remoteFormEndpoint), [remoteFormEndpoint])
   const isLocalEndpointChanged = useMemo(
@@ -346,7 +427,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
       JSON.stringify(remoteEndpoint) !== JSON.stringify(buildEndpointPayload(currentRuleFormValues.remote)),
     [currentRuleFormValues.remote, remoteEndpoint, rule],
   )
-  const localResourceOptions = localType === 'Service' ? serviceCascaderOptions : addressGroupCascaderOptions
+  const localResourceOptions = localType === 'Service' ? localServiceOptions : localAddressGroupOptions
   const remoteResourceOptions = remoteType === 'Service' ? serviceCascaderOptions : addressGroupCascaderOptions
   const localTreeData = useMemo<TreeDataNode[]>(
     () =>
@@ -417,7 +498,8 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
       isHostsLoading ||
       isNetworksLoading)
   const areEndpointOptionsLoading =
-    ((localType === 'Service' || remoteType === 'Service') && isServicesLoading) ||
+    (localType === 'Service' && isLocalServicesLoading) ||
+    (remoteType === 'Service' && isServicesLoading) ||
     (isLocalAddressGroupsQueryEnabled && isLocalAddressGroupsLoading) ||
     (isRemoteAddressGroupsQueryEnabled && isRemoteAddressGroupsLoading)
   const isFormResourcesLoading = isTenantsLoading || Boolean(rule && areEndpointOptionsLoading)
@@ -434,18 +516,40 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
 
     if (rule && !isFormResourcesLoading && !didApplyEditPrefillRef.current) {
       didApplyEditPrefillRef.current = true
-      form.setFieldsValue(buildFormValuesFromRule(rule) as TUniRuleFormValues)
+      const nextValues = withInitialTransportEntry(buildFormValuesFromRule(rule))
+      nextValues.local = {
+        ...nextValues.local,
+        namespace: nextValues.namespace,
+      }
+
+      form.setFieldsValue(nextValues as TUniRuleFormValues)
+      setActiveTransportEntryKeys(
+        nextValues.transportEntries?.length === 1 && !hasTransportEntryValue(nextValues.transportEntries[0])
+          ? ['0']
+          : [],
+      )
       setIsInitialized(true)
       return
     }
 
     if (!rule && !isFormResourcesLoading && !didApplyCreatePrefillRef.current) {
       didApplyCreatePrefillRef.current = true
-      form.setFieldsValue({
+      const nextValues = withInitialTransportEntry({
         name: uuidv4(),
         displayName: getCreateDisplayName(),
         ...initialCreateFormValues,
       })
+      nextValues.local = {
+        ...nextValues.local,
+        namespace: nextValues.namespace,
+      }
+
+      form.setFieldsValue(nextValues)
+      setActiveTransportEntryKeys(
+        nextValues.transportEntries?.length === 1 && !hasTransportEntryValue(nextValues.transportEntries[0])
+          ? ['0']
+          : [],
+      )
       setIsInitialized(true)
     }
   }, [form, initialCreateFormValues, isFormResourcesLoading, open, rule])
@@ -459,15 +563,35 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
     didApplyCreatePrefillRef.current = false
     setIsInitialized(false)
     setActiveTab('info')
+    setActiveTransportEntryKeys([])
     setIsSubmitting(false)
     form.resetFields()
   }, [form, open])
+
+  useEffect(() => {
+    const currentTraffic = form.getFieldValue('traffic')
+
+    if (!open || !isInitialized || trafficValues.includes(currentTraffic)) {
+      return
+    }
+
+    form.setFieldValue(
+      'traffic',
+      normalizeRuleTrafficForEndpoints({
+        local: localFormEndpoint,
+        remote: remoteFormEndpoint,
+        traffic: currentTraffic,
+      }) || fallbackTraffic,
+    )
+    void form.validateFields(['traffic']).catch(() => undefined)
+  }, [fallbackTraffic, form, isInitialized, localFormEndpoint, open, remoteFormEndpoint, trafficValues])
 
   const handleCancel = () => {
     didApplyEditPrefillRef.current = false
     didApplyCreatePrefillRef.current = false
     setIsInitialized(false)
     setActiveTab('info')
+    setActiveTransportEntryKeys([])
     setIsSubmitting(false)
     form.resetFields()
     onClose()
@@ -490,7 +614,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
 
     const localEndpoint = buildEndpointPayload(values.local)
     const remoteEndpoint = buildEndpointPayload(values.remote)
-    const traffic = normalizeTrafficValue(values.traffic)
+    const traffic = normalizeRuleTrafficForEndpoints(values)
 
     if (!localEndpoint || !remoteEndpoint) {
       message.error('Configure both local and remote endpoints')
@@ -563,6 +687,11 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
   }
 
   const handleFormValuesChange = (changedValues: Partial<TUniRuleFormValues>) => {
+    if (Object.prototype.hasOwnProperty.call(changedValues, 'namespace')) {
+      form.setFieldValue(['local', 'namespace'], changedValues.namespace)
+      form.setFieldValue(['local', 'name'], undefined)
+    }
+
     if (
       !Object.prototype.hasOwnProperty.call(changedValues, 'transportEntries') &&
       !Object.prototype.hasOwnProperty.call(changedValues, 'remote')
@@ -644,6 +773,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                     <Select
                       showSearch
                       placeholder="Select tenant"
+                      optionFilterProp="searchText"
                       options={namespaceOptions}
                       loading={isTenantsLoading}
                       disabled={isEditMode}
@@ -692,16 +822,16 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                       { required: true, message: 'Select traffic direction' },
                       {
                         validator: async (_, value?: string) => {
-                          if (isTrafficValue(value)) {
+                          if (trafficValues.some(optionValue => optionValue === value)) {
                             return
                           }
 
-                          throw new Error('Use Both, Ingress, or Egress')
+                          throw new Error(`Use ${trafficValues.join(', ')}`)
                         },
                       },
                     ]}
                   >
-                    <Select options={TRAFFIC_OPTIONS as unknown as { label: string; value: string }[]} />
+                    <Select options={trafficOptions as unknown as { label: string; value: string }[]} />
                   </Form.Item>
                   <Collapse
                     defaultActiveKey={['local', 'remote']}
@@ -730,7 +860,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                               <Select
                                 options={LOCAL_ENDPOINT_TYPE_OPTIONS as unknown as { label: string; value: string }[]}
                                 onChange={() => {
-                                  form.setFieldValue(['local', 'namespace'], undefined)
+                                  form.setFieldValue(['local', 'namespace'], ruleNamespace)
                                   form.setFieldValue(['local', 'name'], undefined)
                                   form.setFieldValue(['local', 'value'], undefined)
                                 }}
@@ -753,37 +883,21 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                                 <Form.Item
                                   name={['local', 'name']}
                                   label="Name"
-                                  getValueProps={value => ({
-                                    value: getNamespacedResourceCascaderValue({
-                                      namespace: localNamespace,
-                                      name: value,
-                                    }),
-                                  })}
-                                  getValueFromEvent={value => {
-                                    const nextValue = getNamespacedResourceFromCascaderValue(value)
-
-                                    form.setFieldValue(['local', 'namespace'], nextValue.namespace)
-
-                                    return nextValue.name
-                                  }}
                                   rules={[
                                     { required: true, message: 'Select resource' },
                                     { pattern: NAME_PATTERN, message: 'Use lowercase letters, numbers, and hyphens' },
                                     { max: 63, message: 'Name must be 63 characters or less' },
                                   ]}
                                 >
-                                  <Cascader
+                                  <Select
                                     showSearch
+                                    optionFilterProp="searchText"
                                     options={localResourceOptions}
-                                    displayRender={renderNamespacedResourceCascaderSelection(
-                                      localType === 'Service' ? 'Service' : 'AddressGroup',
-                                    )}
                                     placeholder={localType === 'Service' ? 'Select service' : 'Select address group'}
                                     loading={
-                                      isTenantsLoading ||
-                                      (localType === 'Service' ? isServicesLoading : isAllAddressGroupsLoading)
+                                      localType === 'Service' ? isLocalServicesLoading : isLocalAddressGroupsLoading
                                     }
-                                    disabled={isTenantsLoading || Boolean(tenantsError)}
+                                    disabled={!ruleNamespace}
                                   />
                                 </Form.Item>
                               </>
@@ -1032,8 +1146,15 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                       options={PROTOCOL_OPTIONS as unknown as { label: string; value: string }[]}
                       onChange={value => {
                         const entries = form.getFieldValue('transportEntries') as TUniRuleFormValues['transportEntries']
+                        const nextEntries =
+                          entries && entries.length > 0 ? entries : value ? [{ ...EMPTY_TRANSPORT_ENTRY }] : []
 
-                        ;(entries || []).forEach((_, index) => {
+                        if (nextEntries !== entries) {
+                          form.setFieldsValue({ transportEntries: nextEntries })
+                          setActiveTransportEntryKeys(value ? ['0'] : [])
+                        }
+
+                        nextEntries.forEach((_, index) => {
                           if (value === 'ICMP') {
                             form.setFieldValue(['transportEntries', index, 'ports'], undefined)
                           } else {
@@ -1050,8 +1171,12 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No transport entries" />
                         ) : null}
                         <Collapse
+                          activeKey={activeTransportEntryKeys}
+                          onChange={keys => setActiveTransportEntryKeys(Array.isArray(keys) ? keys : [keys])}
                           items={fields.map(field => {
-                            const { key: fieldKey, ...fieldItemProps } = field
+                            const fieldItemProps = {
+                              fieldKey: field.fieldKey,
+                            }
                             const protocol = form.getFieldValue('transportProtocol') as
                               | 'TCP'
                               | 'UDP'
@@ -1059,7 +1184,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                               | undefined
 
                             return {
-                              key: `transport-entry-${field.name}-${fieldKey}`,
+                              key: String(field.name),
                               label: `Port ${field.name + 1}`,
                               extra: (
                                 <Button
@@ -1067,6 +1192,7 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                                   icon={<MinusOutlined />}
                                   onClick={event => {
                                     event.stopPropagation()
+                                    setActiveTransportEntryKeys(keys => keys.filter(key => key !== String(field.name)))
                                     remove(field.name)
                                   }}
                                   aria-label={`Remove transport entry ${field.name + 1}`}
@@ -1146,7 +1272,13 @@ export const UniRuleFormModal: FC<TUniRuleFormModalProps> = ({
                           })}
                         />
                         <Styled.EntryActions>
-                          <Button type="dashed" onClick={() => add({})}>
+                          <Button
+                            type="dashed"
+                            onClick={() => {
+                              add({ ...EMPTY_TRANSPORT_ENTRY })
+                              setActiveTransportEntryKeys([String(fields.length)])
+                            }}
+                          >
                             <PlusOutlined />
                             Add transport entry
                           </Button>

@@ -27,6 +27,43 @@ export const TRAFFIC_OPTIONS = [
   { label: 'Egress', value: 'Egress' },
 ] as const
 
+export const DIRECTIONAL_TRAFFIC_OPTIONS = TRAFFIC_OPTIONS.filter(
+  option => option.value === 'Ingress' || option.value === 'Egress',
+)
+export const EGRESS_TRAFFIC_OPTIONS = TRAFFIC_OPTIONS.filter(option => option.value === 'Egress')
+
+export const isLocalRefToFqdnRule = (values?: Pick<TUniRuleFormValues, 'local' | 'remote'> | null) =>
+  (values?.local?.type === 'AddressGroup' || values?.local?.type === 'Service') && values.remote?.type === 'FQDN'
+
+export const isLocalRefToCidrRule = (values?: Pick<TUniRuleFormValues, 'local' | 'remote'> | null) =>
+  (values?.local?.type === 'AddressGroup' || values?.local?.type === 'Service') && values.remote?.type === 'CIDR'
+
+export const getTrafficOptionsForEndpoints = (values?: Pick<TUniRuleFormValues, 'local' | 'remote'> | null) => {
+  if (isLocalRefToFqdnRule(values)) {
+    return EGRESS_TRAFFIC_OPTIONS
+  }
+
+  if (isLocalRefToCidrRule(values)) {
+    return DIRECTIONAL_TRAFFIC_OPTIONS
+  }
+
+  return TRAFFIC_OPTIONS
+}
+
+export const normalizeRuleTrafficForEndpoints = (values: Pick<TUniRuleFormValues, 'local' | 'remote' | 'traffic'>) => {
+  if (isLocalRefToFqdnRule(values)) {
+    return 'Egress'
+  }
+
+  if (isLocalRefToCidrRule(values)) {
+    const normalizedTraffic = normalizeTrafficValue(values.traffic)
+
+    return normalizedTraffic === 'Ingress' ? 'Ingress' : 'Egress'
+  }
+
+  return normalizeTrafficValue(values.traffic)
+}
+
 export const buildEndpointPayload = (endpoint?: TEndpointFormValues): TRuleEndpoint | undefined => {
   if (!endpoint?.type) {
     return undefined
@@ -179,7 +216,7 @@ export const patchRuleSpec = async (endpoint: string, currentRule: TRuleResource
   const nextLocal = buildEndpointPayload(values.local)
   const nextRemote = buildEndpointPayload(values.remote)
   const nextTransport = buildTransportPayload(values)
-  const nextTraffic = normalizeTrafficValue(values.traffic)
+  const nextTraffic = normalizeRuleTrafficForEndpoints(values)
   const currentTraffic = normalizeTrafficValue(currentRule.spec?.session?.traffic)
 
   ;(

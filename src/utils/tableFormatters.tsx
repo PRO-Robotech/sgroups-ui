@@ -193,7 +193,12 @@ export const renderBadgeWithValue = (badgeValue: string, value?: ReactNode, disp
 
 export const renderNamespaceBadgeWithValue = (value?: string) => renderBadgeWithValue('Tenant', value)
 
-export const renderNamespacedResourceValue = (badgeValue: string, namespace?: string, value?: ReactNode) => {
+export const renderNamespacedResourceValue = (
+  badgeValue: string,
+  namespace?: string,
+  value?: ReactNode,
+  namespaceDisplayValue?: ReactNode,
+) => {
   if (!namespace) {
     return renderBadgeWithValue(badgeValue, value)
   }
@@ -211,7 +216,7 @@ export const renderNamespacedResourceValue = (badgeValue: string, namespace?: st
         whiteSpace: 'nowrap',
       },
     },
-    renderNamespaceBadgeWithValue(namespace),
+    renderNamespaceBadgeWithValue(String(namespaceDisplayValue || namespace)),
     React.createElement('span', { style: { flexShrink: 0 } }, '/'),
     renderBadgeWithValue(badgeValue, value),
   )

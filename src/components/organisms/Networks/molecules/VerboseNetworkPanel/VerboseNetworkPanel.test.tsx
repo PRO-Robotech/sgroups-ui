@@ -81,6 +81,7 @@ describe('VerboseNetworkPanel', () => {
             refs: [{ kind: 'NetworkBinding', namespace: 'tenant-a', name: 'network-binding-a' }],
           } as any
         }
+        namespaceDisplayLookup={{ 'tenant-a': 'Tenant A' }}
         onClose={jest.fn()}
         onExpand={jest.fn()}
         onCollapse={jest.fn()}
@@ -88,6 +89,7 @@ describe('VerboseNetworkPanel', () => {
     )
 
     expect(screen.getByText('Network A')).toBeInTheDocument()
+    expect(screen.getByText('Tenant A')).toBeInTheDocument()
     expect(screen.queryByText('Display Name')).not.toBeInTheDocument()
     expect(screen.getByText('10.0.0.0/24')).toBeInTheDocument()
     expect(screen.getByText('Production subnet')).toBeInTheDocument()

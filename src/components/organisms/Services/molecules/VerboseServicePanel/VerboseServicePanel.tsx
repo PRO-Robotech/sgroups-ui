@@ -43,6 +43,7 @@ import {
   renderLinkedTreeResourceTitle,
   renderNamespaceBadgeWithValue,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 import { TServiceRow, TServiceTransport, TServiceTransportEntry } from '../../tableConfig'
 
@@ -50,6 +51,7 @@ type TVerboseServicePanelProps = {
   cluster?: string
   namespace?: string
   service: TServiceRow
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
   width?: number
   onClose: () => void
   onExpand: () => void
@@ -281,6 +283,7 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
   cluster,
   namespace,
   service,
+  namespaceDisplayLookup = {},
   width,
   onClose,
   onExpand,
@@ -362,7 +365,13 @@ export const VerboseServicePanel: FC<TVerboseServicePanelProps> = ({
         <OverflowContainer>
           <SpecGrid>
             <Typography.Text type="secondary">Tenant</Typography.Text>
-            <div>{renderNamespaceBadgeWithValue(service.metadata.namespace)}</div>
+            <div>
+              {renderNamespaceBadgeWithValue(
+                service.metadata.namespace
+                  ? namespaceDisplayLookup[service.metadata.namespace] || service.metadata.namespace
+                  : undefined,
+              )}
+            </div>
 
             <Typography.Text type="secondary">Description</Typography.Text>
             <div>{renderValue(service.spec?.description)}</div>

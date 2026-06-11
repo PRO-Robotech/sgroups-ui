@@ -6,6 +6,7 @@ import {
   renderNamespaceBadgeWithValue,
   renderTableActionsDropdown,
   renderTimestampWithIcon,
+  TNamespaceDisplayLookup,
 } from 'utils'
 
 export type TNetworkRef = {
@@ -44,6 +45,7 @@ export type TNetworkRow = TNetworkResource & {
 type TBuildNetworksColumnsParams = {
   onEdit?: (record: TNetworkRow) => void
   onDelete?: (record: TNetworkRow) => void
+  namespaceDisplayLookup?: TNamespaceDisplayLookup
 }
 
 const EMPTY_VALUE = '-'
@@ -64,6 +66,7 @@ export const mapNetworksToRows = (items: TNetworkResource[]): TNetworkRow[] =>
 export const buildNetworksColumns = ({
   onDelete,
   onEdit,
+  namespaceDisplayLookup = {},
 }: TBuildNetworksColumnsParams = {}): ColumnsType<TNetworkRow> => {
   const columns: ColumnsType<TNetworkRow> = [
     {
@@ -88,7 +91,7 @@ export const buildNetworksColumns = ({
       key: 'namespace',
       width: 180,
       sorter: (a, b) => stringSorter(a.metadata.namespace, b.metadata.namespace),
-      render: value => renderNamespaceBadgeWithValue(value),
+      render: value => renderNamespaceBadgeWithValue(namespaceDisplayLookup[value] || value),
     },
     {
       title: 'CIDR',
